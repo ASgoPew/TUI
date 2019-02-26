@@ -3,31 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Xna.Framework;
 
 namespace TUI
 {
-    public class VisualDOM<T> : IDOM<T>, IVisual<T>
+    public class VisualDOM<T> : IDOM<T>, IVisual<T>, ICloneable
         where T : VisualDOM<T>
     {
         #region Data
 
-        public static Indentation DefaultGridIndentation = new Indentation();
-        public static Indentation DefaultIndentation = new Indentation();
-        public static Alignment DefaultAlignment = Alignment.Center;
-        public static Direction DefaultDirection = Direction.Down;
-        public static Side DefaultSide = Side.Center;
-        public static bool DefaultFull = false;
+        public readonly Indentation DefaultGridIndentation = new Indentation();
+        public readonly Indentation DefaultIndentation = new Indentation();
+        public const Alignment DefaultAlignment = Alignment.Center;
+        public const Direction DefaultDirection = Direction.Down;
+        public const Side DefaultSide = Side.Center;
+        public const bool DefaultFull = false;
 
-        IEnumerable<Point> AbsolutePoints => GetAbsolutePoints();
+        IEnumerable<(int, int)> AbsolutePoints => GetAbsolutePoints();
         
-        //public UI UI { get; private set; }
         public bool Enabled { get; set; }
-        public GridConfiguration GridConfig { get; private set; }
         public GridCell<T>[,] Grid { get; private set; }
         public GridCell<T> Cell { get; private set; }
-        public PaddingData PaddingData { get; set; }
-        public Action<T> CustomUpdateAction { get; set; } = null;
+        public Action<T> CustomUpdateAction { get; set; }
+        public UIConfiguration Configuration { get; set; }
 
         #endregion
 
@@ -37,7 +34,6 @@ namespace TUI
 
             public List<T> Child { get; private set; }
             public T Parent { get; private set; }
-            public bool Rootable { get; set; }
 
             public IEnumerable<T> DescendantDFS => GetDescendantDFS();
             public IEnumerable<T> DescendantBFS => GetDescendantBFS();
@@ -46,11 +42,10 @@ namespace TUI
 
             #region Initialize
 
-            public void InitializeDOM(bool rootable)
+            public void InitializeDOM()
             {
                 Child = new List<T>();
                 Parent = null;
-                Rootable = rootable;
             }
 
             #endregion
@@ -60,31 +55,24 @@ namespace TUI
             {
                 Child.Add(child);
                 child.Parent = (T)this;
-
-                if (UI != null && child.UI == null)
-                    foreach (T o in child.GetDescendantBFS())
-                        o.UI = UI;
-
                 return child;
             }
 
             #endregion
             #region Remove
 
-            public virtual bool Remove(T child)
+            public virtual T Remove(T child)
             {
-                bool result = Child.Remove(child);
-
-                if (result)
+                if (Child.Remove(child))
                 {
                     if (child.Cell != null)
                     {
                         child.Cell.Objects.Remove(child);
                         child.Cell = null;
                     }
-                    return true;
+                    return child;
                 }
-                return false;
+                return null;
             }
 
             #endregion
@@ -116,14 +104,8 @@ namespace TUI
             public T GetRoot()
             {
                 T node = (T)this;
-
                 while (node.Parent != null)
-                {
                     node = (T)node.Parent;
-                    if (node.Rootable)
-                        return node;
-                }
-
                 return node;
             }
 
@@ -165,44 +147,44 @@ namespace TUI
             #endregion
             #region DFS, BFS
 
-        private void DFS(List<T> list)
-        {
-            list.Add((T)this);
-            foreach (T child in Child)
-                child.DFS(list);
-        }
-
-        private void BFS(List<T> list)
-        {
-            list.Add((T)this);
-            int index = 0;
-            while (index < list.Count)
+            private void DFS(List<T> list)
             {
-                foreach (T o in list[index].Child)
-                    list.Add(o);
-                index++;
+                list.Add((T)this);
+                foreach (T child in Child)
+                    child.DFS(list);
             }
-        }
 
-        private IEnumerable<T> GetDescendantDFS()
-        {
-            List<T> list = new List<T>();
-            DFS(list);
+            private void BFS(List<T> list)
+            {
+                list.Add((T)this);
+                int index = 0;
+                while (index < list.Count)
+                {
+                    foreach (T o in list[index].Child)
+                        list.Add(o);
+                    index++;
+                }
+            }
 
-            foreach (T o in list)
-                yield return o;
-        }
+            private IEnumerable<T> GetDescendantDFS()
+            {
+                List<T> list = new List<T>();
+                DFS(list);
 
-        private IEnumerable<T> GetDescendantBFS()
-        {
-            List<T> list = new List<T>();
-            BFS(list);
+                foreach (T o in list)
+                    yield return o;
+            }
 
-            foreach (T o in list)
-                yield return o;
-        }
+            private IEnumerable<T> GetDescendantBFS()
+            {
+                List<T> list = new List<T>();
+                BFS(list);
 
-        #endregion
+                foreach (T o in list)
+                    yield return o;
+            }
+
+            #endregion
 
         #endregion
         #region IVisual
@@ -214,8 +196,8 @@ namespace TUI
             public int Width { get; set; }
             public int Height { get; set; }
 
-            public IEnumerable<Point> Points => GetPoints();
-            public (int X, int Y, int Width, int Height) Padding(PaddingData paddingData) =>
+            public IEnumerable<(int, int)> Points => GetPoints();
+            public (int X, int Y, int Width, int Height) Padding(PaddingConfig paddingData) =>
                 UI.Padding(X, Y, Width, Height, paddingData);
 
             #endregion
@@ -276,45 +258,50 @@ namespace TUI
             #endregion
             #region Contains, Intersecting
 
-            public bool Contains(int x, int y)
-            {
-                return x >= X && y >= Y && x < X + Width && y < Y + Height;
-            }
+            public bool Contains(int x, int y) =>
+                x >= X && y >= Y && x < X + Width && y < Y + Height;
 
-            public bool Intersecting(int x, int y, int width, int height)
-            {
-                return x < X + Width && X < x + width && y < Y + Height && Y < y + height;
-            }
+            public bool Intersecting(int x, int y, int width, int height) =>
+                x < X + Width && X < x + width && y < Y + Height && Y < y + height;
 
-            public bool Intersecting((int x, int y, int width, int height) data)
-            {
-                return data.x < X + Width && X < data.x + data.width && data.y < Y + Height && Y < data.y + data.height;
-            }
+            public bool Intersecting(T o) => Intersecting(o.X, o.Y, o.Width, o.Height);
 
-        #endregion
+            #endregion
             #region Points
 
-            private IEnumerable<Point> GetPoints()
+            private IEnumerable<(int, int)> GetPoints()
             {
                 for (int x = X; x < X + Width; x++)
                     for (int y = Y; y < Y + Height; y++)
-                        yield return new Point(x, y);
+                        yield return (x, y);
             }
             #endregion
+
+        #endregion
+        #region ICloneable
+
+        public object Clone()
+        {
+            return new VisualDOM<T>(X, Y, Width, Height, (UIConfiguration)Configuration.Clone())
+            {
+                CustomUpdateAction = CustomUpdateAction
+            };
+        }
 
         #endregion
 
         #region Initialize
 
-        public VisualDOM(int x, int y, int width, int height, GridConfiguration gridConfig = null, bool rootable = false)
+        public VisualDOM(int x, int y, int width, int height, UIConfiguration configuration)
         {
-            InitializeDOM(rootable);
+            InitializeDOM();
             InitializeVisual(x, y, width, height);
 
             Enabled = true;
+            Configuration = configuration;
 
-            if (gridConfig != null)
-                SetupGrid(gridConfig);
+            if (Configuration.Grid != null)
+                SetupGrid(Configuration.Grid);
         }
 
         #endregion
@@ -355,15 +342,15 @@ namespace TUI
 
         public void SetupGrid(GridConfiguration gridConfig)
         {
-            GridConfig = gridConfig;
+            Configuration.Grid = gridConfig;
 
-            if (GridConfig.Columns == null)
-                GridConfig.Columns = new ISize[] { new Relative(100) };
-            if (GridConfig.Lines == null)
-                GridConfig.Lines = new ISize[] { new Relative(100) };
-            Grid = new GridCell<T>[GridConfig.Columns.Length, GridConfig.Lines.Length];
-            for (int i = 0; i < GridConfig.Columns.Length; i++)
-                for (int j = 0; j < GridConfig.Lines.Length; j++)
+            if (gridConfig.Columns == null)
+                gridConfig.Columns = new ISize[] { new Relative(100) };
+            if (gridConfig.Lines == null)
+                gridConfig.Lines = new ISize[] { new Relative(100) };
+            Grid = new GridCell<T>[gridConfig.Columns.Length, gridConfig.Lines.Length];
+            for (int i = 0; i < gridConfig.Columns.Length; i++)
+                for (int j = 0; j < gridConfig.Lines.Length; j++)
                     Grid[i, j] = new GridCell<T>(i, j);
         }
 
@@ -391,12 +378,12 @@ namespace TUI
         #endregion
         #region AbsolutePoints
         
-        private IEnumerable<Point> GetAbsolutePoints()
+        private IEnumerable<(int, int)> GetAbsolutePoints()
         {
             (int x, int y, int width, int height) = AbsoluteXYWH();
             for (int _x = x; _x < x + Width; _x++)
                 for (int _y = y; _y < y + Height; _y++)
-                    yield return new Point(_x, _y);
+                    yield return (_x, _y);
         }
 
         #endregion
@@ -416,7 +403,7 @@ namespace TUI
 
         public virtual T UpdateThis()
         {
-            if (GridConfig != null)
+            if (Configuration.Grid != null)
                 UpdateGrid();
             UpdateChildPadding();
             CustomUpdate();
@@ -429,9 +416,10 @@ namespace TUI
         public T UpdateGrid()
         {
             // Checking grid validity
-            ISize[] columnSizes = GridConfig.Columns;
-            ISize[] lineSizes = GridConfig.Lines;
-            Indentation gridIndentation = GridConfig.Indentation ?? DefaultGridIndentation;
+            GridConfiguration gridConfig = Configuration.Grid;
+            ISize[] columnSizes = gridConfig.Columns;
+            ISize[] lineSizes = gridConfig.Lines;
+            Indentation gridIndentation = gridConfig.Indentation ?? DefaultGridIndentation;
             int maxW = 0, maxRelativeW = 0;
 		    for (int i = 0; i < columnSizes.Length; i++)
             {
@@ -487,11 +475,11 @@ namespace TUI
                         movedHCounter = HCounter + (lineSize * 10) * relativeH + gridIndentation.Vertical;
                     GridCell<T> cell = Grid[i, j];
 
-                    Direction direction = cell.Direction ?? GridConfig.Direction ?? DefaultDirection;
-                    Alignment alignment = cell.Alignment ?? GridConfig.Alignment ?? DefaultAlignment;
-                    Side side = cell.Side ?? GridConfig.Side ?? DefaultSide;
-                    Indentation indentation = cell.Indentation ?? GridConfig.Indentation ?? DefaultIndentation;
-                    bool full = cell.Full ?? GridConfig.Full ?? DefaultFull;
+                    Direction direction = cell.Direction ?? gridConfig.Direction ?? DefaultDirection;
+                    Alignment alignment = cell.Alignment ?? gridConfig.Alignment ?? DefaultAlignment;
+                    Side side = cell.Side ?? gridConfig.Side ?? DefaultSide;
+                    Indentation indentation = cell.Indentation ?? gridConfig.Indentation ?? DefaultIndentation;
+                    bool full = cell.Full ?? gridConfig.Full ?? DefaultFull;
 
                     // Calculating cell position
                     cell.X = WCounter;
@@ -564,7 +552,7 @@ namespace TUI
                         for (int k = 0; k < cell.Objects.Count; k++)
                         {
                             T obj = cell.Objects[k];
-						    if (obj.Enabled && obj.PaddingData == null)
+						    if (obj.Enabled && obj.Configuration.Padding == null)
                             {
                                 // Calculating side alignment
                                 int sideDeltaX = 0, sideDeltaY = 0;
@@ -627,12 +615,12 @@ namespace TUI
         {
             foreach (T child in Child)
             {
-			    if (child.PaddingData != null)
+			    if (child.Configuration.Padding != null)
                 {
                     if (child.Cell != null)
-                        child.SetXYWH(child.Cell.Padding(child.PaddingData));
+                        child.SetXYWH(child.Cell.Padding(child.Configuration.Padding));
                     else
-                        child.SetXYWH(Padding(child.PaddingData));
+                        child.SetXYWH(Padding(child.Configuration.Padding));
                 }
             }
             return (T)this;
@@ -653,17 +641,22 @@ namespace TUI
         public virtual T UpdateChild()
         {
             foreach (T child in Child)
-                child.Update();
+                if (child.Enabled)
+                    child.Update();
             return (T)this;
         }
 
         #endregion
 
         #endregion
+        #region TeleportUser
 
-        /*public void TeleportPlayer(TSPlayer player)
+        public void TeleportUser(UIUser user)
         {
+            (int x, int y, int w, int h) = AbsoluteXYWH();
+            user.Teleport((x + w/2) * 16, (y + h/2) * 16);
+        }
 
-        }*/
+        #endregion
     }
 }

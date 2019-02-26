@@ -9,12 +9,10 @@ namespace TUI
     internal interface IDOM<T>
     {
         List<T> Child { get; }
-        bool Enabled { get; set; }
         T Parent { get; }
-        bool Rootable { get; set; }
 
         T Add(T child);
-        bool Remove(T child);
+        T Remove(T child);
         T Select(T child);
         T Deselect();
         T GetRoot();

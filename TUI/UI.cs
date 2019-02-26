@@ -8,9 +8,15 @@ namespace TUI
 {
     public static class UI
     {
+        #region Data
+
+        public const int MaxUsers = 256;
+
+        #endregion
+
         #region Padding
 
-        public static (int X, int Y, int Width, int Height) Padding(int X, int Y, int Width, int Height, PaddingData paddingData)
+        public static (int X, int Y, int Width, int Height) Padding(int X, int Y, int Width, int Height, PaddingConfig paddingData)
         {
             int x = paddingData.X;
             int y = paddingData.Y;
@@ -30,6 +36,24 @@ namespace TUI
             if (height <= 0)
                 height = Height + height - y;
             return (x, y, width, height);
+        }
+
+        #endregion
+        #region SaveTime
+
+        public static void SaveTime<T>(T o, string name, string key = null)
+            where T : Touchable<T>
+        {
+
+        }
+
+        #endregion
+        #region ShowTime
+
+        public static void ShowTime<T>(T o, string name, string key = null)
+            where T : Touchable<T>
+        {
+
         }
 
         #endregion

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TUI
 {
-    public class Indentation
+    public class Indentation : ICloneable
     {
         public int Left = 0;
         public int Up = 0;
@@ -14,5 +14,7 @@ namespace TUI
         public int Down = 0;
         public int Horizontal = 0;
         public int Vertical = 0;
+
+        public object Clone() => MemberwiseClone();
     }
 }

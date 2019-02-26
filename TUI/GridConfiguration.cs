@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TUI
 {
-    public class GridConfiguration
+    public class GridConfiguration : ICloneable
     {
         public ISize[] Columns;
         public ISize[] Lines;
@@ -20,19 +20,20 @@ namespace TUI
         {
             Columns = columns ?? new ISize[] { new Relative(100) };
             Lines = lines ?? new ISize[] { new Relative(100) };
-            /*Direction = Direction.Down;
-            Alignment = Alignment.Center;
-            Side = Side.Center;
-            Indentation = new Indentation()
+        }
+
+        public object Clone()
+        {
+            return new GridConfiguration
             {
-                Left = 1,
-                Up = 1,
-                Right = 1,
-                Down = 1,
-                Horizontal = 1,
-                Vertical = 1
+                Columns = (ISize[])Columns.Clone(),
+                Lines = (ISize[])Lines.Clone(),
+                Indentation = (Indentation)Indentation.Clone(),
+                Alignment = Alignment,
+                Direction = Direction,
+                Side = Side,
+                Full = Full
             };
-            Full = false;*/
         }
     }
 }
