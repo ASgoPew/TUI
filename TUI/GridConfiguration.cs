@@ -10,20 +10,17 @@ namespace TUI
     {
         public ISize[] Columns;
         public ISize[] Lines;
-        public int DeltaX, DeltaY;
-        public Direction Direction;
-        public Alignment Alignment;
-        public Side Side;
         public Indentation Indentation;
-        public bool Full;
+        public Alignment? Alignment;
+        public Direction? Direction;
+        public Side? Side;
+        public bool? Full = false;
 
-        public GridConfiguration()
+        public GridConfiguration(ISize[] columns = null, ISize[] lines = null)
         {
-            Columns = new ISize[] { new Relative(100) };
-            Lines = new ISize[] { new Relative(100) };
-            DeltaX = 0;
-            DeltaY = 0;
-            Direction = Direction.Down;
+            Columns = columns ?? new ISize[] { new Relative(100) };
+            Lines = lines ?? new ISize[] { new Relative(100) };
+            /*Direction = Direction.Down;
             Alignment = Alignment.Center;
             Side = Side.Center;
             Indentation = new Indentation()
@@ -35,7 +32,7 @@ namespace TUI
                 Horizontal = 1,
                 Vertical = 1
             };
-            Full = false;
+            Full = false;*/
         }
     }
 }

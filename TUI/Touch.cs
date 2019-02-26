@@ -7,29 +7,42 @@ using System.Threading.Tasks;
 
 namespace TUI
 {
-    public class GridCell<T> : IVisual<GridCell<T>>
+    public enum TouchState
     {
-        public int Column { get; }
-        public int Line { get; }
-        public List<T> Objects { get; }
-        public Indentation Indentation { get; set; }
-        public Alignment? Alignment { get; set; }
-        public Direction? Direction { get; set; }
-        public Side? Side { get; set; }
-        public bool? Full { get; set; }
-        public int I { get; set; }
-        public int J { get; set; }
+        Begin,
+        Moving,
+        End
+    }
+
+    public class Touch : IVisual<Touch>
+    {
+        #region Data
+
+        public int AbsoluteX { get; set; }
+        public int AbsoluteY { get; set; }
+        public TouchState State { get; set; }
+        public string Prefix { get; set; }
+        public byte StateByte { get; set; }
+
+        public bool Red => (StateByte & 1) > 0;
+        public bool Green => (StateByte & 2) > 0;
+        public bool Blue => (StateByte & 4) > 0;
+        public bool Yellow => (StateByte & 8) > 0;
+        public bool Actuator => (StateByte & 16) > 0;
+        public bool Cutter => (StateByte & 32) > 0;
+
+        #endregion
 
         #region IVisual
 
-            #region Data
+        #region Data
 
-            public int X { get; set; }
+        public int X { get; set; }
             public int Y { get; set; }
             public int Width { get; set; }
             public int Height { get; set; }
 
-            public IEnumerable<Point> Points => GetPoints();
+            public IEnumerable<Point> Points { get { yield return new Point(X, Y); } }
             public (int X, int Y, int Width, int Height) Padding(PaddingData paddingData) =>
                 UI.Padding(X, Y, Width, Height, paddingData);
 
@@ -37,7 +50,7 @@ namespace TUI
 
             #region Initialize
 
-        public void InitializeVisual(int x, int y, int width, int height)
+            public void InitializeVisual(int x, int y, int width = 1, int height = 1)
             {
                 X = x;
                 Y = y;
@@ -53,39 +66,39 @@ namespace TUI
                 return (X + dx, Y + dy, Width, Height);
             }
 
-            public GridCell<T> SetXYWH(int x, int y, int width = -1, int height = -1)
+            public Touch SetXYWH(int x, int y, int width = -1, int height = -1)
             {
                 X = x;
                 Y = y;
                 Width = width >= 0 ? width : Width;
                 Height = height >= 0 ? height : Height;
-                return (GridCell<T>)this;
+                return this;
             }
 
-            public GridCell<T> SetXYWH((int x, int y, int width, int height) data)
+            public Touch SetXYWH((int x, int y, int width, int height) data)
             {
                 X = data.x;
                 Y = data.y;
                 Width = data.width;
                 Height = data.height;
-                return (GridCell<T>)this;
+                return this;
             }
 
             #endregion
             #region Move
 
-            public GridCell<T> Move(int dx, int dy)
+            public Touch Move(int dx, int dy)
             {
                 X = X + dx;
                 Y = Y + dy;
-                return (GridCell<T>)this;
+                return this;
             }
 
-            public GridCell<T> MoveBack(int dx, int dy)
+            public Touch MoveBack(int dx, int dy)
             {
                 X = X - dx;
                 Y = Y - dy;
-                return (GridCell<T>)this;
+                return this;
             }
 
             #endregion
@@ -107,23 +120,7 @@ namespace TUI
             }
 
             #endregion
-            #region Points
-
-            private IEnumerable<Point> GetPoints()
-            {
-                for (int x = X; x < X + Width; x++)
-                    for (int y = Y; y < Y + Height; y++)
-                        yield return new Point(x, y);
-            }
-
-            #endregion
 
         #endregion
-
-        public GridCell(int column, int line)
-        {
-            Column = column;
-            Line = line;
-        }
     }
 }

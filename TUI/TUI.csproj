@@ -58,8 +58,10 @@
     <Compile Include="Enums.cs" />
     <Compile Include="GridConfiguration.cs" />
     <Compile Include="IDOM.cs" />
-    <Compile Include="ITouchable.cs" />
+    <Compile Include="Lock.cs" />
     <Compile Include="PaddingData.cs" />
+    <Compile Include="Touch.cs" />
+    <Compile Include="Touchable.cs" />
     <Compile Include="TUIPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IVisual.cs" />

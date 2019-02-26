@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace TUI
 {
-    public class VisualObject : Touchable<VisualObject>
+    public class Touchable<T> : VisualDOM<T>
+        where T : Touchable<T>
     {
-        VisualObject(int x, int y, int width, int height)
+        public Touchable(int x, int y, int width, int height)
             : base(x, y, width, height)
         {
 
