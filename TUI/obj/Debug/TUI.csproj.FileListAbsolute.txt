@@ -1,0 +1,24 @@
+c:\users\asgo\documents\visual studio 2017\Projects\TUI\TUI\bin\Debug\TUI.dll
+c:\users\asgo\documents\visual studio 2017\Projects\TUI\TUI\bin\Debug\TUI.pdb
+c:\users\asgo\documents\visual studio 2017\Projects\TUI\TUI\bin\Debug\OTAPI.dll
+c:\users\asgo\documents\visual studio 2017\Projects\TUI\TUI\bin\Debug\TerrariaServer.exe
+c:\users\asgo\documents\visual studio 2017\Projects\TUI\TUI\bin\Debug\TShockAPI.dll
+c:\users\asgo\documents\visual studio 2017\Projects\TUI\TUI\obj\Debug\TUI.dll
+c:\users\asgo\documents\visual studio 2017\Projects\TUI\TUI\obj\Debug\TUI.pdb
+C:\Users\ASgo\documents\visual studio 2017\Projects\TUI\TUI\bin\Debug\System.ValueTuple.dll
+C:\Users\ASgo\documents\visual studio 2017\Projects\TUI\TUI\bin\Debug\System.ValueTuple.xml
+C:\Users\ASgo\documents\visual studio 2017\Projects\TUI\TUI\obj\Debug\TUI.csprojAssemblyReference.cache
+C:\Users\ASgo\documents\visual studio 2017\Projects\TUI\TUI\obj\Debug\TUI.csproj.CoreCompileInputs.cache
+C:\Users\ASgo\documents\visual studio 2017\Projects\TUI\TUI\obj\Debug\TUI.csproj.CopyComplete
+C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\TUI.dll
+C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\TUI.pdb
+C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\OTAPI.dll
+C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\System.ValueTuple.dll
+C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\TerrariaServer.exe
+C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\TShockAPI.dll
+C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\System.ValueTuple.xml
+C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.csprojAssemblyReference.cache
+C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.csproj.CoreCompileInputs.cache
+C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.csproj.CopyComplete
+C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.dll
+C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.pdb
