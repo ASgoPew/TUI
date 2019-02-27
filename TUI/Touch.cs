@@ -14,7 +14,7 @@ namespace TUI
     }
 
     public class Touch<T> : IVisual<Touch<T>>, ICloneable
-        where T : Touchable<T>
+        where T : VisualDOM<T>
     {
         #region Data
 
@@ -78,15 +78,6 @@ namespace TUI
                 return this;
             }
 
-            public Touch<T> SetXYWH((int x, int y, int width, int height) data)
-            {
-                X = data.x;
-                Y = data.y;
-                Width = data.width;
-                Height = data.height;
-                return this;
-            }
-
             #endregion
             #region Move
 
@@ -141,9 +132,9 @@ namespace TUI
         #endregion
     }
 
-    public class VisualTouch : Touch<VisualObject>
+    public class Touch : Touch<VisualObject>
     {
-        public VisualTouch(int x, int y, TouchState state, UIUserSession<VisualObject> session, string prefix = null, byte stateByte = 0)
+        public Touch(int x, int y, TouchState state, UIUserSession<VisualObject> session, string prefix = null, byte stateByte = 0)
             : base(x, y, state, session, prefix, stateByte) { }
     }
 }

@@ -15,7 +15,6 @@ namespace TUI
 
         (int X, int Y, int Width, int Height) XYWH(int dx, int dy);
         T SetXYWH(int x, int y, int width, int height);
-        T SetXYWH((int x, int y, int width, int height) data);
         T Move(int dx, int dy);
         T MoveBack(int dx, int dy);
         bool Contains(int x, int y);

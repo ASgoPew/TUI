@@ -14,7 +14,6 @@ namespace TUI
         public UILock<T> Lock { get; set; }
         public UILock<T>[] PersonalLock { get; set; } = new UILock<T>[UI.MaxUsers];
         public Func<T, Touch<T>, bool> Callback { get; set; }
-        public Func<T, Touch<T>, bool> CustomCanTouch { get; set; }
 
         public virtual string Name => GetType().Name;
         public bool Contains(Touch<T> touch) => Contains(touch.X, touch.Y);
@@ -23,20 +22,17 @@ namespace TUI
 
         #region Initialize
 
-        public Touchable(int x, int y, int width, int height, UIConfiguration configuration, Func<T, Touch<T>, bool> callback)
+        public Touchable(int x, int y, int width, int height, UIConfiguration<T> configuration, Func<T, Touch<T>, bool> callback = null)
             : base(x, y, width, height, configuration)
         {
             Callback = callback;
         }
 
         #endregion
-        #region CanTouch
+        #region Clone
 
-        public virtual bool CanTouch(Touch<T> touch)
-        {
-            return (Configuration.Permission == null || touch.User.HasPermission(Configuration.Permission))
-                && CustomCanTouch?.Invoke((T)this, touch) != false;
-        }
+        public override object Clone() =>
+            new Touchable<T>(X, Y, Width, Height, (UIConfiguration<T>)Configuration.Clone(), Callback);
 
         #endregion
         #region Touched
@@ -94,6 +90,15 @@ namespace TUI
         }
 
         #endregion
+        #region CanTouch
+
+        public virtual bool CanTouch(Touch<T> touch)
+        {
+            return (Configuration.Permission == null || touch.User.HasPermission(Configuration.Permission))
+                && Configuration.CustomCanTouch?.Invoke((T)this, touch) != false;
+        }
+
+        #endregion
         #region TouchedChild
 
         public virtual bool TouchedChild(Touch<T> touch)
@@ -141,6 +146,15 @@ namespace TUI
         public virtual void PostSetTop() { }
 
         #endregion
+        #region CanTouchThis
+
+        public virtual bool CanTouchThis(Touch<T> touch) =>
+            (touch.State == TouchState.Begin && Configuration.UseBegin
+                || touch.State == TouchState.Moving && Configuration.UseMoving
+                || touch.State == TouchState.End && Configuration.UseEnd)
+            && (touch.State == TouchState.Begin || !Configuration.BeginRequire || touch.Session.BeginObject.Equals(this));
+
+        #endregion
         #region TouchedThis
 
         public virtual bool TouchedThis(Touch<T> touch)
@@ -168,15 +182,6 @@ namespace TUI
 
             return used;
         }
-
-        #endregion
-        #region CanTouchThis
-
-        public virtual bool CanTouchThis(Touch<T> touch) =>
-            (touch.State == TouchState.Begin && Configuration.UseBegin
-                || touch.State == TouchState.Moving && Configuration.UseMoving
-                || touch.State == TouchState.End && Configuration.UseEnd)
-            && (touch.State == TouchState.Begin || !Configuration.BeginRequire || touch.Session.BeginObject.Equals(this));
 
         #endregion
     }

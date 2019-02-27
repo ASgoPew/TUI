@@ -11,6 +11,10 @@ namespace TUI
         #region Data
 
         public const int MaxUsers = 256;
+        public static bool ShowGrid = false;
+        public static Hook<SetXYWHArgs> SetXYWHHook = new Hook<SetXYWHArgs>();
+        public static Hook<SetTopArgs> SetTopHook = new Hook<SetTopArgs>();
+        public static Hook<EnabledArgs> EnabledHook = new Hook<EnabledArgs>();
 
         #endregion
 

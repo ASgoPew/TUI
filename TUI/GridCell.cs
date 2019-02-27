@@ -62,15 +62,6 @@ namespace TUI
                 return (GridCell<T>)this;
             }
 
-            public GridCell<T> SetXYWH((int x, int y, int width, int height) data)
-            {
-                X = data.x;
-                Y = data.y;
-                Width = data.width;
-                Height = data.height;
-                return (GridCell<T>)this;
-            }
-
             #endregion
             #region Move
 

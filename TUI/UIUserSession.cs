@@ -1,7 +1,7 @@
 ﻿namespace TUI
 {
     public class UIUserSession<T>
-        where T : Touchable<T>
+        where T : VisualDOM<T>
     {
         public bool Enabled { get; set; }
         public UIUser User { get; set; }
@@ -11,4 +11,6 @@
         public Touch<T> PreviousTouch { get; set; }
         public T BeginObject { get; set; }
     }
+
+    public class UIUserSession : UIUserSession<VisualObject> { }
 }
