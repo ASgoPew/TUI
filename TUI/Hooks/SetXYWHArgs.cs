@@ -9,15 +9,15 @@ namespace TUI
 {
     public class SetXYWHArgs
     {
-        public VisualObject Node { get; set; }
+        public RootVisualObject Root { get; set; }
         public int X { get; set; }
         public int Y { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
 
-        public SetXYWHArgs(VisualObject node, int x, int y, int width, int height)
+        public SetXYWHArgs(RootVisualObject root, int x, int y, int width, int height)
         {
-            Node = node;
+            Root = root;
             X = x;
             Y = y;
             Width = width;

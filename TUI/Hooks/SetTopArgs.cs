@@ -9,11 +9,11 @@ namespace TUI
 {
     public class SetTopArgs
     {
-        public VisualObject Node { get; set; }
+        public RootVisualObject Root { get; set; }
 
-        public SetTopArgs(VisualObject node)
+        public SetTopArgs(RootVisualObject root)
         {
-            Node = node;
+            Root = root;
         }
     }
 }

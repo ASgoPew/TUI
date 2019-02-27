@@ -13,108 +13,117 @@ namespace TUI
         #region Data
 
         public UIStyle Style { get; set; }
-        public ITileCollection Provider { get; set; }
-        public bool ForceSection { get; set; } = false;
+        public bool ForceSection { get; private set; } = false;
+        public RootVisualObject Root { get; private set; }
+        private Dictionary<string, VisualObject> _Shortcuts { get; set; } = new Dictionary<string, VisualObject>();
+
+        IEnumerable<(int, int)> ProviderPoints => GetProviderPoints();
+        public virtual (int, int) ProviderXY(int dx = 0, int dy = 0) =>
+            AbsoluteXY(dx, dy, Root);
+        public virtual bool Touched(Touch touch) =>
+            base.Touched(touch);
 
         #endregion
 
         #region IDOM
 
-            #region SetTop
+            #region Remove
 
-            public override bool SetTop(VisualObject o)
+        public override VisualObject Remove(VisualObject child)
+        {
+            foreach (string key in _Shortcuts.Select(o => o.Value == child ? o.Key : null).ToArray())
+                _Shortcuts.Remove(key);
+            return base.Remove(child);
+        }
+
+        #endregion
+
+        #endregion
+        #region VisualDOM
+
+        #region Update
+
+        public override VisualObject UpdateThis()
             {
-                bool result = base.SetTop(o);
-                if (result && o.Provider != null)
-                    UI.SetTopHook.Invoke(new SetTopArgs(o));
-                return result;
+                if (Root == null)
+                    Root = GetRoot() as RootVisualObject;
+                return base.UpdateThis();
             }
 
             #endregion
+
+        #endregion
+        #region Touchable
+
             #region PostSetTop
 
-            public override void PostSetTop()
+            public override void PostSetTop(VisualObject o)
             {
-                Apply(true).Draw();
+                if (ChildIntersectingOthers(o))
+                    o.Apply(true).Draw();
+            }
+
+            private bool ChildIntersectingOthers(VisualObject o)
+            {
+                foreach (VisualObject child in Child)
+                    if (child != o && child.Enabled && o.Intersecting(child))
+                        return true;
+                return false;
             }
 
         #endregion
-
-        #endregion
-        #region IVisual
-
-            #region SetXYWH
-
-            public override VisualObject SetXYWH(int x, int y, int width = -1, int height = -1)
-            {
-                base.SetXYWH(x, y, width, height);
-                if (Provider != null)
-                    UI.SetXYWHHook.Invoke(new SetXYWHArgs(this, x, y, width, height));
-                return this;
-            }
-
-            #endregion
 
         #endregion
 
         #region Initialize
 
-        VisualObject(int x, int y, int width, int height, string name, UIConfiguration configuration, UIStyle style, Func<VisualObject, Touch<VisualObject>, bool> callback = null, ITileCollection provider = null)
+        public VisualObject(int x, int y, int width, int height, UIConfiguration configuration = null, UIStyle style = null, Func<VisualObject, Touch<VisualObject>, bool> callback = null)
             : base(x, y, width, height, configuration, callback)
         {
-            Style = style;
-            Provider = provider;
+            Style = style ?? new UIStyle();
+        }
+
+        private VisualObject(int x, int y, int width, int height, UIConfiguration<VisualObject> configuration = null, UIStyle style = null, Func<VisualObject, Touch<VisualObject>, bool> callback = null)
+            : base(x, y, width, height, configuration, callback)
+        {
+            Style = style ?? new UIStyle();
+        }
+
+        #endregion
+        #region Clone
+
+        public override object Clone() =>
+            new VisualObject(X, Y, Width, Height, Configuration, Style, Callback);
+
+        #endregion
+        #region operator[]
+
+        public VisualObject this[string key]
+        {
+            get
+            {
+                if (_Shortcuts.TryGetValue(key, out VisualObject value))
+                    return value;
+                throw new KeyNotFoundException();
+            }
+            set => _Shortcuts.Add(key, value);
         }
 
         #endregion
         #region GetProvider
 
-        protected TileProvider GetProvider()
+        protected virtual TileProvider GetProvider()
         {
-            (VisualObject node, int x, int y) = GetProviderNode();
-            return new TileProvider(node?.Provider ?? Main.tile, x, y);
+            (int x, int y) = ProviderXY();
+            return new TileProvider(Root.TileCollection ?? Main.tile, x, y);
         }
 
         #endregion
-        #region GetProviderNode
-
-        public virtual (VisualObject, int, int) GetProviderNode()
-        {
-            VisualObject node = this;
-            int x = 0, y = 0;
-            while (node != null)
-            {
-                if (node.Provider != null)
-                    return (node, x, y);
-                else
-                {
-                    x += node.X;
-                    y += node.Y;
-                    node = node.Parent;
-                }
-            }
-            return (null, x, y);
-        }
-
-        #endregion
-        /*#region Resize
-
-        public virtual bool Resize(int width, int height)
-        {
-            return false;
-        }
-
-        #endregion*/
         #region Enable
 
         public virtual VisualObject Enable()
         {
-            if (!Enabled)
-            {
-                Enabled = true;
-                if (Provider != null)
-                    UI.EnabledHook.Invoke(new EnabledArgs(this, true));
-            }
+            Enabled = true;
             return this;
         }
 
@@ -123,12 +132,7 @@ namespace TUI
 
         public virtual VisualObject Disable()
         {
-            if (Enabled)
-            {
-                Enabled = false;
-                if (Provider != null)
-                    UI.EnabledHook.Invoke(new EnabledArgs(this, false));
-            }
+            Enabled = false;
             return this;
         }
 
@@ -139,8 +143,11 @@ namespace TUI
         {
             if (!Active())
                 throw new InvalidOperationException("Trying to call Apply() an not active object.");
+            UI.SaveTime(this, "Apply");
             ApplyThis(forceClear);
+            UI.SaveTime(this, "Apply", "This");
             ApplyChild();
+            UI.ShowTime(this, "Apply", "Child");
             return this;
         }
 
@@ -161,6 +168,27 @@ namespace TUI
 
         public virtual VisualObject ApplyTiles(bool forceClear)
         {
+            if (!forceClear && Style.InActive == null && Style.Tile == null && Style.TileColor == null
+                && Style.Wall == null && Style.WallColor == null)
+                return this;
+
+            TileProvider provider = GetProvider();
+            foreach ((int x, int y) in ProviderPoints)
+            {
+                ITile tile = provider[x, y];
+                if (forceClear)
+                    tile.ClearEverything();
+                if (Style.InActive != null)
+                    tile.inActive(Style.InActive.Value);
+                if (Style.Tile != null)
+                    tile.type = Style.Tile.Value;
+                if (Style.TileColor != null)
+                    tile.color(Style.TileColor.Value);
+                if (Style.Wall != null)
+                    tile.wall = Style.Wall.Value;
+                if (Style.WallColor != null)
+                    tile.wallColor(Style.WallColor.Value);
+            }
             return this;
         }
 
@@ -169,7 +197,11 @@ namespace TUI
 
         public void ShowGrid()
         {
-
+            TileProvider provider = GetProvider();
+            for (int i = 0; i < Configuration.Grid.Columns.Length; i++)
+                for (int j = 0; j < Configuration.Grid.Lines.Length; j++)
+                    foreach ((int x, int y) in Points)
+                        provider[x, y].wallColor((byte)(25 + (i + j) % 2));
         }
 
         #endregion
@@ -187,10 +219,24 @@ namespace TUI
         }
 
         #endregion
+        #region Clear
+
+        public virtual VisualObject Clear()
+        {
+            TileProvider provider = GetProvider();
+            foreach ((int x, int y) in ProviderPoints)
+                provider[x, y].ClearEverything();
+
+            return this;
+        }
+
+        #endregion
         #region Draw
 
         public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1)
         {
+            (int ax, int ay) = AbsoluteXY();
+            UI.Draw(ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height);
             return this;
         }
 
@@ -199,15 +245,25 @@ namespace TUI
 
         public virtual VisualObject DrawPoints(List<(int, int)> list)
         {
-            return this;
-        }
+            if (list.Count == 0)
+                return this;
 
-        #endregion
-        #region Clear
+            int minX = list[0].Item1, minY = list[0].Item2;
+            int maxX = minX, maxY = minY;
 
-        public virtual VisualObject Clear()
-        {
-            return this;
+            foreach ((int x, int y) in list)
+            {
+                if (x < minX)
+                    minX = x;
+                if (x > maxX)
+                    maxX = x;
+                if (y < minY)
+                    minY = y;
+                if (y > maxY)
+                    maxY = y;
+            }
+
+            return Draw(minX, minY, maxX - minX + 1, maxY - minY + 1);
         }
 
         #endregion
@@ -237,11 +293,14 @@ namespace TUI
         }
 
         #endregion
-        #region Clone
+        #region ProviderPoints
 
-        public override object Clone()
+        private IEnumerable<(int, int)> GetProviderPoints()
         {
-            return base.Clone();
+            (int x, int y) = ProviderXY();
+            for (int _x = x; _x < x + Width; _x++)
+                for (int _y = y; _y < y + Height; _y++)
+                    yield return (_x, _y);
         }
 
         #endregion

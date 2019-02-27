@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace TUI
 {
-    public class TileProvider
+    public struct TileProvider
     {
-        ITileCollection _Provider;
+        internal ITileCollection _Provider;
         int _X;
         int _Y;
 
-        public TileProvider(ITileCollection provider, int x, int y)
+        internal TileProvider(ITileCollection provider, int x, int y)
         {
             _Provider = provider;
             _X = x;

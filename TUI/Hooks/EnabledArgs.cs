@@ -2,12 +2,12 @@
 {
     public class EnabledArgs
     {
-        public VisualObject Node { get; set; }
+        public RootVisualObject Root { get; set; }
         public bool Value { get; set; }
 
-        public EnabledArgs(VisualObject node, bool value)
+        public EnabledArgs(RootVisualObject root, bool value)
         {
-            Node = node;
+            Root = root;
             Value = value;
         }
     }

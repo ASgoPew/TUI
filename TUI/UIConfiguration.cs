@@ -18,6 +18,7 @@ namespace TUI
         public Func<T, T> CustomApply { get; set; }
 
         public bool Ordered { get; set; } = false;
+        //public bool Orderable { get; set; } = true;
         public bool RootAcquire { get; set; } = true;
         public bool BeginRequire { get; set; } = true;
         public bool UseOutsideTouches { get; set; } = false;

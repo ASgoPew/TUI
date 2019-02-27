@@ -15,14 +15,13 @@ namespace TUI
         public UILock<T>[] PersonalLock { get; set; } = new UILock<T>[UI.MaxUsers];
         public Func<T, Touch<T>, bool> Callback { get; set; }
 
-        public virtual string Name => GetType().Name;
         public bool Contains(Touch<T> touch) => Contains(touch.X, touch.Y);
 
         #endregion
 
         #region Initialize
 
-        public Touchable(int x, int y, int width, int height, UIConfiguration<T> configuration, Func<T, Touch<T>, bool> callback = null)
+        public Touchable(int x, int y, int width, int height, UIConfiguration<T> configuration = null, Func<T, Touch<T>, bool> callback = null)
             : base(x, y, width, height, configuration)
         {
             Callback = callback;
@@ -54,6 +53,8 @@ namespace TUI
                 used = TouchedThis(touch);
             UI.ShowTime((T)this, "Touched", "This");
 
+            // TODO: This might cause problems because object can be without rootAcquire =>
+            // TouchState.End touch won't proceed to this object
             if (Lock != null && touch.State == TouchState.End)
                 Lock.Active = true;
 
@@ -112,15 +113,8 @@ namespace TUI
                     touch.MoveBack(saveX, saveY);
                     if (o.Touched(touch))
                     {
-                        // TODO: Main.tile objects can't be set on top of fake objects
                         if (Configuration.Ordered && SetTop(o))
-                        {
-                            //if (o.provider_set_top)
-                                //o.provider_set_top();
-                            // TODO: should not apply if intersecting object with different tile provider
-                            if (ChildIntersectingOthers(o))
-                                PostSetTop();
-                        }
+                            PostSetTop(o);
                         return true;
                     }
                     touch.Move(saveX, saveY);
@@ -130,20 +124,9 @@ namespace TUI
         }
 
         #endregion
-        #region ChildInterSectingOthers
-
-        public virtual bool ChildIntersectingOthers(T o)
-        {
-            foreach (T child in Child)
-                if (child != o && child.Enabled && o.Intersecting(child))
-                    return true;
-            return false;
-        }
-
-        #endregion
         #region PostSetTop
 
-        public virtual void PostSetTop() { }
+        public virtual void PostSetTop(T o) { }
 
         #endregion
         #region CanTouchThis

@@ -18,8 +18,13 @@ namespace TUI
         public const Side DefaultSide = Side.Center;
         public const bool DefaultFull = false;
 
+        public virtual string Name
+        {
+            get => GetType().Name;
+            protected set => throw new InvalidOperationException();
+        }
         IEnumerable<(int, int)> AbsolutePoints => GetAbsolutePoints();
-        
+
         public bool Enabled { get; set; }
         public GridCell<T>[,] Grid { get; private set; }
         public GridCell<T> Cell { get; private set; }
@@ -65,7 +70,7 @@ namespace TUI
                 cell.Objects.Add(child);
                 child.Cell = cell;
 
-                return (T)this;
+                return child;
             }
 
             #endregion
@@ -75,6 +80,7 @@ namespace TUI
             {
                 if (Child.Remove(child))
                 {
+                    child.Parent = null;
                     if (child.Cell != null)
                     {
                         child.Cell.Objects.Remove(child);
@@ -223,7 +229,7 @@ namespace TUI
             }
 
             #endregion
-            #region XYWH
+            #region XYWH, SetXYWH
 
             public virtual (int X, int Y, int Width, int Height) XYWH(int dx = 0, int dy = 0)
             {
@@ -246,24 +252,6 @@ namespace TUI
                 Width = data.width >= 0 ? data.width : Width;
                 Height = data.height >= 0 ? data.height : Height;
                 return (T)this;
-            }
-
-            public (int X, int Y, int Width, int Height) AbsoluteXYWH(int x = 0, int y = 0, int width = Int32.MinValue, int height = Int32.MinValue, T parent = null)
-            {
-                if (width == Int32.MinValue)
-                    width = Width;
-                if (height == Int32.MinValue)
-                    height = Height;
-
-                T node = (T)this;
-                while (node != null && node != parent)
-                {
-                    x = x + node.X;
-                    y = y + node.Y;
-                    node = node.Parent;
-                }
-
-                return (x, y, width, height);
             }
 
             #endregion
@@ -304,14 +292,6 @@ namespace TUI
                         yield return (x, y);
             }
 
-            private IEnumerable<(int, int)> GetAbsolutePoints()
-            {
-                (int x, int y, int width, int height) = AbsoluteXYWH();
-                for (int _x = x; _x < x + Width; _x++)
-                    for (int _y = y; _y < y + Height; _y++)
-                        yield return (_x, _y);
-            }
-
             #endregion
 
         #endregion
@@ -324,13 +304,13 @@ namespace TUI
 
         #region Initialize
 
-        public VisualDOM(int x, int y, int width, int height, UIConfiguration<T> configuration)
+        public VisualDOM(int x, int y, int width, int height, UIConfiguration<T> configuration = null)
         {
             InitializeDOM();
             InitializeVisual(x, y, width, height);
 
             Enabled = true;
-            Configuration = configuration;
+            Configuration = configuration ?? new UIConfiguration<T>();
 
             if (Configuration.Grid != null)
                 SetupGrid(Configuration.Grid);
@@ -514,7 +494,7 @@ namespace TUI
                             }
 
                             // Calculating cell objects position
-                            int sx, sy, dx, dy;
+                            int sx, sy;
 
                             // Initializing sx
                             if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
@@ -636,8 +616,37 @@ namespace TUI
 
         public void TeleportUser(UIUser user)
         {
-            (int x, int y, int w, int h) = AbsoluteXYWH();
-            user.Teleport((x + w/2) * 16, (y + h/2) * 16);
+            (int x, int y) = AbsoluteXY();
+            user.Teleport((x + Width/2) * 16, (y + Height/2) * 16);
+        }
+
+        #endregion
+        #region AbsoluteXY
+
+        public (int X, int Y) AbsoluteXY(int x = 0, int y = 0, T parent = null)
+        {
+            T node = (T)this;
+            while (node != null && node != parent)
+            {
+                x = x + node.X;
+                y = y + node.Y;
+                node = node.Parent;
+            }
+            if (node != parent)
+                throw new Exception("AbsoluteXY: parent-object not found.");
+
+            return (x, y);
+        }
+
+        #endregion
+        #region AbsolutePoints
+
+        private IEnumerable<(int, int)> GetAbsolutePoints()
+        {
+            (int x, int y) = AbsoluteXY();
+            for (int _x = x; _x < x + Width; _x++)
+                for (int _y = y; _y < y + Height; _y++)
+                    yield return (_x, _y);
         }
 
         #endregion
