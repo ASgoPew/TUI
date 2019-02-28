@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TUI
@@ -17,6 +18,8 @@ namespace TUI
         public static Hook<SetTopArgs> SetTopHook = new Hook<SetTopArgs>();
         public static Hook<EnabledArgs> EnabledHook = new Hook<EnabledArgs>();
         private static List<RootVisualObject> Child = new List<RootVisualObject>();
+        public static UIUserSession[] Session = new UIUserSession[MaxUsers];
+        public static int SessionIndex = 0;
 
         #endregion
 
@@ -25,7 +28,8 @@ namespace TUI
         public static RootVisualObject Create(string name, int x, int y, int width, int height, ITileCollection tileCollection = null)
         {
             RootVisualObject result = new RootVisualObject(name, x, y, width, height, tileCollection);
-            Child.Add(result);
+            lock (Child)
+                Child.Add(result);
             return result;
         }
 
@@ -34,15 +38,76 @@ namespace TUI
 
         public static void Destroy(RootVisualObject obj)
         {
-            Child.Remove(obj);
+            lock (Child)
+                Child.Remove(obj);
         }
 
         #endregion
         #region Touched
 
-        public static void Touched(Touch touch)
+        public static bool Touched(IUIUser user, Touch touch)
         {
+            if (Session[user.Index] == null)
+            {
+                if (touch.State != TouchState.Begin)
+                    throw new Exception();
 
+                Session[user.Index] = new UIUserSession()
+                {
+                    Enabled = true,
+                    User = user,
+                    Index = Interlocked.Increment(ref SessionIndex)
+                };
+            }
+            UIUserSession session = Session[user.Index];
+            touch.Session = session;
+
+            Touch previous = session.PreviousTouch;
+            if (touch.State == TouchState.Begin && previous != null
+                    && (previous.State == TouchState.Begin || previous.State == TouchState.Moving))
+                throw new InvalidOperationException();
+            if ((touch.State == TouchState.Moving || touch.State == TouchState.End)
+                    && (previous == null || previous.State == TouchState.End))
+                throw new InvalidOperationException();
+
+            if (touch.State == TouchState.Begin)
+            {
+                session.BeginTouch = touch;
+                session.Enabled = true;
+            }
+
+            bool used = false;
+            if (session.Enabled)
+                used = TouchedChild(touch);
+
+            session.PreviousTouch = touch;
+
+            return used;
+        }
+
+        #endregion
+        #region TouchedChild
+
+        public static bool TouchedChild(Touch touch)
+        {
+            lock (Child)
+                for (int i = Child.Count - 1; i >= 0; i--)
+                {
+                    var o = Child[i];
+                    int saveX = o.X, saveY = o.Y;
+                    if (o.Enabled && o.Contains(touch))
+                    {
+                        touch.MoveBack(saveX, saveY);
+                        if (o.Touched(touch))
+                        {
+                            if (SetTop(o))
+                                PostSetTop(o);
+                            return true;
+                        }
+                        touch.Move(saveX, saveY);
+                    }
+                }
+            return false;
         }
 
         #endregion

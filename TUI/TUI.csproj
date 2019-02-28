@@ -47,33 +47,39 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Hooks\EnabledArgs.cs" />
-    <Compile Include="GridCell.cs" />
+    <Compile Include="Base\GridCell.cs" />
     <Compile Include="Hooks\Hook.cs" />
     <Compile Include="Hooks\SetXYWHArgs.cs" />
-    <Compile Include="Indentation.cs" />
-    <Compile Include="ISize.cs" />
-    <Compile Include="Enums.cs" />
-    <Compile Include="GridConfiguration.cs" />
-    <Compile Include="IDOM.cs" />
+    <Compile Include="Base\Indentation.cs" />
+    <Compile Include="Base\ISize.cs" />
+    <Compile Include="Base\Enums.cs" />
+    <Compile Include="Base\GridConfiguration.cs" />
+    <Compile Include="Base\IDOM.cs" />
     <Compile Include="Hooks\SetTopArgs.cs" />
-    <Compile Include="Lock.cs" />
-    <Compile Include="PaddingConfig.cs" />
-    <Compile Include="RootVisualObject.cs" />
-    <Compile Include="TileProvider.cs" />
-    <Compile Include="Touch.cs" />
-    <Compile Include="Touchable.cs" />
+    <Compile Include="Base\Lock.cs" />
+    <Compile Include="Base\PaddingConfig.cs" />
+    <Compile Include="Base\RootVisualObject.cs" />
+    <Compile Include="Base\TileProvider.cs" />
+    <Compile Include="Base\Touch.cs" />
+    <Compile Include="Base\Touchable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="IVisual.cs" />
+    <Compile Include="Base\IVisual.cs" />
     <Compile Include="UI.cs" />
-    <Compile Include="UIConfiguration.cs" />
-    <Compile Include="UIStyle.cs" />
-    <Compile Include="UIUser.cs" />
-    <Compile Include="UIUserSession.cs" />
-    <Compile Include="VisualDOM.cs" />
-    <Compile Include="VisualObject.cs" />
+    <Compile Include="Base\UIConfiguration.cs" />
+    <Compile Include="Base\UIStyle.cs" />
+    <Compile Include="Base\IUIUser.cs" />
+    <Compile Include="Base\UIUserSession.cs" />
+    <Compile Include="Base\VisualDOM.cs" />
+    <Compile Include="Base\VisualObject.cs" />
+    <Compile Include="Widgets\Background.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>if not exist "$(ProjectDir)_BuildResult" mkdir "$(ProjectDir)_BuildResult"
+copy /Y "$(TargetDir)$(TargetName).dll" "$(ProjectDir)_BuildResult\$(TargetName).dll</PostBuildEvent>
+  </PropertyGroup>
 </Project>

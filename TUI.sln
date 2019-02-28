@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TUI", "TUI\TUI.csproj", "{6
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TUITests", "TUITests\TUITests.csproj", "{C9CD57C9-0285-46F6-9013-3C8BFDCA137D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TUIPlugin", "TUIPlugin\TUIPlugin.csproj", "{51B05AB2-8F84-411D-A2F8-42B4FFF53154}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{C9CD57C9-0285-46F6-9013-3C8BFDCA137D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9CD57C9-0285-46F6-9013-3C8BFDCA137D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9CD57C9-0285-46F6-9013-3C8BFDCA137D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51B05AB2-8F84-411D-A2F8-42B4FFF53154}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51B05AB2-8F84-411D-A2F8-42B4FFF53154}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51B05AB2-8F84-411D-A2F8-42B4FFF53154}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51B05AB2-8F84-411D-A2F8-42B4FFF53154}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
