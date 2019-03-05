@@ -197,13 +197,15 @@ namespace TUI
 
         public virtual VisualObject ApplyChild()
         {
+            bool forceSection = false;
             lock (Child)
                 foreach (VisualObject child in Child)
                     if (child.Enabled)
                     {
                         child.Apply(false);
-                        ForceSection = ForceSection || child.ForceSection;
+                        forceSection = forceSection || child.ForceSection;
                     }
+            ForceSection = forceSection;
             return this;
         }
 
@@ -225,7 +227,7 @@ namespace TUI
         public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1)
         {
             (int ax, int ay) = AbsoluteXY();
-            UI.Draw(ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height);
+            UI.Draw(ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height, ForceSection);
             return this;
         }
 

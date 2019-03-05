@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Hooks\DrawArgs.cs" />
     <Compile Include="Hooks\EnabledArgs.cs" />
     <Compile Include="Base\GridCell.cs" />
     <Compile Include="Hooks\Hook.cs" />

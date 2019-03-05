@@ -14,6 +14,7 @@ namespace TUI
 
         public const int MaxUsers = 256;
         public static bool ShowGrid = false;
+        public static Hook<DrawArgs> DrawHook = new Hook<DrawArgs>();
         public static Hook<SetXYWHArgs> SetXYWHHook = new Hook<SetXYWHArgs>();
         public static Hook<SetTopArgs> SetTopHook = new Hook<SetTopArgs>();
         public static Hook<EnabledArgs> EnabledHook = new Hook<EnabledArgs>();
@@ -47,42 +48,50 @@ namespace TUI
 
         public static bool Touched(IUIUser user, Touch touch)
         {
-            if (Session[user.Index] == null)
+            UIUserSession session;
+            lock (Session)
             {
-                if (touch.State != TouchState.Begin)
-                    throw new Exception();
-
-                Session[user.Index] = new UIUserSession()
+                if (Session[user.Index] == null)
                 {
-                    Enabled = true,
-                    User = user,
-                    Index = Interlocked.Increment(ref SessionIndex)
-                };
+                    if (touch.State != TouchState.Begin)
+                        throw new Exception();
+
+                    Session[user.Index] = new UIUserSession()
+                    {
+                        Enabled = true,
+                        User = user,
+                        //Index = Interlocked.Increment(ref SessionIndex)
+                        Index = SessionIndex++
+                    };
+                }
+                session = Session[user.Index];
+                touch.Session = session;
             }
-            UIUserSession session = Session[user.Index];
-            touch.Session = session;
 
-            Touch previous = session.PreviousTouch;
-            if (touch.State == TouchState.Begin && previous != null
-                    && (previous.State == TouchState.Begin || previous.State == TouchState.Moving))
-                throw new InvalidOperationException();
-            if ((touch.State == TouchState.Moving || touch.State == TouchState.End)
-                    && (previous == null || previous.State == TouchState.End))
-                throw new InvalidOperationException();
-
-            if (touch.State == TouchState.Begin)
+            lock (session)
             {
-                session.BeginTouch = touch;
-                session.Enabled = true;
+                Touch previous = session.PreviousTouch;
+                if (touch.State == TouchState.Begin && previous != null
+                        && (previous.State == TouchState.Begin || previous.State == TouchState.Moving))
+                    throw new InvalidOperationException();
+                if ((touch.State == TouchState.Moving || touch.State == TouchState.End)
+                        && (previous == null || previous.State == TouchState.End))
+                    throw new InvalidOperationException();
+
+                if (touch.State == TouchState.Begin)
+                {
+                    session.BeginTouch = touch;
+                    session.Enabled = true;
+                }
+
+                bool used = false;
+                if (session.Enabled)
+                    used = TouchedChild(touch);
+
+                session.PreviousTouch = touch;
+
+                return used;
             }
-
-            bool used = false;
-            if (session.Enabled)
-                used = TouchedChild(touch);
-
-            session.PreviousTouch = touch;
-
-            return used;
         }
 
         #endregion
@@ -168,11 +177,22 @@ namespace TUI
         }
 
         #endregion
+        #region Apply
+
+        public static void Apply()
+        {
+            lock (Child)
+                foreach (VisualObject child in Child)
+                    if (child.Enabled)
+                        child.Apply();
+        }
+
+        #endregion
         #region Draw
 
-        public static void Draw(int x, int y, int width, int height)
+        public static void Draw(int x, int y, int width, int height, bool forcedSection)
         {
-
+            DrawHook.Invoke(new DrawArgs(x, y, width, height, forcedSection));
         }
 
         #endregion

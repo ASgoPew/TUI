@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TUI;
+using Terraria;
+using System.Threading;
 
 namespace TUITests
 {
@@ -19,6 +21,9 @@ namespace TUITests
     {
         static void Main(string[] args)
         {
+            Console.WriteLine(Terraria.Main.maxTilesX);
+            Thread.Sleep(20000);
+            return;
             UIPlayer me = new UIPlayer();
             RootVisualObject game = UI.Create("Game", 100, 100, 50, 20);
             game["lol"] = game.Add(new VisualObject(20, 10, 10, 10, null, null, (self, touch) =>
