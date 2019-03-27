@@ -21,9 +21,6 @@ namespace TUITests
     {
         static void Main(string[] args)
         {
-            Console.WriteLine(Terraria.Main.maxTilesX);
-            Thread.Sleep(20000);
-            return;
             UIPlayer me = new UIPlayer();
             RootVisualObject game = UI.Create("Game", 100, 100, 50, 20);
             game["lol"] = game.Add(new VisualObject(20, 10, 10, 10, null, null, (self, touch) =>
@@ -31,9 +28,8 @@ namespace TUITests
                 Console.WriteLine("Ok");
                 return true;
             }));
-            Console.WriteLine(game["lol"]);
             UIUserSession session = new UIUserSession();
-            UI.Touched(me, new Touch(24, 10, TouchState.Begin, session));
+            UI.Touched(me, new Touch<VisualObject>(124, 110, TouchState.Begin, session));
             //game.Remove(game["lol"]);
             //UI.Touched(me, new Touch(24, 10, TouchState.Begin, session));
         }

@@ -20,8 +20,8 @@ namespace TUI
         IEnumerable<(int, int)> ProviderPoints => GetProviderPoints();
         public virtual (int, int) ProviderXY(int dx = 0, int dy = 0) =>
             AbsoluteXY(dx, dy, Root);
-        public virtual bool Touched(Touch touch) =>
-            base.Touched(touch);
+        //public virtual bool Touched(Touch touch) =>
+            //base.Touched(touch);
 
         #endregion
 

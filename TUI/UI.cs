@@ -46,7 +46,7 @@ namespace TUI
         #endregion
         #region Touched
 
-        public static bool Touched(IUIUser user, Touch touch)
+        public static bool Touched(IUIUser user, Touch<VisualObject> touch)
         {
             UIUserSession session;
             lock (Session)
@@ -70,7 +70,7 @@ namespace TUI
 
             lock (session)
             {
-                Touch previous = session.PreviousTouch;
+                Touch<VisualObject> previous = session.PreviousTouch;
                 if (touch.State == TouchState.Begin && previous != null
                         && (previous.State == TouchState.Begin || previous.State == TouchState.Moving))
                     throw new InvalidOperationException();
@@ -97,7 +97,7 @@ namespace TUI
         #endregion
         #region TouchedChild
 
-        public static bool TouchedChild(Touch touch)
+        public static bool TouchedChild(Touch<VisualObject> touch)
         {
             lock (Child)
                 for (int i = Child.Count - 1; i >= 0; i--)

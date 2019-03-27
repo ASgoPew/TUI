@@ -21,7 +21,7 @@ namespace TUI
         public int AbsoluteX { get; private set; }
         public int AbsoluteY { get; private set; }
         public TouchState State { get; private set; }
-        public string Prefix { get; private set; }
+        public byte Prefix { get; private set; }
         public UIUserSession<T> Session { get; internal set; }
         private byte StateByte { get; set; }
 
@@ -109,7 +109,7 @@ namespace TUI
 
         #region Initialize
 
-        public Touch(int x, int y, TouchState state, UIUserSession<T> session, string prefix = null, byte stateByte = 0)
+        public Touch(int x, int y, TouchState state, UIUserSession<T> session, byte prefix = 0, byte stateByte = 0)
         {
             InitializeVisual(x, y);
             State = state;
@@ -121,24 +121,14 @@ namespace TUI
         #endregion
         #region Clone
 
-        public object Clone()
-        {
-            Touch<T> result = MemberwiseClone() as Touch<T>;
-            result.Prefix = result.Prefix != null ? String.Copy(Prefix) : null;
-            return result;
-        }
-
-        #endregion
-        #region operator Touch
-
-        public static implicit operator Touch(Touch<T> touch) => touch;
+        public object Clone() => MemberwiseClone();
 
         #endregion
     }
 
-    public class Touch : Touch<VisualObject>
+    /*public class Touch : Touch<VisualObject>
     {
         public Touch(int x, int y, TouchState state, UIUserSession<VisualObject> session, string prefix = null, byte stateByte = 0)
             : base(x, y, state, session, prefix, stateByte) { }
-    }
+    }*/
 }
