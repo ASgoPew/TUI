@@ -14,10 +14,7 @@ namespace TUI
 
         public const int MaxUsers = 256;
         public static bool ShowGrid = false;
-        public static Hook<DrawArgs> DrawHook = new Hook<DrawArgs>();
-        public static Hook<SetXYWHArgs> SetXYWHHook = new Hook<SetXYWHArgs>();
-        public static Hook<SetTopArgs> SetTopHook = new Hook<SetTopArgs>();
-        public static Hook<EnabledArgs> EnabledHook = new Hook<EnabledArgs>();
+        public static HookManager Hooks = new HookManager();
         private static List<RootVisualObject> Child = new List<RootVisualObject>();
         public static UIUserSession[] Session = new UIUserSession[MaxUsers];
         public static int SessionIndex = 0;
@@ -44,29 +41,36 @@ namespace TUI
         }
 
         #endregion
-        #region Touched
+        #region InitializeUser
 
-        public static bool Touched(IUIUser user, Touch<VisualObject> touch)
+        public static void InitializeUser(int userIndex)
         {
-            UIUserSession session;
             lock (Session)
             {
-                if (Session[user.Index] == null)
+                Session[userIndex] = new UIUserSession()
                 {
-                    if (touch.State != TouchState.Begin)
-                        throw new Exception();
-
-                    Session[user.Index] = new UIUserSession()
-                    {
-                        Enabled = true,
-                        User = user,
-                        //Index = Interlocked.Increment(ref SessionIndex)
-                        Index = SessionIndex++
-                    };
-                }
-                session = Session[user.Index];
-                touch.Session = session;
+                    Enabled = true,
+                    UserIndex = userIndex,
+                    Index = SessionIndex++
+                };
             }
+        }
+
+        #endregion
+        #region RemoveUser
+
+        public static void RemoveUser(int userIndex)
+        {
+            Session[userIndex] = null;
+        }
+
+        #endregion
+        #region Touched
+
+        public static bool Touched(int userIndex, Touch<VisualObject> touch)
+        {
+            UIUserSession session = Session[userIndex];
+            touch.Session = session;
 
             lock (session)
             {
@@ -140,7 +144,7 @@ namespace TUI
 
             // Let the fake provider actually become top
             if (result && o.TileCollection != null)
-                UI.SetTopHook.Invoke(new SetTopArgs(o));
+                UI.Hooks.SetTop.Invoke(new SetTopArgs(o));
             
             return result;
         }
@@ -192,7 +196,7 @@ namespace TUI
 
         public static void Draw(int x, int y, int width, int height, bool forcedSection)
         {
-            DrawHook.Invoke(new DrawArgs(x, y, width, height, forcedSection));
+            UI.Hooks.Draw.Invoke(new DrawArgs(x, y, width, height, forcedSection));
         }
 
         #endregion

@@ -69,13 +69,13 @@ namespace TUI
             if (Configuration.Lock == null)
                 return false;
 
-            UILock<T> uilock = Configuration.Lock.Type == LockType.Common ? Lock : PersonalLock[touch.User.Index];
+            UILock<T> uilock = Configuration.Lock.Type == LockType.Common ? Lock : PersonalLock[touch.Session.UserIndex];
             if (uilock != null && (DateTime.Now - uilock.Time) > TimeSpan.FromMilliseconds(uilock.Delay))
             {
                 if (Configuration.Lock.Type == LockType.Common)
                     Lock = null;
                 else
-                    PersonalLock[touch.User.Index] = null;
+                    PersonalLock[touch.Session.UserIndex] = null;
                 return false;
             }
             if (uilock != null &&
@@ -95,8 +95,9 @@ namespace TUI
 
         public virtual bool CanTouch(Touch<T> touch)
         {
-            return (Configuration.Permission == null || touch.User.HasPermission(Configuration.Permission))
-                && Configuration.CustomCanTouch?.Invoke((T)this, touch) != false;
+            CanTouchArgs args = new CanTouchArgs(touch);
+            UI.Hooks.CanTouch.Invoke(args);
+            return !args.Handled && Configuration.CustomCanTouch?.Invoke((T)this, touch) != false;
         }
 
         #endregion

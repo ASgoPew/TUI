@@ -31,7 +31,6 @@ namespace TUI
         public bool Yellow => (StateByte & 8) > 0;
         public bool Actuator => (StateByte & 16) > 0;
         public bool Cutter => (StateByte & 32) > 0;
-        public IUIUser User => Session.User;
 
         #endregion
 
@@ -109,11 +108,10 @@ namespace TUI
 
         #region Initialize
 
-        public Touch(int x, int y, TouchState state, UIUserSession<T> session, byte prefix = 0, byte stateByte = 0)
+        public Touch(int x, int y, TouchState state, byte prefix = 0, byte stateByte = 0)
         {
             InitializeVisual(x, y);
             State = state;
-            Session = session;
             Prefix = prefix;
             StateByte = stateByte;
         }

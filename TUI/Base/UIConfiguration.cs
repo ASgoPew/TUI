@@ -12,7 +12,8 @@ namespace TUI
         public GridConfiguration Grid { get; set; }
         public PaddingConfig Padding { get; set; }
         public LockConfig Lock { get; set; }
-        public string Permission { get; set; }
+        // rather string for tshock or int for rank
+        public object Permission { get; set; }
         public Func<T, T> CustomUpdate { get; set; }
         public Func<T, Touch<T>, bool> CustomCanTouch { get; set; }
         public Func<T, T> CustomApply { get; set; }
@@ -31,7 +32,7 @@ namespace TUI
             UIConfiguration<T> result = MemberwiseClone() as UIConfiguration<T>;
             result.Grid = (GridConfiguration)Grid?.Clone();
             result.Lock = (LockConfig)Lock?.Clone();
-            result.Permission = Permission != null ? String.Copy(Permission) : null;
+            result.Permission = Permission is String ? (Permission != null ? String.Copy((string)Permission) : null) : Permission;
             result.Padding = (PaddingConfig)Padding?.Clone();
             return result;
         }

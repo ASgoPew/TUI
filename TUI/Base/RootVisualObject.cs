@@ -32,7 +32,7 @@ namespace TUI
         {
             base.SetXYWH(x, y, width, height);
             if (TileCollection != null)
-                UI.SetXYWHHook.Invoke(new SetXYWHArgs(this, x, y, width, height));
+                UI.Hooks.SetXYWH.Invoke(new SetXYWHArgs(this, x, y, width, height));
             return this;
         }
 
@@ -45,7 +45,7 @@ namespace TUI
             {
                 Enabled = true;
                 if (TileCollection != null)
-                    UI.EnabledHook.Invoke(new EnabledArgs(this, true));
+                    UI.Hooks.Enabled.Invoke(new EnabledArgs(this, true));
             }
             return this;
         }
@@ -59,7 +59,7 @@ namespace TUI
             {
                 Enabled = false;
                 if (TileCollection != null)
-                    UI.EnabledHook.Invoke(new EnabledArgs(this, false));
+                    UI.Hooks.Enabled.Invoke(new EnabledArgs(this, false));
             }
             return this;
         }

@@ -57,8 +57,8 @@ namespace TUIPlugin
 
                 tile = Main.tile[tileX, tileY];
 
-                if (UI.Handle(new Touch<VisualObject>(tileX, tileY, TouchState.Begin, prefix, 0, player)))
-                    UI.session[player].projectileID = args.Identity;
+                if (UI.Touched(args.Owner, new Touch<VisualObject>(tileX, tileY, TouchState.Begin, prefix, 0)))
+                    UI.Session[args.Owner].ProjectileID = args.Identity;
                 playerDesignState[args.Owner] = 2;
             }
 		    else
@@ -66,7 +66,7 @@ namespace TUIPlugin
                 int tileX = (int)Math.Round((args.Position.X + 5) / 16);
                 int tileY = (int)Math.Round((args.Position.Y + 5) / 16);
 
-                UI.Handle(Touch(tileX, tileY, TouchState.Move, prefix, 0, player));
+                UI.Touched(args.Owner, new Touch<VisualObject>(tileX, tileY, TouchState.Moving, prefix, 0));
             }
         }
     }

@@ -46,17 +46,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Hooks\DrawArgs.cs" />
-    <Compile Include="Hooks\EnabledArgs.cs" />
+    <Compile Include="Hooks\Args\CanTouchArgs.cs" />
+    <Compile Include="Hooks\Args\DrawArgs.cs" />
+    <Compile Include="Hooks\Args\EnabledArgs.cs" />
     <Compile Include="Base\GridCell.cs" />
     <Compile Include="Hooks\Hook.cs" />
-    <Compile Include="Hooks\SetXYWHArgs.cs" />
+    <Compile Include="Hooks\HookManager.cs" />
+    <Compile Include="Hooks\Args\SetXYWHArgs.cs" />
     <Compile Include="Base\Indentation.cs" />
     <Compile Include="Base\ISize.cs" />
     <Compile Include="Base\Enums.cs" />
     <Compile Include="Base\GridConfiguration.cs" />
     <Compile Include="Base\IDOM.cs" />
-    <Compile Include="Hooks\SetTopArgs.cs" />
+    <Compile Include="Hooks\Args\SetTopArgs.cs" />
     <Compile Include="Base\Lock.cs" />
     <Compile Include="Base\PaddingConfig.cs" />
     <Compile Include="Base\RootVisualObject.cs" />

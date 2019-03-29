@@ -29,7 +29,8 @@ namespace TUITests
                 return true;
             }));
             UIUserSession session = new UIUserSession();
-            UI.Touched(me, new Touch<VisualObject>(124, 110, TouchState.Begin, session));
+            UI.InitializeUser(me.Index);
+            UI.Touched(me.Index, new Touch<VisualObject>(124, 110, TouchState.Begin, 0, 0));
             //game.Remove(game["lol"]);
             //UI.Touched(me, new Touch(24, 10, TouchState.Begin, session));
         }
