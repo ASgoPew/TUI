@@ -6,22 +6,21 @@ using System.Threading.Tasks;
 
 namespace TUI
 {
-    public class Touchable<T> : VisualDOM<T>
-        where T : Touchable<T>
+    public class Touchable : VisualDOM
     {
         #region Data
 
-        public UILock<T> Lock { get; set; }
-        public UILock<T>[] PersonalLock { get; set; } = new UILock<T>[UI.MaxUsers];
-        public Func<T, Touch<T>, bool> Callback { get; set; }
+        public UILock Lock { get; set; }
+        public UILock[] PersonalLock { get; set; } = new UILock[UI.MaxUsers];
+        public Func<VisualObject, Touch, bool> Callback { get; set; }
 
-        public bool Contains(Touch<T> touch) => Contains(touch.X, touch.Y);
+        public bool Contains(Touch touch) => Contains(touch.X, touch.Y);
 
         #endregion
 
         #region Initialize
 
-        public Touchable(int x, int y, int width, int height, UIConfiguration<T> configuration = null, Func<T, Touch<T>, bool> callback = null)
+        public Touchable(int x, int y, int width, int height, UIConfiguration configuration = null, Func<VisualObject, Touch, bool> callback = null)
             : base(x, y, width, height, configuration)
         {
             Callback = callback;
@@ -31,12 +30,12 @@ namespace TUI
         #region Clone
 
         public override object Clone() =>
-            new Touchable<T>(X, Y, Width, Height, (UIConfiguration<T>)Configuration.Clone(), Callback);
+            new Touchable(X, Y, Width, Height, (UIConfiguration)Configuration.Clone(), Callback);
 
         #endregion
         #region Touched
 
-        public virtual bool Touched(Touch<T> touch)
+        public virtual bool Touched(Touch touch)
         {
             if (!Active())
                 throw new InvalidOperationException("Trying to call Touched on object that is not active");
@@ -46,12 +45,12 @@ namespace TUI
             if (!CanTouch(touch))
                 return false;
 
-            UI.SaveTime((T)this, "Touched");
+            UI.SaveTime(this, "Touched");
             bool used = TouchedChild(touch);
-            UI.SaveTime((T)this, "Touched", "Child");
+            UI.SaveTime(this, "Touched", "Child");
             if (!used && CanTouchThis(touch))
                 used = TouchedThis(touch);
-            UI.ShowTime((T)this, "Touched", "This");
+            UI.ShowTime(this, "Touched", "This");
 
             // TODO: This might cause problems because object can be without rootAcquire =>
             // TouchState.End touch won't proceed to this object
@@ -64,12 +63,12 @@ namespace TUI
         #endregion
         #region IsLocked
 
-        public virtual bool IsLocked(Touch<T> touch)
+        public virtual bool IsLocked(Touch touch)
         {
             if (Configuration.Lock == null)
                 return false;
 
-            UILock<T> uilock = Configuration.Lock.Type == LockType.Common ? Lock : PersonalLock[touch.Session.UserIndex];
+            UILock uilock = Configuration.Lock.Type == LockType.Common ? Lock : PersonalLock[touch.Session.UserIndex];
             if (uilock != null && (DateTime.Now - uilock.Time) > TimeSpan.FromMilliseconds(uilock.Delay))
             {
                 if (Configuration.Lock.Type == LockType.Common)
@@ -93,17 +92,17 @@ namespace TUI
         #endregion
         #region CanTouch
 
-        public virtual bool CanTouch(Touch<T> touch)
+        public virtual bool CanTouch(Touch touch)
         {
-            CanTouchArgs args = new CanTouchArgs(touch);
+            CanTouchArgs args = new CanTouchArgs(this as VisualObject, touch);
             UI.Hooks.CanTouch.Invoke(args);
-            return !args.Handled && Configuration.CustomCanTouch?.Invoke((T)this, touch) != false;
+            return !args.Handled && Configuration.CustomCanTouch?.Invoke(this as VisualObject, touch) != false;
         }
 
         #endregion
         #region TouchedChild
 
-        public virtual bool TouchedChild(Touch<T> touch)
+        public virtual bool TouchedChild(Touch touch)
         {
             lock (Child)
                 for (int i = Child.Count - 1; i >= 0; i--)
@@ -128,12 +127,12 @@ namespace TUI
         #endregion
         #region PostSetTop
 
-        public virtual void PostSetTop(T o) { }
+        public virtual void PostSetTop(VisualObject o) { }
 
         #endregion
         #region CanTouchThis
 
-        public virtual bool CanTouchThis(Touch<T> touch) =>
+        public virtual bool CanTouchThis(Touch touch) =>
             (touch.State == TouchState.Begin && Configuration.UseBegin
                 || touch.State == TouchState.Moving && Configuration.UseMoving
                 || touch.State == TouchState.End && Configuration.UseEnd)
@@ -142,14 +141,14 @@ namespace TUI
         #endregion
         #region TouchedThis
 
-        public virtual bool TouchedThis(Touch<T> touch)
+        public virtual bool TouchedThis(Touch touch)
         {
             if (touch.State == TouchState.Begin)
-                touch.Session.BeginObject = (T)this;
+                touch.Session.BeginObject = this as VisualObject;
 
             if (Configuration.Lock != null)
             {
-                UILock<T> _lock = new UILock<T>(this, DateTime.Now, Configuration.Lock.Delay, touch);
+                UILock _lock = new UILock(this, DateTime.Now, Configuration.Lock.Delay, touch);
                 if (Configuration.Lock.Level == LockLevel.Self)
                     Lock = _lock;
                 else if (Configuration.Lock.Level == LockLevel.Root)
@@ -160,9 +159,9 @@ namespace TUI
 
             if (Callback != null)
             {
-                UI.SaveTime((T)this, "invoke");
-                used = Callback((T)this, touch);
-                UI.ShowTime((T)this, "invoke", "action");
+                UI.SaveTime(this, "invoke");
+                used = Callback(this as VisualObject, touch);
+                UI.ShowTime(this, "invoke", "action");
             }
 
             return used;

@@ -6,17 +6,16 @@ using System.Threading.Tasks;
 
 namespace TUI
 {
-    public class UIConfiguration<T> : ICloneable
-        where T : VisualDOM<T>
+    public class UIConfiguration : ICloneable
     {
         public GridConfiguration Grid { get; set; }
         public PaddingConfig Padding { get; set; }
         public LockConfig Lock { get; set; }
         // rather string for tshock or int for rank
         public object Permission { get; set; }
-        public Func<T, T> CustomUpdate { get; set; }
-        public Func<T, Touch<T>, bool> CustomCanTouch { get; set; }
-        public Func<T, T> CustomApply { get; set; }
+        public Func<VisualObject, VisualObject> CustomUpdate { get; set; }
+        public Func<VisualObject, Touch, bool> CustomCanTouch { get; set; }
+        public Func<VisualObject, VisualObject> CustomApply { get; set; }
 
         public bool Ordered { get; set; } = false;
         //public bool Orderable { get; set; } = true;
@@ -29,7 +28,7 @@ namespace TUI
 
         public object Clone()
         {
-            UIConfiguration<T> result = MemberwiseClone() as UIConfiguration<T>;
+            UIConfiguration result = this.MemberwiseClone() as UIConfiguration;
             result.Grid = (GridConfiguration)Grid?.Clone();
             result.Lock = (LockConfig)Lock?.Clone();
             result.Permission = Permission is String ? (Permission != null ? String.Copy((string)Permission) : null) : Permission;
@@ -37,6 +36,4 @@ namespace TUI
             return result;
         }
     }
-
-    public class UIConfiguration : UIConfiguration<VisualObject> { }
 }

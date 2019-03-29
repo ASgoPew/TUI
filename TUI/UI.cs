@@ -12,7 +12,7 @@ namespace TUI
     {
         #region Data
 
-        public const int MaxUsers = 256;
+        public static int MaxUsers;
         public static bool ShowGrid = false;
         public static HookManager Hooks = new HookManager();
         private static List<RootVisualObject> Child = new List<RootVisualObject>();
@@ -21,6 +21,24 @@ namespace TUI
 
         #endregion
 
+        #region Initialize
+
+        public static void Initialize(int maxUsers = 256)
+        {
+            MaxUsers = maxUsers;
+
+            Hooks.Initialize.Invoke(new InitializeArgs(maxUsers));
+        }
+
+        #endregion
+        #region Deinitialize
+
+        public static void Deinitialize()
+        {
+            Hooks.Deinitialize.Invoke(new EventArgs());
+        }
+
+        #endregion
         #region Create
 
         public static RootVisualObject Create(string name, int x, int y, int width, int height, ITileCollection tileCollection = null)
@@ -61,20 +79,28 @@ namespace TUI
 
         public static void RemoveUser(int userIndex)
         {
+            UIUserSession session = Session[userIndex];
+
+            if (session.PreviousTouch != null && session.PreviousTouch.State != TouchState.End)
+            {
+                Touch simulatedEndTouch = session.PreviousTouch.SimulatedEndTouch();
+                UI.Touched(userIndex, simulatedEndTouch);
+            }
+
             Session[userIndex] = null;
         }
 
         #endregion
         #region Touched
 
-        public static bool Touched(int userIndex, Touch<VisualObject> touch)
+        public static bool Touched(int userIndex, Touch touch)
         {
             UIUserSession session = Session[userIndex];
             touch.Session = session;
 
             lock (session)
             {
-                Touch<VisualObject> previous = session.PreviousTouch;
+                Touch previous = session.PreviousTouch;
                 if (touch.State == TouchState.Begin && previous != null
                         && (previous.State == TouchState.Begin || previous.State == TouchState.Moving))
                     throw new InvalidOperationException();
@@ -101,7 +127,7 @@ namespace TUI
         #endregion
         #region TouchedChild
 
-        public static bool TouchedChild(Touch<VisualObject> touch)
+        public static bool TouchedChild(Touch touch)
         {
             lock (Child)
                 for (int i = Child.Count - 1; i >= 0; i--)
@@ -181,6 +207,17 @@ namespace TUI
         }
 
         #endregion
+        #region Update
+
+        public static void Update()
+        {
+            lock (Child)
+                foreach (VisualObject child in Child)
+                    if (child.Enabled)
+                        child.Update();
+        }
+
+        #endregion
         #region Apply
 
         public static void Apply()
@@ -228,7 +265,7 @@ namespace TUI
         #region SaveTime
 
         public static void SaveTime<T>(T o, string name, string key = null)
-            where T : Touchable<T>
+            where T : VisualDOM
         {
 
         }
@@ -237,7 +274,7 @@ namespace TUI
         #region ShowTime
 
         public static void ShowTime<T>(T o, string name, string key = null)
-            where T : Touchable<T>
+            where T : VisualDOM
         {
 
         }

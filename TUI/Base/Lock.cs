@@ -36,16 +36,15 @@ namespace TUI
         public object Clone() => MemberwiseClone();
     }
 
-    public class UILock<T>
-        where T : Touchable<T>
+    public class UILock
     {
         public object Locker { get; set; }
         public DateTime Time { get; set; }
         public int Delay { get; set; }
-        public Touch<T> Touch { get; set; }
+        public Touch Touch { get; set; }
         public bool Active { get; set; }
 
-        public UILock(object locker, DateTime time, int delay, Touch<T> touch)
+        public UILock(object locker, DateTime time, int delay, Touch touch)
         {
             Locker = locker;
             Time = time;

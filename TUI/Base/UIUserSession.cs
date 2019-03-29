@@ -1,17 +1,14 @@
 ﻿namespace TUI
 {
-    public class UIUserSession<T>
-        where T : VisualDOM<T>
+    public class UIUserSession
     {
         public bool Enabled { get; set; } = true;
         public int UserIndex { get; set; }
         public int Index { get; set; }
         public int Count { get; set; } = 0;
-        public Touch<T> BeginTouch { get; set; }
-        public Touch<T> PreviousTouch { get; set; }
-        public T BeginObject { get; set; }
+        public Touch BeginTouch { get; set; }
+        public Touch PreviousTouch { get; set; }
+        public VisualObject BeginObject { get; set; }
         public int ProjectileID { get; set; }
     }
-
-    public class UIUserSession : UIUserSession<VisualObject> { }
 }

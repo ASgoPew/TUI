@@ -8,7 +8,7 @@ using Terraria;
 
 namespace TUI
 {
-    public class VisualObject : Touchable<VisualObject>
+    public class VisualObject : Touchable
     {
         #region Data
 
@@ -20,8 +20,6 @@ namespace TUI
         IEnumerable<(int, int)> ProviderPoints => GetProviderPoints();
         public virtual (int, int) ProviderXY(int dx = 0, int dy = 0) =>
             AbsoluteXY(dx, dy, Root);
-        //public virtual bool Touched(Touch touch) =>
-            //base.Touched(touch);
 
         #endregion
 
@@ -64,13 +62,7 @@ namespace TUI
 
         #region Initialize
 
-        public VisualObject(int x, int y, int width, int height, UIConfiguration configuration = null, UIStyle style = null, Func<VisualObject, Touch<VisualObject>, bool> callback = null)
-            : base(x, y, width, height, configuration, callback)
-        {
-            Style = style ?? new UIStyle();
-        }
-
-        private VisualObject(int x, int y, int width, int height, UIConfiguration<VisualObject> configuration = null, UIStyle style = null, Func<VisualObject, Touch<VisualObject>, bool> callback = null)
+        public VisualObject(int x, int y, int width, int height, UIConfiguration configuration = null, UIStyle style = null, Func<VisualObject, Touch, bool> callback = null)
             : base(x, y, width, height, configuration, callback)
         {
             Style = style ?? new UIStyle();

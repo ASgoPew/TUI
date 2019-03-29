@@ -50,6 +50,7 @@
     <Compile Include="Hooks\Args\DrawArgs.cs" />
     <Compile Include="Hooks\Args\EnabledArgs.cs" />
     <Compile Include="Base\GridCell.cs" />
+    <Compile Include="Hooks\Args\InitializeArgs.cs" />
     <Compile Include="Hooks\Hook.cs" />
     <Compile Include="Hooks\HookManager.cs" />
     <Compile Include="Hooks\Args\SetXYWHArgs.cs" />

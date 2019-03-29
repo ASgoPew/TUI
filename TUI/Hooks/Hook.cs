@@ -21,5 +21,9 @@ namespace TUI
                 Console.WriteLine(e);
             }
         }
+        public void Clear()
+        {
+            Event = null;
+        }
     }
 }

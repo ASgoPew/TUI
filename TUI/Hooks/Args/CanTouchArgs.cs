@@ -9,10 +9,12 @@ namespace TUI
 {
     public class CanTouchArgs : HandledEventArgs
     {
-        public object Touch { get; set; }
+        public VisualObject Node { get; private set; }
+        public Touch Touch { get; private set; }
 
-        public CanTouchArgs(object touch)
+        public CanTouchArgs(VisualObject node, Touch touch)
         {
+            Node = node;
             Touch = touch;
         }
     }

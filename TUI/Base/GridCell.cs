@@ -6,12 +6,11 @@ using System.Threading.Tasks;
 
 namespace TUI
 {
-    public class GridCell<T> : IVisual<GridCell<T>>
-        where T : IVisual<T>
+    public class GridCell : IVisual<GridCell>
     {
         public int Column { get; }
         public int Line { get; }
-        public List<T> Objects { get; }
+        public List<VisualObject> Objects { get; }
         public Indentation Indentation { get; set; }
         public Alignment? Alignment { get; set; }
         public Direction? Direction { get; set; }
@@ -37,7 +36,7 @@ namespace TUI
 
             #region Initialize
 
-        public void InitializeVisual(int x, int y, int width, int height)
+            public void InitializeVisual(int x, int y, int width, int height)
             {
                 X = x;
                 Y = y;
@@ -53,30 +52,30 @@ namespace TUI
                 return (X + dx, Y + dy, Width, Height);
             }
 
-            public GridCell<T> SetXYWH(int x, int y, int width = -1, int height = -1)
+            public GridCell SetXYWH(int x, int y, int width = -1, int height = -1)
             {
                 X = x;
                 Y = y;
                 Width = width >= 0 ? width : Width;
                 Height = height >= 0 ? height : Height;
-                return (GridCell<T>)this;
+                return this;
             }
 
             #endregion
             #region Move
 
-            public GridCell<T> Move(int dx, int dy)
+            public GridCell Move(int dx, int dy)
             {
                 X = X + dx;
                 Y = Y + dy;
-                return (GridCell<T>)this;
+                return this;
             }
 
-            public GridCell<T> MoveBack(int dx, int dy)
+            public GridCell MoveBack(int dx, int dy)
             {
                 X = X - dx;
                 Y = Y - dy;
-                return (GridCell<T>)this;
+                return this;
             }
 
             #endregion
@@ -92,7 +91,7 @@ namespace TUI
                 return x < X + Width && X < x + width && y < Y + Height && Y < y + height;
             }
 
-            public bool Intersecting(GridCell<T> o) => Intersecting(o.X, o.Y, o.Width, o.Height);
+            public bool Intersecting(GridCell o) => Intersecting(o.X, o.Y, o.Width, o.Height);
 
             #endregion
             #region Points

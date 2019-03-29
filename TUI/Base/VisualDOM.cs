@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace TUI
 {
-    public class VisualDOM<T> : IDOM<T>, IVisual<T>, ICloneable
-        where T : VisualDOM<T>
+    public class VisualDOM : IDOM<VisualObject>, IVisual<VisualObject>, ICloneable
     {
         #region Data
 
@@ -25,11 +24,11 @@ namespace TUI
         }
         IEnumerable<(int, int)> AbsolutePoints => GetAbsolutePoints();
 
-        protected T _Root { get; set; }
+        protected RootVisualObject _Root { get; set; }
         public bool Enabled { get; set; }
-        public GridCell<T>[,] Grid { get; private set; }
-        public GridCell<T> Cell { get; private set; }
-        public UIConfiguration<T> Configuration { get; set; }
+        public GridCell[,] Grid { get; private set; }
+        public GridCell Cell { get; private set; }
+        public UIConfiguration Configuration { get; set; }
 
         #endregion
 
@@ -37,11 +36,11 @@ namespace TUI
 
             #region Data
 
-            public List<T> Child { get; private set; }
-            public T Parent { get; private set; }
+            public List<VisualObject> Child { get; private set; }
+            public VisualObject Parent { get; private set; }
 
-            public IEnumerable<T> DescendantDFS => GetDescendantDFS();
-            public IEnumerable<T> DescendantBFS => GetDescendantBFS();
+            public IEnumerable<VisualObject> DescendantDFS => GetDescendantDFS();
+            public IEnumerable<VisualObject> DescendantBFS => GetDescendantBFS();
 
             #endregion
 
@@ -49,26 +48,26 @@ namespace TUI
 
             public void InitializeDOM()
             {
-                Child = new List<T>();
+                Child = new List<VisualObject>();
                 Parent = null;
             }
 
             #endregion
             #region Add
 
-            public virtual T Add(T child)
+            public virtual VisualObject Add(VisualObject child)
             {
                 lock (Child)
                     Child.Add(child);
-                child.Parent = (T)this;
+                child.Parent = this as VisualObject;
                 return child;
             }
 
-            public virtual T Add(T child, int column, int line)
+            public virtual VisualObject Add(VisualObject child, int column, int line)
             {
                 Add(child);
 
-                GridCell<T> cell = Grid[column, line];
+                GridCell cell = Grid[column, line];
                 cell.Objects.Add(child);
                 child.Cell = cell;
 
@@ -78,7 +77,7 @@ namespace TUI
             #endregion
             #region Remove
 
-            public virtual T Remove(T child)
+            public virtual VisualObject Remove(VisualObject child)
             {
                 bool removed;
                 lock (Child)
@@ -99,45 +98,45 @@ namespace TUI
             #endregion
             #region Select
 
-            public virtual T Select(T o)
+            public virtual VisualObject Select(VisualObject o)
             {
                 if (!Child.Contains(o))
                     throw new InvalidOperationException("Trying to Select an object that isn't a child of current VisualDOM");
 
                 lock (Child)
-                    foreach (T child in Child)
+                    foreach (VisualObject child in Child)
                         child.Enabled = false;
                 o.Enabled = true;
 
-                return (T)this;
+                return this as VisualObject;
             }
 
-            public virtual T Deselect()
+            public virtual VisualObject Deselect()
             {
                 lock (Child)
-                    foreach (T child in Child)
+                    foreach (VisualObject child in Child)
                         child.Enabled = true;
 
-                return (T)this;
+                return this as VisualObject;
             }
 
             #endregion
             #region GetRoot
 
-            public T GetRoot()
+            public VisualObject GetRoot()
             {
-                T node = (T)this;
+                VisualDOM node = this;
                 while (node.Parent != null)
-                    node = (T)node.Parent;
-                return node;
+                    node = node.Parent;
+                return node as VisualObject;
             }
 
             #endregion
             #region IsAncestorFor
 
-            public bool IsAncestorFor(T o)
+            public bool IsAncestorFor(VisualObject o)
             {
-                T node = (T)Parent;
+                VisualObject node = Parent;
 
                 while (node != null)
                 {
@@ -152,7 +151,7 @@ namespace TUI
             #endregion
             #region SetTop
 
-            public virtual bool SetTop(T o)
+            public virtual bool SetTop(VisualObject o)
             {
                 lock (Child)
                 {
@@ -173,42 +172,42 @@ namespace TUI
             #endregion
             #region DFS, BFS
 
-            private void DFS(List<T> list)
+            private void DFS(List<VisualObject> list)
             {
-                list.Add((T)this);
+                list.Add(this as VisualObject);
                 lock (Child)
-                    foreach (T child in Child)
+                    foreach (VisualObject child in Child)
                         child.DFS(list);
             }
 
-            private void BFS(List<T> list)
+            private void BFS(List<VisualObject> list)
             {
-                list.Add((T)this);
+                list.Add(this as VisualObject);
                 int index = 0;
                 while (index < list.Count)
                 {
                     lock (list[index].Child)
-                        foreach (T o in list[index].Child)
+                        foreach (VisualObject o in list[index].Child)
                             list.Add(o);
                     index++;
                 }
             }
 
-            private IEnumerable<T> GetDescendantDFS()
+            private IEnumerable<VisualObject> GetDescendantDFS()
             {
-                List<T> list = new List<T>();
+                List<VisualObject> list = new List<VisualObject>();
                 DFS(list);
 
-                foreach (T o in list)
+                foreach (VisualObject o in list)
                     yield return o;
             }
 
-            private IEnumerable<T> GetDescendantBFS()
+            private IEnumerable<VisualObject> GetDescendantBFS()
             {
-                List<T> list = new List<T>();
+                List<VisualObject> list = new List<VisualObject>();
                 BFS(list);
 
-                foreach (T o in list)
+                foreach (VisualObject o in list)
                     yield return o;
             }
 
@@ -232,7 +231,7 @@ namespace TUI
 
             #region Initialize
 
-        public void InitializeVisual(int x, int y, int width, int height)
+            public void InitializeVisual(int x, int y, int width, int height)
             {
                 X = x;
                 Y = y;
@@ -248,39 +247,39 @@ namespace TUI
                 return (X + dx, Y + dy, Width, Height);
             }
 
-            public virtual T SetXYWH(int x, int y, int width = -1, int height = -1)
+            public virtual VisualObject SetXYWH(int x, int y, int width = -1, int height = -1)
             {
                 X = x;
                 Y = y;
                 Width = width >= 0 ? width : Width;
                 Height = height >= 0 ? height : Height;
-                return (T)this;
+                return this as VisualObject;
             }
 
-            public virtual T SetXYWH((int x, int y, int width, int height) data)
+            public virtual VisualObject SetXYWH((int x, int y, int width, int height) data)
             {
                 X = data.x;
                 Y = data.y;
                 Width = data.width >= 0 ? data.width : Width;
                 Height = data.height >= 0 ? data.height : Height;
-                return (T)this;
+                return this as VisualObject;
             }
 
             #endregion
             #region Move
 
-            public virtual T Move(int dx, int dy)
+            public virtual VisualObject Move(int dx, int dy)
             {
                 X = X + dx;
                 Y = Y + dy;
-                return (T)this;
+                return this as VisualObject;
             }
 
-            public virtual T MoveBack(int dx, int dy)
+            public virtual VisualObject MoveBack(int dx, int dy)
             {
                 X = X - dx;
                 Y = Y - dy;
-                return (T)this;
+                return this as VisualObject;
             }
 
             #endregion
@@ -292,7 +291,7 @@ namespace TUI
             public virtual bool Intersecting(int x, int y, int width, int height) =>
                 x < X + Width && X < x + width && y < Y + Height && Y < y + height;
 
-            public virtual bool Intersecting(T o) => Intersecting(o.X, o.Y, o.Width, o.Height);
+            public virtual bool Intersecting(VisualObject o) => Intersecting(o.X, o.Y, o.Width, o.Height);
 
             #endregion
             #region Points
@@ -310,19 +309,19 @@ namespace TUI
         #region ICloneable
 
         public virtual object Clone() =>
-            new VisualDOM<T>(X, Y, Width, Height, (UIConfiguration<T>)Configuration.Clone());
+            new VisualDOM(X, Y, Width, Height, (UIConfiguration)Configuration.Clone());
 
         #endregion
 
         #region Initialize
 
-        public VisualDOM(int x, int y, int width, int height, UIConfiguration<T> configuration = null)
+        public VisualDOM(int x, int y, int width, int height, UIConfiguration configuration = null)
         {
             InitializeDOM();
             InitializeVisual(x, y, width, height);
 
             Enabled = true;
-            Configuration = configuration ?? new UIConfiguration<T>();
+            Configuration = configuration ?? new UIConfiguration();
 
             if (Configuration.Grid != null)
                 SetupGrid(Configuration.Grid);
@@ -333,9 +332,9 @@ namespace TUI
 
         public bool Active()
         {
-            T node = (T)this;
+            VisualDOM node = this;
 
-            HashSet<T> was = new HashSet<T>();
+            HashSet<VisualDOM> was = new HashSet<VisualDOM>();
             was.Add(node);
             while (node != null)
             {
@@ -350,7 +349,7 @@ namespace TUI
         #endregion
         #region SetupGrid
 
-        public T SetupGrid(GridConfiguration gridConfig)
+        public VisualObject SetupGrid(GridConfiguration gridConfig)
         {
             Configuration.Grid = gridConfig;
 
@@ -358,18 +357,18 @@ namespace TUI
                 gridConfig.Columns = new ISize[] { new Relative(100) };
             if (gridConfig.Lines == null)
                 gridConfig.Lines = new ISize[] { new Relative(100) };
-            Grid = new GridCell<T>[gridConfig.Columns.Length, gridConfig.Lines.Length];
+            Grid = new GridCell[gridConfig.Columns.Length, gridConfig.Lines.Length];
             for (int i = 0; i < gridConfig.Columns.Length; i++)
                 for (int j = 0; j < gridConfig.Lines.Length; j++)
-                    Grid[i, j] = new GridCell<T>(i, j);
+                    Grid[i, j] = new GridCell(i, j);
 
-            return (T)this;
+            return this as VisualObject;
         }
 
         #endregion
         #region Update
 
-            public virtual T Update(bool updateChild = true)
+            public virtual VisualObject Update(bool updateChild = true)
             {
                 // Updates related to this node
                 UpdateThis();
@@ -378,26 +377,26 @@ namespace TUI
                 if (updateChild)
                     UpdateChild();
 
-                return (T)this;
+                return this as VisualObject;
             }
 
             #region UpdateThis
 
-            public virtual T UpdateThis()
+            public virtual VisualObject UpdateThis()
             {
                 if (_Root == null)
-                    _Root = GetRoot();
+                    _Root = GetRoot() as RootVisualObject;
                 if (Configuration.Grid != null)
                     UpdateGrid();
                 UpdateChildPadding();
                 CustomUpdate();
-                return (T)this;
+                return this as VisualObject;
             }
 
             #endregion
             #region UpdateGrid
 
-            public T UpdateGrid()
+            public VisualObject UpdateGrid()
             {
                 // Checking grid validity
                 GridConfiguration gridConfig = Configuration.Grid;
@@ -457,7 +456,7 @@ namespace TUI
                             movedHCounter = HCounter + lineSize + gridIndentation.Vertical;
                         else
                             movedHCounter = HCounter + (lineSize * 10) * relativeH + gridIndentation.Vertical;
-                        GridCell<T> cell = Grid[i, j];
+                        GridCell cell = Grid[i, j];
 
                         Direction direction = cell.Direction ?? gridConfig.Direction ?? DefaultDirection;
                         Alignment alignment = cell.Alignment ?? gridConfig.Alignment ?? DefaultAlignment;
@@ -491,7 +490,7 @@ namespace TUI
                             int totalW = 0, totalH = 0;
                             for (int k = 0; k < cell.Objects.Count; k++)
                             {
-                                T obj = cell.Objects[k];
+                                VisualObject obj = cell.Objects[k];
                                 obj.Cell = cell;
                                 if (direction == Direction.Left || direction == Direction.Right)
                                 {
@@ -535,7 +534,7 @@ namespace TUI
                             int cy = direction == Direction.Up ? totalH - cell.Objects[0].Height : 0;
                             for (int k = 0; k < cell.Objects.Count; k++)
                             {
-                                T obj = cell.Objects[k];
+                                VisualObject obj = cell.Objects[k];
 						        if (obj.Enabled && obj.Configuration.Padding == null)
                                 {
                                     // Calculating side alignment
@@ -589,16 +588,16 @@ namespace TUI
                     }
                     WCounter = movedWCounter;
                 }
-                return (T)this;
+                return this as VisualObject;
             }
 
             #endregion
             #region UpdateChildPadding
 
-            public virtual T UpdateChildPadding()
+            public virtual VisualObject UpdateChildPadding()
             {
                 lock (Child)
-                    foreach (T child in Child)
+                    foreach (VisualObject child in Child)
                     {
 			            if (child.Configuration.Padding != null)
                         {
@@ -608,44 +607,35 @@ namespace TUI
                                 child.SetXYWH(Padding(child.Configuration.Padding));
                         }
                     }
-                return (T)this;
+                return this as VisualObject;
             }
 
             #endregion
             #region CustomUpdate
 
-            public virtual T CustomUpdate() =>
-                Configuration.CustomUpdate?.Invoke((T)this);
+            public virtual VisualObject CustomUpdate() =>
+                Configuration.CustomUpdate?.Invoke(this as VisualObject);
 
             #endregion
             #region UpdateChild
 
-            public virtual T UpdateChild()
+            public virtual VisualObject UpdateChild()
             {
                 lock (Child)
-                    foreach (T child in Child)
+                    foreach (VisualObject child in Child)
                         if (child.Enabled)
                             child.Update();
-                return (T)this;
+                return this as VisualObject;
             }
 
             #endregion
 
         #endregion
-        #region TeleportUser
-
-        public void TeleportUser(IUIUser user)
-        {
-            (int x, int y) = AbsoluteXY();
-            user.Teleport((x + Width/2) * 16, (y + Height/2) * 16);
-        }
-
-        #endregion
         #region AbsoluteXY
 
-        public (int X, int Y) AbsoluteXY(int x = 0, int y = 0, T parent = null)
+        public (int X, int Y) AbsoluteXY(int x = 0, int y = 0, VisualDOM parent = null)
         {
-            T node = (T)this;
+            VisualDOM node = this;
             while (node != null && node != parent)
             {
                 x = x + node.X;
