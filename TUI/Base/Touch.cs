@@ -13,7 +13,7 @@ namespace TUI
         End
     }
 
-    public class Touch<T, U> : IVisual<Touch<T, U>>, ICloneable
+    public class Touch<T> : IVisual<Touch<T>>, ICloneable
         where T : VisualDOM<T>
     {
         #region Data
@@ -22,7 +22,7 @@ namespace TUI
         public int AbsoluteY { get; private set; }
         public TouchState State { get; private set; }
         public byte Prefix { get; private set; }
-        public UIUserSession<T, U> Session { get; internal set; }
+        public UIUserSession<T> Session { get; internal set; }
         private byte StateByte { get; set; }
 
         public bool Red => (StateByte & 1) > 0;
@@ -31,7 +31,7 @@ namespace TUI
         public bool Yellow => (StateByte & 8) > 0;
         public bool Actuator => (StateByte & 16) > 0;
         public bool Cutter => (StateByte & 32) > 0;
-        public U User => Session.User;
+        public IUIUser User => Session.User;
 
         #endregion
 
@@ -46,7 +46,7 @@ namespace TUI
 
             public IEnumerable<(int, int)> Points { get { yield return (X, Y); } }
             public (int X, int Y, int Width, int Height) Padding(PaddingConfig paddingData) =>
-                UI<U>.Padding(X, Y, Width, Height, paddingData);
+                UI.Padding(X, Y, Width, Height, paddingData);
 
             #endregion
 
@@ -68,7 +68,7 @@ namespace TUI
                 return (X + dx, Y + dy, Width, Height);
             }
 
-            public Touch<T, U> SetXYWH(int x, int y, int width = -1, int height = -1)
+            public Touch<T> SetXYWH(int x, int y, int width = -1, int height = -1)
             {
                 X = x;
                 Y = y;
@@ -80,14 +80,14 @@ namespace TUI
             #endregion
             #region Move
 
-            public Touch<T, U> Move(int dx, int dy)
+            public Touch<T> Move(int dx, int dy)
             {
                 X = X + dx;
                 Y = Y + dy;
                 return this;
             }
 
-            public Touch<T, U> MoveBack(int dx, int dy)
+            public Touch<T> MoveBack(int dx, int dy)
             {
                 X = X - dx;
                 Y = Y - dy;
@@ -101,15 +101,15 @@ namespace TUI
                 x >= X && y >= Y && x < X + Width && y < Y + Height;
             public bool Intersecting(int x, int y, int width, int height) =>
                 x < X + Width && X < x + width && y < Y + Height && Y < y + height;
-            public bool Intersecting(Touch<T, U> o) => false;
+            public bool Intersecting(Touch<T> o) => false;
 
-            #endregion
+        #endregion
 
         #endregion
 
         #region Initialize
 
-        public Touch(int x, int y, TouchState state, UIUserSession<T, U> session, byte prefix = 0, byte stateByte = 0)
+        public Touch(int x, int y, TouchState state, UIUserSession<T> session, byte prefix = 0, byte stateByte = 0)
         {
             InitializeVisual(x, y);
             State = state;
@@ -126,9 +126,9 @@ namespace TUI
         #endregion
     }
 
-    public class Touch<U> : Touch<VisualObject, U>
+    /*public class Touch : Touch<VisualObject>
     {
-        public Touch(int x, int y, TouchState state, UIUserSession<VisualObject, U> session, byte prefix = 0, byte stateByte = 0)
+        public Touch(int x, int y, TouchState state, UIUserSession<VisualObject> session, string prefix = null, byte stateByte = 0)
             : base(x, y, state, session, prefix, stateByte) { }
-    }
+    }*/
 }

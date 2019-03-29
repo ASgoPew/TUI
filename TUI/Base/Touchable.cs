@@ -36,7 +36,7 @@ namespace TUI
         #endregion
         #region Touched
 
-        public virtual bool Touched<U>(Touch<T, U> touch)
+        public virtual bool Touched(Touch<T> touch)
         {
             if (!Active())
                 throw new InvalidOperationException("Trying to call Touched on object that is not active");
@@ -64,7 +64,7 @@ namespace TUI
         #endregion
         #region IsLocked
 
-        public virtual bool IsLocked<U>(Touch<T, U> touch)
+        public virtual bool IsLocked(Touch<T> touch)
         {
             if (Configuration.Lock == null)
                 return false;
@@ -93,7 +93,7 @@ namespace TUI
         #endregion
         #region CanTouch
 
-        public virtual bool CanTouch<U>(Touch<T, U> touch)
+        public virtual bool CanTouch(Touch<T> touch)
         {
             return (Configuration.Permission == null || touch.User.HasPermission(Configuration.Permission))
                 && Configuration.CustomCanTouch?.Invoke((T)this, touch) != false;

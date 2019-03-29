@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace TUI
 {
-    public static class UI<U>
+    public static class UI
     {
         #region Data
 
@@ -19,7 +19,7 @@ namespace TUI
         public static Hook<SetTopArgs> SetTopHook = new Hook<SetTopArgs>();
         public static Hook<EnabledArgs> EnabledHook = new Hook<EnabledArgs>();
         private static List<RootVisualObject> Child = new List<RootVisualObject>();
-        public static Dictionary<U, UIUserSession<U>> Session = new Dictionary<U, UIUserSession<U>>();
+        public static UIUserSession[] Session = new UIUserSession[MaxUsers];
         public static int SessionIndex = 0;
 
         #endregion
@@ -46,17 +46,17 @@ namespace TUI
         #endregion
         #region Touched
 
-        public static bool Touched(U user, Touch<U> touch)
+        public static bool Touched(IUIUser user, Touch<VisualObject> touch)
         {
-            UIUserSession<U> session;
+            UIUserSession session;
             lock (Session)
             {
-                if (Session[user] == null)
+                if (Session[user.Index] == null)
                 {
                     if (touch.State != TouchState.Begin)
                         throw new Exception();
 
-                    Session[user] = new UIUserSession<U>()
+                    Session[user.Index] = new UIUserSession()
                     {
                         Enabled = true,
                         User = user,
@@ -64,13 +64,13 @@ namespace TUI
                         Index = SessionIndex++
                     };
                 }
-                session = Session[user];
+                session = Session[user.Index];
                 touch.Session = session;
             }
 
             lock (session)
             {
-                Touch<VisualObject, U> previous = session.PreviousTouch;
+                Touch<VisualObject> previous = session.PreviousTouch;
                 if (touch.State == TouchState.Begin && previous != null
                         && (previous.State == TouchState.Begin || previous.State == TouchState.Moving))
                     throw new InvalidOperationException();
@@ -97,7 +97,7 @@ namespace TUI
         #endregion
         #region TouchedChild
 
-        public static bool TouchedChild(Touch<VisualObject, U> touch)
+        public static bool TouchedChild(Touch<VisualObject> touch)
         {
             lock (Child)
                 for (int i = Child.Count - 1; i >= 0; i--)
