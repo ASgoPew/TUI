@@ -1,10 +1,5 @@
-﻿using OTAPI.Tile;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace TUI
 {
@@ -25,7 +20,9 @@ namespace TUI
 
         public static void Initialize(int maxUsers = 256)
         {
+            SessionIndex = 0;
             MaxUsers = maxUsers;
+            Session = new UIUserSession[MaxUsers];
 
             Hooks.Initialize.Invoke(new InitializeArgs(maxUsers));
         }
@@ -36,14 +33,15 @@ namespace TUI
         public static void Deinitialize()
         {
             Hooks.Deinitialize.Invoke(new EventArgs());
+            Child.Clear();
         }
 
         #endregion
         #region Create
 
-        public static RootVisualObject Create(string name, int x, int y, int width, int height, ITileCollection tileCollection = null)
+        public static RootVisualObject Create(string name, int x, int y, int width, int height, UITileProvider provider)
         {
-            RootVisualObject result = new RootVisualObject(name, x, y, width, height, tileCollection);
+            RootVisualObject result = new RootVisualObject(name, x, y, width, height, provider);
             lock (Child)
                 Child.Add(result);
             return result;
@@ -69,7 +67,8 @@ namespace TUI
                 {
                     Enabled = true,
                     UserIndex = userIndex,
-                    Index = SessionIndex++
+                    Index = SessionIndex++,
+                    ProjectileID = -1
                 };
             }
         }
@@ -169,7 +168,7 @@ namespace TUI
                 throw new InvalidOperationException("Trying to SetTop an object that isn't a child of current VisualDOM");
 
             // Let the fake provider actually become top
-            if (result && o.TileCollection != null)
+            if (result)
                 UI.Hooks.SetTop.Invoke(new SetTopArgs(o));
             
             return result;
@@ -200,7 +199,7 @@ namespace TUI
                 if (child != o && child.Enabled && o.Intersecting(child))
                 {
                     intersects = true;
-                    if (o.TileCollection == child.TileCollection)
+                    if (o.Provider.Tile == child.Provider.Tile)
                         return (true, true);
                 }
             return (intersects, false);
@@ -231,7 +230,18 @@ namespace TUI
         #endregion
         #region Draw
 
-        public static void Draw(int x, int y, int width, int height, bool forcedSection)
+        public static void Draw()
+        {
+            lock (Child)
+                foreach (VisualObject child in Child)
+                    if (child.Enabled)
+                        child.Draw();
+        }
+
+        #endregion
+        #region DrawRect
+
+        public static void DrawRect(int x, int y, int width, int height, bool forcedSection)
         {
             UI.Hooks.Draw.Invoke(new DrawArgs(x, y, width, height, forcedSection));
         }

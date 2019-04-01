@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TUI
 {
@@ -152,7 +148,7 @@ namespace TUI
                 if (Configuration.Lock.Level == LockLevel.Self)
                     Lock = _lock;
                 else if (Configuration.Lock.Level == LockLevel.Root)
-                    _Root.Lock = _lock;
+                    Root.Lock = _lock;
             }
 
             bool used = true;

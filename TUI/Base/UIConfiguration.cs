@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TUI
 {
@@ -17,22 +13,36 @@ namespace TUI
         public Func<VisualObject, Touch, bool> CustomCanTouch { get; set; }
         public Func<VisualObject, VisualObject> CustomApply { get; set; }
 
-        public bool Ordered { get; set; } = false;
-        //public bool Orderable { get; set; } = true;
         public bool RootAcquire { get; set; } = true;
         public bool BeginRequire { get; set; } = true;
         public bool UseOutsideTouches { get; set; } = false;
+        public bool Ordered { get; set; } = false;
         public bool UseBegin { get; set; } = true;
         public bool UseMoving { get; set; } = false;
         public bool UseEnd { get; set; } = false;
+        //public bool Orderable { get; set; } = true;
+
+        /*public UIConfiguration(bool rootAcquire = true, bool beginRequire = true, bool useOutsideTouches = false, bool ordered = false, bool useBegin = true, bool useMoving = false, bool useEnd = false, GridConfiguration gridConfig = null, PaddingConfig paddingConfig = null, LockConfig lockConfig = null)
+        {
+            RootAcquire = rootAcquire;
+            BeginRequire = beginRequire;
+            UseOutsideTouches = useOutsideTouches;
+            Ordered = ordered;
+            UseBegin = useBegin;
+            UseMoving = useMoving;
+            UseEnd = useEnd;
+            Grid = gridConfig;
+            Padding = paddingConfig;
+            Lock = lockConfig;
+        }*/
 
         public object Clone()
         {
             UIConfiguration result = this.MemberwiseClone() as UIConfiguration;
-            result.Grid = (GridConfiguration)Grid?.Clone();
-            result.Lock = (LockConfig)Lock?.Clone();
+            result.Grid = Grid?.Clone() as GridConfiguration;
+            result.Lock = Lock?.Clone() as LockConfig;
             result.Permission = Permission is String ? (Permission != null ? String.Copy((string)Permission) : null) : Permission;
-            result.Padding = (PaddingConfig)Padding?.Clone();
+            result.Padding = Padding?.Clone() as PaddingConfig;
             return result;
         }
     }

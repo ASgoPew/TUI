@@ -43,6 +43,9 @@ namespace TUIPlugin
             ServerApi.Hooks.ServerLeave.Register(this, OnServerLeave);
             ServerApi.Hooks.NetGetData.Register(this, OnGetData, 100);
             TShockAPI.GetDataHandlers.NewProjectile += OnNewProjectile;
+            UI.Hooks.CanTouch.Event += OnCanTouch;
+            UI.Hooks.Draw.Event += OnDraw;
+
             UI.Initialize(255);
         }
 
@@ -51,10 +54,13 @@ namespace TUIPlugin
             if (disposing)
             {
                 UI.Deinitialize();
+
                 ServerApi.Hooks.ServerConnect.Deregister(this, OnServerConnect);
                 ServerApi.Hooks.ServerLeave.Deregister(this, OnServerLeave);
                 ServerApi.Hooks.NetGetData.Deregister(this, OnGetData);
                 TShockAPI.GetDataHandlers.NewProjectile -= OnNewProjectile;
+                UI.Hooks.CanTouch.Event -= OnCanTouch;
+                UI.Hooks.Draw.Event -= OnDraw;
             }
             base.Dispose(disposing);
         }
@@ -103,7 +109,7 @@ namespace TUIPlugin
                     if (owner != args.Msg.whoAmI)
                         return;
                     Touch previousTouch = UI.Session[owner].PreviousTouch;
-                    if (previousTouch != null && previousTouch.State != TouchState.End && UI.Session[owner].ProjectileID == projectileID)
+                    if (UI.Session[owner].ProjectileID == projectileID && previousTouch != null && previousTouch.State != TouchState.End)
                     {
                         Touch simulatedEndTouch = previousTouch.SimulatedEndTouch();
                         simulatedEndTouch.Undo = true;
@@ -116,11 +122,11 @@ namespace TUIPlugin
 
         public static void OnNewProjectile(object sender, NewProjectileEventArgs args)
         {
-            if (args.Type != 651 || TShock.Players[args.Owner] == null || TShock.Players[args.Owner].TPlayer == null)
+            if (args.Handled || args.Type != 651 || TShock.Players[args.Owner] == null
+                    || TShock.Players[args.Owner].TPlayer == null)
                 return;
 
             TSPlayer player = TShock.Players[args.Owner];
-
             byte prefix;
 
             if (player.TPlayer.inventory[player.TPlayer.selectedItem].netID == ItemID.WireKite)
@@ -140,14 +146,32 @@ namespace TUIPlugin
                 if (UI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Begin, prefix, 0)))
                     UI.Session[args.Owner].ProjectileID = args.Identity;
                 playerDesignState[args.Owner] = DesignState.Moving;
+                //args.Handled = true;
             }
 		    else
             {
                 int tileX = (int)Math.Round((args.Position.X + 5) / 16);
                 int tileY = (int)Math.Round((args.Position.Y + 5) / 16);
 
+                // args.Handled = 
                 UI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Moving, prefix, 0));
             }
+        }
+
+        public static void OnCanTouch(CanTouchArgs args)
+        {
+            if (args.Node.Configuration.Permission is string permission)
+                args.Handled = args.Touch.Player().HasPermission(permission);
+        }
+
+        public static void OnDraw(DrawArgs args)
+        {
+            int lowX = Netplay.GetSectionX(args.X);
+            int highX = Netplay.GetSectionX(args.X + args.Width - 1);
+            int lowY = Netplay.GetSectionY(args.Y);
+            int highY = Netplay.GetSectionY(args.Y + args.Height - 1);
+            TSPlayer.All.SendData(PacketTypes.TileSendSection, null, args.X, args.Y, args.Width, args.Height);
+            TSPlayer.All.SendData(PacketTypes.TileFrameSection, null, lowX, lowY, highX, highY);
         }
     }
 }

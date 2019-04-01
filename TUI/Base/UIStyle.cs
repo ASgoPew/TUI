@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace TUI
+﻿namespace TUI
 {
     public class UIStyle
     {

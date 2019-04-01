@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TUI
 {
@@ -22,21 +19,28 @@ namespace TUI
             get => GetType().Name;
             protected set => throw new InvalidOperationException();
         }
-        IEnumerable<(int, int)> AbsolutePoints => GetAbsolutePoints();
 
-        protected RootVisualObject _Root { get; set; }
+        protected RootVisualObject Root { get; set; }
+        public virtual UITileProvider Provider => Root.Provider;
         public bool Enabled { get; set; }
         public GridCell[,] Grid { get; private set; }
         public GridCell Cell { get; private set; }
         public UIConfiguration Configuration { get; set; }
 
+        public IEnumerable<(int, int)> AbsolutePoints => GetAbsolutePoints();
+        public IEnumerable<(int, int)> ProviderPoints => GetProviderPoints();
+        public (int, int) AbsoluteXY(int dx = 0, int dy = 0) =>
+            RelativeXY(Provider.X + dx, Provider.Y + dy, null);
+        public (int, int) ProviderXY(int dx = 0, int dy = 0) =>
+            RelativeXY(dx, dy, null);
+
         #endregion
 
         #region IDOM
 
-            #region Data
+        #region Data
 
-            public List<VisualObject> Child { get; private set; }
+        public List<VisualObject> Child { get; private set; }
             public VisualObject Parent { get; private set; }
 
             public IEnumerable<VisualObject> DescendantDFS => GetDescendantDFS();
@@ -384,8 +388,8 @@ namespace TUI
 
             public virtual VisualObject UpdateThis()
             {
-                if (_Root == null)
-                    _Root = GetRoot() as RootVisualObject;
+                if (Root == null)
+                    Root = GetRoot() as RootVisualObject;
                 if (Configuration.Grid != null)
                     UpdateGrid();
                 UpdateChildPadding();
@@ -628,23 +632,20 @@ namespace TUI
                 return this as VisualObject;
             }
 
-            #endregion
+        #endregion
 
         #endregion
-        #region AbsoluteXY
+        #region RelativeXY
 
-        public (int X, int Y) AbsoluteXY(int x = 0, int y = 0, VisualDOM parent = null)
+        public (int X, int Y) RelativeXY(int x = 0, int y = 0, VisualDOM parent = null)
         {
             VisualDOM node = this;
-            while (node != null && node != parent)
+            while (node != parent)
             {
                 x = x + node.X;
                 y = y + node.Y;
                 node = node.Parent;
             }
-            if (node != parent)
-                throw new Exception("AbsoluteXY: parent-object not found.");
-
             return (x, y);
         }
 
@@ -654,6 +655,17 @@ namespace TUI
         private IEnumerable<(int, int)> GetAbsolutePoints()
         {
             (int x, int y) = AbsoluteXY();
+            for (int _x = x; _x < x + Width; _x++)
+                for (int _y = y; _y < y + Height; _y++)
+                    yield return (_x, _y);
+        }
+
+        #endregion
+        #region ProviderPoints
+
+        private IEnumerable<(int, int)> GetProviderPoints()
+        {
+            (int x, int y) = ProviderXY();
             for (int _x = x; _x < x + Width; _x++)
                 for (int _y = y; _y < y + Height; _y++)
                     yield return (_x, _y);

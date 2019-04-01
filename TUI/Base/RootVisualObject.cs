@@ -1,28 +1,21 @@
-﻿using OTAPI.Tile;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TUI
+﻿namespace TUI
 {
     public class RootVisualObject : VisualObject
     {
         #region Data
 
-        internal ITileCollection TileCollection { get; set; }
         public override string Name { get; protected set; }
+        public override UITileProvider Provider { get; }
 
         #endregion
 
         #region Initialize
 
-        internal RootVisualObject(string name, int x, int y, int width, int height, ITileCollection tileCollection)
+        internal RootVisualObject(string name, int x, int y, int width, int height, UITileProvider provider)
             : base(x, y, width, height)
         {
             Name = name;
-            TileCollection = tileCollection;
+            Provider = provider;
         }
 
         #endregion
@@ -31,8 +24,7 @@ namespace TUI
         public override VisualObject SetXYWH(int x, int y, int width = -1, int height = -1)
         {
             base.SetXYWH(x, y, width, height);
-            if (TileCollection != null)
-                UI.Hooks.SetXYWH.Invoke(new SetXYWHArgs(this, x, y, width, height));
+            UI.Hooks.SetXYWH.Invoke(new SetXYWHArgs(this, x, y, width, height));
             return this;
         }
 
@@ -44,8 +36,7 @@ namespace TUI
             if (!Enabled)
             {
                 Enabled = true;
-                if (TileCollection != null)
-                    UI.Hooks.Enabled.Invoke(new EnabledArgs(this, true));
+                UI.Hooks.Enabled.Invoke(new EnabledArgs(this, true));
             }
             return this;
         }
@@ -58,8 +49,7 @@ namespace TUI
             if (Enabled)
             {
                 Enabled = false;
-                if (TileCollection != null)
-                    UI.Hooks.Enabled.Invoke(new EnabledArgs(this, false));
+                UI.Hooks.Enabled.Invoke(new EnabledArgs(this, false));
             }
             return this;
         }

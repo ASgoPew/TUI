@@ -19,4 +19,3 @@ C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.csproj.CoreCompileInputs.ca
 C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.csproj.CopyComplete
 C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.dll
 C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.pdb
-C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\OTAPI.dll

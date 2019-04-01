@@ -1,10 +1,6 @@
-﻿using OTAPI.Tile;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Terraria;
 
 namespace TUI
 {
@@ -15,11 +11,6 @@ namespace TUI
         public UIStyle Style { get; set; }
         public bool ForceSection { get; private set; } = false;
         private Dictionary<string, VisualObject> _Shortcuts { get; set; } = new Dictionary<string, VisualObject>();
-
-        public RootVisualObject Root => _Root as RootVisualObject;
-        IEnumerable<(int, int)> ProviderPoints => GetProviderPoints();
-        public virtual (int, int) ProviderXY(int dx = 0, int dy = 0) =>
-            AbsoluteXY(dx, dy, Root);
 
         #endregion
 
@@ -90,15 +81,6 @@ namespace TUI
         }
 
         #endregion
-        #region GetProvider
-
-        protected virtual TileProvider GetProvider()
-        {
-            (int x, int y) = ProviderXY();
-            return new TileProvider(Root.TileCollection ?? Main.tile, x, y);
-        }
-
-        #endregion
         #region Enable
 
         public virtual VisualObject Enable()
@@ -152,10 +134,11 @@ namespace TUI
                 && Style.Wall == null && Style.WallColor == null)
                 return this;
 
-            TileProvider provider = GetProvider();
             foreach ((int x, int y) in ProviderPoints)
             {
-                ITile tile = provider[x, y];
+                dynamic tile = Provider[x, y];
+                if (tile == null)
+                    throw new NullReferenceException($"tile is null: {x}, {y}");
                 if (forceClear)
                     tile.ClearEverything();
                 if (Style.InActive != null)
@@ -177,11 +160,10 @@ namespace TUI
 
         public void ShowGrid()
         {
-            TileProvider provider = GetProvider();
             for (int i = 0; i < Configuration.Grid.Columns.Length; i++)
                 for (int j = 0; j < Configuration.Grid.Lines.Length; j++)
                     foreach ((int x, int y) in Points)
-                        provider[x, y].wallColor((byte)(25 + (i + j) % 2));
+                        Provider[x, y].wallColor((byte)(25 + (i + j) % 2));
         }
 
         #endregion
@@ -206,7 +188,7 @@ namespace TUI
 
         public virtual VisualObject Clear()
         {
-            TileProvider provider = GetProvider();
+            UITileProvider provider = Provider;
             foreach ((int x, int y) in ProviderPoints)
                 provider[x, y].ClearEverything();
 
@@ -219,7 +201,7 @@ namespace TUI
         public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1)
         {
             (int ax, int ay) = AbsoluteXY();
-            UI.Draw(ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height, ForceSection);
+            UI.DrawRect(ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height, ForceSection);
             return this;
         }
 
@@ -296,17 +278,6 @@ namespace TUI
         public virtual void UserDatabase()
         {
 
-        }
-
-        #endregion
-        #region ProviderPoints
-
-        private IEnumerable<(int, int)> GetProviderPoints()
-        {
-            (int x, int y) = ProviderXY();
-            for (int _x = x; _x < x + Width; _x++)
-                for (int _y = y; _y < y + Height; _y++)
-                    yield return (_x, _y);
         }
 
         #endregion
