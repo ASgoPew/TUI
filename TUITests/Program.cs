@@ -37,7 +37,7 @@ namespace TUITests
                 Console.WriteLine("Ok");
                 return true;
             }));
-            UIUserSession session = new UIUserSession();
+            UIUserSession session = new UIUserSession(me.Index);
             //UI.InitializeUser(me.Index);
             UI.Touched(me.Index, new Touch(124, 110, TouchState.Begin, 0, 0));
             //game.Remove(game["lol"]);

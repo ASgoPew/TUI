@@ -67,13 +67,13 @@ namespace TUIPlugin
 
         public static void OnServerConnect(ConnectEventArgs args)
         {
+            playerDesignState[args.Who] = DesignState.Waiting;
             UI.InitializeUser(args.Who);
         }
 
         public static void OnServerLeave(LeaveEventArgs args)
         {
             UI.RemoveUser(args.Who);
-            playerDesignState[args.Who] = DesignState.Waiting;
         }
 
         public static void OnGetData(GetDataEventArgs args)
@@ -122,46 +122,52 @@ namespace TUIPlugin
 
         public static void OnNewProjectile(object sender, NewProjectileEventArgs args)
         {
-            if (args.Handled || args.Type != 651 || TShock.Players[args.Owner] == null
-                    || TShock.Players[args.Owner].TPlayer == null)
+            TSPlayer player = TShock.Players[args.Owner];
+            if (args.Handled || args.Type != 651 || player?.TPlayer == null)
                 return;
 
-            TSPlayer player = TShock.Players[args.Owner];
-            byte prefix;
-
-            if (player.TPlayer.inventory[player.TPlayer.selectedItem].netID == ItemID.WireKite)
-                prefix = player.TPlayer.inventory[player.TPlayer.selectedItem].prefix;
-            else
-                return; // This means player is holding another item.Obtains by hacks.
-
-            if (playerDesignState[args.Owner] == DesignState.Waiting)
-                playerDesignState[args.Owner] = DesignState.Begin;
-            else if (playerDesignState[args.Owner] == DesignState.Begin)
+            try
             {
-                int tileX = (int)Math.Round((args.Position.X + 5) / 16);
-                int tileY = (int)Math.Round((args.Position.Y + 5) / 16);
+                byte prefix;
 
-                tile = Main.tile[tileX, tileY];
+                if (player.TPlayer.inventory[player.TPlayer.selectedItem].netID == ItemID.WireKite)
+                    prefix = player.TPlayer.inventory[player.TPlayer.selectedItem].prefix;
+                else
+                    return; // This means player is holding another item.Obtains by hacks.
 
-                if (UI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Begin, prefix, 0)))
-                    UI.Session[args.Owner].ProjectileID = args.Identity;
-                playerDesignState[args.Owner] = DesignState.Moving;
-                //args.Handled = true;
+                if (playerDesignState[args.Owner] == DesignState.Waiting)
+                    playerDesignState[args.Owner] = DesignState.Begin;
+                else if (playerDesignState[args.Owner] == DesignState.Begin)
+                {
+                    int tileX = (int)Math.Floor((args.Position.X + 5) / 16);
+                    int tileY = (int)Math.Floor((args.Position.Y + 5) / 16);
+
+                    tile = Main.tile[tileX, tileY];
+
+                    if (UI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Begin, prefix, 0)))
+                        UI.Session[args.Owner].ProjectileID = args.Identity;
+                    playerDesignState[args.Owner] = DesignState.Moving;
+                    //args.Handled = true;
+                }
+		        else
+                {
+                    int tileX = (int)Math.Floor((args.Position.X + 5) / 16);
+                    int tileY = (int)Math.Floor((args.Position.Y + 5) / 16);
+
+                    // args.Handled = 
+                    UI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Moving, prefix, 0));
+                }
             }
-		    else
+            catch (Exception e)
             {
-                int tileX = (int)Math.Round((args.Position.X + 5) / 16);
-                int tileY = (int)Math.Round((args.Position.Y + 5) / 16);
-
-                // args.Handled = 
-                UI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Moving, prefix, 0));
+                TShock.Log.ConsoleError(e.ToString());
             }
         }
 
         public static void OnCanTouch(CanTouchArgs args)
         {
             if (args.Node.Configuration.Permission is string permission)
-                args.Handled = args.Touch.Player().HasPermission(permission);
+                args.CanTouch = args.Touch.Player()?.HasPermission(permission) ?? false;
         }
 
         public static void OnDraw(DrawArgs args)

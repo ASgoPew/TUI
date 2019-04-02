@@ -10,7 +10,7 @@ namespace TUI
 
         public UIStyle Style { get; set; }
         public bool ForceSection { get; private set; } = false;
-        private Dictionary<string, VisualObject> _Shortcuts { get; set; } = new Dictionary<string, VisualObject>();
+        private Dictionary<string, object> _Shortcuts { get; set; }
 
         #endregion
 
@@ -18,14 +18,14 @@ namespace TUI
 
             #region Remove
 
-        public override VisualObject Remove(VisualObject child)
-        {
-            foreach (string key in _Shortcuts.Select(o => o.Value == child ? o.Key : null).ToArray())
-                _Shortcuts.Remove(key);
-            return base.Remove(child);
-        }
+            public override VisualObject Remove(VisualObject child)
+            {
+                foreach (var pair in _Shortcuts.Where(o => o.Value == child))
+                    _Shortcuts.Remove(pair.Key);
+                return base.Remove(child);
+            }
 
-        #endregion
+            #endregion
 
         #endregion
         #region Touchable
@@ -68,16 +68,20 @@ namespace TUI
         #endregion
         #region operator[]
 
-        public VisualObject this[string key]
+        public object this[string key]
         {
             get
             {
-                if (_Shortcuts.TryGetValue(key, out VisualObject value))
-                    return value;
-                return null;
-                //throw new KeyNotFoundException();
+                object value = null;
+                _Shortcuts?.TryGetValue(key, out value);
+                return value;
             }
-            set => _Shortcuts.Add(key, value);
+            set
+            {
+                if (_Shortcuts == null)
+                    _Shortcuts = new Dictionary<string, object>();
+                _Shortcuts[key] = value;
+            }
         }
 
         #endregion
@@ -246,7 +250,7 @@ namespace TUI
 
         public virtual VisualObject Popup()
         {
-            VisualObject popup = this["popup"];
+            VisualObject popup = this["popup"] as VisualObject;
             if (popup != null)
                 popup.Enable();
             else
@@ -263,7 +267,7 @@ namespace TUI
 
         public virtual VisualObject Popdown()
         {
-            this["popup"].Disable();
+            (this["popup"] as VisualObject).Disable();
             return Apply().Draw();
         }
 

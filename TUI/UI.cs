@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace TUI
 {
@@ -62,15 +63,7 @@ namespace TUI
         public static void InitializeUser(int userIndex)
         {
             lock (Session)
-            {
-                Session[userIndex] = new UIUserSession()
-                {
-                    Enabled = true,
-                    UserIndex = userIndex,
-                    Index = SessionIndex++,
-                    ProjectileID = -1
-                };
-            }
+                Session[userIndex] = new UIUserSession(userIndex);
         }
 
         #endregion
@@ -106,21 +99,51 @@ namespace TUI
                 if ((touch.State == TouchState.Moving || touch.State == TouchState.End)
                         && (previous == null || previous.State == TouchState.End))
                     throw new InvalidOperationException();
+                if (touch.State == TouchState.Moving && touch.AbsoluteX == previous.AbsoluteX && touch.AbsoluteY == previous.AbsoluteY)
+                    return session.Used;
+
+                Stopwatch sw = Stopwatch.StartNew();
 
                 if (touch.State == TouchState.Begin)
                 {
+                    session.Reset();
                     session.BeginTouch = touch;
-                    session.Enabled = true;
+                    session.TouchSessionIndex++;
                 }
 
                 bool used = false;
                 if (session.Enabled)
-                    used = TouchedChild(touch);
+                {
+                    if (session.Acquired != null)
+                        used = TouchedAcquired(touch);
+                    else
+                        used = TouchedChild(touch);
+                }
+                session.Used = session.Used || used;
 
+                Console.WriteLine(sw.ElapsedMilliseconds);
+
+                session.Count++;
                 session.PreviousTouch = touch;
-
-                return used;
+                return session.Used;
             }
+        }
+
+        #endregion
+        #region TouchedAcquired
+
+        public static bool TouchedAcquired(Touch touch)
+        {
+            VisualObject o = touch.Session.Acquired;
+            (int saveX, int saveY) = o.AbsoluteXY();
+            if (o.Enabled && (o.Contains(touch) || o.Configuration.UseOutsideTouches))
+            {
+                touch.MoveBack(saveX, saveY);
+                if (o.Touched(touch))
+                    return true;
+                touch.Move(saveX, saveY);
+            }
+            return false;
         }
 
         #endregion
@@ -131,7 +154,7 @@ namespace TUI
             lock (Child)
                 for (int i = Child.Count - 1; i >= 0; i--)
                 {
-                    var o = Child[i];
+                    RootVisualObject o = Child[i];
                     int saveX = o.X, saveY = o.Y;
                     if (o.Enabled && o.Contains(touch))
                     {

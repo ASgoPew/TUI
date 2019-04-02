@@ -76,7 +76,7 @@ namespace TUI
             if (uilock != null &&
                 (uilock.Active
                 || touch.State == TouchState.Begin
-                || touch.Session.Index != uilock.Touch.Session.Index))
+                || touch.Session.TouchSessionIndex != uilock.Touch.Session.TouchSessionIndex))
             {
                 touch.Session.Enabled = false;
                 return true;
@@ -92,7 +92,7 @@ namespace TUI
         {
             CanTouchArgs args = new CanTouchArgs(this as VisualObject, touch);
             UI.Hooks.CanTouch.Invoke(args);
-            return !args.Handled && Configuration.CustomCanTouch?.Invoke(this as VisualObject, touch) != false;
+            return args.CanTouch && Configuration.CustomCanTouch?.Invoke(this as VisualObject, touch) != false;
         }
 
         #endregion
@@ -132,7 +132,7 @@ namespace TUI
             (touch.State == TouchState.Begin && Configuration.UseBegin
                 || touch.State == TouchState.Moving && Configuration.UseMoving
                 || touch.State == TouchState.End && Configuration.UseEnd)
-            && (touch.State == TouchState.Begin || !Configuration.BeginRequire || touch.Session.BeginObject.Equals(this));
+            && (touch.State == TouchState.Begin || !Configuration.BeginRequire || touch.Session.BeginObject == this);
 
         #endregion
         #region TouchedThis
@@ -159,6 +159,9 @@ namespace TUI
                 used = Callback(this as VisualObject, touch);
                 UI.ShowTime(this, "invoke", "action");
             }
+
+            if (Configuration.SessionAcquire && used)
+                touch.Session.Acquired = this as VisualObject;
 
             return used;
         }

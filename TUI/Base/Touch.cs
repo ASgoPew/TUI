@@ -108,6 +108,8 @@ namespace TUI
         public Touch(int x, int y, TouchState state, byte prefix = 0, byte stateByte = 0)
         {
             InitializeVisual(x, y);
+            AbsoluteX = X;
+            AbsoluteY = Y;
             State = state;
             Prefix = prefix;
             StateByte = stateByte;

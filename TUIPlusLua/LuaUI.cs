@@ -1,4 +1,5 @@
-﻿using NLua;
+﻿using MyLua;
+using NLua;
 using OTAPI.Tile;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace TUIPlusLua
         {
             UIConfiguration result = new UIConfiguration()
             {
-                RootAcquire = (bool)(t["RootAcquire"] ?? true),
+                SessionAcquire = (bool)(t["SessionAcquire"] ?? true),
                 BeginRequire = (bool)(t["BeginRequire"] ?? true),
                 UseOutsideTouches = (bool)(t["UseOutsideTouches"] ?? false),
                 Ordered = (bool)(t["Ordered"] ?? false),
@@ -52,12 +53,8 @@ namespace TUIPlusLua
             return result;
         }
 
-        public static VisualObject Create(int x, int y, int width, int height, LuaTable configuration = null, LuaTable style = null, LuaFunction f = null) =>
+        public static VisualObject CreateVisualObject(this LuaEnvironment luaEnv, int x, int y, int width, int height, LuaTable configuration = null, LuaTable style = null, LuaFunction f = null) =>
             new VisualObject(x, y, width, height, ConfigurationFromTable(configuration), StyleFromTable(style),
-                (self, touch) =>
-                {
-                    Console.WriteLine($"self: {self}, touch: {touch}");
-                    return (bool)(f.Call(self, touch)?.FirstOrDefault() ?? true);
-                });
+                (self, touch) => (bool)(luaEnv.CallFunction(f, self, touch)?.FirstOrDefault() ?? true));
     }
 }
