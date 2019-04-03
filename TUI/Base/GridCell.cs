@@ -11,7 +11,7 @@ namespace TUI
         public Alignment? Alignment { get; set; }
         public Direction? Direction { get; set; }
         public Side? Side { get; set; }
-        public bool? Full { get; set; }
+        public bool? Full { get; set; } // We probably don't need this (can be done with PaddingData)
         public int I { get; set; }
         public int J { get; set; }
 

@@ -236,6 +236,15 @@ namespace TUI
         }
 
         #endregion
+        #region StretchFull
+
+        public VisualObject StretchFull()
+        {
+            Configuration.Padding = new PaddingConfig(0, 0, 0, 0);
+            return this;
+        }
+
+        #endregion
         #region FullName
 
         public string FullName()

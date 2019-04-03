@@ -73,6 +73,7 @@
     <Compile Include="Base\VisualDOM.cs" />
     <Compile Include="Base\VisualObject.cs" />
     <Compile Include="Widgets\Background.cs" />
+    <Compile Include="Widgets\Label.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
