@@ -9,10 +9,6 @@ namespace TUI
         /// </summary>
         public GridConfiguration Grid { get; set; }
         /// <summary>
-        /// Automatic positioning inside of parent/parent's grid cell.
-        /// </summary>
-        public PaddingConfig Padding { get; set; }
-        /// <summary>
         /// Touching this node would prevent touches on it or on the whole root for some time.
         /// </summary>
         public LockConfig Lock { get; set; }
@@ -62,6 +58,10 @@ namespace TUI
         /// Allows to touch this node only if touch.State == TouchState.End
         /// </summary>
         public bool UseEnd { get; set; } = false;
+        /// <summary>
+        /// Node size completely matches parent size/parent cell size.
+        /// </summary>
+        public bool FullSize { get; set; } = false;
         //public bool Orderable { get; set; } = true;
 
         public object Clone()
@@ -70,7 +70,6 @@ namespace TUI
             result.Grid = Grid?.Clone() as GridConfiguration;
             result.Lock = Lock?.Clone() as LockConfig;
             result.Permission = Permission is String ? (Permission != null ? String.Copy((string)Permission) : null) : Permission;
-            result.Padding = Padding?.Clone() as PaddingConfig;
             return result;
         }
     }

@@ -121,7 +121,8 @@ namespace TUI
                 }
                 session.Used = session.Used || used;
 
-                Console.WriteLine(sw.ElapsedMilliseconds);
+                long elapsed = sw.ElapsedMilliseconds;
+                Console.WriteLine($"{touch.X},{touch.Y} ({touch.State}): {elapsed}");
 
                 session.Count++;
                 session.PreviousTouch = touch;
@@ -136,13 +137,11 @@ namespace TUI
         {
             VisualObject o = touch.Session.Acquired;
             (int saveX, int saveY) = o.AbsoluteXY();
-            if (o.Enabled && (o.Contains(touch) || o.Configuration.UseOutsideTouches))
-            {
-                touch.MoveBack(saveX, saveY);
+            touch.MoveBack(saveX, saveY);
+            if (o.Enabled && (touch.Intersecting(0, 0, o.Width, o.Height) || o.Configuration.UseOutsideTouches))
                 if (o.Touched(touch))
                     return true;
-                touch.Move(saveX, saveY);
-            }
+            touch.Move(saveX, saveY);
             return false;
         }
 
@@ -267,31 +266,6 @@ namespace TUI
         public static void DrawRect(int x, int y, int width, int height, bool forcedSection)
         {
             UI.Hooks.Draw.Invoke(new DrawArgs(x, y, width, height, forcedSection));
-        }
-
-        #endregion
-        #region Padding
-
-        public static (int X, int Y, int Width, int Height) Padding(int X, int Y, int Width, int Height, PaddingConfig paddingData)
-        {
-            int x = paddingData.X;
-            int y = paddingData.Y;
-            int width = paddingData.Width;
-            int height = paddingData.Height;
-            Alignment alignment = paddingData.Alignment;
-            if (alignment == Alignment.Up || alignment == Alignment.Center || alignment == Alignment.Down)
-                x = x + Width / 2;
-            else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
-                x = x + Width;
-            if (alignment == Alignment.Left || alignment == Alignment.Center || alignment == Alignment.Right)
-                y = y + Height / 2;
-            else if (alignment == Alignment.DownRight || alignment == Alignment.Down || alignment == Alignment.DownRight)
-                y = y + Height;
-            if (width <= 0)
-                width = Width + width - x;
-            if (height <= 0)
-                height = Height + height - y;
-            return (x, y, width, height);
         }
 
         #endregion

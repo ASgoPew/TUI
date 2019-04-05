@@ -16,7 +16,6 @@ namespace TUI
         bool Contains(int x, int y);
         bool Intersecting(int x, int y, int width, int height);
         bool Intersecting(T o);
-        (int X, int Y, int Width, int Height) Padding(PaddingConfig paddingData);
         IEnumerable<(int, int)> Points { get; }
     }
 }

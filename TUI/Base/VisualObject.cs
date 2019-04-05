@@ -236,11 +236,11 @@ namespace TUI
         }
 
         #endregion
-        #region StretchFull
+        #region FullSize
 
-        public VisualObject StretchFull()
+        public VisualObject FullSize(bool value = true)
         {
-            Configuration.Padding = new PaddingConfig(0, 0, 0, 0);
+            Configuration.FullSize = value;
             return this;
         }
 
@@ -264,12 +264,9 @@ namespace TUI
                 popup.Enable();
             else
             {
-                popup = new VisualObject(0, 0, 0, 0,
-                    new UIConfiguration() { Padding = new PaddingConfig(0, 0, 0, 0) },
-                    null,
-                    (self, touch) => Popdown() == this);
+                popup = new VisualObject(0, 0, 0, 0, null, null, (self, touch) => Popdown() == this).FullSize();
                 this["popup"] = Add(popup);
-                UpdateChildPadding();
+                Update();
             }
             return popup;
         }

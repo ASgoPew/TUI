@@ -11,7 +11,6 @@ namespace TUI
         public Alignment? Alignment { get; set; }
         public Direction? Direction { get; set; }
         public Side? Side { get; set; }
-        public bool? Full { get; set; } // We probably don't need this (can be done with PaddingData)
         public int I { get; set; }
         public int J { get; set; }
 
@@ -25,8 +24,6 @@ namespace TUI
             public int Height { get; set; }
 
             public IEnumerable<(int, int)> Points => GetPoints();
-            public (int X, int Y, int Width, int Height) Padding(PaddingConfig paddingData) =>
-                UI.Padding(X, Y, Width, Height, paddingData);
 
             #endregion
 

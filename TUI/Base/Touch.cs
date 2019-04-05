@@ -41,8 +41,6 @@ namespace TUI
             public int Height { get; set; }
 
             public IEnumerable<(int, int)> Points { get { yield return (X, Y); } }
-            public (int X, int Y, int Width, int Height) Padding(PaddingConfig paddingData) =>
-                UI.Padding(X, Y, Width, Height, paddingData);
 
             #endregion
 

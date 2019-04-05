@@ -6,11 +6,10 @@ namespace TUI
     {
         public ISize[] Columns;
         public ISize[] Lines;
-        public Indentation Indentation;
-        public Alignment? Alignment;
-        public Direction? Direction;
-        public Side? Side;
-        public bool? Full = false;
+        public Indentation Indentation = UIDefault.Indentation;
+        public Alignment Alignment = UIDefault.Alignment;
+        public Direction Direction = UIDefault.Direction;
+        public Side Side = UIDefault.Size;
 
         public GridConfiguration(ISize[] columns = null, ISize[] lines = null)
         {
@@ -27,8 +26,7 @@ namespace TUI
                 Indentation = (Indentation)Indentation.Clone(),
                 Alignment = Alignment,
                 Direction = Direction,
-                Side = Side,
-                Full = Full
+                Side = Side
             };
         }
     }

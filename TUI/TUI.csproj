@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Base\UIDefault.cs" />
     <Compile Include="Hooks\Args\CanTouchArgs.cs" />
     <Compile Include="Hooks\Args\DrawArgs.cs" />
     <Compile Include="Hooks\Args\EnabledArgs.cs" />
@@ -58,7 +59,6 @@
     <Compile Include="Base\IDOM.cs" />
     <Compile Include="Hooks\Args\SetTopArgs.cs" />
     <Compile Include="Base\Lock.cs" />
-    <Compile Include="Base\PaddingConfig.cs" />
     <Compile Include="Base\RootVisualObject.cs" />
     <Compile Include="Base\UITileProvider.cs" />
     <Compile Include="Base\Touch.cs" />
