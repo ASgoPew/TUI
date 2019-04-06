@@ -220,6 +220,7 @@ namespace TUI.Base
         public virtual VisualObjectBase Draw(int dx = 0, int dy = 0, int width = -1, int height = -1)
         {
             (int ax, int ay) = AbsoluteXY();
+            Console.WriteLine($"Draw ({Name}): {ax + dx}, {ay + dy}, {(width >= 0 ? width : Width)}, {(height >= 0 ? height : Height)}: {ForceSection}");
             UI.DrawRect(ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height, ForceSection);
             return this;
         }

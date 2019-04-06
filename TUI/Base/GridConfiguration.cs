@@ -6,7 +6,7 @@ namespace TUI.Base
     {
         public ISize[] Columns;
         public ISize[] Lines;
-        public Indentation Indentation = UIDefault.Indentation;
+        public Indentation Indentation = (Indentation)UIDefault.Indentation.Clone();
         public Alignment Alignment = UIDefault.Alignment;
         public Direction Direction = UIDefault.Direction;
         public Side Side = UIDefault.Side;

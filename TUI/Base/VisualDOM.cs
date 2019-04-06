@@ -7,11 +7,8 @@ namespace TUI.Base
     {
         #region Data
 
-        public virtual string Name
-        {
-            get => GetType().Name;
-            protected set => throw new InvalidOperationException();
-        }
+        public virtual string Name => GetType().Name;
+        public string FullName => Parent != null ? Parent.FullName() + "." + Name : Name;
 
         public RootVisualObject Root { get; set; }
         public virtual UITileProvider Provider => Root.Provider;

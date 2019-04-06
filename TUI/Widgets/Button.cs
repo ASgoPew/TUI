@@ -7,17 +7,30 @@ using TUI.Base;
 
 namespace TUI.Widgets
 {
-    public class ButtonStyle : UIStyle
+    public enum ButtonBlinkStyle
     {
-
+        None = 0,
+        SideLine,
+        Full
     }
 
-    public class Button : VisualObject<ButtonStyle>
+    public class ButtonStyle : LabelStyle
     {
-        public Button(int x, int y, int width, int height, UIConfiguration configuration = null, ButtonStyle style = null,
-            Func<VisualObjectBase, Touch, bool> callback = null) : base(x, y, width, height, configuration, style, callback)
+        public ButtonBlinkStyle BlinkStyle { get; set; } = ButtonBlinkStyle.SideLine;
+    }
+
+    public class Button<T> : Label<T>
+        where T : ButtonStyle
+    {
+        public Button(int x, int y, int width, int height, string text, UIConfiguration configuration = null, T style = null,
+            Func<VisualObjectBase, Touch, bool> callback = null) : base(x, y, width, height, text, configuration, style, callback)
         {
 
+        }
+
+        public override bool Invoke(Touch touch)
+        {
+            return base.Invoke(touch);
         }
     }
 }

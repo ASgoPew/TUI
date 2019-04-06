@@ -152,18 +152,22 @@ namespace TUI.Base
                     Root.Lock = _lock;
             }
 
-            bool used = true;
-
-            if (Callback != null)
-            {
-                UI.SaveTime(this, "invoke");
-                used = Callback(this as VisualObjectBase, touch);
-                UI.ShowTime(this, "invoke", "action");
-            }
+            bool used = Invoke(touch);
 
             if (Configuration.SessionAcquire && used)
                 touch.Session.Acquired = this as VisualObjectBase;
 
+            return used;
+        }
+
+        #endregion
+        #region Invoke
+
+        public virtual bool Invoke(Touch touch)
+        {
+            bool used = true;
+            if (Callback != null)
+                used = Callback(this as VisualObjectBase, touch);
             return used;
         }
 

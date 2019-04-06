@@ -17,7 +17,7 @@ namespace TUI.Widgets
 
     public class LabelStyle : UIStyle
     {
-        public Indentation Indentation { get; set; } = UIDefault.LabelIndentation;
+        public Indentation Indentation { get; set; } = (Indentation)UIDefault.LabelIndentation.Clone();
         public Alignment Alignment { get; set; } = UIDefault.Alignment;
         public Side Side { get; set; } = UIDefault.Side;
         public byte TextColor { get; set; } = UIDefault.LabelTextColor;
@@ -25,19 +25,29 @@ namespace TUI.Widgets
         public byte UnderlineColor { get; set; } = UIDefault.LabelTextColor;
     }
 
-    public class Label : VisualObject<LabelStyle>
+    public class Label<T> : VisualObject<T>
+        where T : LabelStyle
     {
-        //public new LabelStyle Style { get; set; }
+        #region Data
+
+        public override string Name => $"{GetType().Name} ({RawText})";
         private string RawText { get; set; }
         private List<(string Text, int Width)> Lines { get; set; }
         private int TextW { get; set; }
         private int TextH { get; set; }
 
-        public Label(int x, int y, int width, int height, string text, LabelStyle style = null)
-            : base(x, y, width, height, new UIConfiguration() { UseBegin = false }, style)
+        #endregion
+
+        #region Initialize
+
+        public Label(int x, int y, int width, int height, string text, UIConfiguration configuration = null, T style = null, Func<VisualObjectBase, Touch, bool> callback = null)
+            : base(x, y, width, height, configuration, style, callback)
         {
             RawText = text;
         }
+
+        #endregion
+        #region ApplyThisNative
 
         protected override void ApplyThisNative(bool forceClear = false)    
         {
@@ -111,8 +121,8 @@ namespace TUI.Widgets
 								    t.color(Style.UnderlineColor);
                                 t.inActive(false);
                             }
-                        if (lineH < 4)
-                            ForceSection = true;
+                        ForceSection = true;
+                        Console.WriteLine("WTF FORCESECTION TRUE");
                         charX += 2;
                     }
 				    else
@@ -123,6 +133,9 @@ namespace TUI.Widgets
                 charY = charY + lineH + indentation.Vertical;
             }
         }
+
+        #endregion
+        #region UpdateThisNative
 
         protected override void UpdateThisNative()
         {
@@ -140,15 +153,31 @@ namespace TUI.Widgets
             TextH = lines.Count * (lineH + indentation.Vertical) - indentation.Vertical;
         }
 
+        #endregion
+        #region SetText
+
         public void SetText(string text)
         {
             RawText = text;
             UpdateThis();
         }
 
+        #endregion
+        #region GetText
+
         public string GetText() => RawText;
 
-        public static int StatueTextFrame(char c)
+        #endregion
+        #region Clone
+
+        public override object Clone() =>
+            new Label<T>(X, Y, Width, Height, RawText, Configuration, Style, Callback);
+
+        #endregion
+
+        #region StatueTextFrame
+
+        private static int StatueTextFrame(char c)
         {
             if (c >= '0' && c <= '9')
                 return (c - '0') * 36;
@@ -159,6 +188,8 @@ namespace TUI.Widgets
             return -1;
         }
 
+        #endregion
+        #region LimitStatueText
 
         private static (List<(string, int)>, int MaxLineWidth) LimitStatueText(string text, int width, int height, int emptyIndentation, int linesIndentation, int lineH)
         {
@@ -187,6 +218,9 @@ namespace TUI.Widgets
             }
             return (result, maxX);
         }
+
+        #endregion
+        #region LimitStatueLine
 
         private static int LimitStatueLine(string line, int w, int emptyIndentation, List<(string, int)> result, int maxLines)
         {
@@ -227,7 +261,20 @@ namespace TUI.Widgets
             return maxWidth;
         }
 
-        public static bool IsStatueCharacter(char c) =>
+        #endregion
+        #region IsStatueCharacter
+
+        private static bool IsStatueCharacter(char c) =>
             c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9';
+
+        #endregion
+    }
+
+    public class Label : Label<LabelStyle>
+    {
+        public Label(int x, int y, int width, int height, string text, LabelStyle style = null)
+            : base(x, y, width, height, text, new UIConfiguration() { UseBegin = false }, style)
+        {
+        }
     }
 }

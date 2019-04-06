@@ -6,7 +6,7 @@ namespace TUI.Base
     {
         #region Data
 
-        public override string Name { get; protected set; }
+        public override string Name { get; }
         public override UITileProvider Provider { get; }
 
         #endregion
