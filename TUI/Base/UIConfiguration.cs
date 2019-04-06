@@ -2,7 +2,7 @@
 
 namespace TUI.Base
 {
-    public class UIConfiguration : ICloneable
+    public class UIConfiguration
     {
         /// <summary>
         /// Visual grid configuration.
@@ -64,13 +64,24 @@ namespace TUI.Base
         public bool FullSize { get; set; } = false;
         //public bool Orderable { get; set; } = true;
 
-        public object Clone()
+        public UIConfiguration() { }
+
+        public UIConfiguration(UIConfiguration configuration)
         {
-            UIConfiguration result = this.MemberwiseClone() as UIConfiguration;
-            result.Grid = Grid?.Clone() as GridConfiguration;
-            result.Lock = Lock?.Clone() as LockConfig;
-            result.Permission = Permission is String ? (Permission != null ? String.Copy((string)Permission) : null) : Permission;
-            return result;
+            this.Grid = new GridConfiguration(configuration.Grid);
+            this.Lock = new LockConfig(configuration.Lock);
+            this.Permission = configuration.Permission;
+            this.CustomUpdate = configuration.CustomUpdate?.Clone() as Action<VisualObject>;
+            this.CustomCanTouch = configuration.CustomCanTouch?.Clone() as Func<VisualObject, Touch, bool>;
+            this.CustomApply = configuration.CustomApply?.Clone() as Action<VisualObject>;
+            this.SessionAcquire = configuration.SessionAcquire;
+            this.BeginRequire = configuration.BeginRequire;
+            this.UseOutsideTouches = configuration.UseOutsideTouches;
+            this.Ordered = configuration.Ordered;
+            this.UseBegin = configuration.UseBegin;
+            this.UseMoving = configuration.UseMoving;
+            this.UseEnd = configuration.UseEnd;
+            this.FullSize = configuration.FullSize;
         }
     }
 }

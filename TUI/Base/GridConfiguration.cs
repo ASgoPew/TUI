@@ -1,12 +1,10 @@
-﻿using System;
-
-namespace TUI.Base
+﻿namespace TUI.Base
 {
-    public class GridConfiguration : ICloneable
+    public class GridConfiguration
     {
         public ISize[] Columns;
         public ISize[] Lines;
-        public Indentation Indentation = (Indentation)UIDefault.Indentation.Clone();
+        public Indentation Indentation = new Indentation(UIDefault.Indentation);
         public Alignment Alignment = UIDefault.Alignment;
         public Direction Direction = UIDefault.Direction;
         public Side Side = UIDefault.Side;
@@ -17,17 +15,14 @@ namespace TUI.Base
             Lines = lines ?? new ISize[] { new Relative(100) };
         }
 
-        public object Clone()
+        public GridConfiguration(GridConfiguration configuration)
         {
-            return new GridConfiguration
-            {
-                Columns = (ISize[])Columns.Clone(),
-                Lines = (ISize[])Lines.Clone(),
-                Indentation = (Indentation)Indentation.Clone(),
-                Alignment = Alignment,
-                Direction = Direction,
-                Side = Side
-            };
+            this.Columns = (ISize[])configuration.Columns.Clone();
+            this.Lines = (ISize[])configuration.Lines.Clone();
+            this.Indentation = new Indentation(configuration.Indentation);
+            this.Alignment = configuration.Alignment;
+            this.Direction = configuration.Direction;
+            this.Side = configuration.Side;
         }
     }
 }

@@ -24,12 +24,6 @@ namespace TUI.Base
         }
 
         #endregion
-        #region Clone
-
-        public override object Clone() =>
-            new Touchable(X, Y, Width, Height, (UIConfiguration)Configuration.Clone(), Callback);
-
-        #endregion
         #region Touched
 
         public virtual bool Touched(Touch touch)

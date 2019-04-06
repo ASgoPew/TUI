@@ -14,7 +14,7 @@ namespace TUI.Base
         Personal
     }
 
-    public class LockConfig : ICloneable
+    public class LockConfig
     {
         public const int DefaultDelay = 300;
 
@@ -29,7 +29,12 @@ namespace TUI.Base
             Delay = delay;
         }
 
-        public object Clone() => MemberwiseClone();
+        public LockConfig(LockConfig config)
+        {
+            this.Level = config.Level;
+            this.Type = config.Type;
+            this.Delay = config.Delay;
+        }
     }
 
     public class UILock

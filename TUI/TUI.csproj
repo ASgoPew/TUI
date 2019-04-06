@@ -70,7 +70,7 @@
     <Compile Include="Base\UIStyle.cs" />
     <Compile Include="Base\UIUserSession.cs" />
     <Compile Include="Base\VisualDOM.cs" />
-    <Compile Include="Base\VisualObjectBase.cs" />
+    <Compile Include="Base\VisualObject.cs" />
     <Compile Include="Widgets\Background.cs" />
     <Compile Include="Widgets\Button.cs" />
     <Compile Include="Widgets\Label.cs" />

@@ -17,12 +17,25 @@ namespace TUI.Widgets
 
     public class LabelStyle : UIStyle
     {
-        public Indentation Indentation { get; set; } = (Indentation)UIDefault.LabelIndentation.Clone();
+        public Indentation Indentation { get; set; } = new Indentation(UIDefault.LabelIndentation);
         public Alignment Alignment { get; set; } = UIDefault.Alignment;
         public Side Side { get; set; } = UIDefault.Side;
         public byte TextColor { get; set; } = UIDefault.LabelTextColor;
         public LabelUnderline Underline { get; set; } = LabelUnderline.Nothing;
         public byte UnderlineColor { get; set; } = UIDefault.LabelTextColor;
+
+        public LabelStyle() { }
+
+        public LabelStyle(LabelStyle style)
+            : base(style)
+        {
+            this.Indentation = style.Indentation;
+            this.Alignment = style.Alignment;
+            this.Side = style.Side;
+            this.TextColor = style.TextColor;
+            this.Underline = style.Underline;
+            this.UnderlineColor = style.UnderlineColor;
+        }
     }
 
     public class Label : VisualObject
@@ -43,6 +56,15 @@ namespace TUI.Widgets
             : base(x, y, width, height, configuration, style, callback)
         {
             RawText = text;
+        }
+
+        #endregion
+        #region Copy
+
+        public Label(Label label)
+            : this(label.X, label.Y, label.Width, label.Height, string.Copy(label.RawText),new UIConfiguration(label.Configuration),
+                  new LabelStyle(label.Style as LabelStyle), label.Callback?.Clone() as Func<VisualObject, Touch, bool>)
+        {
         }
 
         #endregion
@@ -122,7 +144,6 @@ namespace TUI.Widgets
                                 t.inActive(false);
                             }
                         ForceSection = true;
-                        Console.WriteLine("WTF FORCESECTION TRUE");
                         charX += 2;
                     }
 				    else
@@ -167,12 +188,6 @@ namespace TUI.Widgets
         #region GetText
 
         public string GetText() => RawText;
-
-        #endregion
-        #region Clone
-
-        public override object Clone() =>
-            new Label(X, Y, Width, Height, string.Copy(RawText), (UIConfiguration)Configuration.Clone(), (LabelStyle)Style.Clone(), (Func<VisualObject, Touch, bool>)Callback.Clone());
 
         #endregion
 

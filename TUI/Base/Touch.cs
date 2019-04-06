@@ -10,7 +10,7 @@ namespace TUI.Base
         End
     }
 
-    public class Touch : IVisual<Touch>, ICloneable
+    public class Touch : IVisual<Touch>
     {
         #region Data
 
@@ -114,16 +114,25 @@ namespace TUI.Base
         }
 
         #endregion
-        #region Clone
+        #region Copy
 
-        public object Clone() => MemberwiseClone();
+        public Touch(Touch touch)
+        {
+            this.AbsoluteX = touch.AbsoluteX;
+            this.AbsoluteY = touch.AbsoluteY;
+            this.State = touch.State;
+            this.Prefix = touch.Prefix;
+            this.Session = touch.Session;
+            this.Undo = touch.Undo;
+            this.StateByte = touch.StateByte;
+        }
 
         #endregion
         #region SimulatedEndTouch
 
         public Touch SimulatedEndTouch()
         {
-            Touch touch = (Touch)Clone();
+            Touch touch = new Touch(this);
             touch.State = TouchState.End;
             return touch;
         }

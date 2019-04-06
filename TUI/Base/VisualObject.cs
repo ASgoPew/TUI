@@ -60,6 +60,15 @@ namespace TUI.Base
         }
 
         #endregion
+        #region Copy
+
+        public VisualObject(VisualObject visualObject)
+            : this(visualObject.X, visualObject.Y, visualObject.Width, visualObject.Height, new UIConfiguration(visualObject.Configuration),
+                  new UIStyle(visualObject.Style), visualObject.Callback?.Clone() as Func<VisualObject, Touch, bool>)
+        {
+        }
+
+        #endregion
         #region operator[]
 
         public object this[string key]
@@ -127,6 +136,7 @@ namespace TUI.Base
 
             protected virtual void ApplyThisNative(bool forceClear = false)
             {
+                ForceSection = false;
                 ApplyTiles(forceClear);
                 if (UI.ShowGrid)
                     ShowGrid();
@@ -189,7 +199,7 @@ namespace TUI.Base
 
             public virtual VisualObject ApplyChild()
             {
-                bool forceSection = false;
+                bool forceSection = ForceSection;
                 lock (Child)
                     foreach (VisualObject child in Child)
                         if (child.Enabled)
@@ -260,13 +270,6 @@ namespace TUI.Base
             Configuration.FullSize = value;
             return this;
         }
-
-        #endregion
-        #region Clone
-
-        public override object Clone() =>
-            new VisualObject(X, Y, Width, Height, (UIConfiguration)Configuration.Clone(),
-                (UIStyle)Style.Clone(), (Func<VisualObject, Touch, bool>)Callback.Clone());
 
         #endregion
         #region Popup

@@ -2,7 +2,7 @@
 
 namespace TUI.Base
 {
-    public class Indentation : ICloneable
+    public class Indentation
     {
         public int Left = 0;
         public int Up = 0;
@@ -11,6 +11,16 @@ namespace TUI.Base
         public int Horizontal = 0;
         public int Vertical = 0;
 
-        public object Clone() => MemberwiseClone();
+        public Indentation() { }
+
+        public Indentation(Indentation indentation)
+        {
+            this.Left = indentation.Left;
+            this.Up = indentation.Up;
+            this.Right = indentation.Right;
+            this.Down = indentation.Down;
+            this.Horizontal = indentation.Horizontal;
+            this.Vertical = indentation.Vertical;
+        }
     }
 }

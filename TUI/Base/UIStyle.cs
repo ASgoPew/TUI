@@ -2,7 +2,7 @@
 
 namespace TUI.Base
 {
-    public class UIStyle : ICloneable
+    public class UIStyle
     {
         public bool? Active { get; set; }
         public ushort? Tile { get; set; }
@@ -11,22 +11,22 @@ namespace TUI.Base
         public byte? WallColor { get; set; }
         public bool? InActive { get; set; }
 
-        public virtual object Clone()
+        public UIStyle() { }
+
+        public UIStyle(UIStyle style)
         {
-            UIStyle result = new UIStyle();
-            if (Active.HasValue)
-                result.Active = Active.Value;
-            if (Tile.HasValue)
-                result.Tile = Tile.Value;
-            if (TileColor.HasValue)
-                result.TileColor = TileColor.Value;
-            if (Wall.HasValue)
-                result.Wall = Wall.Value;
-            if (WallColor.HasValue)
-                result.WallColor = WallColor.Value;
-            if (InActive.HasValue)
-                result.InActive = InActive.Value;
-            return result;
+            if (style.Active.HasValue)
+                this.Active = style.Active.Value;
+            if (style.Tile.HasValue)
+                this.Tile = style.Tile.Value;
+            if (style.TileColor.HasValue)
+                this.TileColor = style.TileColor.Value;
+            if (style.Wall.HasValue)
+                this.Wall = style.Wall.Value;
+            if (style.WallColor.HasValue)
+                this.WallColor = style.WallColor.Value;
+            if (style.InActive.HasValue)
+                this.InActive = style.InActive.Value;
         }
     }
 }

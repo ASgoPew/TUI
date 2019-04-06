@@ -17,6 +17,14 @@ namespace TUI.Widgets
     public class ButtonStyle : LabelStyle
     {
         public ButtonBlinkStyle BlinkStyle { get; set; } = ButtonBlinkStyle.SideLine;
+
+        public ButtonStyle() { }
+
+        public ButtonStyle(ButtonStyle style)
+            : base(style)
+        {
+
+        }
     }
 
     public class Button : Label

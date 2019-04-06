@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TUI.Base
 {
-    public class VisualDOM : IDOM<VisualObject>, IVisual<VisualObject>, ICloneable
+    public class VisualDOM : IDOM<VisualObject>, IVisual<VisualObject>
     {
         #region Data
 
@@ -297,12 +297,6 @@ namespace TUI.Base
             }
 
             #endregion
-
-        #endregion
-        #region ICloneable
-
-        public virtual object Clone() =>
-            new VisualDOM(X, Y, Width, Height, (UIConfiguration)Configuration.Clone());
 
         #endregion
 
