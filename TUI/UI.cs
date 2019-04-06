@@ -139,7 +139,7 @@ namespace TUI
 
         public static bool TouchedAcquired(Touch touch)
         {
-            VisualObjectBase o = touch.Session.Acquired;
+            VisualObject o = touch.Session.Acquired;
             (int saveX, int saveY) = o.AbsoluteXY();
             touch.MoveBack(saveX, saveY);
             if (o.Enabled && (touch.Intersecting(0, 0, o.Width, o.Height) || o.Configuration.UseOutsideTouches))
@@ -237,7 +237,7 @@ namespace TUI
         public static void Update()
         {
             lock (Child)
-                foreach (VisualObjectBase child in Child)
+                foreach (VisualObject child in Child)
                     if (child.Enabled)
                         child.Update();
         }
@@ -248,7 +248,7 @@ namespace TUI
         public static void Apply()
         {
             lock (Child)
-                foreach (VisualObjectBase child in Child)
+                foreach (VisualObject child in Child)
                     if (child.Enabled)
                         child.Apply(true);
         }
@@ -259,7 +259,7 @@ namespace TUI
         public static void Draw()
         {
             lock (Child)
-                foreach (VisualObjectBase child in Child)
+                foreach (VisualObject child in Child)
                     if (child.Enabled)
                         child.Draw();
         }

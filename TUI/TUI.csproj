@@ -44,7 +44,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Base\UIDefault.cs" />
-    <Compile Include="Base\VisualObject.cs" />
     <Compile Include="Hooks\Args\CanTouchArgs.cs" />
     <Compile Include="Hooks\Args\DrawArgs.cs" />
     <Compile Include="Hooks\Args\EnabledArgs.cs" />

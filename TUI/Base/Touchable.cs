@@ -9,7 +9,7 @@ namespace TUI.Base
 
         public UILock Lock { get; set; }
         public UILock[] PersonalLock { get; set; } = new UILock[UI.MaxUsers];
-        public Func<VisualObjectBase, Touch, bool> Callback { get; set; }
+        public Func<VisualObject, Touch, bool> Callback { get; set; }
 
         public bool Contains(Touch touch) => Contains(touch.X, touch.Y);
 
@@ -17,7 +17,7 @@ namespace TUI.Base
 
         #region Initialize
 
-        public Touchable(int x, int y, int width, int height, UIConfiguration configuration = null, Func<VisualObjectBase, Touch, bool> callback = null)
+        public Touchable(int x, int y, int width, int height, UIConfiguration configuration = null, Func<VisualObject, Touch, bool> callback = null)
             : base(x, y, width, height, configuration)
         {
             Callback = callback;
@@ -91,9 +91,9 @@ namespace TUI.Base
 
         public virtual bool CanTouch(Touch touch)
         {
-            CanTouchArgs args = new CanTouchArgs(this as VisualObjectBase, touch);
+            CanTouchArgs args = new CanTouchArgs(this as VisualObject, touch);
             UI.Hooks.CanTouch.Invoke(args);
-            return args.CanTouch && Configuration.CustomCanTouch?.Invoke(this as VisualObjectBase, touch) != false;
+            return args.CanTouch && Configuration.CustomCanTouch?.Invoke(this as VisualObject, touch) != false;
         }
 
         #endregion
@@ -124,7 +124,7 @@ namespace TUI.Base
         #endregion
         #region PostSetTop
 
-        public virtual void PostSetTop(VisualObjectBase o) { }
+        public virtual void PostSetTop(VisualObject o) { }
 
         #endregion
         #region CanTouchThis
@@ -141,7 +141,7 @@ namespace TUI.Base
         public virtual bool TouchedThis(Touch touch)
         {
             if (touch.State == TouchState.Begin)
-                touch.Session.BeginObject = this as VisualObjectBase;
+                touch.Session.BeginObject = this as VisualObject;
 
             if (Configuration.Lock != null)
             {
@@ -155,7 +155,7 @@ namespace TUI.Base
             bool used = Invoke(touch);
 
             if (Configuration.SessionAcquire && used)
-                touch.Session.Acquired = this as VisualObjectBase;
+                touch.Session.Acquired = this as VisualObject;
 
             return used;
         }
@@ -167,7 +167,7 @@ namespace TUI.Base
         {
             bool used = true;
             if (Callback != null)
-                used = Callback(this as VisualObjectBase, touch);
+                used = Callback(this as VisualObject, touch);
             return used;
         }
 

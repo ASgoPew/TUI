@@ -25,8 +25,7 @@ namespace TUI.Widgets
         public byte UnderlineColor { get; set; } = UIDefault.LabelTextColor;
     }
 
-    public class Label<T> : VisualObject<T>
-        where T : LabelStyle
+    public class Label : VisualObject
     {
         #region Data
 
@@ -40,7 +39,7 @@ namespace TUI.Widgets
 
         #region Initialize
 
-        public Label(int x, int y, int width, int height, string text, UIConfiguration configuration = null, T style = null, Func<VisualObjectBase, Touch, bool> callback = null)
+        public Label(int x, int y, int width, int height, string text, UIConfiguration configuration = null, LabelStyle style = null, Func<VisualObject, Touch, bool> callback = null)
             : base(x, y, width, height, configuration, style, callback)
         {
             RawText = text;
@@ -53,14 +52,15 @@ namespace TUI.Widgets
         {
             base.ApplyThisNative(forceClear);
 
+            LabelStyle style = Style as LabelStyle;
             string text = GetText();
             if (string.IsNullOrWhiteSpace(text))
                 return;
-            int lineH = 2 + (int)Style.Underline;
+            int lineH = 2 + (int)style.Underline;
             ForceSection = false;
-            Indentation indentation = Style.Indentation;
-            Alignment alignment = Style.Alignment;
-            Side side = Style.Side;
+            Indentation indentation = style.Indentation;
+            Alignment alignment = style.Alignment;
+            Side side = style.Side;
 
             (int sx, int sy) = AbsoluteXY();
             int spaceW = Width - indentation.Left - indentation.Right;
@@ -116,9 +116,9 @@ namespace TUI.Widgets
                                 t.active(true);
                                 t.type = (ushort)337; // TileID.AlphabetStatues
                                 if (statueY < 2)
-                                    t.color(Style.TextColor);
+                                    t.color(style.TextColor);
 							    if (statueY == 2)
-								    t.color(Style.UnderlineColor);
+								    t.color(style.UnderlineColor);
                                 t.inActive(false);
                             }
                         ForceSection = true;
@@ -141,10 +141,11 @@ namespace TUI.Widgets
         {
             base.UpdateThisNative();
 
-            Indentation indentation = Style.Indentation;
+            LabelStyle style = Style as LabelStyle;
+            Indentation indentation = style.Indentation;
             int spaceW = Width - indentation.Left - indentation.Right;
             int spaceH = Height - indentation.Up - indentation.Down;
-            int lineH = 2 + (int)Style.Underline;
+            int lineH = 2 + (int)style.Underline;
 
             //Dividing text into lines
             (List<(string, int)> lines, int maxLineW) = LimitStatueText(RawText, spaceW, spaceH, indentation.Horizontal, indentation.Vertical, lineH);
@@ -171,7 +172,7 @@ namespace TUI.Widgets
         #region Clone
 
         public override object Clone() =>
-            new Label<T>(X, Y, Width, Height, RawText, Configuration, Style, Callback);
+            new Label(X, Y, Width, Height, string.Copy(RawText), (UIConfiguration)Configuration.Clone(), (LabelStyle)Style.Clone(), (Func<VisualObject, Touch, bool>)Callback.Clone());
 
         #endregion
 
@@ -268,13 +269,5 @@ namespace TUI.Widgets
             c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9';
 
         #endregion
-    }
-
-    public class Label : Label<LabelStyle>
-    {
-        public Label(int x, int y, int width, int height, string text, LabelStyle style = null)
-            : base(x, y, width, height, text, new UIConfiguration() { UseBegin = false }, style)
-        {
-        }
     }
 }

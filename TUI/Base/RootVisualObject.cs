@@ -24,7 +24,7 @@ namespace TUI.Base
         #endregion
         #region SetXYWH
 
-        public override VisualObjectBase SetXYWH(int x, int y, int width = -1, int height = -1)
+        public override VisualObject SetXYWH(int x, int y, int width = -1, int height = -1)
         {
             base.SetXYWH(x, y, width, height);
             UI.Hooks.SetXYWH.Invoke(new SetXYWHArgs(this, x, y, width, height));
@@ -34,7 +34,7 @@ namespace TUI.Base
         #endregion
         #region Enable
 
-        public override VisualObjectBase Enable()
+        public override VisualObject Enable()
         {
             if (!Enabled)
             {
@@ -47,7 +47,7 @@ namespace TUI.Base
         #endregion
         #region Disable
 
-        public override VisualObjectBase Disable()
+        public override VisualObject Disable()
         {
             if (Enabled)
             {

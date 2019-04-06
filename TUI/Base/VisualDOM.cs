@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace TUI.Base
 {
-    public class VisualDOM : IDOM<VisualObjectBase>, IVisual<VisualObjectBase>, ICloneable
+    public class VisualDOM : IDOM<VisualObject>, IVisual<VisualObject>, ICloneable
     {
         #region Data
 
         public virtual string Name => GetType().Name;
-        public string FullName => Parent != null ? Parent.FullName() + "." + Name : Name;
+        public string FullName => Parent != null ? Parent.FullName + "." + Name : Name;
 
         public RootVisualObject Root { get; set; }
         public virtual UITileProvider Provider => Root.Provider;
@@ -31,11 +31,11 @@ namespace TUI.Base
 
             #region Data
 
-            public List<VisualObjectBase> Child { get; private set; }
-            public VisualObjectBase Parent { get; private set; }
+            public List<VisualObject> Child { get; private set; }
+            public VisualObject Parent { get; private set; }
 
-            public IEnumerable<VisualObjectBase> DescendantDFS => GetDescendantDFS();
-            public IEnumerable<VisualObjectBase> DescendantBFS => GetDescendantBFS();
+            public IEnumerable<VisualObject> DescendantDFS => GetDescendantDFS();
+            public IEnumerable<VisualObject> DescendantBFS => GetDescendantBFS();
 
             #endregion
 
@@ -43,22 +43,22 @@ namespace TUI.Base
 
             public void InitializeDOM()
             {
-                Child = new List<VisualObjectBase>();
+                Child = new List<VisualObject>();
                 Parent = null;
             }
 
             #endregion
             #region Add
 
-            public virtual VisualObjectBase Add(VisualObjectBase child)
+            public virtual VisualObject Add(VisualObject child)
             {
                 lock (Child)
                     Child.Add(child);
-                child.Parent = this as VisualObjectBase;
+                child.Parent = this as VisualObject;
                 return child;
             }
 
-            public virtual VisualObjectBase Add(VisualObjectBase child, int column, int line)
+            public virtual VisualObject Add(VisualObject child, int column, int line)
             {
                 Add(child);
 
@@ -72,7 +72,7 @@ namespace TUI.Base
             #endregion
             #region Remove
 
-            public virtual VisualObjectBase Remove(VisualObjectBase child)
+            public virtual VisualObject Remove(VisualObject child)
             {
                 bool removed;
                 lock (Child)
@@ -93,45 +93,45 @@ namespace TUI.Base
             #endregion
             #region Select
 
-            public virtual VisualObjectBase Select(VisualObjectBase o)
+            public virtual VisualObject Select(VisualObject o)
             {
                 if (!Child.Contains(o))
                     throw new InvalidOperationException("Trying to Select an object that isn't a child of current VisualDOM");
 
                 lock (Child)
-                    foreach (VisualObjectBase child in Child)
+                    foreach (VisualObject child in Child)
                         child.Enabled = false;
                 o.Enabled = true;
 
-                return this as VisualObjectBase;
+                return this as VisualObject;
             }
 
-            public virtual VisualObjectBase Deselect()
+            public virtual VisualObject Deselect()
             {
                 lock (Child)
-                    foreach (VisualObjectBase child in Child)
+                    foreach (VisualObject child in Child)
                         child.Enabled = true;
 
-                return this as VisualObjectBase;
+                return this as VisualObject;
             }
 
             #endregion
             #region GetRoot
 
-            public VisualObjectBase GetRoot()
+            public VisualObject GetRoot()
             {
                 VisualDOM node = this;
                 while (node.Parent != null)
                     node = node.Parent;
-                return node as VisualObjectBase;
+                return node as VisualObject;
             }
 
             #endregion
             #region IsAncestorFor
 
-            public bool IsAncestorFor(VisualObjectBase o)
+            public bool IsAncestorFor(VisualObject o)
             {
-                VisualObjectBase node = Parent;
+                VisualObject node = Parent;
 
                 while (node != null)
                 {
@@ -146,7 +146,7 @@ namespace TUI.Base
             #endregion
             #region SetTop
 
-            public virtual bool SetTop(VisualObjectBase o)
+            public virtual bool SetTop(VisualObject o)
             {
                 lock (Child)
                 {
@@ -167,42 +167,42 @@ namespace TUI.Base
             #endregion
             #region DFS, BFS
 
-            private void DFS(List<VisualObjectBase> list)
+            private void DFS(List<VisualObject> list)
             {
-                list.Add(this as VisualObjectBase);
+                list.Add(this as VisualObject);
                 lock (Child)
-                    foreach (VisualObjectBase child in Child)
+                    foreach (VisualObject child in Child)
                         child.DFS(list);
             }
 
-            private void BFS(List<VisualObjectBase> list)
+            private void BFS(List<VisualObject> list)
             {
-                list.Add(this as VisualObjectBase);
+                list.Add(this as VisualObject);
                 int index = 0;
                 while (index < list.Count)
                 {
                     lock (list[index].Child)
-                        foreach (VisualObjectBase o in list[index].Child)
+                        foreach (VisualObject o in list[index].Child)
                             list.Add(o);
                     index++;
                 }
             }
 
-            private IEnumerable<VisualObjectBase> GetDescendantDFS()
+            private IEnumerable<VisualObject> GetDescendantDFS()
             {
-                List<VisualObjectBase> list = new List<VisualObjectBase>();
+                List<VisualObject> list = new List<VisualObject>();
                 DFS(list);
 
-                foreach (VisualObjectBase o in list)
+                foreach (VisualObject o in list)
                     yield return o;
             }
 
-            private IEnumerable<VisualObjectBase> GetDescendantBFS()
+            private IEnumerable<VisualObject> GetDescendantBFS()
             {
-                List<VisualObjectBase> list = new List<VisualObjectBase>();
+                List<VisualObject> list = new List<VisualObject>();
                 BFS(list);
 
-                foreach (VisualObjectBase o in list)
+                foreach (VisualObject o in list)
                     yield return o;
             }
 
@@ -240,39 +240,39 @@ namespace TUI.Base
                 return (X + dx, Y + dy, Width, Height);
             }
 
-            public virtual VisualObjectBase SetXYWH(int x, int y, int width = -1, int height = -1)
+            public virtual VisualObject SetXYWH(int x, int y, int width = -1, int height = -1)
             {
                 X = x;
                 Y = y;
                 Width = width >= 0 ? width : Width;
                 Height = height >= 0 ? height : Height;
-                return this as VisualObjectBase;
+                return this as VisualObject;
             }
 
-            public virtual VisualObjectBase SetXYWH((int x, int y, int width, int height) data)
+            public virtual VisualObject SetXYWH((int x, int y, int width, int height) data)
             {
                 X = data.x;
                 Y = data.y;
                 Width = data.width >= 0 ? data.width : Width;
                 Height = data.height >= 0 ? data.height : Height;
-                return this as VisualObjectBase;
+                return this as VisualObject;
             }
 
             #endregion
             #region Move
 
-            public virtual VisualObjectBase Move(int dx, int dy)
+            public virtual VisualObject Move(int dx, int dy)
             {
                 X = X + dx;
                 Y = Y + dy;
-                return this as VisualObjectBase;
+                return this as VisualObject;
             }
 
-            public virtual VisualObjectBase MoveBack(int dx, int dy)
+            public virtual VisualObject MoveBack(int dx, int dy)
             {
                 X = X - dx;
                 Y = Y - dy;
-                return this as VisualObjectBase;
+                return this as VisualObject;
             }
 
             #endregion
@@ -284,7 +284,7 @@ namespace TUI.Base
             public virtual bool Intersecting(int x, int y, int width, int height) =>
                 x < X + Width && X < x + width && y < Y + Height && Y < y + height;
 
-            public virtual bool Intersecting(VisualObjectBase o) => Intersecting(o.X, o.Y, o.Width, o.Height);
+            public virtual bool Intersecting(VisualObject o) => Intersecting(o.X, o.Y, o.Width, o.Height);
 
             #endregion
             #region Points
@@ -342,7 +342,7 @@ namespace TUI.Base
         #endregion
         #region SetupGrid
 
-        public VisualObjectBase SetupGrid(GridConfiguration gridConfig)
+        public VisualObject SetupGrid(GridConfiguration gridConfig)
         {
             Configuration.Grid = gridConfig;
 
@@ -355,13 +355,13 @@ namespace TUI.Base
                 for (int j = 0; j < gridConfig.Lines.Length; j++)
                     Grid[i, j] = new GridCell(i, j);
 
-            return this as VisualObjectBase;
+            return this as VisualObject;
         }
 
         #endregion
         #region Update
 
-            public virtual VisualObjectBase Update()
+            public virtual VisualObject Update()
             {
                 // Updates related to this node
                 UpdateThis();
@@ -369,16 +369,16 @@ namespace TUI.Base
                 // Recursive Update call
                 UpdateChild();
 
-                return this as VisualObjectBase;
+                return this as VisualObject;
             }
 
             #region UpdateThis
 
-            public VisualObjectBase UpdateThis()
+            public VisualObject UpdateThis()
             {
                 UpdateThisNative();
                 CustomUpdate();
-                return this as VisualObjectBase;
+                return this as VisualObject;
             }
 
             #endregion
@@ -396,7 +396,7 @@ namespace TUI.Base
             #endregion
             #region UpdateGrid
 
-            public VisualObjectBase UpdateGrid()
+            public VisualObject UpdateGrid()
             {
                 // Checking grid validity
                 GridConfiguration gridConfig = Configuration.Grid;
@@ -481,7 +481,7 @@ namespace TUI.Base
                         int totalW = 0, totalH = 0;
                         for (int k = 0; k < cell.Objects.Count; k++)
                         {
-                            VisualObjectBase obj = cell.Objects[k];
+                            VisualObject obj = cell.Objects[k];
                             obj.Cell = cell;
 
                             if (!obj.Enabled || obj.Configuration.FullSize)
@@ -529,7 +529,7 @@ namespace TUI.Base
                         int cy = direction == Direction.Up ? totalH - cell.Objects[0].Height : 0;
                         for (int k = 0; k < cell.Objects.Count; k++)
                         {
-                            VisualObjectBase obj = cell.Objects[k];
+                            VisualObject obj = cell.Objects[k];
                             if (!obj.Enabled || obj.Configuration.FullSize)
                                 continue;
 
@@ -581,16 +581,16 @@ namespace TUI.Base
                     }
                     WCounter = movedWCounter;
                 }
-                return this as VisualObjectBase;
+                return this as VisualObject;
             }
 
             #endregion
             #region UpdateFullSize
 
-            public virtual VisualObjectBase UpdateFullSize()
+            public virtual VisualObject UpdateFullSize()
             {
                 lock (Child)
-                    foreach (VisualObjectBase child in Child)
+                    foreach (VisualObject child in Child)
 			            if (child.Configuration.FullSize)
                             if (child.Cell == null)
                                 child.SetXYWH(0, 0, Width, Height);
@@ -602,28 +602,28 @@ namespace TUI.Base
                                     cell.Width - indentation.Left - indentation.Right,
                                     cell.Height - indentation.Up - indentation.Down);
                             }
-                return this as VisualObjectBase;
+                return this as VisualObject;
             }
 
             #endregion
             #region CustomUpdate
 
-            public VisualObjectBase CustomUpdate()
+            public VisualObject CustomUpdate()
             {
-                Configuration.CustomUpdate?.Invoke(this as VisualObjectBase);
-                return this as VisualObjectBase;
+                Configuration.CustomUpdate?.Invoke(this as VisualObject);
+                return this as VisualObject;
             }
 
             #endregion
             #region UpdateChild
 
-            public virtual VisualObjectBase UpdateChild()
+            public virtual VisualObject UpdateChild()
             {
                 lock (Child)
-                    foreach (VisualObjectBase child in Child)
+                    foreach (VisualObject child in Child)
                         if (child.Enabled)
                             child.Update();
-                return this as VisualObjectBase;
+                return this as VisualObject;
             }
 
             #endregion

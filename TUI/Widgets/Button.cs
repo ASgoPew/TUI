@@ -19,11 +19,10 @@ namespace TUI.Widgets
         public ButtonBlinkStyle BlinkStyle { get; set; } = ButtonBlinkStyle.SideLine;
     }
 
-    public class Button<T> : Label<T>
-        where T : ButtonStyle
+    public class Button : Label
     {
-        public Button(int x, int y, int width, int height, string text, UIConfiguration configuration = null, T style = null,
-            Func<VisualObjectBase, Touch, bool> callback = null) : base(x, y, width, height, text, configuration, style, callback)
+        public Button(int x, int y, int width, int height, string text, UIConfiguration configuration = null, ButtonStyle style = null,
+            Func<VisualObject, Touch, bool> callback = null) : base(x, y, width, height, text, configuration, style, callback)
         {
 
         }

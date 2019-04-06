@@ -19,15 +19,15 @@ namespace TUI.Base
         /// <summary>
         /// Delegate for applying custom actions on Update().
         /// </summary>
-        public Action<VisualObjectBase> CustomUpdate { get; set; }
+        public Action<VisualObject> CustomUpdate { get; set; }
         /// <summary>
         /// Delegate for custom checking if user can touch this node.
         /// </summary>
-        public Func<VisualObjectBase, Touch, bool> CustomCanTouch { get; set; }
+        public Func<VisualObject, Touch, bool> CustomCanTouch { get; set; }
         /// <summary>
         /// Delegate for applying custom actions on Apply().
         /// </summary>
-        public Action<VisualObjectBase> CustomApply { get; set; }
+        public Action<VisualObject> CustomApply { get; set; }
 
         /// <summary>
         /// Once node is touched all future touches within the same session would pass to this node.
