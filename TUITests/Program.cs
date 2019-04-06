@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using TUI;
 using Terraria;
 using System.Threading;
+using TUI.Base;
 
 namespace TUITests
 {
-    public class UIPlayer : IUIUser
+    public class UIPlayer
     {
         public int Index => 0;
         public string Name => "ASgo";

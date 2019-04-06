@@ -1,4 +1,6 @@
-﻿namespace TUI
+﻿using TUI.Base;
+
+namespace TUI.Hooks.Args
 {
     public class SetTopArgs
     {

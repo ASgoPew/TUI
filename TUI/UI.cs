@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using TUI.Base;
+using TUI.Hooks;
+using TUI.Hooks.Args;
 
 namespace TUI
 {
@@ -11,7 +14,7 @@ namespace TUI
         public static int MaxUsers;
         public static bool ShowGrid = false;
         public static HookManager Hooks = new HookManager();
-        private static List<RootVisualObject> Child = new List<RootVisualObject>();
+        public static List<RootVisualObject> Child = new List<RootVisualObject>();
         public static UIUserSession[] Session = new UIUserSession[MaxUsers];
         public static int SessionIndex = 0;
 
@@ -40,9 +43,10 @@ namespace TUI
         #endregion
         #region Create
 
-        public static RootVisualObject Create(string name, int x, int y, int width, int height, UITileProvider provider)
+        public static RootVisualObject Create(string name, int x, int y, int width, int height, UITileProvider provider,
+            UIConfiguration configuration = null, UIStyle style = null)
         {
-            RootVisualObject result = new RootVisualObject(name, x, y, width, height, provider);
+            RootVisualObject result = new RootVisualObject(name, x, y, width, height, provider, configuration, style);
             lock (Child)
                 Child.Add(result);
             return result;
@@ -135,7 +139,7 @@ namespace TUI
 
         public static bool TouchedAcquired(Touch touch)
         {
-            VisualObject o = touch.Session.Acquired;
+            VisualObjectBase o = touch.Session.Acquired;
             (int saveX, int saveY) = o.AbsoluteXY();
             touch.MoveBack(saveX, saveY);
             if (o.Enabled && (touch.Intersecting(0, 0, o.Width, o.Height) || o.Configuration.UseOutsideTouches))
@@ -233,7 +237,7 @@ namespace TUI
         public static void Update()
         {
             lock (Child)
-                foreach (VisualObject child in Child)
+                foreach (VisualObjectBase child in Child)
                     if (child.Enabled)
                         child.Update();
         }
@@ -244,9 +248,9 @@ namespace TUI
         public static void Apply()
         {
             lock (Child)
-                foreach (VisualObject child in Child)
+                foreach (VisualObjectBase child in Child)
                     if (child.Enabled)
-                        child.Apply();
+                        child.Apply(true);
         }
 
         #endregion
@@ -255,7 +259,7 @@ namespace TUI
         public static void Draw()
         {
             lock (Child)
-                foreach (VisualObject child in Child)
+                foreach (VisualObjectBase child in Child)
                     if (child.Enabled)
                         child.Draw();
         }

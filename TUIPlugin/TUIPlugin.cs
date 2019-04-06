@@ -10,6 +10,8 @@ using Terraria.ID;
 using TerrariaApi.Server;
 using TShockAPI;
 using TUI;
+using TUI.Base;
+using TUI.Hooks.Args;
 using static TShockAPI.GetDataHandlers;
 
 namespace TUIPlugin
@@ -172,12 +174,18 @@ namespace TUIPlugin
 
         public static void OnDraw(DrawArgs args)
         {
-            int lowX = Netplay.GetSectionX(args.X);
-            int highX = Netplay.GetSectionX(args.X + args.Width - 1);
-            int lowY = Netplay.GetSectionY(args.Y);
-            int highY = Netplay.GetSectionY(args.Y + args.Height - 1);
-            TSPlayer.All.SendData(PacketTypes.TileSendSection, null, args.X, args.Y, args.Width, args.Height);
-            TSPlayer.All.SendData(PacketTypes.TileFrameSection, null, lowX, lowY, highX, highY);
+            int size = Math.Max(args.Width, args.Height);
+            if (size >= 50 || args.ForcedSection)
+            {
+                int lowX = Netplay.GetSectionX(args.X);
+                int highX = Netplay.GetSectionX(args.X + args.Width - 1);
+                int lowY = Netplay.GetSectionY(args.Y);
+                int highY = Netplay.GetSectionY(args.Y + args.Height - 1);
+                TSPlayer.All.SendData(PacketTypes.TileSendSection, null, args.X, args.Y, args.Width, args.Height);
+                TSPlayer.All.SendData(PacketTypes.TileFrameSection, null, lowX, lowY, highX, highY);
+            }
+            else
+                TSPlayer.All.SendTileSquare(args.X, args.Y, size);
         }
     }
 }

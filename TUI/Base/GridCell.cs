@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 
-namespace TUI
+namespace TUI.Base
 {
     public class GridCell : IVisual<GridCell>
     {
         public int Column { get; }
         public int Line { get; }
-        public List<VisualObject> Objects { get; }
+        public List<VisualObjectBase> Objects { get; }
         public Indentation Indentation { get; set; }
         public Alignment? Alignment { get; set; }
         public Direction? Direction { get; set; }

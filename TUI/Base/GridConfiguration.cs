@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TUI
+namespace TUI.Base
 {
     public class GridConfiguration : ICloneable
     {
@@ -9,7 +9,7 @@ namespace TUI
         public Indentation Indentation = UIDefault.Indentation;
         public Alignment Alignment = UIDefault.Alignment;
         public Direction Direction = UIDefault.Direction;
-        public Side Side = UIDefault.Size;
+        public Side Side = UIDefault.Side;
 
         public GridConfiguration(ISize[] columns = null, ISize[] lines = null)
         {

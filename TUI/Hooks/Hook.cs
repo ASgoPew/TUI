@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TUI
+namespace TUI.Hooks
 {
     public class Hook<T>
     {

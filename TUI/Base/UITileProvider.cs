@@ -1,4 +1,4 @@
-﻿namespace TUI
+﻿namespace TUI.Base
 {
     public struct UITileProvider
     {

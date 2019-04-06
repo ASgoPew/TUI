@@ -1,6 +1,7 @@
 ﻿using System;
+using TUI.Hooks.Args;
 
-namespace TUI
+namespace TUI.Hooks
 {
     public class HookManager
     {

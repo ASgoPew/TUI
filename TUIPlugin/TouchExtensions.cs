@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TShockAPI;
 using TUI;
+using TUI.Base;
 
 namespace TUIPlugin
 {

@@ -1,4 +1,6 @@
-﻿namespace TUI.Widgets
+﻿using TUI.Base;
+
+namespace TUI.Widgets
 {
     public class Background : VisualObject
     {

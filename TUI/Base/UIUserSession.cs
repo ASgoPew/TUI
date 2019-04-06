@@ -1,4 +1,4 @@
-﻿namespace TUI
+﻿namespace TUI.Base
 {
     public class UIUserSession
     {
@@ -17,8 +17,8 @@
         public int Count { get; set; } = 0;
         public int ProjectileID { get; set; } = -1;
         public Touch BeginTouch { get; set; }
-        public VisualObject BeginObject { get; set; }
-        public VisualObject Acquired { get; set; }
+        public VisualObjectBase BeginObject { get; set; }
+        public VisualObjectBase Acquired { get; set; }
         public Touch PreviousTouch { get; set; }
         public bool Used { get; set; }
 

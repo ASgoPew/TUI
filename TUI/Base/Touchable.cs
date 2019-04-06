@@ -1,6 +1,7 @@
 ﻿using System;
+using TUI.Hooks.Args;
 
-namespace TUI
+namespace TUI.Base
 {
     public class Touchable : VisualDOM
     {
@@ -8,7 +9,7 @@ namespace TUI
 
         public UILock Lock { get; set; }
         public UILock[] PersonalLock { get; set; } = new UILock[UI.MaxUsers];
-        public Func<VisualObject, Touch, bool> Callback { get; set; }
+        public Func<VisualObjectBase, Touch, bool> Callback { get; set; }
 
         public bool Contains(Touch touch) => Contains(touch.X, touch.Y);
 
@@ -16,7 +17,7 @@ namespace TUI
 
         #region Initialize
 
-        public Touchable(int x, int y, int width, int height, UIConfiguration configuration = null, Func<VisualObject, Touch, bool> callback = null)
+        public Touchable(int x, int y, int width, int height, UIConfiguration configuration = null, Func<VisualObjectBase, Touch, bool> callback = null)
             : base(x, y, width, height, configuration)
         {
             Callback = callback;
@@ -90,9 +91,9 @@ namespace TUI
 
         public virtual bool CanTouch(Touch touch)
         {
-            CanTouchArgs args = new CanTouchArgs(this as VisualObject, touch);
+            CanTouchArgs args = new CanTouchArgs(this as VisualObjectBase, touch);
             UI.Hooks.CanTouch.Invoke(args);
-            return args.CanTouch && Configuration.CustomCanTouch?.Invoke(this as VisualObject, touch) != false;
+            return args.CanTouch && Configuration.CustomCanTouch?.Invoke(this as VisualObjectBase, touch) != false;
         }
 
         #endregion
@@ -123,7 +124,7 @@ namespace TUI
         #endregion
         #region PostSetTop
 
-        public virtual void PostSetTop(VisualObject o) { }
+        public virtual void PostSetTop(VisualObjectBase o) { }
 
         #endregion
         #region CanTouchThis
@@ -140,7 +141,7 @@ namespace TUI
         public virtual bool TouchedThis(Touch touch)
         {
             if (touch.State == TouchState.Begin)
-                touch.Session.BeginObject = this as VisualObject;
+                touch.Session.BeginObject = this as VisualObjectBase;
 
             if (Configuration.Lock != null)
             {
@@ -156,12 +157,12 @@ namespace TUI
             if (Callback != null)
             {
                 UI.SaveTime(this, "invoke");
-                used = Callback(this as VisualObject, touch);
+                used = Callback(this as VisualObjectBase, touch);
                 UI.ShowTime(this, "invoke", "action");
             }
 
             if (Configuration.SessionAcquire && used)
-                touch.Session.Acquired = this as VisualObject;
+                touch.Session.Acquired = this as VisualObjectBase;
 
             return used;
         }

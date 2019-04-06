@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Base\UIDefault.cs" />
+    <Compile Include="Base\VisualObject.cs" />
     <Compile Include="Hooks\Args\CanTouchArgs.cs" />
     <Compile Include="Hooks\Args\DrawArgs.cs" />
     <Compile Include="Hooks\Args\EnabledArgs.cs" />
@@ -68,11 +69,11 @@
     <Compile Include="UI.cs" />
     <Compile Include="Base\UIConfiguration.cs" />
     <Compile Include="Base\UIStyle.cs" />
-    <Compile Include="Base\IUIUser.cs" />
     <Compile Include="Base\UIUserSession.cs" />
     <Compile Include="Base\VisualDOM.cs" />
-    <Compile Include="Base\VisualObject.cs" />
+    <Compile Include="Base\VisualObjectBase.cs" />
     <Compile Include="Widgets\Background.cs" />
+    <Compile Include="Widgets\Button.cs" />
     <Compile Include="Widgets\Label.cs" />
   </ItemGroup>
   <ItemGroup>

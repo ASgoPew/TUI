@@ -1,4 +1,4 @@
-﻿namespace TUI
+﻿namespace TUI.Hooks.Args
 {
     public class DrawArgs
     {

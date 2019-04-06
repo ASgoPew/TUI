@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TUI
+namespace TUI.Base
 {
     public class UIConfiguration : ICloneable
     {
@@ -19,15 +19,15 @@ namespace TUI
         /// <summary>
         /// Delegate for applying custom actions on Update().
         /// </summary>
-        public Func<VisualObject, VisualObject> CustomUpdate { get; set; }
+        public Action<VisualObjectBase> CustomUpdate { get; set; }
         /// <summary>
         /// Delegate for custom checking if user can touch this node.
         /// </summary>
-        public Func<VisualObject, Touch, bool> CustomCanTouch { get; set; }
+        public Func<VisualObjectBase, Touch, bool> CustomCanTouch { get; set; }
         /// <summary>
         /// Delegate for applying custom actions on Apply().
         /// </summary>
-        public Func<VisualObject, VisualObject> CustomApply { get; set; }
+        public Action<VisualObjectBase> CustomApply { get; set; }
 
         /// <summary>
         /// Once node is touched all future touches within the same session would pass to this node.

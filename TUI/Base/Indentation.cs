@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TUI
+namespace TUI.Base
 {
     public class Indentation : ICloneable
     {

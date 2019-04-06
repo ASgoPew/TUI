@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TUI
+namespace TUI.Base
 {
     public enum TouchState
     {

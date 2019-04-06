@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TUI;
+using TUI.Base;
 
 namespace TUIPlusLua
 {
@@ -26,13 +27,13 @@ namespace TUIPlusLua
             };
             LuaFunction f = t["CustomApply"] as LuaFunction;
             if (f != null)
-                result.CustomApply = (self) => { f.Call(self); return self; };
+                result.CustomApply = (self) => f.Call(self);;
             f = t["CustomCanTouch"] as LuaFunction;
             if (f != null)
                 result.CustomCanTouch = (self, touch) => (bool)(f.Call(self, touch).FirstOrDefault() ?? false);
             f = t["CustomUpdate"] as LuaFunction;
             if (f != null)
-                result.CustomUpdate = (self) => { f.Call(self); return self; };
+                result.CustomUpdate = (self) => f.Call(self);
             return result;
         }
 
