@@ -76,15 +76,15 @@ namespace TUI.Base
 
             public Touch Move(int dx, int dy)
             {
-                X = X + dx;
-                Y = Y + dy;
+                X += dx;
+                Y += dy;
                 return this;
             }
 
             public Touch MoveBack(int dx, int dy)
             {
-                X = X - dx;
-                Y = Y - dy;
+                X -= dx;
+                Y -= dy;
                 return this;
             }
 

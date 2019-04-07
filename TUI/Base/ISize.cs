@@ -3,19 +3,30 @@
     public interface ISize
     {
         int Value { get; }
+
+        bool IsAbsolute { get; }
+        bool IsRelative { get; }
     }
     public class Absolute : ISize
     {
-        public int Value { get; }
+        int InternalValue { get; }
+
+        public int Value => InternalValue;
+        public bool IsAbsolute => true;
+        public bool IsRelative => false;
 
         public Absolute(int value) =>
-            Value = value;
+            InternalValue = value;
     }
     public class Relative : ISize
     {
-        public int Value { get; }
+        int InternalValue { get; }
+        public bool IsAbsolute => false;
+        public bool IsRelative => true;
+
+        public int Value => InternalValue - 1000000;
 
         public Relative(int value) =>
-            Value = value;
+            InternalValue = value + 1000000;
     }
 }

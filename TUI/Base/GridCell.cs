@@ -6,7 +6,7 @@ namespace TUI.Base
     {
         public int Column { get; }
         public int Line { get; }
-        public List<VisualObject> Objects { get; }
+        public List<VisualObject> Objects { get; } = new List<VisualObject>();
         public Indentation Indentation { get; set; }
         public Alignment? Alignment { get; set; }
         public Direction? Direction { get; set; }
@@ -59,15 +59,15 @@ namespace TUI.Base
 
             public GridCell Move(int dx, int dy)
             {
-                X = X + dx;
-                Y = Y + dy;
+                X += dx;
+                Y += dy;
                 return this;
             }
 
             public GridCell MoveBack(int dx, int dy)
             {
-                X = X - dx;
-                Y = Y - dy;
+                X -= dx;
+                Y -= dy;
                 return this;
             }
 

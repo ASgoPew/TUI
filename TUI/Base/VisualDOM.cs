@@ -263,15 +263,15 @@ namespace TUI.Base
 
             public virtual VisualObject Move(int dx, int dy)
             {
-                X = X + dx;
-                Y = Y + dy;
+                X += dx;
+                Y += dy;
                 return this as VisualObject;
             }
 
             public virtual VisualObject MoveBack(int dx, int dy)
             {
-                X = X - dx;
-                Y = Y - dy;
+                X -= dx;
+                Y -= dy;
                 return this as VisualObject;
             }
 
@@ -396,60 +396,60 @@ namespace TUI.Base
                 GridConfiguration gridConfig = Configuration.Grid;
                 ISize[] columnSizes = gridConfig.Columns;
                 ISize[] lineSizes = gridConfig.Lines;
-                Indentation gridIndentation = gridConfig.Indentation;
+                Indentation gridIndentation = gridConfig.GridIndentation;
                 int maxW = 0, maxRelativeW = 0;
 		        for (int i = 0; i < columnSizes.Length; i++)
                 {
-                    if (columnSizes[i].Value < 0)
-                        throw new ArgumentException("UpdateGrid: invalid column size");
-                    if (columnSizes[i].Value >= 1)
-                        maxW = maxW + columnSizes[i].Value;
+                    ISize size = columnSizes[i];
+                    if (size.IsAbsolute)
+                        maxW += size.Value;
                     else
-                        maxRelativeW = maxRelativeW + (columnSizes[i].Value * 10);
+                        maxRelativeW += size.Value;
                 }
                 if (maxW > Width - gridIndentation.Horizontal * (columnSizes.Length - 1) - gridIndentation.Left - gridIndentation.Right)
                     throw new ArgumentException("UpdateGrid: maxW is too big");
-		        if (maxRelativeW > 1)
+		        if (maxRelativeW > 100)
                     throw new ArgumentException("UpdateGrid: maxRelativeW is too big");
 
 		        int maxH = 0, maxRelativeH = 0;
-                for (int i = 1; i < lineSizes.Length; i++)
+                for (int i = 0; i < lineSizes.Length; i++)
                 {
-                    if (lineSizes[i].Value < 0)
-                        throw new ArgumentException("UpdateGrid: invalid line size");
-
-                    if (lineSizes[i].Value >= 1)
-                        maxH = maxH + lineSizes[i].Value;
+                    ISize size = lineSizes[i];
+                    if (size.IsAbsolute)
+                        maxH += size.Value;
                     else
-                        maxRelativeH = maxRelativeH + (lineSizes[i].Value * 10);
+                        maxRelativeH += size.Value;
                 }
                 if (maxH > Height - gridIndentation.Vertical * (lineSizes.Length - 1) - gridIndentation.Up - gridIndentation.Down)
                     throw new ArgumentException("UpdateGrid: maxH is too big");
-                if (maxRelativeH > 1)
+                if (maxRelativeH > 100)
                     throw new ArgumentException("UpdateGrid: maxRelativeH is too big");
 
                 // Main cell loop
                 int WCounter = gridIndentation.Left;
                 int relativeW = Width - maxW - gridIndentation.Horizontal * (columnSizes.Length - 1) - gridIndentation.Left - gridIndentation.Right;
-			    int relativeH = Width - maxH - gridIndentation.Vertical * (lineSizes.Length - 1) - gridIndentation.Up - gridIndentation.Down;
+			    int relativeH = Height - maxH - gridIndentation.Vertical * (lineSizes.Length - 1) - gridIndentation.Up - gridIndentation.Down;
+                //Console.WriteLine($"maxW: {maxW}, maxH: {maxH}; relativeW: {relativeW}, relativeH: {relativeH}");
                 for (int i = 0; i < columnSizes.Length; i++)
                 {
-                    int columnSize = columnSizes[i].Value;
+                    ISize columnISize = columnSizes[i];
+                    int columnSize = columnISize.Value;
                     int movedWCounter;
-                    if (columnSize >= 1)
+                    if (columnISize.IsAbsolute)
                         movedWCounter = WCounter + columnSize + gridIndentation.Horizontal;
                     else
-                        movedWCounter = WCounter + (columnSize * 10) * relativeW + gridIndentation.Horizontal;
+                        movedWCounter = WCounter + (int)(columnSize * relativeW / 100f) + gridIndentation.Horizontal;
 
                     int HCounter = gridIndentation.Up;
                     for (int j = 0; j < lineSizes.Length; j++)
                     {
-                        int lineSize = lineSizes[j].Value;
+                        ISize lineISize = lineSizes[j];
+                        int lineSize = lineISize.Value;
                         int movedHCounter;
-                        if (lineSize >= 1)
+                        if (lineISize.IsAbsolute)
                             movedHCounter = HCounter + lineSize + gridIndentation.Vertical;
                         else
-                            movedHCounter = HCounter + (lineSize * 10) * relativeH + gridIndentation.Vertical;
+                            movedHCounter = HCounter + (int)(lineSize * relativeH / 100f) + gridIndentation.Vertical;
                         GridCell cell = Grid[i, j];
 
                         Direction direction = cell.Direction ?? gridConfig.Direction;
@@ -485,17 +485,17 @@ namespace TUI.Base
                             {
                                 if (obj.Height > totalH)
                                     totalH = obj.Height;
-                                totalW = totalW + obj.Width;
+                                totalW += obj.Width;
                                 if (k != cell.Objects.Count)
-                                    totalW = totalW + indentation.Horizontal;
+                                    totalW += indentation.Horizontal;
                             }
                             else if (direction == Direction.Up || direction == Direction.Down)
                             {
                                 if (obj.Width > totalW)
                                     totalW = obj.Width;
-                                totalH = totalH + obj.Height;
+                                totalH += obj.Height;
                                 if (k != cell.Objects.Count)
-                                    totalH = totalH + indentation.Vertical;
+                                    totalH += indentation.Vertical;
                             }
                         }
 
@@ -630,8 +630,8 @@ namespace TUI.Base
             VisualDOM node = this;
             while (node != parent)
             {
-                x = x + node.X;
-                y = y + node.Y;
+                x += node.X;
+                y += node.Y;
                 node = node.Parent;
             }
             return (x, y);

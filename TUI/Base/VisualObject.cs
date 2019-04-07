@@ -138,7 +138,7 @@ namespace TUI.Base
             {
                 ForceSection = false;
                 ApplyTiles(forceClear);
-                if (UI.ShowGrid)
+                if (UI.ShowGrid && Configuration.Grid != null)
                     ShowGrid();
             }
 
@@ -181,8 +181,18 @@ namespace TUI.Base
             {
                 for (int i = 0; i < Configuration.Grid.Columns.Length; i++)
                     for (int j = 0; j < Configuration.Grid.Lines.Length; j++)
-                        foreach ((int x, int y) in Points)
-                            Provider[x, y].wallColor((byte)(25 + (i + j) % 2));
+                    {
+                        GridCell cell = Grid[i, j];
+                        (int cx, int cy) = ProviderXY(cell.X, cell.Y);
+                        //Console.WriteLine($"GridCell: {cx}, {cy}");
+                        for (int x = cx; x < cx + cell.Width; x++)
+                            for (int y = cy; y < cy + cell.Height; y++)
+                            {
+                                dynamic tile = Provider[x, y];
+                                tile.wall = (byte)155;
+                                tile.wallColor((byte)(25 + (i + j) % 2));
+                            }
+                    }
             }
 
             #endregion

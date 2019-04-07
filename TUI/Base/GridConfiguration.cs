@@ -5,6 +5,7 @@
         public ISize[] Columns;
         public ISize[] Lines;
         public Indentation Indentation = new Indentation(UIDefault.Indentation);
+        public Indentation GridIndentation = new Indentation(UIDefault.Indentation);
         public Alignment Alignment = UIDefault.Alignment;
         public Direction Direction = UIDefault.Direction;
         public Side Side = UIDefault.Side;
