@@ -16,12 +16,12 @@ namespace TUI.Base
         public static Offset Offset { get; set; } = new Offset();
         public static InternalOffset InternalOffset { get; set; } = new InternalOffset();
         public static ExternalOffset ExternalOffset { get; set; } = new ExternalOffset();
-        public static int Indent { get; set; } = 0;
+        public static int CellsIndent { get; set; } = 0;
         public static Alignment Alignment { get; set; } = Alignment.Center;
         public static Direction Direction { get; set; } = Direction.Down;
         public static Side Side { get; set; } = Side.Center;
 
-        public static Offset LabelIndentation { get; set; } = new Offset() { Horizontal = 1, Vertical = 1 };
+        public static Offset LabelOffset { get; set; } = new Offset() { Horizontal = 1, Vertical = 1 };
         public static byte LabelTextColor { get; set; } = 25;
     }
 }

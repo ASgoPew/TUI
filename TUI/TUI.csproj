@@ -43,6 +43,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Base\Style\Alignment.cs" />
+    <Compile Include="Base\Style\Direction.cs" />
+    <Compile Include="Base\Style\FullSize.cs" />
     <Compile Include="Base\UIDefault.cs" />
     <Compile Include="Hooks\Args\CanTouchArgs.cs" />
     <Compile Include="Hooks\Args\DrawArgs.cs" />
@@ -52,10 +55,9 @@
     <Compile Include="Hooks\Hook.cs" />
     <Compile Include="Hooks\HookManager.cs" />
     <Compile Include="Hooks\Args\SetXYWHArgs.cs" />
-    <Compile Include="Base\Indentation.cs" />
+    <Compile Include="Base\Style\Offset.cs" />
     <Compile Include="Base\ISize.cs" />
-    <Compile Include="Base\Enums.cs" />
-    <Compile Include="Base\GridConfiguration.cs" />
+    <Compile Include="Base\Style\Side.cs" />
     <Compile Include="Base\IDOM.cs" />
     <Compile Include="Hooks\Args\SetTopArgs.cs" />
     <Compile Include="Base\Lock.cs" />
@@ -67,13 +69,14 @@
     <Compile Include="Base\IVisual.cs" />
     <Compile Include="UI.cs" />
     <Compile Include="Base\UIConfiguration.cs" />
-    <Compile Include="Base\UIStyle.cs" />
+    <Compile Include="Base\Style\UIStyle.cs" />
     <Compile Include="Base\UIUserSession.cs" />
     <Compile Include="Base\VisualDOM.cs" />
     <Compile Include="Base\VisualObject.cs" />
     <Compile Include="Widgets\Background.cs" />
     <Compile Include="Widgets\Button.cs" />
     <Compile Include="Widgets\Label.cs" />
+    <Compile Include="Widgets\VisualContainer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

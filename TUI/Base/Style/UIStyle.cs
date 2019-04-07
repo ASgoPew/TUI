@@ -25,6 +25,7 @@ namespace TUI.Base.Style
         /// </summary>
         public int? ChildIndent { get; set; }
     }
+
     public class PositioningStyle
     {
         /// <summary>
@@ -34,14 +35,16 @@ namespace TUI.Base.Style
         public bool InLayout { get; set; } = false;
         /// <summary>
         /// Object size matches parent horizontal/vertical/both size automatically.
+        /// If <see cref="FullSize"/> != None and <see cref="InLayout"/> == true then matching parent size consideres layout offset.
         /// </summary>
         public FullSize FullSize { get; set; } = FullSize.None;
     }
+
     public class GridStyle
     {
         public ISize[] Columns { get; internal set; }
         public ISize[] Lines { get; internal set; }
-        public InternalOffset CellsOffset { get; set; }
+        public Offset Offset { get; set; }
         public ExternalOffset DefaultOffset { get; set; }
         public Alignment? DefaultAlignment { get; set; }
         public Direction? DefaultDirection { get; set; }
@@ -60,6 +63,7 @@ namespace TUI.Base.Style
             this.Lines = (ISize[])configuration.Lines.Clone();
         }
     }
+
     public class UIStyle
     {
         /// <summary>

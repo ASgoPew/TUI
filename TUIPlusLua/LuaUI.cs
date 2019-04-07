@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TUI;
 using TUI.Base;
+using TUI.Base.Style;
 
 namespace TUIPlusLua
 {

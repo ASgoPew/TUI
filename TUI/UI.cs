@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using TUI.Base;
+using TUI.Base.Style;
 using TUI.Hooks;
 using TUI.Hooks.Args;
 

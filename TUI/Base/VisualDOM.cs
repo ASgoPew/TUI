@@ -31,8 +31,8 @@ namespace TUI.Base
 
             #region Data
 
-            public List<VisualObject> Child { get; private set; }
-            public VisualObject Parent { get; private set; }
+            public List<VisualObject> Child { get; private set; } = new List<VisualObject>();
+            public VisualObject Parent { get; private set; } = null;
 
             public IEnumerable<VisualObject> DescendantDFS => GetDescendantDFS();
             public IEnumerable<VisualObject> DescendantBFS => GetDescendantBFS();
@@ -43,8 +43,6 @@ namespace TUI.Base
 
             public void InitializeDOM()
             {
-                Child = new ChildCollection<VisualObject>();
-                Parent = null;
             }
 
             #endregion

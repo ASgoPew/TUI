@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TUI.Base;
+using TUI.Base.Style;
 
 namespace TUI.Widgets
 {
@@ -17,24 +18,24 @@ namespace TUI.Widgets
 
     public class LabelStyle : UIStyle
     {
-        public Indent Indentation { get; set; } = new Indent(UIDefault.LabelIndentation);
-        public Alignment Alignment { get; set; } = UIDefault.Alignment;
-        public Side Side { get; set; } = UIDefault.Side;
+        public Offset TextOffset { get; set; } = new Offset(UIDefault.LabelOffset);
+        public Alignment TextAlignment { get; set; } = UIDefault.Alignment;
+        public Side TextSide { get; set; } = UIDefault.Side;
         public byte TextColor { get; set; } = UIDefault.LabelTextColor;
-        public LabelUnderline Underline { get; set; } = LabelUnderline.Nothing;
-        public byte UnderlineColor { get; set; } = UIDefault.LabelTextColor;
+        public LabelUnderline TextUnderline { get; set; } = LabelUnderline.Nothing;
+        public byte TextUnderlineColor { get; set; } = UIDefault.LabelTextColor;
 
         public LabelStyle() { }
 
         public LabelStyle(LabelStyle style)
             : base(style)
         {
-            this.Indentation = style.Indentation;
-            this.Alignment = style.Alignment;
-            this.Side = style.Side;
+            this.TextOffset = style.TextOffset;
+            this.TextAlignment = style.TextAlignment;
+            this.TextSide = style.TextSide;
             this.TextColor = style.TextColor;
-            this.Underline = style.Underline;
-            this.UnderlineColor = style.UnderlineColor;
+            this.TextUnderline = style.TextUnderline;
+            this.TextUnderlineColor = style.TextUnderlineColor;
         }
     }
 
@@ -78,11 +79,11 @@ namespace TUI.Widgets
             string text = GetText();
             if (string.IsNullOrWhiteSpace(text))
                 return;
-            int lineH = 2 + (int)style.Underline;
+            int lineH = 2 + (int)style.TextUnderline;
             ForceSection = false;
-            Indent indentation = style.Indentation;
-            Alignment alignment = style.Alignment;
-            Side side = style.Side;
+            Offset indentation = style.TextOffset;
+            Alignment alignment = style.TextAlignment;
+            Side side = style.TextSide;
 
             (int sx, int sy) = AbsoluteXY();
             int spaceW = Width - indentation.Left - indentation.Right;
@@ -140,7 +141,7 @@ namespace TUI.Widgets
                                 if (statueY < 2)
                                     t.color(style.TextColor);
 							    if (statueY == 2)
-								    t.color(style.UnderlineColor);
+								    t.color(style.TextUnderlineColor);
                                 t.inActive(false);
                             }
                         ForceSection = true;
@@ -163,10 +164,10 @@ namespace TUI.Widgets
             base.UpdateThisNative();
 
             LabelStyle style = Style as LabelStyle;
-            Indent indentation = style.Indentation;
+            Offset indentation = style.TextOffset;
             int spaceW = Width - indentation.Left - indentation.Right;
             int spaceH = Height - indentation.Up - indentation.Down;
-            int lineH = 2 + (int)style.Underline;
+            int lineH = 2 + (int)style.TextUnderline;
 
             //Dividing text into lines
             (List<(string, int)> lines, int maxLineW) = LimitStatueText(RawText, spaceW, spaceH, indentation.Horizontal, indentation.Vertical, lineH);

@@ -10,8 +10,9 @@ namespace TUI.Widgets
     public class VisualContainer : VisualObject
     {
         public VisualContainer()
-            : base(0, 0, 0, 0, new UIConfiguration() { UseBegin = false, FullSize = true })
+            : base(0, 0, 0, 0, new UIConfiguration() { UseBegin = false })
         {
+            Style.Positioning.FullSize = Base.Style.FullSize.Both;
         }
 
         public VisualContainer(VisualContainer visualObject)

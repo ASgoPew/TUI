@@ -91,36 +91,36 @@ namespace TUI.Base
         #endregion
         #region SetupGrid
 
-        public VisualObject SetupGrid(GridStyle gridConfig = null, bool fillWithEmptyContainers = true)
+        public VisualObject SetupGrid(GridStyle gridStyle = null, bool fillWithEmptyContainers = true)
         {
-            Style.Grid = gridConfig ?? new GridStyle();
+            Style.Grid = gridStyle ?? new GridStyle();
 
-            if (gridConfig.Columns == null)
-                gridConfig.Columns = new ISize[] { new Relative(100) };
-            if (gridConfig.Lines == null)
-                gridConfig.Lines = new ISize[] { new Relative(100) };
-            Grid = new VisualObject[gridConfig.Columns.Length, gridConfig.Lines.Length];
+            if (gridStyle.Columns == null)
+                gridStyle.Columns = new ISize[] { new Relative(100) };
+            if (gridStyle.Lines == null)
+                gridStyle.Lines = new ISize[] { new Relative(100) };
+            Grid = new VisualObject[gridStyle.Columns.Length, gridStyle.Lines.Length];
             if (fillWithEmptyContainers)
-                for (int i = 0; i < gridConfig.Columns.Length; i++)
-                    for (int j = 0; j < gridConfig.Lines.Length; j++)
+                for (int i = 0; i < gridStyle.Columns.Length; i++)
+                    for (int j = 0; j < gridStyle.Lines.Length; j++)
                         Grid[i, j] = new VisualContainer();
 
             return this as VisualObject;
         }
 
         #endregion
-        #region FullSize
+        #region SetFullSize
 
-        public VisualObject FullSize(bool horizontal = true, bool vertical = true)
+        public VisualObject SetFullSize(bool horizontal = true, bool vertical = true)
         {
             if (horizontal && vertical)
-                Style.Positioning.FullSize = Base.Style.FullSize.Both;
+                Style.Positioning.FullSize = FullSize.Both;
             else if (horizontal)
-                Style.Positioning.FullSize = Base.Style.FullSize.Horizontal;
+                Style.Positioning.FullSize = FullSize.Horizontal;
             else if (vertical)
-                Style.Positioning.FullSize = Base.Style.FullSize.Vertical;
+                Style.Positioning.FullSize = FullSize.Vertical;
             else
-                Style.Positioning.FullSize = Base.Style.FullSize.None;
+                Style.Positioning.FullSize = FullSize.None;
             return this;
         }
 
@@ -128,453 +128,319 @@ namespace TUI.Base
 
         #region Update
 
-        public virtual VisualObject Update()
-        {
-            // Updates related to this node
-            UpdateThis();
-
-            // Recursive Update call
-            UpdateChild();
-
-            return this as VisualObject;
-        }
-
-        #region UpdateThis
-
-        public VisualObject UpdateThis()
-        {
-            UpdateThisNative();
-            CustomUpdate();
-            return this as VisualObject;
-        }
-
-        #endregion
-        #region UpdateThisNative
-
-        protected virtual void UpdateThisNative()
-        {
-            if (Root == null)
-                Root = GetRoot() as RootVisualObject;
-            UpdateLayout();
-            if (Style.Grid != null)
-                UpdateGrid();
-            UpdateFullSize();
-        }
-
-        #endregion
-        #region UpdateLayout
-
-        public void UpdateLayout()
-        {
-            GridStyle parentGridStyle = Parent?.Style?.Grid;
-            ExternalOffset offset = Style.Layout.Offset ?? parentGridStyle?.DefaultOffset ?? UIDefault.ExternalOffset;
-            Alignment alignment = Style.Layout.Alignment ?? parentGridStyle?.DefaultAlignment ?? UIDefault.Alignment;
-            Direction direction = Style.Layout.Direction ?? parentGridStyle?.DefaultDirection ?? UIDefault.Direction;
-            Side side = Style.Layout.Side ?? parentGridStyle?.DefaultSide ?? UIDefault.Side;
-
-            (int layoutW, int layoutH, VisualObject firstChild) = CalculateLayoutSize(direction);
-            if (firstChild == null)
-                return;
-
-            // Calculating cell objects position
-            int sx, sy;
-
-            // Initializing sx
-            if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
-                sx = offset.Left;
-            else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
-                sx = Width - offset.Right - layoutW;
-            else
-                sx = (Width - layoutW + 1) / 2;
-
-            // Initializing sy
-            if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
-                sy = offset.Up;
-            else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
-                sy = Height - offset.Up - layoutH;
-            else
-                sy = (Height - layoutH + 1) / 2;
-
-            // Updating cell objects padding
-            int cx = direction == Direction.Left ? layoutW - firstChild.Width : 0;
-            int cy = direction == Direction.Up ? layoutH - firstChild.Height : 0;
-            lock (Child)
-                foreach (VisualObject child in Child)
-                {
-                    if (!child.Enabled || child.Style.Positioning.FullSize != Base.Style.FullSize.None || !child.Style.Positioning.InLayout)
-                        continue;
-
-
-                }
-            for (int k = 0; k < cell.Objects.Count; k++)
+            public virtual VisualObject Update()
             {
-                VisualObject obj = cell.Objects[k];
-                if (!obj.Enabled || obj.Configuration.FullSize)
-                    continue;
+                // Updates related to this node
+                UpdateThis();
 
-                // Calculating side alignment
-                int sideDeltaX = 0, sideDeltaY = 0;
-                if (direction == Direction.Left)
-                {
-                    if (side == Side.Left)
-                        sideDeltaY = layoutH - obj.Height;
-                    else if (side == Side.Center)
-                        sideDeltaY = (layoutH - obj.Height) / 2;
-                }
-                else if (direction == Direction.Right)
-                {
-                    if (side == Side.Right)
-                        sideDeltaY = layoutH - obj.Height;
-                    else if (side == Side.Center)
-                        sideDeltaY = (layoutH - obj.Height) / 2;
-                }
-                else if (direction == Direction.Up)
-                {
-                    if (side == Side.Right)
-                        sideDeltaX = layoutW - obj.Width;
-                    else if (side == Side.Center)
-                        sideDeltaX = (layoutW - obj.Width) / 2;
-                }
-                else if (direction == Direction.Down)
-                {
-                    if (side == Side.Left)
-                        sideDeltaX = layoutW - obj.Width;
-                    else if (side == Side.Center)
-                        sideDeltaX = (layoutW - obj.Width) / 2;
-                }
+                // Recursive Update call
+                UpdateChild();
 
-                obj.SetXYWH(cell.X + sx + cx + sideDeltaX, cell.Y + sy + cy + sideDeltaY);
-
-                if (k == cell.Objects.Count - 1)
-                    break;
-
-                if (direction == Direction.Right)
-                    cx = cx + offset.Horizontal + obj.Width;
-                else if (direction == Direction.Left)
-                    cx = cx - offset.Horizontal - cell.Objects[k + 1].Width;
-                else if (direction == Direction.Down)
-                    cy = cy + offset.Vertical + obj.Height;
-                else if (direction == Direction.Up)
-                    cy = cy - offset.Vertical - cell.Objects[k + 1].Height;
-            }
-        }
-
-        private (int, int, VisualObject) CalculateLayoutSize(Direction direction)
-        {
-            // Calculating total objects width and height
-            int indent = Style.Layout.ChildIndent ?? Parent?.Style?.Grid?.DefaultChildIndent ?? UIDefault.Indent;
-            int totalW = 0, totalH = 0;
-            VisualObject first = null;
-            lock (Child)
-                foreach (VisualObject child in Child)
-                {
-                    if (!child.Enabled || child.Style.Positioning.FullSize || !child.Style.Positioning.InLayout)
-                        continue;
-
-                    if (first == null)
-                        first = child;
-                    if (direction == Direction.Left || direction == Direction.Right)
-                    {
-                        if (child.Height > totalH)
-                            totalH = child.Height;
-                        totalW += child.Width + indent;
-                    }
-                    else if (direction == Direction.Up || direction == Direction.Down)
-                    {
-                        if (child.Width > totalW)
-                            totalW = child.Width;
-                        totalH += child.Height + indent;
-                    }
-                }
-            if (totalW > 0)
-                totalW -= indent;
-            if (totalH > 0)
-                totalH -= indent;
-
-            return (totalW, totalH, first);
-        }
-
-        #endregion
-        #region UpdateGrid
-
-        public VisualObject UpdateGridV2()
-        {
-            if (Configuration.Grid == null)
                 return this as VisualObject;
-            if (Grid == null)
-                SetupGrid(new GridConfiguration());
-
-            (int maxW, int maxH, int maxRelativeW, int maxRelativeH) = CalculateGridLimits();
-        }
-
-        public (int, int, int, int) CalculateGridLimits()
-        {
-            ISize[] columnSizes = Configuration.Grid.Columns;
-            ISize[] lineSizes = Configuration.Grid.Lines;
-            int maxW = 0, maxRelativeW = 0;
-            for (int i = 0; i < columnSizes.Length; i++)
-            {
-                ISize size = columnSizes[i];
-                if (size.IsAbsolute)
-                    maxW += size.Value;
-                else
-                    maxRelativeW += size.Value;
             }
-            if (maxW > Width)
-                throw new ArgumentException($"{FullName} (UpdateGrid): maxW is too big");
-            if (maxRelativeW > 100)
-                throw new ArgumentException($"{FullName} (UpdateGrid): maxRelativeW is too big");
 
-            int maxH = 0, maxRelativeH = 0;
-            for (int i = 0; i < lineSizes.Length; i++)
+            #region UpdateThis
+
+            public VisualObject UpdateThis()
             {
-                ISize size = lineSizes[i];
-                if (size.IsAbsolute)
-                    maxH += size.Value;
-                else
-                    maxRelativeH += size.Value;
+                UpdateThisNative();
+                CustomUpdate();
+                return this as VisualObject;
             }
-            if (maxH > Height)
-                throw new ArgumentException($"{FullName} (UpdateGrid): maxH is too big");
-            if (maxRelativeH > 100)
-                throw new ArgumentException($"{FullName} (UpdateGrid): maxRelativeH is too big");
 
-            return (maxW, maxH, maxRelativeW, maxRelativeH);
-        }
+            #endregion
+            #region UpdateThisNative
 
-        public VisualObject UpdateGrid()
-        {
-            // Checking grid validity
-            GridConfiguration gridConfig = Configuration.Grid;
-            ISize[] columnSizes = gridConfig.Columns;
-            ISize[] lineSizes = gridConfig.Lines;
-            Offset gridIndentation = gridConfig.GridIndentation;
-            int maxW = 0, maxRelativeW = 0;
-            for (int i = 0; i < columnSizes.Length; i++)
+            protected virtual void UpdateThisNative()
             {
-                ISize size = columnSizes[i];
-                if (size.IsAbsolute)
-                    maxW += size.Value;
-                else
-                    maxRelativeW += size.Value;
+                if (Root == null)
+                    Root = GetRoot() as RootVisualObject;
+                UpdateFullSize();
+                UpdateLayout();
+                if (Style.Grid != null)
+                    UpdateGrid();
             }
-            if (maxW > Width - gridIndentation.Horizontal * (columnSizes.Length - 1) - gridIndentation.Left - gridIndentation.Right)
-                throw new ArgumentException("UpdateGrid: maxW is too big");
-            if (maxRelativeW > 100)
-                throw new ArgumentException("UpdateGrid: maxRelativeW is too big");
 
-            int maxH = 0, maxRelativeH = 0;
-            for (int i = 0; i < lineSizes.Length; i++)
+            #endregion
+            #region UpdateFullSize
+
+            public virtual VisualObject UpdateFullSize()
             {
-                ISize size = lineSizes[i];
-                if (size.IsAbsolute)
-                    maxH += size.Value;
-                else
-                    maxRelativeH += size.Value;
-            }
-            if (maxH > Height - gridIndentation.Vertical * (lineSizes.Length - 1) - gridIndentation.Up - gridIndentation.Down)
-                throw new ArgumentException("UpdateGrid: maxH is too big");
-            if (maxRelativeH > 100)
-                throw new ArgumentException("UpdateGrid: maxRelativeH is too big");
-
-            // Main cell loop
-            int WCounter = gridIndentation.Left;
-            int relativeW = Width - maxW - gridIndentation.Horizontal * (columnSizes.Length - 1) - gridIndentation.Left - gridIndentation.Right;
-            int relativeH = Height - maxH - gridIndentation.Vertical * (lineSizes.Length - 1) - gridIndentation.Up - gridIndentation.Down;
-            //Console.WriteLine($"maxW: {maxW}, maxH: {maxH}; relativeW: {relativeW}, relativeH: {relativeH}");
-            for (int i = 0; i < columnSizes.Length; i++)
-            {
-                ISize columnISize = columnSizes[i];
-                int columnSize = columnISize.Value;
-                int movedWCounter;
-                if (columnISize.IsAbsolute)
-                    movedWCounter = WCounter + columnSize + gridIndentation.Horizontal;
-                else
-                    movedWCounter = WCounter + (int)(columnSize * relativeW / 100f) + gridIndentation.Horizontal;
-
-                int HCounter = gridIndentation.Up;
-                for (int j = 0; j < lineSizes.Length; j++)
-                {
-                    ISize lineISize = lineSizes[j];
-                    int lineSize = lineISize.Value;
-                    int movedHCounter;
-                    if (lineISize.IsAbsolute)
-                        movedHCounter = HCounter + lineSize + gridIndentation.Vertical;
-                    else
-                        movedHCounter = HCounter + (int)(lineSize * relativeH / 100f) + gridIndentation.Vertical;
-                    GridCell cell = Grid[i, j];
-
-                    Direction direction = cell.Direction ?? gridConfig.DefaultDirection;
-                    Alignment alignment = cell.Alignment ?? gridConfig.DefaultAlignment;
-                    Side side = cell.Side ?? gridConfig.DefaultSide;
-                    Offset indentation = cell.Indentation ?? gridConfig.Indentation;
-
-                    // Calculating cell position
-                    cell.X = WCounter;
-                    cell.Y = HCounter;
-                    cell.Width = movedWCounter - cell.X - gridIndentation.Horizontal;
-                    cell.Height = movedHCounter - cell.Y - gridIndentation.Vertical;
-
-                    HCounter = movedHCounter;
-
-                    if (cell.Objects.Count == 0)
-                        continue;
-
-                    // Calculating total objects width and height
-                    int totalW = 0, totalH = 0;
-                    for (int k = 0; k < cell.Objects.Count; k++)
+                ExternalOffset offset = Style.Layout.Offset ?? UIDefault.ExternalOffset;
+                int layoutX = offset.Left, layoutY = offset.Up;
+                int layoutW = Width - layoutX - offset.Right, layoutH = Height - layoutY - offset.Down;
+                lock (Child)
+                    foreach (VisualObject child in Child)
                     {
-                        VisualObject obj = cell.Objects[k];
-                        obj.Cell = cell;
-
-                        if (!obj.Enabled || obj.Configuration.FullSize)
+                        FullSize fullSize = child.Style.Positioning.FullSize;
+                        if (fullSize == FullSize.None)
                             continue;
 
+                        // If InLayout then FullSize should match parent size minus layout offset
+                        int x = 0, y = 0, width = Width, height = Height;
+                        if (child.Style.Positioning.InLayout)
+                        {
+                            x = layoutX;
+                            y = layoutY;
+                            width = layoutW;
+                            height = layoutH;
+                        }
+
+                        if (fullSize == FullSize.Both)
+                            child.SetXYWH(x, y, width, height);
+                        else if (fullSize == FullSize.Horizontal)
+                            child.SetXYWH(x, child.Y, width, child.Height);
+                        else if (fullSize == FullSize.Vertical)
+                            child.SetXYWH(child.X, y, child.Width, height);
+                    }
+                return this as VisualObject;
+            }
+
+            #endregion
+            #region UpdateLayout
+
+            public void UpdateLayout()
+            {
+                GridStyle parentGridStyle = Parent?.Style?.Grid;
+                ExternalOffset offset = Style.Layout.Offset ?? parentGridStyle?.DefaultOffset ?? UIDefault.ExternalOffset;
+                Alignment alignment = Style.Layout.Alignment ?? parentGridStyle?.DefaultAlignment ?? UIDefault.Alignment;
+                Direction direction = Style.Layout.Direction ?? parentGridStyle?.DefaultDirection ?? UIDefault.Direction;
+                Side side = Style.Layout.Side ?? parentGridStyle?.DefaultSide ?? UIDefault.Side;
+                int indent = Style.Layout.ChildIndent ?? Parent?.Style?.Grid?.DefaultChildIndent ?? UIDefault.CellsIndent;
+
+                (int layoutW, int layoutH, List<VisualObject> layoutChild) = CalculateLayoutSize(direction, indent);
+                if (layoutChild.Count == 0)
+                    return;
+
+                // Calculating cell objects position
+                int sx, sy;
+
+                // Initializing sx
+                if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
+                    sx = offset.Left;
+                else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
+                    sx = Width - offset.Right - layoutW;
+                else
+                    sx = (Width - layoutW + 1) / 2;
+
+                // Initializing sy
+                if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
+                    sy = offset.Up;
+                else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
+                    sy = Height - offset.Up - layoutH;
+                else
+                    sy = (Height - layoutH + 1) / 2;
+
+                // Updating cell objects padding
+                int cx = direction == Direction.Left ? layoutW - layoutChild[0].Width : 0;
+                int cy = direction == Direction.Up ? layoutH - layoutChild[0].Height : 0;
+                for (int k = 0; k < layoutChild.Count; k++)
+                {
+                    VisualObject child = layoutChild[k];
+                    // Calculating side alignment
+                    int sideDeltaX = 0, sideDeltaY = 0;
+                    if (direction == Direction.Left)
+                    {
+                        if (side == Side.Left)
+                            sideDeltaY = layoutH - child.Height;
+                        else if (side == Side.Center)
+                            sideDeltaY = (layoutH - child.Height) / 2;
+                    }
+                    else if (direction == Direction.Right)
+                    {
+                        if (side == Side.Right)
+                            sideDeltaY = layoutH - child.Height;
+                        else if (side == Side.Center)
+                            sideDeltaY = (layoutH - child.Height) / 2;
+                    }
+                    else if (direction == Direction.Up)
+                    {
+                        if (side == Side.Right)
+                            sideDeltaX = layoutW - child.Width;
+                        else if (side == Side.Center)
+                            sideDeltaX = (layoutW - child.Width) / 2;
+                    }
+                    else if (direction == Direction.Down)
+                    {
+                        if (side == Side.Left)
+                            sideDeltaX = layoutW - child.Width;
+                        else if (side == Side.Center)
+                            sideDeltaX = (layoutW - child.Width) / 2;
+                    }
+
+                    child.SetXYWH(sx + cx + sideDeltaX, sy + cy + sideDeltaY);
+
+                    if (k == layoutChild.Count - 1)
+                        break;
+
+                    if (direction == Direction.Right)
+                        cx = cx + indent + child.Width;
+                    else if (direction == Direction.Left)
+                        cx = cx - indent - layoutChild[k + 1].Width;
+                    else if (direction == Direction.Down)
+                        cy = cy + indent + child.Height;
+                    else if (direction == Direction.Up)
+                        cy = cy - indent - layoutChild[k + 1].Height;
+                }
+            }
+
+            #endregion
+            #region CalculateLayoutSize
+
+            private (int, int, List<VisualObject>) CalculateLayoutSize(Direction direction, int indent)
+            {
+                // Calculating total objects width and height
+                int totalW = 0, totalH = 0;
+                List<VisualObject> layoutChild = new List<VisualObject>();
+                lock (Child)
+                    foreach (VisualObject child in Child)
+                    {
+                        FullSize fullSize = child.Style.Positioning.FullSize;
+                        if (!child.Enabled || !child.Style.Positioning.InLayout || fullSize == FullSize.Both
+                                || (fullSize == FullSize.Horizontal && (direction == Direction.Left || direction == Direction.Right))
+                                || (fullSize == FullSize.Vertical && (direction == Direction.Up || direction == Direction.Down)))
+                            continue;
+
+                        layoutChild.Add(child);
                         if (direction == Direction.Left || direction == Direction.Right)
                         {
-                            if (obj.Height > totalH)
-                                totalH = obj.Height;
-                            totalW += obj.Width;
-                            if (k != cell.Objects.Count)
-                                totalW += indentation.Horizontal;
+                            if (child.Height > totalH)
+                                totalH = child.Height;
+                            totalW += child.Width + indent;
                         }
                         else if (direction == Direction.Up || direction == Direction.Down)
                         {
-                            if (obj.Width > totalW)
-                                totalW = obj.Width;
-                            totalH += obj.Height;
-                            if (k != cell.Objects.Count)
-                                totalH += indentation.Vertical;
+                            if (child.Width > totalW)
+                                totalW = child.Width;
+                            totalH += child.Height + indent;
                         }
                     }
+                if (totalW > 0)
+                    totalW -= indent;
+                if (totalH > 0)
+                    totalH -= indent;
 
-                    // Calculating cell objects position
-                    int sx, sy;
-
-                    // Initializing sx
-                    if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
-                        sx = indentation.Left;
-                    else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
-                        sx = cell.Width - indentation.Right - totalW;
-                    else
-                        sx = (cell.Width - totalW + 1) / 2;
-
-                    // Initializing sy
-                    if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
-                        sy = indentation.Up;
-                    else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
-                        sy = cell.Height - indentation.Up - totalH;
-                    else
-                        sy = (cell.Height - totalH + 1) / 2;
-
-                    // Updating cell objects padding
-                    int cx = direction == Direction.Left ? totalW - cell.Objects[0].Width : 0;
-                    int cy = direction == Direction.Up ? totalH - cell.Objects[0].Height : 0;
-                    for (int k = 0; k < cell.Objects.Count; k++)
-                    {
-                        VisualObject obj = cell.Objects[k];
-                        if (!obj.Enabled || obj.Configuration.FullSize)
-                            continue;
-
-                        // Calculating side alignment
-                        int sideDeltaX = 0, sideDeltaY = 0;
-                        if (direction == Direction.Left)
-                        {
-                            if (side == Side.Left)
-                                sideDeltaY = totalH - obj.Height;
-                            else if (side == Side.Center)
-                                sideDeltaY = (totalH - obj.Height) / 2;
-                        }
-                        else if (direction == Direction.Right)
-                        {
-                            if (side == Side.Right)
-                                sideDeltaY = totalH - obj.Height;
-                            else if (side == Side.Center)
-                                sideDeltaY = (totalH - obj.Height) / 2;
-                        }
-                        else if (direction == Direction.Up)
-                        {
-                            if (side == Side.Right)
-                                sideDeltaX = totalW - obj.Width;
-                            else if (side == Side.Center)
-                                sideDeltaX = (totalW - obj.Width) / 2;
-                        }
-                        else if (direction == Direction.Down)
-                        {
-                            if (side == Side.Left)
-                                sideDeltaX = totalW - obj.Width;
-                            else if (side == Side.Center)
-                                sideDeltaX = (totalW - obj.Width) / 2;
-                        }
-
-                        obj.SetXYWH(cell.X + sx + cx + sideDeltaX, cell.Y + sy + cy + sideDeltaY);
-
-                        if (k == cell.Objects.Count - 1)
-                            break;
-
-                        if (direction == Direction.Right)
-                            cx = cx + indentation.Horizontal + obj.Width;
-                        else if (direction == Direction.Left)
-                            cx = cx - indentation.Horizontal - cell.Objects[k + 1].Width;
-                        else if (direction == Direction.Down)
-                            cy = cy + indentation.Vertical + obj.Height;
-                        else if (direction == Direction.Up)
-                            cy = cy - indentation.Vertical - cell.Objects[k + 1].Height;
-                    }
-                }
-                WCounter = movedWCounter;
+                return (totalW, totalH, layoutChild);
             }
-            return this as VisualObject;
-        }
 
-        #endregion
-        #region UpdateFullSize
+            #endregion
+            #region UpdateGrid
 
-        public virtual VisualObject UpdateFullSize()
-        {
-            lock (Child)
-                foreach (VisualObject child in Child)
-                    if (child.Configuration.FullSize)
-                        if (child.Cell == null)
-                            child.SetXYWH(0, 0, Width, Height);
+            public VisualObject UpdateGrid()
+            {
+                if (Style.Grid == null)
+                    return this as VisualObject;
+                if (Grid == null)
+                    SetupGrid();
+
+                (int maxW, int maxH, int maxRelativeW, int maxRelativeH) = CalculateGridLimits();
+
+                // Main cell loop
+                ISize[] columnSizes = Style.Grid.Columns;
+                ISize[] lineSizes = Style.Grid.Lines;
+                Offset offset = Style.Grid.Offset ?? UIDefault.Offset;
+                int WCounter = offset.Left;
+                int relativeW = Width - maxW - offset.Horizontal * (columnSizes.Length - 1) - offset.Left - offset.Right;
+                int relativeH = Height - maxH - offset.Vertical * (lineSizes.Length - 1) - offset.Up - offset.Down;
+                //Console.WriteLine($"maxW: {maxW}, maxH: {maxH}; relativeW: {relativeW}, relativeH: {relativeH}");
+                for (int i = 0; i < columnSizes.Length; i++)
+                {
+                    ISize columnISize = columnSizes[i];
+                    int columnSize = columnISize.Value;
+                    int movedWCounter;
+                    if (columnISize.IsAbsolute)
+                        movedWCounter = WCounter + columnSize + offset.Horizontal;
+                    else
+                        movedWCounter = WCounter + (int)(columnSize * relativeW / 100f) + offset.Horizontal;
+
+                    int HCounter = offset.Up;
+                    for (int j = 0; j < lineSizes.Length; j++)
+                    {
+                        ISize lineISize = lineSizes[j];
+                        int lineSize = lineISize.Value;
+                        int movedHCounter;
+                        if (lineISize.IsAbsolute)
+                            movedHCounter = HCounter + lineSize + offset.Vertical;
                         else
-                        {
-                            GridCell cell = child.Cell;
-                            Offset indentation = cell.Indentation;
-                            child.SetXYWH(cell.X + indentation.Left, cell.Y + indentation.Up,
-                                cell.Width - indentation.Left - indentation.Right,
-                                cell.Height - indentation.Up - indentation.Down);
-                        }
-            return this as VisualObject;
-        }
+                            movedHCounter = HCounter + (int)(lineSize * relativeH / 100f) + offset.Vertical;
 
-        #endregion
-        #region CustomUpdate
+                        VisualObject cell = Grid[i, j];
 
-        public VisualObject CustomUpdate()
-        {
-            Configuration.CustomUpdate?.Invoke(this as VisualObject);
-            return this as VisualObject;
-        }
+                        // Calculating cell object position
+                        cell.SetXYWH(WCounter, HCounter, movedWCounter - cell.X - offset.Horizontal, movedHCounter - cell.Y - offset.Vertical);
 
-        #endregion
-        #region UpdateChild
+                        HCounter = movedHCounter;
+                    }
+                    WCounter = movedWCounter;
+                }
+                return this as VisualObject;
+            }
 
-        public virtual VisualObject UpdateChild()
-        {
-            lock (Child)
-                foreach (VisualObject child in Child)
-                    if (child.Enabled)
-                        child.Update();
-            return this as VisualObject;
-        }
+            #endregion
+            #region CalculateGridLimits
 
-        #endregion
+            public (int, int, int, int) CalculateGridLimits()
+            {
+                ISize[] columnSizes = Style.Grid.Columns;
+                ISize[] lineSizes = Style.Grid.Lines;
+                int maxW = 0, maxRelativeW = 0;
+                for (int i = 0; i < columnSizes.Length; i++)
+                {
+                    ISize size = columnSizes[i];
+                    if (size.IsAbsolute)
+                        maxW += size.Value;
+                    else
+                        maxRelativeW += size.Value;
+                }
+                if (maxW > Width)
+                    throw new ArgumentException($"{FullName} (UpdateGrid): maxW is too big");
+                if (maxRelativeW > 100)
+                    throw new ArgumentException($"{FullName} (UpdateGrid): maxRelativeW is too big");
+
+                int maxH = 0, maxRelativeH = 0;
+                for (int i = 0; i < lineSizes.Length; i++)
+                {
+                    ISize size = lineSizes[i];
+                    if (size.IsAbsolute)
+                        maxH += size.Value;
+                    else
+                        maxRelativeH += size.Value;
+                }
+                if (maxH > Height)
+                    throw new ArgumentException($"{FullName} (UpdateGrid): maxH is too big");
+                if (maxRelativeH > 100)
+                    throw new ArgumentException($"{FullName} (UpdateGrid): maxRelativeH is too big");
+
+                return (maxW, maxH, maxRelativeW, maxRelativeH);
+            }
+
+            #endregion
+            #region CustomUpdate
+
+            public VisualObject CustomUpdate()
+            {
+                Configuration.CustomUpdate?.Invoke(this as VisualObject);
+                return this as VisualObject;
+            }
+
+            #endregion
+            #region UpdateChild
+
+            public virtual VisualObject UpdateChild()
+            {
+                lock (Child)
+                    foreach (VisualObject child in Child)
+                        if (child.Enabled)
+                            child.Update();
+                return this as VisualObject;
+            }
+
+            #endregion
 
         #endregion
         #region Apply
 
-        public virtual VisualObject Apply(bool forceClear = false)
+            public virtual VisualObject Apply(bool forceClear = false)
             {
                 if (!Active())
                     throw new InvalidOperationException("Trying to call Apply() an not active object.");
@@ -604,7 +470,7 @@ namespace TUI.Base
             {
                 ForceSection = false;
                 ApplyTiles(forceClear);
-                if (UI.ShowGrid && Configuration.Grid != null)
+                if (UI.ShowGrid && Style.Grid != null)
                     ShowGrid();
             }
 
@@ -645,19 +511,15 @@ namespace TUI.Base
 
             public void ShowGrid()
             {
-                for (int i = 0; i < Configuration.Grid.Columns.Length; i++)
-                    for (int j = 0; j < Configuration.Grid.Lines.Length; j++)
+                for (int i = 0; i < Style.Grid.Columns.Length; i++)
+                    for (int j = 0; j < Style.Grid.Lines.Length; j++)
                     {
-                        GridCell cell = Grid[i, j];
-                        (int cx, int cy) = ProviderXY(cell.X, cell.Y);
-                        //Console.WriteLine($"GridCell: {cx}, {cy}");
-                        for (int x = cx; x < cx + cell.Width; x++)
-                            for (int y = cy; y < cy + cell.Height; y++)
-                            {
-                                dynamic tile = Provider[x, y];
-                                tile.wall = (byte)155;
-                                tile.wallColor((byte)(25 + (i + j) % 2));
-                            }
+                        foreach ((int x, int y) in Grid[i, j].ProviderPoints)
+                        {
+                            dynamic tile = Provider[x, y];
+                            tile.wall = (byte)155;
+                            tile.wallColor((byte)(25 + (i + j) % 2));
+                        }
                     }
             }
 
@@ -749,7 +611,7 @@ namespace TUI.Base
                 popup.Enable();
             else
             {
-                popup = new VisualObject(0, 0, 0, 0, null, null, (self, touch) => Popdown() == this).FullSize();
+                popup = new VisualObject(0, 0, 0, 0, null, null, (self, touch) => Popdown() == this).SetFullSize();
                 this["popup"] = Add(popup);
                 Update();
             }
