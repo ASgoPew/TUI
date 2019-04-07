@@ -465,9 +465,6 @@ namespace TUI.Base
 
                         HCounter = movedHCounter;
 
-                        cell.I = i;
-                        cell.J = j;
-
                         if (cell.Objects.Count == 0)
                             continue;
 

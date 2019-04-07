@@ -11,8 +11,6 @@ namespace TUI.Base
         public Alignment? Alignment { get; set; }
         public Direction? Direction { get; set; }
         public Side? Side { get; set; }
-        public int I { get; set; }
-        public int J { get; set; }
 
         #region IVisual
 
