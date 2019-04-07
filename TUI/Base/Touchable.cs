@@ -3,7 +3,7 @@ using TUI.Hooks.Args;
 
 namespace TUI.Base
 {
-    public class Touchable : VisualDOM
+    public abstract class Touchable : VisualDOM
     {
         #region Data
 

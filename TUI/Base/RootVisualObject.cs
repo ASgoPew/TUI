@@ -1,4 +1,5 @@
-﻿using TUI.Hooks.Args;
+﻿using TUI.Base.Style;
+using TUI.Hooks.Args;
 
 namespace TUI.Base
 {

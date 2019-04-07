@@ -5,10 +5,6 @@ namespace TUI.Base
     public class UIConfiguration
     {
         /// <summary>
-        /// Visual grid configuration.
-        /// </summary>
-        public GridConfiguration Grid { get; set; }
-        /// <summary>
         /// Touching this node would prevent touches on it or on the whole root for some time.
         /// </summary>
         public LockConfig Lock { get; set; }
@@ -58,17 +54,12 @@ namespace TUI.Base
         /// Allows to touch this node only if touch.State == TouchState.End
         /// </summary>
         public bool UseEnd { get; set; } = false;
-        /// <summary>
-        /// Node size completely matches parent size/parent cell size.
-        /// </summary>
-        public bool FullSize { get; set; } = false;
         //public bool Orderable { get; set; } = true;
 
         public UIConfiguration() { }
 
         public UIConfiguration(UIConfiguration configuration)
         {
-            this.Grid = new GridConfiguration(configuration.Grid);
             this.Lock = new LockConfig(configuration.Lock);
             this.Permission = configuration.Permission;
             this.CustomUpdate = configuration.CustomUpdate?.Clone() as Action<VisualObject>;
@@ -81,7 +72,6 @@ namespace TUI.Base
             this.UseBegin = configuration.UseBegin;
             this.UseMoving = configuration.UseMoving;
             this.UseEnd = configuration.UseEnd;
-            this.FullSize = configuration.FullSize;
         }
     }
 }

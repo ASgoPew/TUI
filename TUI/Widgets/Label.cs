@@ -17,7 +17,7 @@ namespace TUI.Widgets
 
     public class LabelStyle : UIStyle
     {
-        public Indentation Indentation { get; set; } = new Indentation(UIDefault.LabelIndentation);
+        public Indent Indentation { get; set; } = new Indent(UIDefault.LabelIndentation);
         public Alignment Alignment { get; set; } = UIDefault.Alignment;
         public Side Side { get; set; } = UIDefault.Side;
         public byte TextColor { get; set; } = UIDefault.LabelTextColor;
@@ -80,7 +80,7 @@ namespace TUI.Widgets
                 return;
             int lineH = 2 + (int)style.Underline;
             ForceSection = false;
-            Indentation indentation = style.Indentation;
+            Indent indentation = style.Indentation;
             Alignment alignment = style.Alignment;
             Side side = style.Side;
 
@@ -163,7 +163,7 @@ namespace TUI.Widgets
             base.UpdateThisNative();
 
             LabelStyle style = Style as LabelStyle;
-            Indentation indentation = style.Indentation;
+            Indent indentation = style.Indentation;
             int spaceW = Width - indentation.Left - indentation.Right;
             int spaceH = Height - indentation.Up - indentation.Down;
             int lineH = 2 + (int)style.Underline;

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace TUI.Base
 {
-    public class VisualDOM : IDOM<VisualObject>, IVisual<VisualObject>
+    public abstract class VisualDOM : IDOM<VisualObject>, IVisual<VisualObject>
     {
         #region Data
 
@@ -12,17 +13,16 @@ namespace TUI.Base
 
         public RootVisualObject Root { get; set; }
         public virtual UITileProvider Provider => Root.Provider;
-        public bool Enabled { get; set; }
-        public GridCell[,] Grid { get; private set; }
-        public GridCell Cell { get; private set; }
+        public bool Enabled { get; set; } = true;
         public UIConfiguration Configuration { get; set; }
+        private Dictionary<string, object> Shortcuts { get; set; }
         //protected object UpdateLocker { get; set; } = new object();
 
-        public IEnumerable<(int, int)> AbsolutePoints => GetAbsolutePoints();
-        public IEnumerable<(int, int)> ProviderPoints => GetProviderPoints();
-        public (int, int) AbsoluteXY(int dx = 0, int dy = 0) =>
+        public IEnumerable<(int X, int Y)> AbsolutePoints => GetAbsolutePoints();
+        public IEnumerable<(int X, int Y)> ProviderPoints => GetProviderPoints();
+        public (int X, int Y) AbsoluteXY(int dx = 0, int dy = 0) =>
             RelativeXY(Provider.X + dx, Provider.Y + dy, null);
-        public (int, int) ProviderXY(int dx = 0, int dy = 0) =>
+        public (int X, int Y) ProviderXY(int dx = 0, int dy = 0) =>
             RelativeXY(dx, dy, null);
 
         #endregion
@@ -43,7 +43,7 @@ namespace TUI.Base
 
             public void InitializeDOM()
             {
-                Child = new List<VisualObject>();
+                Child = new ChildCollection<VisualObject>();
                 Parent = null;
             }
 
@@ -58,14 +58,10 @@ namespace TUI.Base
                 return child;
             }
 
-            public virtual VisualObject Add(VisualObject child, int column, int line)
+            public virtual VisualObject AddToLayout(VisualObject child)
             {
                 Add(child);
-
-                GridCell cell = Grid[column, line];
-                cell.Objects.Add(child);
-                child.Cell = cell;
-
+                child.Style.Positioning.InLayout = true;
                 return child;
             }
 
@@ -80,11 +76,8 @@ namespace TUI.Base
                 if (removed)
                 {
                     child.Parent = null;
-                    if (child.Cell != null)
-                    {
-                        child.Cell.Objects.Remove(child);
-                        child.Cell = null;
-                    }
+                    foreach (var pair in Shortcuts.Where(o => o.Value == child))
+                        Shortcuts.Remove(pair.Key);
                     return child;
                 }
                 return null;
@@ -307,11 +300,44 @@ namespace TUI.Base
             InitializeDOM();
             InitializeVisual(x, y, width, height);
 
-            Enabled = true;
             Configuration = configuration ?? new UIConfiguration();
+        }
 
-            if (Configuration.Grid != null)
-                SetupGrid(Configuration.Grid);
+        #endregion
+        #region operator[]
+
+        public object this[string key]
+        {
+            get
+            {
+                object value = null;
+                Shortcuts?.TryGetValue(key, out value);
+                return value;
+            }
+            set
+            {
+                if (Shortcuts == null)
+                    Shortcuts = new Dictionary<string, object>();
+                Shortcuts[key] = value;
+            }
+        }
+
+        #endregion
+        #region Enable
+
+        public virtual VisualObject Enable()
+        {
+            Enabled = true;
+            return this as VisualObject;
+        }
+
+        #endregion
+        #region Disable
+
+        public virtual VisualObject Disable()
+        {
+            Enabled = false;
+            return this as VisualObject;
         }
 
         #endregion
@@ -332,292 +358,6 @@ namespace TUI.Base
             }
             return true;
         }
-
-        #endregion
-        #region SetupGrid
-
-        public VisualObject SetupGrid(GridConfiguration gridConfig)
-        {
-            Configuration.Grid = gridConfig;
-
-            if (gridConfig.Columns == null)
-                gridConfig.Columns = new ISize[] { new Relative(100) };
-            if (gridConfig.Lines == null)
-                gridConfig.Lines = new ISize[] { new Relative(100) };
-            Grid = new GridCell[gridConfig.Columns.Length, gridConfig.Lines.Length];
-            for (int i = 0; i < gridConfig.Columns.Length; i++)
-                for (int j = 0; j < gridConfig.Lines.Length; j++)
-                    Grid[i, j] = new GridCell(i, j);
-
-            return this as VisualObject;
-        }
-
-        #endregion
-        #region Update
-
-            public virtual VisualObject Update()
-            {
-                // Updates related to this node
-                UpdateThis();
-
-                // Recursive Update call
-                UpdateChild();
-
-                return this as VisualObject;
-            }
-
-            #region UpdateThis
-
-            public VisualObject UpdateThis()
-            {
-                UpdateThisNative();
-                CustomUpdate();
-                return this as VisualObject;
-            }
-
-            #endregion
-            #region UpdateThisNative
-
-            protected virtual void UpdateThisNative()
-            {
-                if (Root == null)
-                    Root = GetRoot() as RootVisualObject;
-                if (Configuration.Grid != null)
-                    UpdateGrid();
-                UpdateFullSize();
-            }
-
-            #endregion
-            #region UpdateGrid
-
-            public VisualObject UpdateGrid()
-            {
-                // Checking grid validity
-                GridConfiguration gridConfig = Configuration.Grid;
-                ISize[] columnSizes = gridConfig.Columns;
-                ISize[] lineSizes = gridConfig.Lines;
-                Indentation gridIndentation = gridConfig.GridIndentation;
-                int maxW = 0, maxRelativeW = 0;
-		        for (int i = 0; i < columnSizes.Length; i++)
-                {
-                    ISize size = columnSizes[i];
-                    if (size.IsAbsolute)
-                        maxW += size.Value;
-                    else
-                        maxRelativeW += size.Value;
-                }
-                if (maxW > Width - gridIndentation.Horizontal * (columnSizes.Length - 1) - gridIndentation.Left - gridIndentation.Right)
-                    throw new ArgumentException("UpdateGrid: maxW is too big");
-		        if (maxRelativeW > 100)
-                    throw new ArgumentException("UpdateGrid: maxRelativeW is too big");
-
-		        int maxH = 0, maxRelativeH = 0;
-                for (int i = 0; i < lineSizes.Length; i++)
-                {
-                    ISize size = lineSizes[i];
-                    if (size.IsAbsolute)
-                        maxH += size.Value;
-                    else
-                        maxRelativeH += size.Value;
-                }
-                if (maxH > Height - gridIndentation.Vertical * (lineSizes.Length - 1) - gridIndentation.Up - gridIndentation.Down)
-                    throw new ArgumentException("UpdateGrid: maxH is too big");
-                if (maxRelativeH > 100)
-                    throw new ArgumentException("UpdateGrid: maxRelativeH is too big");
-
-                // Main cell loop
-                int WCounter = gridIndentation.Left;
-                int relativeW = Width - maxW - gridIndentation.Horizontal * (columnSizes.Length - 1) - gridIndentation.Left - gridIndentation.Right;
-			    int relativeH = Height - maxH - gridIndentation.Vertical * (lineSizes.Length - 1) - gridIndentation.Up - gridIndentation.Down;
-                //Console.WriteLine($"maxW: {maxW}, maxH: {maxH}; relativeW: {relativeW}, relativeH: {relativeH}");
-                for (int i = 0; i < columnSizes.Length; i++)
-                {
-                    ISize columnISize = columnSizes[i];
-                    int columnSize = columnISize.Value;
-                    int movedWCounter;
-                    if (columnISize.IsAbsolute)
-                        movedWCounter = WCounter + columnSize + gridIndentation.Horizontal;
-                    else
-                        movedWCounter = WCounter + (int)(columnSize * relativeW / 100f) + gridIndentation.Horizontal;
-
-                    int HCounter = gridIndentation.Up;
-                    for (int j = 0; j < lineSizes.Length; j++)
-                    {
-                        ISize lineISize = lineSizes[j];
-                        int lineSize = lineISize.Value;
-                        int movedHCounter;
-                        if (lineISize.IsAbsolute)
-                            movedHCounter = HCounter + lineSize + gridIndentation.Vertical;
-                        else
-                            movedHCounter = HCounter + (int)(lineSize * relativeH / 100f) + gridIndentation.Vertical;
-                        GridCell cell = Grid[i, j];
-
-                        Direction direction = cell.Direction ?? gridConfig.Direction;
-                        Alignment alignment = cell.Alignment ?? gridConfig.Alignment;
-                        Side side = cell.Side ?? gridConfig.Side;
-                        Indentation indentation = cell.Indentation ?? gridConfig.Indentation;
-
-                        // Calculating cell position
-                        cell.X = WCounter;
-                        cell.Y = HCounter;
-                        cell.Width = movedWCounter - cell.X - gridIndentation.Horizontal;
-                        cell.Height = movedHCounter - cell.Y - gridIndentation.Vertical;
-
-                        HCounter = movedHCounter;
-
-                        if (cell.Objects.Count == 0)
-                            continue;
-
-                        // Calculating total objects width and height
-                        int totalW = 0, totalH = 0;
-                        for (int k = 0; k < cell.Objects.Count; k++)
-                        {
-                            VisualObject obj = cell.Objects[k];
-                            obj.Cell = cell;
-
-                            if (!obj.Enabled || obj.Configuration.FullSize)
-                                continue;
-
-                            if (direction == Direction.Left || direction == Direction.Right)
-                            {
-                                if (obj.Height > totalH)
-                                    totalH = obj.Height;
-                                totalW += obj.Width;
-                                if (k != cell.Objects.Count)
-                                    totalW += indentation.Horizontal;
-                            }
-                            else if (direction == Direction.Up || direction == Direction.Down)
-                            {
-                                if (obj.Width > totalW)
-                                    totalW = obj.Width;
-                                totalH += obj.Height;
-                                if (k != cell.Objects.Count)
-                                    totalH += indentation.Vertical;
-                            }
-                        }
-
-                        // Calculating cell objects position
-                        int sx, sy;
-
-                        // Initializing sx
-                        if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
-                            sx = indentation.Left;
-                        else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
-                            sx = cell.Width - indentation.Right - totalW;
-                        else
-                            sx = (cell.Width - totalW + 1) / 2;
-
-                        // Initializing sy
-                        if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
-                            sy = indentation.Up;
-                        else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
-                            sy = cell.Height - indentation.Up - totalH;
-                        else
-                            sy = (cell.Height - totalH + 1) / 2;
-
-                        // Updating cell objects padding
-                        int cx = direction == Direction.Left ? totalW - cell.Objects[0].Width : 0;
-                        int cy = direction == Direction.Up ? totalH - cell.Objects[0].Height : 0;
-                        for (int k = 0; k < cell.Objects.Count; k++)
-                        {
-                            VisualObject obj = cell.Objects[k];
-                            if (!obj.Enabled || obj.Configuration.FullSize)
-                                continue;
-
-                            // Calculating side alignment
-                            int sideDeltaX = 0, sideDeltaY = 0;
-                            if (direction == Direction.Left)
-                            {
-                                if (side == Side.Left)
-                                    sideDeltaY = totalH - obj.Height;
-                                else if (side == Side.Center)
-                                    sideDeltaY = (totalH - obj.Height) / 2;
-                            }
-                            else if (direction == Direction.Right)
-                            {
-                                if (side == Side.Right)
-                                    sideDeltaY = totalH - obj.Height;
-                                else if (side == Side.Center)
-                                    sideDeltaY = (totalH - obj.Height) / 2;
-                            }
-                            else if (direction == Direction.Up)
-                            {
-                                if (side == Side.Right)
-                                    sideDeltaX = totalW - obj.Width;
-                                else if (side == Side.Center)
-                                    sideDeltaX = (totalW - obj.Width) / 2;
-                            }
-                            else if (direction == Direction.Down)
-                            {
-                                if (side == Side.Left)
-                                    sideDeltaX = totalW - obj.Width;
-                                else if (side == Side.Center)
-                                    sideDeltaX = (totalW - obj.Width) / 2;
-                            }
-
-                            obj.SetXYWH(cell.X + sx + cx + sideDeltaX, cell.Y + sy + cy + sideDeltaY);
-
-                            if (k == cell.Objects.Count - 1)
-                                break;
-
-                            if (direction == Direction.Right)
-                                cx = cx + indentation.Horizontal + obj.Width;
-                            else if (direction == Direction.Left)
-                                cx = cx - indentation.Horizontal - cell.Objects[k + 1].Width;
-                            else if (direction == Direction.Down)
-                                cy = cy + indentation.Vertical + obj.Height;
-                            else if (direction == Direction.Up)
-                                cy = cy - indentation.Vertical - cell.Objects[k + 1].Height;
-                        }
-                    }
-                    WCounter = movedWCounter;
-                }
-                return this as VisualObject;
-            }
-
-            #endregion
-            #region UpdateFullSize
-
-            public virtual VisualObject UpdateFullSize()
-            {
-                lock (Child)
-                    foreach (VisualObject child in Child)
-			            if (child.Configuration.FullSize)
-                            if (child.Cell == null)
-                                child.SetXYWH(0, 0, Width, Height);
-                            else
-                            {
-                                GridCell cell = child.Cell;
-                                Indentation indentation = cell.Indentation;
-                                child.SetXYWH(cell.X + indentation.Left, cell.Y + indentation.Up,
-                                    cell.Width - indentation.Left - indentation.Right,
-                                    cell.Height - indentation.Up - indentation.Down);
-                            }
-                return this as VisualObject;
-            }
-
-            #endregion
-            #region CustomUpdate
-
-            public VisualObject CustomUpdate()
-            {
-                Configuration.CustomUpdate?.Invoke(this as VisualObject);
-                return this as VisualObject;
-            }
-
-            #endregion
-            #region UpdateChild
-
-            public virtual VisualObject UpdateChild()
-            {
-                lock (Child)
-                    foreach (VisualObject child in Child)
-                        if (child.Enabled)
-                            child.Update();
-                return this as VisualObject;
-            }
-
-            #endregion
 
         #endregion
         #region RelativeXY
