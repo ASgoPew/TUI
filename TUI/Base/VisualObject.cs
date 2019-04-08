@@ -352,34 +352,19 @@ namespace TUI.Base
 
                 CalculateGridSizes();
 
-                //Console.WriteLine($"maxW: {maxW}, maxH: {maxH}; relativeW: {relativeW}, relativeH: {relativeH}");
-
                 // Main cell loop
                 ISize[] columnSizes = Style.Grid.Columns;
                 ISize[] lineSizes = Style.Grid.Lines;
-                Offset offset = Style.Grid.Offset ?? UIDefault.Offset;
                 
-                int WCounter = offset.Left;
                 for (int i = 0; i < columnSizes.Length; i++)
                 {
-                    int columnSize = Style.Grid.ColumnResultingSizes[i];
-                    int movedWCounter = WCounter + columnSize + offset.Horizontal;
-                    
-                    int HCounter = offset.Up;
+                    (int columnX, int columnSize) = Style.Grid.ColumnResultingSizes[i];
                     for (int j = 0; j < lineSizes.Length; j++)
                     {
-                        int lineSize = Style.Grid.LineResultingSizes[j];
-                        int movedHCounter = HCounter + lineSize + offset.Vertical;
-                        
-                        VisualObject cell = Grid[i, j];
-
-                        // Calculating cell object position
-                        cell?.SetXYWH(WCounter, HCounter, columnSize, lineSize);
+                        (int lineX, int lineSize) = Style.Grid.LineResultingSizes[j];
+                        Grid[i, j]?.SetXYWH(columnX, lineX, columnSize, lineSize);
                         //Console.WriteLine($"Grid: {cell.FullName}, {cell.XYWH()}");
-
-                        HCounter = movedHCounter;
                     }
-                    WCounter = movedWCounter;
                 }
 
                 return this as VisualObject;
@@ -442,14 +427,14 @@ namespace TUI.Base
                     int columnSize = columnISize.IsAbsolute
                         ? columnISize.Value
                         : (int)(columnISize.Value * relativeW / 100f);
-                    Style.Grid.ColumnResultingSizes[i] = columnSize;
+                    Style.Grid.ColumnResultingSizes[i] = (WCounter, columnSize);
                     if (columnISize.IsRelative)
                         relativeWUsed += columnSize;
                     int movedWCounter = WCounter + columnSize + offset.Horizontal;
                     WCounter = movedWCounter;
                 }
                 if (firstRelativeColumn >= 0)
-                    Style.Grid.ColumnResultingSizes[firstRelativeColumn] += relativeW - relativeWUsed;
+                    Style.Grid.ColumnResultingSizes[firstRelativeColumn].Size += relativeW - relativeWUsed;
 
                 int HCounter = offset.Up;
                 for (int j = 0; j < lineSizes.Length; j++)
@@ -458,14 +443,14 @@ namespace TUI.Base
                     int lineSize = lineISize.IsAbsolute
                         ? lineISize.Value
                         : (int)(lineISize.Value * relativeH / 100f);
-                    Style.Grid.LineResultingSizes[j] = lineSize;
+                    Style.Grid.LineResultingSizes[j] = (HCounter, lineSize);
                     if (lineISize.IsRelative)
                         relativeHUsed += lineSize;
                     int movedHCounter = HCounter + lineSize + offset.Vertical;
                     HCounter = movedHCounter;
                 }
                 if (firstRelativeLine >= 0)
-                    Style.Grid.LineResultingSizes[firstRelativeLine] += relativeH - relativeHUsed;
+                    Style.Grid.LineResultingSizes[firstRelativeLine].Size += relativeH - relativeHUsed;
             }
 
             #endregion
@@ -563,14 +548,20 @@ namespace TUI.Base
 
             public void ShowGrid()
             {
+                (int sx, int sy) = ProviderXY();
                 for (int i = 0; i < Style.Grid.Columns.Length; i++)
                     for (int j = 0; j < Style.Grid.Lines.Length; j++)
-                        foreach ((int x, int y) in Grid[i, j].ProviderPoints)
-                        {
-                            dynamic tile = Provider[x, y];
-                            tile.wall = (byte)155;
-                            tile.wallColor((byte)(25 + (i + j) % 2));
-                        }
+                    {
+                        (int columnX, int columnSize) = Style.Grid.ColumnResultingSizes[i];
+                        (int lineY, int lineSize) = Style.Grid.LineResultingSizes[j];
+                        for (int x = columnX; x < columnX + columnSize; x++)
+                            for (int y = lineY; y < lineY + lineSize; y++)
+                            {
+                                dynamic tile = Provider[sx + x, sy + y];
+                                tile.wall = (byte)155;
+                                tile.wallColor((byte)(25 + (i + j) % 2));
+                            }
+                    }
             }
 
             #endregion
