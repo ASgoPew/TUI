@@ -228,7 +228,7 @@ namespace TUI.Base
                 if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
                     sy = offset.Up;
                 else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
-                    sy = Height - offset.Up - layoutH;
+                    sy = Height - offset.Down - layoutH;
                 else
                     sy = (Height - layoutH + 1) / 2;
 

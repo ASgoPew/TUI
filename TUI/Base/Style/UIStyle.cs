@@ -70,11 +70,11 @@
         /// <summary>
         /// Child layout related styles.
         /// </summary>
-        public LayoutStyle Layout { get; } = new LayoutStyle();
+        public LayoutStyle Layout { get; set; } = new LayoutStyle();
         /// <summary>
         /// Parent related positioning styles.
         /// </summary>
-        public PositioningStyle Positioning { get; } = new PositioningStyle();
+        public PositioningStyle Positioning { get; set; } = new PositioningStyle();
         /// <summary>
         /// Grid related styles. Null by default. Use <see cref="VisualDOM.SetupGrid(GridConfiguration, bool)"/> for initializing grid.
         /// </summary>
