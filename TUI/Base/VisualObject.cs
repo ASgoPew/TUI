@@ -62,13 +62,30 @@ namespace TUI.Base
 
         #region Initialize
 
-        public VisualObject(int x = 0, int y = 0, int width = 0, int height = 0, UIConfiguration configuration = null, UIStyle style = null, Func<VisualObject, Touch, bool> callback = null)
+        public VisualObject(int x, int y, int width, int height, UIConfiguration configuration = null, UIStyle style = null, Func<VisualObject, Touch, bool> callback = null)
             : base(x, y, width, height, configuration, callback)
         {
             Style = style ?? new UIStyle();
 
             if (Style.Grid != null)
                 SetupGrid(Style.Grid);
+        }
+
+        public VisualObject()
+            : this(0, 0, 0, 0, new UIConfiguration() { UseBegin = false })
+        {
+            Style.Positioning.FullSize = FullSize.Both;
+        }
+
+        public VisualObject(UIConfiguration configuration)
+            : this(0, 0, 0, 0, configuration)
+        {
+            Style.Positioning.FullSize = FullSize.Both;
+        }
+
+        public VisualObject(UIStyle style)
+            : this(0, 0, 0, 0, new UIConfiguration() { UseBegin = false }, style)
+        {
         }
 
         #endregion
@@ -190,8 +207,7 @@ namespace TUI.Base
                             child.SetXYWH(x, child.Y, width, child.Height);
                         else if (fullSize == FullSize.Vertical)
                             child.SetXYWH(child.X, y, child.Width, height);
-
-                        Console.WriteLine($"FullSize: {child.FullName}, {child.XYWH()}");
+                        //Console.WriteLine($"FullSize: {child.FullName}, {child.XYWH()}");
                     }
                 return this as VisualObject;
             }
@@ -209,7 +225,6 @@ namespace TUI.Base
                 int indent = Style.Layout.ChildIndent ?? Parent?.Style?.Grid?.DefaultChildIndent ?? UIDefault.CellsIndent;
 
                 (int layoutW, int layoutH, List<VisualObject> layoutChild) = CalculateLayoutSize(direction, indent);
-                Console.WriteLine($"{FullName} layout size: {layoutW}, {layoutH}");
                 if (layoutChild.Count == 0)
                     return;
 
@@ -270,8 +285,7 @@ namespace TUI.Base
                     }
 
                     child.SetXYWH(sx + cx + sideDeltaX, sy + cy + sideDeltaY);
-
-                    Console.WriteLine($"Layout: {child.FullName}, {child.XYWH()}");
+                    //Console.WriteLine($"Layout: {child.FullName}, {child.XYWH()}");
 
                     if (k == layoutChild.Count - 1)
                         break;
@@ -360,8 +374,8 @@ namespace TUI.Base
                         VisualObject cell = Grid[i, j];
 
                         // Calculating cell object position
-                        cell.SetXYWH(WCounter, HCounter, columnSize, lineSize);
-                        Console.WriteLine($"Grid: {cell.FullName}, {cell.XYWH()}");
+                        cell?.SetXYWH(WCounter, HCounter, columnSize, lineSize);
+                        //Console.WriteLine($"Grid: {cell.FullName}, {cell.XYWH()}");
 
                         HCounter = movedHCounter;
                     }
@@ -551,14 +565,12 @@ namespace TUI.Base
             {
                 for (int i = 0; i < Style.Grid.Columns.Length; i++)
                     for (int j = 0; j < Style.Grid.Lines.Length; j++)
-                    {
                         foreach ((int x, int y) in Grid[i, j].ProviderPoints)
                         {
                             dynamic tile = Provider[x, y];
                             tile.wall = (byte)155;
                             tile.wallColor((byte)(25 + (i + j) % 2));
                         }
-                    }
             }
 
             #endregion

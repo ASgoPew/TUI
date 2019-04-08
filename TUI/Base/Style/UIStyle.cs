@@ -1,5 +1,20 @@
 ﻿namespace TUI.Base.Style
 {
+    public class PositioningStyle
+    {
+        /// <summary>
+        /// If set to true and object has a parent then X and Y would be ignored, instead object
+        /// would be positioned in parent's layout.
+        /// </summary>
+        public bool InLayout { get; set; } = false;
+        /// <summary>
+        /// Object size matches parent horizontal/vertical/both size automatically.
+        /// <para>If <see cref="FullSize"/> != None and <see cref="InLayout"/> == true then matching parent size consideres layout offset.</para>
+        /// Doesn't work if object is a cell of parent's grid.
+        /// </summary>
+        public FullSize FullSize { get; set; } = FullSize.None;
+    }
+
     public class LayoutStyle
     {
         /// <summary>
@@ -24,20 +39,6 @@
         public int? ChildIndent { get; set; }
     }
 
-    public class PositioningStyle
-    {
-        /// <summary>
-        /// If set to true and object has a parent then X and Y would be ignored, instead object
-        /// would be positioned in parent's layout.
-        /// </summary>
-        public bool InLayout { get; set; } = false;
-        /// <summary>
-        /// Object size matches parent horizontal/vertical/both size automatically.
-        /// If <see cref="FullSize"/> != None and <see cref="InLayout"/> == true then matching parent size consideres layout offset.
-        /// </summary>
-        public FullSize FullSize { get; set; } = FullSize.None;
-    }
-
     public class GridStyle
     {
         public ISize[] Columns { get; internal set; }
@@ -59,8 +60,8 @@
             LineResultingSizes = new int[Lines.Length];
         }
 
-        public GridStyle(GridStyle configuration)
-            : this((ISize[]) configuration.Columns.Clone(), (ISize[]) configuration.Lines.Clone())
+        public GridStyle(GridStyle style)
+            : this((ISize[]) style.Columns.Clone(), (ISize[]) style.Lines.Clone())
         {
         }
     }
@@ -68,13 +69,13 @@
     public class UIStyle
     {
         /// <summary>
-        /// Child layout related styles.
-        /// </summary>
-        public LayoutStyle Layout { get; set; } = new LayoutStyle();
-        /// <summary>
         /// Parent related positioning styles.
         /// </summary>
         public PositioningStyle Positioning { get; set; } = new PositioningStyle();
+        /// <summary>
+        /// Child layout related styles.
+        /// </summary>
+        public LayoutStyle Layout { get; set; } = new LayoutStyle();
         /// <summary>
         /// Grid related styles. Null by default. Use <see cref="VisualDOM.SetupGrid(GridConfiguration, bool)"/> for initializing grid.
         /// </summary>

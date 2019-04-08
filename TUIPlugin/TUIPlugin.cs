@@ -83,8 +83,10 @@ namespace TUIPlugin
                 using (MemoryStream ms = new MemoryStream(args.Msg.readBuffer, args.Index, args.Length))
                 using (BinaryReader br = new BinaryReader(ms))
                 {
-                    short x = br.ReadInt16();
-                    short y = br.ReadInt16();
+                    short sx = br.ReadInt16();
+                    short sy = br.ReadInt16();
+                    short ex = br.ReadInt16();
+                    short ey = br.ReadInt16();
                     byte designStateByte = br.ReadByte();
                     TSPlayer player = TShock.Players[args.Msg.whoAmI];
                     byte prefix;
@@ -93,7 +95,7 @@ namespace TUIPlugin
                     else
                         return;
 
-                    args.Handled = UI.Touched(player.Index, new Touch(x, y, TouchState.End, prefix, designStateByte));
+                    args.Handled = UI.Touched(player.Index, new Touch(ex, ey, TouchState.End, prefix, designStateByte));
                     playerDesignState[player.Index] = DesignState.Waiting;
                 }
             }

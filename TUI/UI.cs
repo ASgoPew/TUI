@@ -116,34 +116,40 @@ namespace TUI
                     session.TouchSessionIndex++;
                 }
 
+                bool insideUI = false;
                 bool used = false;
                 if (session.Enabled)
                 {
                     if (session.Acquired != null)
-                        used = TouchedAcquired(touch);
+                        used = TouchedAcquired(touch, ref insideUI);
                     else
-                        used = TouchedChild(touch);
+                        used = TouchedChild(touch, ref insideUI);
                 }
                 session.Used = session.Used || used;
+                touch.InsideUI = insideUI;
 
                 long elapsed = sw.ElapsedMilliseconds;
-                Console.WriteLine($"{touch.X},{touch.Y} ({touch.State}): {elapsed}");
+                Console.WriteLine($"{touch.X},{touch.Y} ({touch.State}): {elapsed}, inside:{touch.InsideUI}");
 
                 session.Count++;
                 session.PreviousTouch = touch;
-                return session.Used;
+
+                return session.Used || touch.State == TouchState.End && (touch.InsideUI || session.BeginTouch.InsideUI);
             }
         }
 
         #endregion
         #region TouchedAcquired
 
-        public static bool TouchedAcquired(Touch touch)
+        public static bool TouchedAcquired(Touch touch, ref bool insideUI)
         {
             VisualObject o = touch.Session.Acquired;
             (int saveX, int saveY) = o.AbsoluteXY();
+            bool inside = touch.Intersecting(0, 0, o.Width, o.Height);
+            if (o.Enabled && inside)
+                insideUI = true;
             touch.MoveBack(saveX, saveY);
-            if (o.Enabled && (touch.Intersecting(0, 0, o.Width, o.Height) || o.Configuration.UseOutsideTouches))
+            if (o.Enabled && (inside || o.Configuration.UseOutsideTouches))
                 if (o.Touched(touch))
                     return true;
             touch.Move(saveX, saveY);
@@ -153,7 +159,7 @@ namespace TUI
         #endregion
         #region TouchedChild
 
-        public static bool TouchedChild(Touch touch)
+        public static bool TouchedChild(Touch touch, ref bool insideUI)
         {
             lock (Child)
                 for (int i = Child.Count - 1; i >= 0; i--)
@@ -162,6 +168,7 @@ namespace TUI
                     int saveX = o.X, saveY = o.Y;
                     if (o.Enabled && o.Contains(touch))
                     {
+                        insideUI = true;
                         touch.MoveBack(saveX, saveY);
                         if (o.Touched(touch))
                         {

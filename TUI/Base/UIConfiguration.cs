@@ -7,7 +7,7 @@ namespace TUI.Base
         /// <summary>
         /// Touching this node would prevent touches on it or on the whole root for some time.
         /// </summary>
-        public LockConfig Lock { get; set; }
+        public LockConfiguration Lock { get; set; }
         /// <summary>
         /// Object that should be used for checking if user can touch this node (permission string for TShock).
         /// </summary>
@@ -43,15 +43,15 @@ namespace TUI.Base
         /// </summary>
         public bool Ordered { get; set; } = false;
         /// <summary>
-        /// Allows to touch this node only if touch.State == TouchState.Begin
+        /// Allows to touch this node only if touch.State == TouchState.Begin. True by default.
         /// </summary>
         public bool UseBegin { get; set; } = true;
         /// <summary>
-        /// Allows to touch this node only if touch.State == TouchState.Moving
+        /// Allows to touch this node only if touch.State == TouchState.Moving. False by default.
         /// </summary>
         public bool UseMoving { get; set; } = false;
         /// <summary>
-        /// Allows to touch this node only if touch.State == TouchState.End
+        /// Allows to touch this node only if touch.State == TouchState.End. False by default.
         /// </summary>
         public bool UseEnd { get; set; } = false;
         //public bool Orderable { get; set; } = true;
@@ -60,7 +60,7 @@ namespace TUI.Base
 
         public UIConfiguration(UIConfiguration configuration)
         {
-            this.Lock = new LockConfig(configuration.Lock);
+            this.Lock = new LockConfiguration(configuration.Lock);
             this.Permission = configuration.Permission;
             this.CustomUpdate = configuration.CustomUpdate?.Clone() as Action<VisualObject>;
             this.CustomCanTouch = configuration.CustomCanTouch?.Clone() as Func<VisualObject, Touch, bool>;

@@ -14,7 +14,7 @@ namespace TUI.Base
         Personal
     }
 
-    public class LockConfig
+    public class LockConfiguration
     {
         public const int DefaultDelay = 300;
 
@@ -22,14 +22,14 @@ namespace TUI.Base
         public LockType Type { get; set; }
         public int Delay { get; set; }
 
-        public LockConfig(LockLevel level, LockType type, int delay = DefaultDelay)
+        public LockConfiguration(LockLevel level, LockType type, int delay = DefaultDelay)
         {
             Level = level;
             Type = type;
             Delay = delay;
         }
 
-        public LockConfig(LockConfig config)
+        public LockConfiguration(LockConfiguration config)
         {
             this.Level = config.Level;
             this.Type = config.Type;

@@ -18,6 +18,7 @@ namespace TUI.Base
         public TouchState State { get; private set; }
         public byte Prefix { get; private set; }
         public UIUserSession Session { get; internal set; }
+        public bool InsideUI { get; internal set; }
         public bool Undo { get; set; }
         public byte StateByte { get; private set; }
 
