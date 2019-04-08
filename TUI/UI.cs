@@ -93,7 +93,7 @@ namespace TUI
         public static bool Touched(int userIndex, Touch touch)
         {
             UIUserSession session = Session[userIndex];
-            touch.Session = session;
+            touch.SetSession(session);
 
             lock (session)
             {
@@ -107,13 +107,14 @@ namespace TUI
                 if (touch.State == TouchState.Moving && touch.AbsoluteX == previous.AbsoluteX && touch.AbsoluteY == previous.AbsoluteY)
                     return session.Used;
 
+                Console.WriteLine($"{touch.X},{touch.Y} {touch.State}");
+
                 Stopwatch sw = Stopwatch.StartNew();
 
                 if (touch.State == TouchState.Begin)
                 {
                     session.Reset();
                     session.BeginTouch = touch;
-                    session.TouchSessionIndex++;
                 }
 
                 bool insideUI = false;
@@ -128,13 +129,19 @@ namespace TUI
                 session.Used = session.Used || used;
                 touch.InsideUI = insideUI;
 
+                if (touch.State == TouchState.End)
+                {
+                    session.TouchSessionIndex++;
+                    session.EndTouchHandled = touch.InsideUI || session.BeginTouch.InsideUI;
+                }
+
                 long elapsed = sw.ElapsedMilliseconds;
-                Console.WriteLine($"{touch.X},{touch.Y} ({touch.State}): {elapsed}, inside:{touch.InsideUI}");
+                Console.WriteLine("Elapsed: " + elapsed);
 
                 session.Count++;
                 session.PreviousTouch = touch;
 
-                return session.Used || touch.State == TouchState.End && (touch.InsideUI || session.BeginTouch.InsideUI);
+                return session.Used;
             }
         }
 
@@ -145,13 +152,16 @@ namespace TUI
         {
             VisualObject o = touch.Session.Acquired;
             (int saveX, int saveY) = o.AbsoluteXY();
+
+            touch.MoveBack(saveX, saveY);
             bool inside = touch.Intersecting(0, 0, o.Width, o.Height);
+
             if (o.Enabled && inside)
                 insideUI = true;
-            touch.MoveBack(saveX, saveY);
             if (o.Enabled && (inside || o.Configuration.UseOutsideTouches))
                 if (o.Touched(touch))
                     return true;
+
             touch.Move(saveX, saveY);
             return false;
         }
@@ -181,6 +191,12 @@ namespace TUI
                 }
             return false;
         }
+
+        #endregion
+        #region EndTouchHandled
+
+        public static bool EndTouchHandled(int userIndex) =>
+            Session[userIndex]?.EndTouchHandled ?? false;
 
         #endregion
         #region SetTop

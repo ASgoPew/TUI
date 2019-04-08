@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using TUI.Hooks.Args;
 
 namespace TUI.Base
@@ -7,8 +8,8 @@ namespace TUI.Base
     {
         #region Data
 
-        public UILock Lock { get; set; }
-        public UILock[] PersonalLock { get; set; } = new UILock[UI.MaxUsers];
+        protected Locked Locked { get; set; }
+        protected ConcurrentDictionary<int, Locked> PersonalLocked { get; set; } = new ConcurrentDictionary<int, Locked>();
         public Func<VisualObject, Touch, bool> Callback { get; set; }
 
         public bool Contains(Touch touch) => Contains(touch.X, touch.Y);
@@ -28,6 +29,8 @@ namespace TUI.Base
 
         public virtual bool Touched(Touch touch)
         {
+            Console.WriteLine($"Touched ({FullName})");
+
             if (!Active())
                 throw new InvalidOperationException("Trying to call Touched on object that is not active");
 
@@ -43,11 +46,6 @@ namespace TUI.Base
                 used = TouchedThis(touch);
             UI.ShowTime(this, "Touched", "This");
 
-            // TODO: This might cause problems because object can be without rootAcquire =>
-            // TouchState.End touch won't proceed to this object
-            if (Lock != null && touch.State == TouchState.End)
-                Lock.Active = true;
-
             return used;
         }
 
@@ -56,28 +54,50 @@ namespace TUI.Base
 
         public virtual bool IsLocked(Touch touch)
         {
-            if (Configuration.Lock == null)
+            // We must check both personal and common lock
+            PersonalLocked.TryGetValue(touch.Session.UserIndex, out Locked personalLocked);
+            return IsLocked(Locked, touch) || IsLocked(personalLocked, touch);
+        }
+
+        public bool IsLocked(Locked locked, Touch touch)
+        {
+            if (locked == null)
                 return false;
 
-            UILock uilock = Configuration.Lock.Type == LockType.Common ? Lock : PersonalLock[touch.Session.UserIndex];
-            if (uilock != null && (DateTime.Now - uilock.Time) > TimeSpan.FromMilliseconds(uilock.Delay))
+            Lock holderLock = locked.Holder.Configuration.Lock;
+
+            // Checking whether lock is still active
+            if ((DateTime.UtcNow - locked.Time) > TimeSpan.FromMilliseconds(locked.Delay))
             {
-                if (Configuration.Lock.Type == LockType.Common)
-                    Lock = null;
+                if (holderLock.Personal)
+                    PersonalLocked.TryRemove(touch.Session.UserIndex, out _);
                 else
-                    PersonalLock[touch.Session.UserIndex] = null;
+                    Locked = null;
                 return false;
             }
-            if (uilock != null &&
-                (uilock.Active
-                || touch.State == TouchState.Begin
-                || touch.Session.TouchSessionIndex != uilock.Touch.Session.TouchSessionIndex))
+
+            Console.WriteLine($"IsLocked ({FullName}): {locked.Touch.Session.UserIndex} {touch.Session.UserIndex} {touch.TouchSessionIndex} {locked.Touch.TouchSessionIndex}");
+
+            // Immidiately blocking if user who set locked is different from current user
+            // or if it is already new TouchSessionIndex since locked set
+            bool userInitializedLock = locked.Touch.Session.UserIndex == touch.Session.UserIndex;
+            bool lockingTouchSession = touch.TouchSessionIndex == locked.Touch.TouchSessionIndex;
+            if (!userInitializedLock || !lockingTouchSession)
             {
+                Console.WriteLine("DISABLING 1");
                 touch.Session.Enabled = false;
                 return true;
             }
 
-            return false;
+            // Here lock exists, active for current user and TouchSessionIndex is the same as when lock was activated.
+            if (holderLock.AllowThisTouchSession)
+                return false;
+            else
+            {
+                Console.WriteLine("DISABLING 2");
+                touch.Session.Enabled = false;
+                return true;
+            }
         }
 
         #endregion
@@ -137,14 +157,7 @@ namespace TUI.Base
             if (touch.State == TouchState.Begin)
                 touch.Session.BeginObject = this as VisualObject;
 
-            if (Configuration.Lock != null)
-            {
-                UILock _lock = new UILock(this, DateTime.Now, Configuration.Lock.Delay, touch);
-                if (Configuration.Lock.Level == LockLevel.Self)
-                    Lock = _lock;
-                else if (Configuration.Lock.Level == LockLevel.Root)
-                    Root.Lock = _lock;
-            }
+            TrySetLock(touch);
 
             bool used = Invoke(touch);
 
@@ -155,15 +168,37 @@ namespace TUI.Base
         }
 
         #endregion
+        #region TrySetLock
+
+        public void TrySetLock(Touch touch)
+        {
+            // You can't lock the same object twice per touch session
+            if (Configuration.Lock != null && !touch.Session.LockedObjects.Contains(this as VisualObject))
+            {
+                Lock lockConfig = Configuration.Lock;
+                int userIndex = touch.Session.UserIndex;
+                VisualObject target = lockConfig.Level == LockLevel.Self ? this as VisualObject : Root;
+
+                // We are going to set lock only if target doesn't have an existing one
+                lock (target.PersonalLocked)
+                    if ((lockConfig.Personal && !target.PersonalLocked.ContainsKey(userIndex))
+                        || (!lockConfig.Personal && target.Locked == null))
+                        {
+                            Locked locked = new Locked(this as VisualObject, DateTime.UtcNow, lockConfig.Delay, touch);
+                            touch.Session.LockedObjects.Add(this as VisualObject);
+                            if (lockConfig.Personal)
+                                target.PersonalLocked[userIndex] = locked;
+                            else
+                                target.Locked = locked;
+                        }
+            }
+        }
+
+        #endregion
         #region Invoke
 
-        public virtual bool Invoke(Touch touch)
-        {
-            bool used = true;
-            if (Callback != null)
-                used = Callback(this as VisualObject, touch);
-            return used;
-        }
+        public virtual bool Invoke(Touch touch) =>
+            Callback?.Invoke(this as VisualObject, touch) ?? true;
 
         #endregion
     }

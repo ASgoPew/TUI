@@ -95,7 +95,8 @@ namespace TUIPlugin
                     else
                         return;
 
-                    args.Handled = UI.Touched(player.Index, new Touch(ex, ey, TouchState.End, prefix, designStateByte));
+                    UI.Touched(player.Index, new Touch(ex, ey, TouchState.End, prefix, designStateByte));
+                    args.Handled = UI.EndTouchHandled(player.Index);
                     playerDesignState[player.Index] = DesignState.Waiting;
                 }
             }
@@ -153,8 +154,6 @@ namespace TUIPlugin
                 {
                     int tileX = (int)Math.Floor((args.Position.X + 5) / 16);
                     int tileY = (int)Math.Floor((args.Position.Y + 5) / 16);
-
-                    // args.Handled = 
                     UI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Moving, prefix, 0));
                 }
             }
@@ -167,7 +166,15 @@ namespace TUIPlugin
         public static void OnCanTouch(CanTouchArgs args)
         {
             if (args.Node.Configuration.Permission is string permission)
-                args.CanTouch = args.Touch.Player()?.HasPermission(permission) ?? false;
+            {
+                TSPlayer player = args.Touch.Player();
+                args.CanTouch = player?.HasPermission(permission) ?? false;
+                if (args.Touch.State == TouchState.Begin && player != null && args.CanTouch == false)
+                {
+                    args.Node.TrySetLock(args.Touch);
+                    player.SendErrorMessage("You do not have access to this interface.");
+                }
+            }
         }
 
         public static void OnDraw(DrawArgs args)

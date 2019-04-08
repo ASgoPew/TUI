@@ -7,7 +7,7 @@ namespace TUI.Base
         /// <summary>
         /// Touching this node would prevent touches on it or on the whole root for some time.
         /// </summary>
-        public LockConfiguration Lock { get; set; }
+        public Lock Lock { get; set; }
         /// <summary>
         /// Object that should be used for checking if user can touch this node (permission string for TShock).
         /// </summary>
@@ -24,9 +24,8 @@ namespace TUI.Base
         /// Delegate for applying custom actions on Apply().
         /// </summary>
         public Action<VisualObject> CustomApply { get; set; }
-
         /// <summary>
-        /// Once node is touched all future touches within the same session would pass to this node.
+        /// Once node is touched all future touches within the same session will pass to this node.
         /// </summary>
         public bool SessionAcquire { get; set; } = true;
         /// <summary>
@@ -60,7 +59,7 @@ namespace TUI.Base
 
         public UIConfiguration(UIConfiguration configuration)
         {
-            this.Lock = new LockConfiguration(configuration.Lock);
+            this.Lock = new Lock(configuration.Lock);
             this.Permission = configuration.Permission;
             this.CustomUpdate = configuration.CustomUpdate?.Clone() as Action<VisualObject>;
             this.CustomCanTouch = configuration.CustomCanTouch?.Clone() as Func<VisualObject, Touch, bool>;

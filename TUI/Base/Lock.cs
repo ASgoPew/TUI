@@ -5,53 +5,52 @@ namespace TUI.Base
     public enum LockLevel
     {
         Self,
-        Root
+        Root,
+        //UI
     }
 
-    public enum LockType
-    {
-        Common,
-        Personal
-    }
-
-    public class LockConfiguration
+    public class Lock
     {
         public const int DefaultDelay = 300;
 
         public LockLevel Level { get; set; }
-        public LockType Type { get; set; }
+        public bool Personal { get; set; }
         public int Delay { get; set; }
+        public bool AllowThisTouchSession { get; set; }
 
-        public LockConfiguration(LockLevel level, LockType type, int delay = DefaultDelay)
+        public Lock(LockLevel level, bool personal = true, int delay = DefaultDelay, bool allowThisTouchSession = true)
         {
             Level = level;
-            Type = type;
+            Personal = personal;
             Delay = delay;
+            AllowThisTouchSession = allowThisTouchSession;
         }
 
-        public LockConfiguration(LockConfiguration config)
+        public Lock(Lock config)
         {
             this.Level = config.Level;
-            this.Type = config.Type;
+            this.Personal = config.Personal;
             this.Delay = config.Delay;
         }
     }
 
-    public class UILock
+    public class Locked
     {
-        public object Locker { get; set; }
-        public DateTime Time { get; set; }
-        public int Delay { get; set; }
-        public Touch Touch { get; set; }
-        public bool Active { get; set; }
+        //public VisualObject Target { get; }
+        public VisualObject Holder { get; }
+        /// <summary>
+        /// Lock time in UTC.
+        /// </summary>
+        public DateTime Time { get; }
+        public int Delay { get; }
+        public Touch Touch { get; }
 
-        public UILock(object locker, DateTime time, int delay, Touch touch)
+        public Locked(VisualObject holder, DateTime time, int delay, Touch touch)
         {
-            Locker = locker;
+            Holder = holder;
             Time = time;
             Delay = delay;
             Touch = touch;
-            Active = false;
         }
     }
 }

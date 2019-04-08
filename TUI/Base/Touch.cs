@@ -15,11 +15,13 @@ namespace TUI.Base
 
         public int AbsoluteX { get; private set; }
         public int AbsoluteY { get; private set; }
-        public TouchState State { get; private set; }
-        public byte Prefix { get; private set; }
+        public TouchState State { get; internal set; }
         public UIUserSession Session { get; internal set; }
+        public int TouchSessionIndex { get; internal set; }
         public bool InsideUI { get; internal set; }
+        //public Locked Locked { get; internal set; }
         public bool Undo { get; set; }
+        public byte Prefix { get; private set; }
         public byte StateByte { get; private set; }
 
         public bool Red      => (StateByte & 1) > 0;
@@ -111,6 +113,15 @@ namespace TUI.Base
             State = state;
             Prefix = prefix;
             StateByte = stateByte;
+        }
+
+        #endregion
+        #region SetSession
+
+        public void SetSession(UIUserSession session)
+        {
+            Session = session;
+            TouchSessionIndex = Session.TouchSessionIndex;
         }
 
         #endregion

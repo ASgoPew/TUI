@@ -1,4 +1,6 @@
-﻿namespace TUI.Base
+﻿using System.Collections.Generic;
+
+namespace TUI.Base
 {
     public class UIUserSession
     {
@@ -9,18 +11,20 @@
         /// <summary>
         /// User index (index in Players array for TShock)
         /// </summary>
-        public int UserIndex { get; set; }
+        public int UserIndex { get; internal set; }
         /// <summary>
-        /// Index of touch interval (TouchState.Begin to TouchState.End). Increases every TouchState.Begin.
+        /// Identifier of touch interval (TouchState.Begin to TouchState.End). Increases after every TouchState.End.
         /// </summary>
-        public int TouchSessionIndex { get; set; } = -1;
-        public int Count { get; set; } = 0;
+        public int TouchSessionIndex { get; internal set; } = 0;
+        public int Count { get; internal set; } = 0;
         public int ProjectileID { get; set; } = -1;
-        public Touch BeginTouch { get; set; }
-        public VisualObject BeginObject { get; set; }
-        public VisualObject Acquired { get; set; }
-        public Touch PreviousTouch { get; set; }
-        public bool Used { get; set; }
+        public Touch BeginTouch { get; internal set; }
+        public VisualObject BeginObject { get; internal set; }
+        public VisualObject Acquired { get; internal set; }
+        public Touch PreviousTouch { get; internal set; }
+        public bool Used { get; internal set; }
+        internal HashSet<VisualObject> LockedObjects { get; set; } = new HashSet<VisualObject>();
+        internal bool EndTouchHandled { get; set; }
 
         public UIUserSession(int userIndex)
         {
@@ -34,6 +38,7 @@
             Count = 0;
             BeginObject = null;
             Acquired = null;
+            LockedObjects.Clear();
         }
     }
 }
