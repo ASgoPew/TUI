@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace TUI.Base.Style
+﻿namespace TUI.Base.Style
 {
     public class LayoutStyle
     {
@@ -44,6 +42,8 @@ namespace TUI.Base.Style
     {
         public ISize[] Columns { get; internal set; }
         public ISize[] Lines { get; internal set; }
+        internal int[] ColumnResultingSizes { get; set; }
+        internal int[] LineResultingSizes { get; set; }
         public Offset Offset { get; set; }
         public ExternalOffset DefaultOffset { get; set; }
         public Alignment? DefaultAlignment { get; set; }
@@ -55,12 +55,13 @@ namespace TUI.Base.Style
         {
             Columns = columns ?? new ISize[] { new Relative(100) };
             Lines = lines ?? new ISize[] { new Relative(100) };
+            ColumnResultingSizes = new int[Columns.Length];
+            LineResultingSizes = new int[Lines.Length];
         }
 
         public GridStyle(GridStyle configuration)
+            : this((ISize[]) configuration.Columns.Clone(), (ISize[]) configuration.Lines.Clone())
         {
-            this.Columns = (ISize[])configuration.Columns.Clone();
-            this.Lines = (ISize[])configuration.Lines.Clone();
         }
     }
 

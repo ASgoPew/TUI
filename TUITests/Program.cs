@@ -1,15 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TUI;
-using Terraria;
-using System.Threading;
+﻿using TUI;
 using TUI.Base;
+using TUI.Base.Style;
 
 namespace TUITests
 {
+    class Tile
+    {
+        void ClearEverything() { }
+        void active(bool b) { }
+        void inActive(bool b) { }
+        short tile { get; set; }
+        void color(byte b) { }
+        void wall(byte b) { }
+        void wallColor(byte b) { }
+    }
+
     public class UIPlayer
     {
         public int Index => 0;
@@ -20,17 +25,19 @@ namespace TUITests
 
     class Program
     {
+        static Tile[,] tile = new Tile[200, 130];
+
         static void Main(string[] args)
         {
             UI.Initialize();
             UIPlayer me = new UIPlayer();
             UI.InitializeUser(me.Index);
-            RootVisualObject game = UI.Create("Game", 100, 100, 50, 20, new UITileProvider(null, 0, 0));
-            game["lol"] = game.Add(new VisualObject(20, 10, 10, 10, new UIConfiguration() { UseMoving = true, UseEnd = true }, null, (self, touch) =>
+            RootVisualObject root = UI.Create("Game", 55, 115, 50, 40, new UITileProvider(tile, 0, 0));
+            root.SetupGrid(new GridStyle(new ISize[] { new Relative(100), new Absolute(20) }, new ISize[] { new Absolute(20), new Relative(100) })
             {
-                Console.WriteLine("Ok");
-                return true;
-            }));
+                Offset = new Offset() { Right = 1 },
+                DefaultAlignment = Alignment.DownRight
+            });
             UI.Update();
             UI.Touched(me.Index, new Touch(124, 110, TouchState.Begin, 0, 0));
             UI.Touched(me.Index, new Touch(125, 110, TouchState.Moving, 0, 0));

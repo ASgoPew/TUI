@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using TUI.Base;
 using TUI.Base.Style;
 
@@ -71,9 +67,9 @@ namespace TUI.Widgets
         #endregion
         #region ApplyThisNative
 
-        protected override void ApplyThisNative(bool forceClear = false)    
+        protected override void ApplyThisNative()    
         {
-            base.ApplyThisNative(forceClear);
+            base.ApplyThisNative();
 
             LabelStyle style = Style as LabelStyle;
             string text = GetText();

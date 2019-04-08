@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using TUI.Base.Style;
-using TUI.Widgets;
 
 namespace TUI.Base
 {
@@ -46,7 +44,7 @@ namespace TUI.Base
             public override void PostSetTop(VisualObject o)
             {
                 if (ChildIntersectingOthers(o))
-                    o.Apply(true).Draw();
+                    o.Apply().Draw();
             }
 
             private bool ChildIntersectingOthers(VisualObject o)
@@ -64,7 +62,7 @@ namespace TUI.Base
 
         #region Initialize
 
-        public VisualObject(int x, int y, int width, int height, UIConfiguration configuration = null, UIStyle style = null, Func<VisualObject, Touch, bool> callback = null)
+        public VisualObject(int x = 0, int y = 0, int width = 0, int height = 0, UIConfiguration configuration = null, UIStyle style = null, Func<VisualObject, Touch, bool> callback = null)
             : base(x, y, width, height, configuration, callback)
         {
             Style = style ?? new UIStyle();
@@ -91,7 +89,7 @@ namespace TUI.Base
         #endregion
         #region SetupGrid
 
-        public VisualObject SetupGrid(GridStyle gridStyle = null, bool fillWithEmptyContainers = true)
+        public VisualObject SetupGrid(GridStyle gridStyle = null, bool fillWithEmptyObjects = true)
         {
             Style.Grid = gridStyle ?? new GridStyle();
 
@@ -100,10 +98,10 @@ namespace TUI.Base
             if (gridStyle.Lines == null)
                 gridStyle.Lines = new ISize[] { new Relative(100) };
             Grid = new VisualObject[gridStyle.Columns.Length, gridStyle.Lines.Length];
-            if (fillWithEmptyContainers)
+            if (fillWithEmptyObjects)
                 for (int i = 0; i < gridStyle.Columns.Length; i++)
                     for (int j = 0; j < gridStyle.Lines.Length; j++)
-                        Grid[i, j] = new VisualContainer();
+                        Grid[i, j] = Add(new VisualObject());
 
             return this as VisualObject;
         }
@@ -192,6 +190,8 @@ namespace TUI.Base
                             child.SetXYWH(x, child.Y, width, child.Height);
                         else if (fullSize == FullSize.Vertical)
                             child.SetXYWH(child.X, y, child.Width, height);
+
+                        Console.WriteLine($"FullSize: {child.FullName}, {child.XYWH()}");
                     }
                 return this as VisualObject;
             }
@@ -209,6 +209,7 @@ namespace TUI.Base
                 int indent = Style.Layout.ChildIndent ?? Parent?.Style?.Grid?.DefaultChildIndent ?? UIDefault.CellsIndent;
 
                 (int layoutW, int layoutH, List<VisualObject> layoutChild) = CalculateLayoutSize(direction, indent);
+                Console.WriteLine($"{FullName} layout size: {layoutW}, {layoutH}");
                 if (layoutChild.Count == 0)
                     return;
 
@@ -270,6 +271,8 @@ namespace TUI.Base
 
                     child.SetXYWH(sx + cx + sideDeltaX, sy + cy + sideDeltaY);
 
+                    Console.WriteLine($"Layout: {child.FullName}, {child.XYWH()}");
+
                     if (k == layoutChild.Count - 1)
                         break;
 
@@ -315,9 +318,9 @@ namespace TUI.Base
                             totalH += child.Height + indent;
                         }
                     }
-                if (totalW > 0)
+                if ((direction == Direction.Left || direction == Direction.Right) && totalW > 0)
                     totalW -= indent;
-                if (totalH > 0)
+                if ((direction == Direction.Up || direction == Direction.Down) && totalH > 0)
                     totalH -= indent;
 
                 return (totalW, totalH, layoutChild);
@@ -333,64 +336,62 @@ namespace TUI.Base
                 if (Grid == null)
                     SetupGrid();
 
-                (int maxW, int maxH, int maxRelativeW, int maxRelativeH) = CalculateGridLimits();
+                CalculateGridSizes();
+
+                //Console.WriteLine($"maxW: {maxW}, maxH: {maxH}; relativeW: {relativeW}, relativeH: {relativeH}");
 
                 // Main cell loop
                 ISize[] columnSizes = Style.Grid.Columns;
                 ISize[] lineSizes = Style.Grid.Lines;
                 Offset offset = Style.Grid.Offset ?? UIDefault.Offset;
+                
                 int WCounter = offset.Left;
-                int relativeW = Width - maxW - offset.Horizontal * (columnSizes.Length - 1) - offset.Left - offset.Right;
-                int relativeH = Height - maxH - offset.Vertical * (lineSizes.Length - 1) - offset.Up - offset.Down;
-                //Console.WriteLine($"maxW: {maxW}, maxH: {maxH}; relativeW: {relativeW}, relativeH: {relativeH}");
                 for (int i = 0; i < columnSizes.Length; i++)
                 {
-                    ISize columnISize = columnSizes[i];
-                    int columnSize = columnISize.Value;
-                    int movedWCounter;
-                    if (columnISize.IsAbsolute)
-                        movedWCounter = WCounter + columnSize + offset.Horizontal;
-                    else
-                        movedWCounter = WCounter + (int)(columnSize * relativeW / 100f) + offset.Horizontal;
-
+                    int columnSize = Style.Grid.ColumnResultingSizes[i];
+                    int movedWCounter = WCounter + columnSize + offset.Horizontal;
+                    
                     int HCounter = offset.Up;
                     for (int j = 0; j < lineSizes.Length; j++)
                     {
-                        ISize lineISize = lineSizes[j];
-                        int lineSize = lineISize.Value;
-                        int movedHCounter;
-                        if (lineISize.IsAbsolute)
-                            movedHCounter = HCounter + lineSize + offset.Vertical;
-                        else
-                            movedHCounter = HCounter + (int)(lineSize * relativeH / 100f) + offset.Vertical;
-
+                        int lineSize = Style.Grid.LineResultingSizes[j];
+                        int movedHCounter = HCounter + lineSize + offset.Vertical;
+                        
                         VisualObject cell = Grid[i, j];
 
                         // Calculating cell object position
-                        cell.SetXYWH(WCounter, HCounter, movedWCounter - cell.X - offset.Horizontal, movedHCounter - cell.Y - offset.Vertical);
+                        cell.SetXYWH(WCounter, HCounter, columnSize, lineSize);
+                        Console.WriteLine($"Grid: {cell.FullName}, {cell.XYWH()}");
 
                         HCounter = movedHCounter;
                     }
                     WCounter = movedWCounter;
                 }
+
                 return this as VisualObject;
             }
 
             #endregion
-            #region CalculateGridLimits
+            #region CalculateGridSizes
 
-            public (int, int, int, int) CalculateGridLimits()
+            public void CalculateGridSizes()
             {
+                // First calculating values sum of absolute columns, lines and values sum of relative columns, lines
                 ISize[] columnSizes = Style.Grid.Columns;
                 ISize[] lineSizes = Style.Grid.Lines;
                 int maxW = 0, maxRelativeW = 0;
+                int firstRelativeColumn = -1, firstRelativeLine = -1;
                 for (int i = 0; i < columnSizes.Length; i++)
                 {
                     ISize size = columnSizes[i];
                     if (size.IsAbsolute)
                         maxW += size.Value;
                     else
+                    {
                         maxRelativeW += size.Value;
+                        if (firstRelativeColumn < 0)
+                            firstRelativeColumn = i;
+                    }
                 }
                 if (maxW > Width)
                     throw new ArgumentException($"{FullName} (UpdateGrid): maxW is too big");
@@ -404,14 +405,53 @@ namespace TUI.Base
                     if (size.IsAbsolute)
                         maxH += size.Value;
                     else
+                    {
                         maxRelativeH += size.Value;
+                        if (firstRelativeLine < 0)
+                            firstRelativeLine = i;
+                    }
                 }
                 if (maxH > Height)
                     throw new ArgumentException($"{FullName} (UpdateGrid): maxH is too big");
                 if (maxRelativeH > 100)
                     throw new ArgumentException($"{FullName} (UpdateGrid): maxRelativeH is too big");
 
-                return (maxW, maxH, maxRelativeW, maxRelativeH);
+                // Now calculating actual column/line sizes
+                Offset offset = Style.Grid.Offset ?? UIDefault.Offset;
+                int relativeW = Width - maxW - offset.Horizontal * (columnSizes.Length - 1) - offset.Left - offset.Right;
+                int relativeH = Height - maxH - offset.Vertical * (lineSizes.Length - 1) - offset.Up - offset.Down;
+                int relativeWUsed = 0, relativeHUsed = 0;
+                int WCounter = offset.Left;
+                for (int i = 0; i < columnSizes.Length; i++)
+                {
+                    ISize columnISize = columnSizes[i];
+                    int columnSize = columnISize.IsAbsolute
+                        ? columnISize.Value
+                        : (int)(columnISize.Value * relativeW / 100f);
+                    Style.Grid.ColumnResultingSizes[i] = columnSize;
+                    if (columnISize.IsRelative)
+                        relativeWUsed += columnSize;
+                    int movedWCounter = WCounter + columnSize + offset.Horizontal;
+                    WCounter = movedWCounter;
+                }
+                if (firstRelativeColumn >= 0)
+                    Style.Grid.ColumnResultingSizes[firstRelativeColumn] += relativeW - relativeWUsed;
+
+                int HCounter = offset.Up;
+                for (int j = 0; j < lineSizes.Length; j++)
+                {
+                    ISize lineISize = lineSizes[j];
+                    int lineSize = lineISize.IsAbsolute
+                        ? lineISize.Value
+                        : (int)(lineISize.Value * relativeH / 100f);
+                    Style.Grid.LineResultingSizes[j] = lineSize;
+                    if (lineISize.IsRelative)
+                        relativeHUsed += lineSize;
+                    int movedHCounter = HCounter + lineSize + offset.Vertical;
+                    HCounter = movedHCounter;
+                }
+                if (firstRelativeLine >= 0)
+                    Style.Grid.LineResultingSizes[firstRelativeLine] += relativeH - relativeHUsed;
             }
 
             #endregion
@@ -440,13 +480,13 @@ namespace TUI.Base
         #endregion
         #region Apply
 
-            public virtual VisualObject Apply(bool forceClear = false)
+            public virtual VisualObject Apply()
             {
                 if (!Active())
                     throw new InvalidOperationException("Trying to call Apply() an not active object.");
 
                 // Applying related to this node
-                ApplyThis(forceClear);
+                ApplyThis();
 
                 // Recursive Apply call
                 ApplyChild();
@@ -456,9 +496,9 @@ namespace TUI.Base
 
             #region ApplyThis
 
-            public VisualObject ApplyThis(bool forceClear = false)
+            public VisualObject ApplyThis()
             {
-                ApplyThisNative(forceClear);
+                ApplyThisNative();
                 CustomApply();
                 return this;
             }
@@ -466,10 +506,10 @@ namespace TUI.Base
             #endregion
             #region ApplyThisNative
 
-            protected virtual void ApplyThisNative(bool forceClear = false)
+            protected virtual void ApplyThisNative()
             {
                 ForceSection = false;
-                ApplyTiles(forceClear);
+                ApplyTiles();
                 if (UI.ShowGrid && Style.Grid != null)
                     ShowGrid();
             }
@@ -477,9 +517,9 @@ namespace TUI.Base
             #endregion
             #region ApplyTiles
 
-            public virtual VisualObject ApplyTiles(bool forceClear)
+            public virtual VisualObject ApplyTiles()
             {
-                if (!forceClear && Style.InActive == null && Style.Tile == null && Style.TileColor == null
+                if (Style.InActive == null && Style.Tile == null && Style.TileColor == null
                     && Style.Wall == null && Style.WallColor == null)
                     return this;
 
@@ -488,8 +528,6 @@ namespace TUI.Base
                     dynamic tile = Provider[x, y];
                     if (tile == null)
                         throw new NullReferenceException($"tile is null: {x}, {y}");
-                    if (forceClear)
-                        tile.ClearEverything();
                     if (Style.Active != null)
                         tile.active(Style.Active.Value);
                     if (Style.InActive != null)
@@ -542,7 +580,7 @@ namespace TUI.Base
                     foreach (VisualObject child in Child)
                         if (child.Enabled)
                         {
-                            child.Apply(false);
+                            child.Apply();
                             forceSection = forceSection || child.ForceSection;
                         }
                 ForceSection = forceSection;
@@ -550,18 +588,6 @@ namespace TUI.Base
             }
 
             #endregion
-
-        #endregion
-        #region Clear
-
-        public virtual VisualObject Clear()
-        {
-            UITileProvider provider = Provider;
-            foreach ((int x, int y) in ProviderPoints)
-                provider[x, y].ClearEverything();
-
-            return this;
-        }
 
         #endregion
         #region Draw
@@ -598,6 +624,18 @@ namespace TUI.Base
             }
 
             return Draw(minX, minY, maxX - minX + 1, maxY - minY + 1);
+        }
+
+        #endregion
+        #region Clear
+
+        public virtual VisualObject Clear()
+        {
+            UITileProvider provider = Provider;
+            foreach ((int x, int y) in ProviderPoints)
+                provider[x, y].ClearEverything();
+
+            return this;
         }
 
         #endregion

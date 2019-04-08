@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace TUI.Base.Style
+﻿namespace TUI.Base.Style
 {
     public class InternalOffset
     {

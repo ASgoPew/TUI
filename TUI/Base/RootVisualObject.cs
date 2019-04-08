@@ -59,5 +59,14 @@ namespace TUI.Base
         }
 
         #endregion
+        #region Apply
+
+        protected override void ApplyThisNative()
+        {
+            Clear();
+            base.ApplyThisNative();
+        }
+
+        #endregion
     }
 }

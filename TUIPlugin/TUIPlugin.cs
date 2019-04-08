@@ -1,10 +1,6 @@
 ﻿using OTAPI.Tile;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.ID;
 using TerrariaApi.Server;
@@ -175,17 +171,18 @@ namespace TUIPlugin
         public static void OnDraw(DrawArgs args)
         {
             int size = Math.Max(args.Width, args.Height);
-            if (size >= 50 || args.ForcedSection)
-            {
+            //if (size >= 50 || args.ForcedSection)
+            //{
                 int lowX = Netplay.GetSectionX(args.X);
                 int highX = Netplay.GetSectionX(args.X + args.Width - 1);
                 int lowY = Netplay.GetSectionY(args.Y);
                 int highY = Netplay.GetSectionY(args.Y + args.Height - 1);
                 TSPlayer.All.SendData(PacketTypes.TileSendSection, null, args.X, args.Y, args.Width, args.Height);
                 TSPlayer.All.SendData(PacketTypes.TileFrameSection, null, lowX, lowY, highX, highY);
-            }
-            else
-                TSPlayer.All.SendTileSquare(args.X, args.Y, size);
+            //}
+            //else
+                // Custom SendTileSquare
+                //TSPlayer.All.SendTileSquare(args.X, args.Y, size);
         }
     }
 }

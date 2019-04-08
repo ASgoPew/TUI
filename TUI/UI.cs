@@ -211,7 +211,7 @@ namespace TUI
             if (intersects)
             {
                 if (needsApply)
-                    o.Apply(true);
+                    o.Apply();
                 o.Draw();
             }
         }
@@ -251,7 +251,7 @@ namespace TUI
             lock (Child)
                 foreach (VisualObject child in Child)
                     if (child.Enabled)
-                        child.Apply(true);
+                        child.Apply();
         }
 
         #endregion

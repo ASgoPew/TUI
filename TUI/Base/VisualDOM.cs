@@ -74,8 +74,9 @@ namespace TUI.Base
                 if (removed)
                 {
                     child.Parent = null;
-                    foreach (var pair in Shortcuts.Where(o => o.Value == child))
-                        Shortcuts.Remove(pair.Key);
+                    if (Shortcuts != null)
+                        foreach (var pair in Shortcuts.Where(o => o.Value == child))
+                            Shortcuts.Remove(pair.Key);
                     return child;
                 }
                 return null;

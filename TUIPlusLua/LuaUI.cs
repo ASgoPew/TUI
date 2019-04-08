@@ -1,12 +1,6 @@
 ﻿using MyLua;
 using NLua;
-using OTAPI.Tile;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TUI;
 using TUI.Base;
 using TUI.Base.Style;
 
