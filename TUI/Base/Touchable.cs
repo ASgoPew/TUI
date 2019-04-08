@@ -29,8 +29,6 @@ namespace TUI.Base
 
         public virtual bool Touched(Touch touch)
         {
-            Console.WriteLine($"Touched ({FullName})");
-
             if (!Active())
                 throw new InvalidOperationException("Trying to call Touched on object that is not active");
 
@@ -39,12 +37,9 @@ namespace TUI.Base
             if (!CanTouch(touch))
                 return false;
 
-            UI.SaveTime(this, "Touched");
             bool used = TouchedChild(touch);
-            UI.SaveTime(this, "Touched", "Child");
             if (!used && CanTouchThis(touch))
                 used = TouchedThis(touch);
-            UI.ShowTime(this, "Touched", "This");
 
             return used;
         }
@@ -76,15 +71,12 @@ namespace TUI.Base
                 return false;
             }
 
-            Console.WriteLine($"IsLocked ({FullName}): {locked.Touch.Session.UserIndex} {touch.Session.UserIndex} {touch.TouchSessionIndex} {locked.Touch.TouchSessionIndex}");
-
             // Immidiately blocking if user who set locked is different from current user
             // or if it is already new TouchSessionIndex since locked set
             bool userInitializedLock = locked.Touch.Session.UserIndex == touch.Session.UserIndex;
             bool lockingTouchSession = touch.TouchSessionIndex == locked.Touch.TouchSessionIndex;
             if (!userInitializedLock || !lockingTouchSession)
             {
-                Console.WriteLine("DISABLING 1");
                 touch.Session.Enabled = false;
                 return true;
             }
@@ -94,7 +86,6 @@ namespace TUI.Base
                 return false;
             else
             {
-                Console.WriteLine("DISABLING 2");
                 touch.Session.Enabled = false;
                 return true;
             }
