@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace TUI.Base
 {
@@ -25,10 +26,21 @@ namespace TUI.Base
         public bool Used { get; internal set; }
         internal HashSet<VisualObject> LockedObjects { get; set; } = new HashSet<VisualObject>();
         internal bool EndTouchHandled { get; set; }
+        public ConcurrentDictionary<object, object> Data { get; } = new ConcurrentDictionary<object, object>();
 
         public UIUserSession(int userIndex)
         {
             UserIndex = userIndex;
+        }
+
+        public object this[object key]
+        {
+            get
+            {
+                Data.TryGetValue(key, out object value);
+                return value;
+            }
+            set => Data[key] = value;
         }
 
         public void Reset()

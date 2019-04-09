@@ -45,11 +45,9 @@ namespace TUI
         #region Create
 
         public static RootVisualObject Create(string name, int x, int y, int width, int height,
-            UIConfiguration configuration = null, UIStyle style = null, dynamic provider = null)
+            UIConfiguration configuration = null, UIStyle style = null, object provider = null)
         {
-            if (provider == null)
-                provider = new MainTileProvider();
-            RootVisualObject result = new RootVisualObject(name, x, y, width, height, provider, configuration, style);
+            RootVisualObject result = new RootVisualObject(name, x, y, width, height, configuration, style, provider);
             lock (Child)
                 Child.Add(result);
             return result;

@@ -6,6 +6,8 @@ using TUI.Base.Style;
 
 namespace TUI.Widgets
 {
+    #region LabelStyle
+
     public enum LabelUnderline
     {
         Nothing = 0,
@@ -14,10 +16,10 @@ namespace TUI.Widgets
 
     public class LabelStyle : UIStyle
     {
+        public byte TextColor { get; set; } = UIDefault.LabelTextColor;
         public Offset TextOffset { get; set; } = new Offset(UIDefault.LabelOffset);
         public Alignment TextAlignment { get; set; } = UIDefault.Alignment;
         public Side TextSide { get; set; } = UIDefault.Side;
-        public byte TextColor { get; set; } = UIDefault.LabelTextColor;
         public LabelUnderline TextUnderline { get; set; } = LabelUnderline.Nothing;
         public byte TextUnderlineColor { get; set; } = UIDefault.LabelTextColor;
 
@@ -26,14 +28,16 @@ namespace TUI.Widgets
         public LabelStyle(LabelStyle style)
             : base(style)
         {
+            this.TextColor = style.TextColor;
             this.TextOffset = style.TextOffset;
             this.TextAlignment = style.TextAlignment;
             this.TextSide = style.TextSide;
-            this.TextColor = style.TextColor;
             this.TextUnderline = style.TextUnderline;
             this.TextUnderlineColor = style.TextUnderlineColor;
         }
     }
+
+    #endregion
 
     public class Label : VisualObject
     {
@@ -44,6 +48,8 @@ namespace TUI.Widgets
         private List<(string Text, int Width)> Lines { get; set; }
         private int TextW { get; set; }
         private int TextH { get; set; }
+
+        public LabelStyle LabelStyle => Style as LabelStyle;
 
         #endregion
 
@@ -129,16 +135,16 @@ namespace TUI.Widgets
 					    for (int statueX = 0; statueX < 2; statueX++)
 						    for (int statueY = 0; statueY <= Math.Min(lineH - 1, 3); statueY++)
                             {
-                                dynamic t = Provider.Tile[sx + charX + statueX - Provider.X, sy + charY + statueY - Provider.Y];
-                                t.frameX = (short)(statueFrame + statueX * 18);
-                                t.frameY = (short)(statueY * 18);
-                                t.active(true);
-                                t.type = (ushort)337; // TileID.AlphabetStatues
+                                dynamic tile = Provider[sx + charX + statueX, sy + charY + statueY];
+                                tile.frameX = (short)(statueFrame + statueX * 18);
+                                tile.frameY = (short)(statueY * 18);
+                                tile.active(true);
+                                tile.type = (ushort)337; // TileID.AlphabetStatues
                                 if (statueY < 2)
-                                    t.color(style.TextColor);
+                                    tile.color(style.TextColor);
 							    if (statueY == 2)
-								    t.color(style.TextUnderlineColor);
-                                t.inActive(false);
+								    tile.color(style.TextUnderlineColor);
+                                tile.inActive(false);
                             }
                         ForceSection = true;
                         charX += 2;

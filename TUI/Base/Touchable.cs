@@ -8,8 +8,8 @@ namespace TUI.Base
     {
         #region Data
 
-        protected Locked Locked { get; set; }
-        protected ConcurrentDictionary<int, Locked> PersonalLocked { get; set; } = new ConcurrentDictionary<int, Locked>();
+        internal Locked Locked { get; set; }
+        internal ConcurrentDictionary<int, Locked> PersonalLocked { get; set; } = new ConcurrentDictionary<int, Locked>();
         public Func<VisualObject, Touch, bool> Callback { get; set; }
 
         public bool Contains(Touch touch) => Contains(touch.X, touch.Y);

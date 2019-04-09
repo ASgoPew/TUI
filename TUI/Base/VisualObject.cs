@@ -284,7 +284,7 @@ namespace TUI.Base
                             sideDeltaX = (layoutW - child.Width) / 2;
                     }
 
-                    child.SetXYWH(sx + cx + sideDeltaX, sy + cy + sideDeltaY);
+                    child.SetXY(sx + cx + sideDeltaX, sy + cy + sideDeltaY);
                     //Console.WriteLine($"Layout: {child.FullName}, {child.XYWH()}");
 
                     if (k == layoutChild.Count - 1)
@@ -634,10 +634,8 @@ namespace TUI.Base
 
         public virtual VisualObject Clear()
         {
-            dynamic provider = Provider;
             foreach ((int x, int y) in ProviderPoints)
-                provider[x, y].ClearEverything();
-
+                Provider[x, y].ClearEverything();
             return this;
         }
 

@@ -14,12 +14,15 @@ namespace TUI.Base
 
         #region Initialize
 
-        internal RootVisualObject(string name, int x, int y, int width, int height, dynamic provider,
-                UIConfiguration configuration = null, UIStyle style = null)
+        internal RootVisualObject(string name, int x, int y, int width, int height,
+                UIConfiguration configuration = null, UIStyle style = null, object provider = null)
             : base(x, y, width, height, configuration ?? new UIConfiguration() { UseBegin = false }, style)
         {
             Name = name;
-            Provider = provider;
+            if (provider == null)
+                Provider = new MainTileProvider();
+            else
+                Provider = provider;
         }
 
         #endregion

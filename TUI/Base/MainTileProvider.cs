@@ -10,7 +10,7 @@ namespace TUI.Base
         internal int Y = 0;
         internal bool Enabled = true;
 
-        public MainTileProvider(dynamic tile = null)
+        public MainTileProvider(object tile = null)
         {
             Tile = tile;
             if (Tile == null)
@@ -31,7 +31,7 @@ namespace TUI.Base
                 throw new Exception("Can't find OTAPI");
         }
 
-        public dynamic this[int x, int y]
+        public object this[int x, int y]
         {
             get => Tile[x, y];
             set => Tile[x, y] = value;

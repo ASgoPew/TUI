@@ -232,7 +232,7 @@ namespace TUI.Base
                 return (X + dx, Y + dy, Width, Height);
             }
 
-            public virtual VisualObject SetXYWH(int x, int y, int width = -1, int height = -1)
+            public virtual VisualObject SetXYWH(int x, int y, int width, int height)
             {
                 X = x;
                 Y = y;
@@ -241,14 +241,12 @@ namespace TUI.Base
                 return this as VisualObject;
             }
 
-            public virtual VisualObject SetXYWH((int x, int y, int width, int height) data)
-            {
-                X = data.x;
-                Y = data.y;
-                Width = data.width >= 0 ? data.width : Width;
-                Height = data.height >= 0 ? data.height : Height;
-                return this as VisualObject;
-            }
+            public VisualObject SetXYWH((int x, int y, int width, int height) data) =>
+                SetXYWH(data.x, data.y, data.width, data.height);
+            public VisualObject SetXY(int x, int y) =>
+                SetXYWH(x, y, Width, Height);
+            public VisualObject SetWH(int width, int height) =>
+                SetXYWH(X, Y, width, height);
 
             #endregion
             #region Move

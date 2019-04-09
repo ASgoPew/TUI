@@ -75,6 +75,7 @@
     <Compile Include="Base\VisualObject.cs" />
     <Compile Include="Widgets\Button.cs" />
     <Compile Include="Widgets\Label.cs" />
+    <Compile Include="Widgets\Panel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
