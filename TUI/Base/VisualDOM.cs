@@ -12,7 +12,7 @@ namespace TUI.Base
         public string FullName => Parent != null ? Parent.FullName + "." + Name : Name;
 
         public RootVisualObject Root { get; set; }
-        public virtual UITileProvider Provider => Root.Provider;
+        public virtual dynamic Provider => Root.Provider;
         public bool Enabled { get; set; } = true;
         public UIConfiguration Configuration { get; set; }
         private Dictionary<string, object> Shortcuts { get; set; }
@@ -21,9 +21,9 @@ namespace TUI.Base
         public IEnumerable<(int X, int Y)> AbsolutePoints => GetAbsolutePoints();
         public IEnumerable<(int X, int Y)> ProviderPoints => GetProviderPoints();
         public (int X, int Y) AbsoluteXY(int dx = 0, int dy = 0) =>
-            RelativeXY(Provider.X + dx, Provider.Y + dy, null);
-        public (int X, int Y) ProviderXY(int dx = 0, int dy = 0) =>
             RelativeXY(dx, dy, null);
+        public (int X, int Y) ProviderXY(int dx = 0, int dy = 0) =>
+            RelativeXY(dx, dy, Provider is MainTileProvider ? null : Root);
 
         #endregion
 
@@ -253,19 +253,11 @@ namespace TUI.Base
             #endregion
             #region Move
 
-            public virtual VisualObject Move(int dx, int dy)
-            {
-                X += dx;
-                Y += dy;
-                return this as VisualObject;
-            }
+            public virtual VisualObject Move(int dx, int dy) =>
+                SetXYWH(X + dx, Y + dy, Width, Height);
 
-            public virtual VisualObject MoveBack(int dx, int dy)
-            {
-                X -= dx;
-                Y -= dy;
-                return this as VisualObject;
-            }
+            public virtual VisualObject MoveBack(int dx, int dy) =>
+                SetXYWH(X - dx, Y - dy, Width, Height);
 
             #endregion
             #region Contains, Intersecting

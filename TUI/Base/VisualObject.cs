@@ -634,7 +634,7 @@ namespace TUI.Base
 
         public virtual VisualObject Clear()
         {
-            UITileProvider provider = Provider;
+            dynamic provider = Provider;
             foreach ((int x, int y) in ProviderPoints)
                 provider[x, y].ClearEverything();
 

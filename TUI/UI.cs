@@ -44,9 +44,11 @@ namespace TUI
         #endregion
         #region Create
 
-        public static RootVisualObject Create(string name, int x, int y, int width, int height, UITileProvider provider,
-            UIConfiguration configuration = null, UIStyle style = null)
+        public static RootVisualObject Create(string name, int x, int y, int width, int height,
+            UIConfiguration configuration = null, UIStyle style = null, dynamic provider = null)
         {
+            if (provider == null)
+                provider = new MainTileProvider();
             RootVisualObject result = new RootVisualObject(name, x, y, width, height, provider, configuration, style);
             lock (Child)
                 Child.Add(result);
@@ -274,7 +276,11 @@ namespace TUI
             lock (Child)
                 foreach (VisualObject child in Child)
                     if (child.Enabled)
+                    {
+                        Stopwatch sw = Stopwatch.StartNew();
                         child.Apply();
+                        Console.WriteLine($"Apply ({child.Name}): {sw.ElapsedMilliseconds}");
+                    }
         }
 
         #endregion

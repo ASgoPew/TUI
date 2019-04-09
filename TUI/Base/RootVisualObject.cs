@@ -8,13 +8,13 @@ namespace TUI.Base
         #region Data
 
         public override string Name { get; }
-        public override UITileProvider Provider { get; }
+        public override dynamic Provider { get; }
 
         #endregion
 
         #region Initialize
 
-        internal RootVisualObject(string name, int x, int y, int width, int height, UITileProvider provider,
+        internal RootVisualObject(string name, int x, int y, int width, int height, dynamic provider,
                 UIConfiguration configuration = null, UIStyle style = null)
             : base(x, y, width, height, configuration ?? new UIConfiguration() { UseBegin = false }, style)
         {
@@ -28,6 +28,7 @@ namespace TUI.Base
         public override VisualObject SetXYWH(int x, int y, int width = -1, int height = -1)
         {
             base.SetXYWH(x, y, width, height);
+            Provider.SetXYWH(x, y, width, height);
             UI.Hooks.SetXYWH.Invoke(new SetXYWHArgs(this, x, y, width, height));
             return this;
         }
@@ -40,6 +41,7 @@ namespace TUI.Base
             if (!Enabled)
             {
                 Enabled = true;
+                Provider.SetEnabled(true);
                 UI.Hooks.Enabled.Invoke(new EnabledArgs(this, true));
             }
             return this;
@@ -53,6 +55,7 @@ namespace TUI.Base
             if (Enabled)
             {
                 Enabled = false;
+                Provider.SetEnabled(false);
                 UI.Hooks.Enabled.Invoke(new EnabledArgs(this, false));
             }
             return this;

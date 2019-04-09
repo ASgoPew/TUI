@@ -62,7 +62,7 @@
     <Compile Include="Hooks\Args\SetTopArgs.cs" />
     <Compile Include="Base\Lock.cs" />
     <Compile Include="Base\RootVisualObject.cs" />
-    <Compile Include="Base\UITileProvider.cs" />
+    <Compile Include="Base\MainTileProvider.cs" />
     <Compile Include="Base\Touch.cs" />
     <Compile Include="Base\Touchable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
