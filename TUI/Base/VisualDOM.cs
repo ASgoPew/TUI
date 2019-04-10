@@ -13,6 +13,7 @@ namespace TUI.Base
 
         public RootVisualObject Root { get; set; }
         public virtual dynamic Provider => Root.Provider;
+        public bool UsesDefaultMainProvider => Provider is MainTileProvider;
         public bool Enabled { get; set; } = true;
         public UIConfiguration Configuration { get; set; }
         private Dictionary<string, object> Shortcuts { get; set; }
@@ -23,7 +24,7 @@ namespace TUI.Base
         public (int X, int Y) AbsoluteXY(int dx = 0, int dy = 0) =>
             RelativeXY(dx, dy, null);
         public (int X, int Y) ProviderXY(int dx = 0, int dy = 0) =>
-            RelativeXY(dx, dy, Provider is MainTileProvider ? null : Root);
+            RelativeXY(dx, dy, UsesDefaultMainProvider ? null : Root);
 
         #endregion
 

@@ -38,7 +38,7 @@ namespace TUITests
             UI.Initialize();
             UIPlayer me = new UIPlayer();
             UI.InitializeUser(me.Index);
-            RootVisualObject root = UI.Create("Game", 55, 115, 50, 40, provider: new MainTileProvider());
+            RootVisualObject root = UI.CreateRoot("Game", 55, 115, 50, 40);
             root.SetupGrid(new GridStyle(new ISize[] { new Relative(100), new Absolute(20) }, new ISize[] { new Absolute(20), new Relative(100) })
             {
                 Offset = new Offset() { Right = 1 },

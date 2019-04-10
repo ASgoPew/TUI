@@ -5,6 +5,7 @@ using TUI.Base;
 using TUI.Base.Style;
 using TUI.Hooks;
 using TUI.Hooks.Args;
+using TUI.Widgets;
 
 namespace TUI
 {
@@ -44,14 +45,24 @@ namespace TUI
         #endregion
         #region Create
 
-        public static RootVisualObject Create(string name, int x, int y, int width, int height,
-            UIConfiguration configuration = null, UIStyle style = null, object provider = null)
+        internal static RootVisualObject Create(RootVisualObject root)
         {
-            RootVisualObject result = new RootVisualObject(name, x, y, width, height, configuration, style, provider);
             lock (Child)
-                Child.Add(result);
-            return result;
+                Child.Add(root);
+            return root;
         }
+
+        public static RootVisualObject CreateRoot(string name, int x, int y, int width, int height,
+                UIConfiguration configuration = null, UIStyle style = null, object provider = null) =>
+            Create(new RootVisualObject(name, x, y, width, height, configuration, style, provider));
+
+        public static Panel CreatePanel(string name, int x, int y, int width, int height, PanelDrag drag, PanelResize resize,
+                UIConfiguration configuration = null, UIStyle style = null, object provider = null) =>
+            Create(new Panel(name, x, y, width, height, drag, resize, configuration, style, provider)) as Panel;
+
+        public static Panel CreatePanel(string name, int x, int y, int width, int height,
+                UIConfiguration configuration = null, UIStyle style = null, object provider = null) =>
+            Create(new Panel(name, x, y, width, height, configuration, style, provider)) as Panel;
 
         #endregion
         #region Destroy
