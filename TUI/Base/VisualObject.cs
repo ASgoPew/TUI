@@ -9,7 +9,7 @@ namespace TUI.Base
         #region Data
 
         public UIStyle Style { get; set; }
-        protected VisualObject[,] Grid { get; set; }
+        public VisualObject[,] Grid { get; set; }
         public GridCell Cell { get; private set; }
         protected internal bool ForceSection { get; protected set; } = false;
 
@@ -358,10 +358,10 @@ namespace TUI.Base
                 
                 for (int i = 0; i < columnSizes.Length; i++)
                 {
-                    (int columnX, int columnSize) = Style.Grid.ColumnResultingSizes[i];
+                    (int columnX, int columnSize) = Style.Grid.ResultingColumns[i];
                     for (int j = 0; j < lineSizes.Length; j++)
                     {
-                        (int lineX, int lineSize) = Style.Grid.LineResultingSizes[j];
+                        (int lineX, int lineSize) = Style.Grid.ResultingLines[j];
                         Grid[i, j]?.SetXYWH(columnX, lineX, columnSize, lineSize);
                         //Console.WriteLine($"Grid: {cell.FullName}, {cell.XYWH()}");
                     }
@@ -375,82 +375,112 @@ namespace TUI.Base
 
             public void CalculateGridSizes()
             {
-                // First calculating values sum of absolute columns, lines and values sum of relative columns, lines
-                ISize[] columnSizes = Style.Grid.Columns;
-                ISize[] lineSizes = Style.Grid.Lines;
-                int maxW = 0, maxRelativeW = 0;
-                int firstRelativeColumn = -1, firstRelativeLine = -1;
-                for (int i = 0; i < columnSizes.Length; i++)
-                {
-                    ISize size = columnSizes[i];
-                    if (size.IsAbsolute)
-                        maxW += size.Value;
-                    else
-                    {
-                        maxRelativeW += size.Value;
-                        if (firstRelativeColumn < 0)
-                            firstRelativeColumn = i;
-                    }
-                }
-                if (maxW > Width)
-                    throw new ArgumentException($"{FullName} (UpdateGrid): maxW is too big");
-                if (maxRelativeW > 100)
-                    throw new ArgumentException($"{FullName} (UpdateGrid): maxRelativeW is too big");
+                Offset offset = Style.Grid.Offset ?? UIDefault.Offset;
+                CalculateSizes(Style.Grid.Columns, Width, offset.Left, offset.Horizontal, offset.Right,
+                    ref Style.Grid.ResultingColumns, ref Style.Grid.MinWidth, "width");
+                CalculateSizes(Style.Grid.Lines, Height, offset.Up, offset.Vertical, offset.Down,
+                    ref Style.Grid.ResultingLines, ref Style.Grid.MinHeight, "height");
+            }
 
-                int maxH = 0, maxRelativeH = 0;
-                for (int i = 0; i < lineSizes.Length; i++)
+            #endregion
+            #region CalculateSizes
+
+            private void CalculateSizes(ISize[] sizes, int absoluteSize, int startOffset, int middleOffset, int endOffset, ref (int Position, int Size)[] resulting, ref int minSize, string sizeName)
+            {
+                // Initializing min size
+                minSize = startOffset + endOffset;
+                if (minSize == 0)
+                    minSize = 1;
+                int defaultMinSize = minSize;
+
+                // Initializing resulting array
+                resulting = new (int, int)[sizes.Length];
+
+                // First calculating absolute and relative sum
+                int absoluteSum = 0, relativeSum = 0;
+                int notZeroSizes = 0;
+                for (int i = 0; i < sizes.Length; i++)
                 {
-                    ISize size = lineSizes[i];
+                    ISize size = sizes[i];
+                    int value = size.Value;
                     if (size.IsAbsolute)
-                        maxH += size.Value;
+                        absoluteSum += value;
                     else
-                    {
-                        maxRelativeH += size.Value;
-                        if (firstRelativeLine < 0)
-                            firstRelativeLine = i;
-                    }
+                        relativeSum += value;
+                    if (value > 0)
+                        notZeroSizes++;
                 }
-                if (maxH > Height)
-                    throw new ArgumentException($"{FullName} (UpdateGrid): maxH is too big");
-                if (maxRelativeH > 100)
-                    throw new ArgumentException($"{FullName} (UpdateGrid): maxRelativeH is too big");
+                if (absoluteSum > absoluteSize)
+                    throw new ArgumentException($"{FullName} (UpdateGrid): absolute {sizeName} is more that object {sizeName}");
+                if (relativeSum > 100)
+                    throw new ArgumentException($"{FullName} (UpdateGrid): relative {sizeName} is more than 100");
 
                 // Now calculating actual column/line sizes
-                Offset offset = Style.Grid.Offset ?? UIDefault.Offset;
-                int relativeW = Width - maxW - offset.Horizontal * (columnSizes.Length - 1) - offset.Left - offset.Right;
-                int relativeH = Height - maxH - offset.Vertical * (lineSizes.Length - 1) - offset.Up - offset.Down;
-                int relativeWUsed = 0, relativeHUsed = 0;
-                int WCounter = offset.Left;
-                for (int i = 0; i < columnSizes.Length; i++)
+                int relativeSize = absoluteSize - absoluteSum - middleOffset * (notZeroSizes - 1) - startOffset - endOffset;
+                // ???
+                if (relativeSize < 0)
+                    relativeSize = 0;
+                int relativeSizeUsed = 0;
+                List<(int, float)> descendingFractionalPart = new List<(int, float)>();
+                int sizeCounter = startOffset;
+                for (int i = 0; i < sizes.Length; i++)
                 {
-                    ISize columnISize = columnSizes[i];
-                    int columnSize = columnISize.IsAbsolute
-                        ? columnISize.Value
-                        : (int)(columnISize.Value * relativeW / 100f);
-                    Style.Grid.ColumnResultingSizes[i] = (WCounter, columnSize);
-                    if (columnISize.IsRelative)
-                        relativeWUsed += columnSize;
-                    int movedWCounter = WCounter + columnSize + offset.Horizontal;
-                    WCounter = movedWCounter;
-                }
-                if (firstRelativeColumn >= 0)
-                    Style.Grid.ColumnResultingSizes[firstRelativeColumn].Size += relativeW - relativeWUsed;
+                    ISize size = sizes[i];
+                    float sizeValue = size.IsAbsolute
+                        ? size.Value
+                        : size.Value * relativeSize / 100f;
+                    int realSize = (int)Math.Floor(sizeValue);
+                    resulting[i] = (0, realSize);
 
-                int HCounter = offset.Up;
-                for (int j = 0; j < lineSizes.Length; j++)
-                {
-                    ISize lineISize = lineSizes[j];
-                    int lineSize = lineISize.IsAbsolute
-                        ? lineISize.Value
-                        : (int)(lineISize.Value * relativeH / 100f);
-                    Style.Grid.LineResultingSizes[j] = (HCounter, lineSize);
-                    if (lineISize.IsRelative)
-                        relativeHUsed += lineSize;
-                    int movedHCounter = HCounter + lineSize + offset.Vertical;
-                    HCounter = movedHCounter;
+                    if (realSize == 0)
+                        continue;
+
+                    if (size.IsRelative)
+                    {
+                        relativeSizeUsed += realSize;
+                        InsertSort(descendingFractionalPart, i, sizeValue);
+                    }
+                    else
+                        minSize += realSize + middleOffset;
+                    sizeCounter += realSize + middleOffset;
                 }
-                if (firstRelativeLine >= 0)
-                    Style.Grid.LineResultingSizes[firstRelativeLine].Size += relativeH - relativeHUsed;
+                if (minSize > defaultMinSize)
+                    minSize -= middleOffset;
+
+                // There could be some unused relative size left since we are calculating relative size with Math.Floor
+                // Adding +1 to relative sizes with the largest fractional parts.
+                int j = 0;
+                int sizeLeft = relativeSize - relativeSizeUsed;
+                while (sizeLeft > 0 && j < descendingFractionalPart.Count)
+                {
+                    resulting[descendingFractionalPart[j++].Item1].Size++;
+                    sizeLeft--;
+                }
+
+                // Here the sizes are already calculated finally. Calculating positions.
+                sizeCounter = startOffset;
+                for (int i = 0; i < sizes.Length; i++)
+                {
+                    int columnSize = resulting[i].Size;
+                    resulting[i].Position = sizeCounter;
+                    if (columnSize != 0)
+                        sizeCounter += columnSize + middleOffset;
+                }
+            }
+
+            #endregion
+            #region InsertSort
+
+            private void InsertSort(List<(int, float)> list, int index, float value)
+            {
+                value -= (float)Math.Floor(value);
+                for (int i = 0; i < list.Count; i++)
+                    if (list[i].Item2 < value)
+                    {
+                        list.Insert(i, (index, value));
+                        return;
+                    }
+                list.Add((index, value));
             }
 
             #endregion
@@ -552,8 +582,8 @@ namespace TUI.Base
                 for (int i = 0; i < Style.Grid.Columns.Length; i++)
                     for (int j = 0; j < Style.Grid.Lines.Length; j++)
                     {
-                        (int columnX, int columnSize) = Style.Grid.ColumnResultingSizes[i];
-                        (int lineY, int lineSize) = Style.Grid.LineResultingSizes[j];
+                        (int columnX, int columnSize) = Style.Grid.ResultingColumns[i];
+                        (int lineY, int lineSize) = Style.Grid.ResultingLines[j];
                         for (int x = columnX; x < columnX + columnSize; x++)
                             for (int y = lineY; y < lineY + lineSize; y++)
                             {

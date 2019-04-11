@@ -41,10 +41,13 @@
 
     public class GridStyle
     {
+        internal (int Position, int Size)[] ResultingColumns;
+        internal (int Position, int Size)[] ResultingLines;
+        internal int MinWidth = 1;
+        internal int MinHeight = 1;
+
         public ISize[] Columns { get; internal set; }
         public ISize[] Lines { get; internal set; }
-        internal (int Position, int Size)[] ColumnResultingSizes { get; set; }
-        internal (int Position, int Size)[] LineResultingSizes { get; set; }
         public Offset Offset { get; set; }
         public ExternalOffset DefaultOffset { get; set; }
         public Alignment? DefaultAlignment { get; set; }
@@ -56,8 +59,6 @@
         {
             Columns = columns ?? new ISize[] { new Relative(100) };
             Lines = lines ?? new ISize[] { new Relative(100) };
-            ColumnResultingSizes = new (int, int)[Columns.Length];
-            LineResultingSizes = new (int, int)[Lines.Length];
         }
 
         public GridStyle(GridStyle style)

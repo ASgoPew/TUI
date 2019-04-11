@@ -12,6 +12,15 @@ namespace TUI.Widgets
 
     public class Panel : RootVisualObject
     {
+        #region Data
+
+        internal int DragX { get; set; }
+        internal int DragY { get; set; }
+        internal int ResizeW { get; set; }
+        internal int ResizeH { get; set; }
+
+        #endregion
+
         #region Initialize
 
         internal protected Panel(string name, int x, int y, int width, int height, PanelDrag drag, PanelResize resize,
@@ -32,14 +41,17 @@ namespace TUI.Widgets
         #endregion
         #region Drag
 
-        public void Drag(int dx, int dy)
+        public void Drag(int x, int y)
         {
-            if (dx == 0 && dy == 0)
+            if (x == X && y == Y)
                 return;
             if (UsesDefaultMainProvider)
-                Clear().Draw().Move(dx, dy).Apply().Draw();
+                Clear().Draw().SetXY(x, y).Apply().Draw();
             else
-                Move(dx, dy).Draw(-dx, -dy).Draw();
+            {
+                int oldX = X, oldY = Y;
+                SetXY(x, y).Draw(oldX - x, oldY - y).Draw();
+            }
         }
 
         #endregion
@@ -47,6 +59,10 @@ namespace TUI.Widgets
 
         public void Resize(int width, int height)
         {
+            if (width < Style.Grid.MinWidth)
+                width = Style.Grid.MinWidth;
+            if (height < Style.Grid.MinHeight)
+                height = Style.Grid.MinHeight;
             if (width == Width && height == Height)
                 return;
             if (UsesDefaultMainProvider)
@@ -75,6 +91,9 @@ namespace TUI.Widgets
         {
             if (touch.State == TouchState.Begin)
             {
+                Panel panel = (Panel)@this.Parent;
+                panel.DragX = panel.X;
+                panel.DragY = panel.Y;
                 touch.Session[@this] = PanelState.Moving;
                 return true;
             }
@@ -83,9 +102,10 @@ namespace TUI.Widgets
                 bool ending = touch.State == TouchState.End;
                 if (@this.Configuration.UseMoving && touch.State == TouchState.Moving || ending)
                 {
-                    int dx = touch.AbsoluteX - touch.Session.PreviousTouch.AbsoluteX;
-                    int dy = touch.AbsoluteY - touch.Session.PreviousTouch.AbsoluteY;
-                    ((Panel)@this.Parent).Drag(dx, dy);
+                    int dx = touch.AbsoluteX - touch.Session.BeginTouch.AbsoluteX;
+                    int dy = touch.AbsoluteY - touch.Session.BeginTouch.AbsoluteY;
+                    Panel panel = (Panel)@this.Parent;
+                    panel.Drag(panel.DragX + dx, panel.DragY + dy);
                     if (ending)
                         touch.Session[@this] = null;
                     return true;
@@ -109,6 +129,9 @@ namespace TUI.Widgets
         {
             if (touch.State == TouchState.Begin)
             {
+                Panel panel = (Panel)@this.Parent;
+                panel.ResizeW = panel.Width;
+                panel.ResizeH = panel.Height;
                 touch.Session[@this] = PanelState.Resizing;
                 return true;
             }
@@ -117,10 +140,10 @@ namespace TUI.Widgets
                 bool ending = touch.State == TouchState.End;
                 if (@this.Configuration.UseMoving && touch.State == TouchState.Moving || ending)
                 {
-                    int dw = touch.AbsoluteX - touch.Session.PreviousTouch.AbsoluteX;
-                    int dh = touch.AbsoluteY - touch.Session.PreviousTouch.AbsoluteY;
+                    int dw = touch.AbsoluteX - touch.Session.BeginTouch.AbsoluteX;
+                    int dh = touch.AbsoluteY - touch.Session.BeginTouch.AbsoluteY;
                     Panel panel = (Panel)@this.Parent;
-                    panel.Resize(panel.Width + dw, panel.Height + dh);
+                    panel.Resize(panel.ResizeW + dw, panel.ResizeH + dh);
                     if (ending)
                         touch.Session[@this] = null;
                     return true;
