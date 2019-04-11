@@ -18,5 +18,6 @@ namespace TUI.Base
 
         public static Offset LabelOffset { get; set; } = new Offset() { Horizontal = 1, Vertical = 1 };
         public static byte LabelTextColor { get; set; } = 25;
+        public static byte ButtonBlinkColor { get; set; } = 26;
     }
 }
