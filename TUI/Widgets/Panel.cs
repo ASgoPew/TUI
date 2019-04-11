@@ -19,6 +19,9 @@ namespace TUI.Widgets
         internal int ResizeW { get; set; }
         internal int ResizeH { get; set; }
 
+        public PanelDrag DragObject { get; set; }
+        public PanelResize ResizeObject { get; set; }
+
         #endregion
 
         #region Initialize
@@ -27,10 +30,12 @@ namespace TUI.Widgets
             UIConfiguration configuration = null, UIStyle style = null, object provider = null)
             : base(name, x, y, width, height, configuration ?? new UIConfiguration() { UseBegin = false }, style, provider)
         {
+            DragObject = drag;
+            ResizeObject = resize;
             if (drag != null)
-                Add(drag);
+                Add(drag, 1000000);
             if (resize != null)
-                Add(resize);
+                Add(resize, 1000000);
         }
 
         internal protected Panel(string name, int x, int y, int width, int height, UIConfiguration configuration = null,

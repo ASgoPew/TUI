@@ -25,9 +25,9 @@ namespace TUI.Base
 
         #region IDOM
 
-        #region Remove
+            #region Remove
 
-        public override VisualObject Remove(VisualObject child)
+            public override VisualObject Remove(VisualObject child)
             {
                 child = base.Remove(child);
                 if (child != null)
@@ -58,13 +58,13 @@ namespace TUI.Base
             private bool ChildIntersectingOthers(VisualObject o)
             {
                 lock (Child)
-                    foreach (VisualObject child in Child)
+                    foreach (VisualObject child in ChildrenFromTop)
                         if (child != o && child.Enabled && o.Intersecting(child))
                             return true;
                 return false;
             }
 
-        #endregion
+            #endregion
 
         #endregion
 
@@ -104,12 +104,25 @@ namespace TUI.Base
             get => Grid[column, line];
             set
             {
-                if (Grid[column, line] != null)
+                if (value != null)
+                {
+                    if (Grid[column, line] != null)
+                        Remove(Grid[column, line]);
+                    Grid[column, line] = Add(value);
+                    value.Cell = new GridCell(column, line);
+                }
+                else
+                {
                     Remove(Grid[column, line]);
-                Grid[column, line] = value;
-                value.Cell = new GridCell(column, line);
+                    Grid[column, line] = null;
+                }
             }
         }
+
+        #endregion
+        #region ToString
+
+        public override string ToString() => FullName;
 
         #endregion
         #region SetupGrid
@@ -117,6 +130,8 @@ namespace TUI.Base
         public VisualObject SetupGrid(GridStyle gridStyle = null, bool fillWithEmptyObjects = true)
         {
             Style.Grid = gridStyle ?? new GridStyle();
+
+            VisualObject[,] oldGrid = Grid;
 
             if (gridStyle.Columns == null)
                 gridStyle.Columns = new ISize[] { new Relative(100) };
@@ -126,7 +141,10 @@ namespace TUI.Base
             if (fillWithEmptyObjects)
                 for (int i = 0; i < gridStyle.Columns.Length; i++)
                     for (int j = 0; j < gridStyle.Lines.Length; j++)
-                        Grid[i, j] = Add(new VisualObject());
+                        if (i < oldGrid?.GetLength(0) && j < oldGrid?.GetLength(1) && oldGrid[i, j] != null)
+                            this[i, j] = Remove(oldGrid[i, j]);
+                        else
+                            this[i, j] = new VisualObject();
 
             return this as VisualObject;
         }
@@ -193,7 +211,7 @@ namespace TUI.Base
                 int layoutX = offset.Left, layoutY = offset.Up;
                 int layoutW = Width - layoutX - offset.Right, layoutH = Height - layoutY - offset.Down;
                 lock (Child)
-                    foreach (VisualObject child in Child)
+                    foreach (VisualObject child in ChildrenFromTop)
                     {
                         FullSize fullSize = child.Style.Positioning.FullSize;
                         if (fullSize == FullSize.None)
@@ -318,7 +336,7 @@ namespace TUI.Base
                 int totalW = 0, totalH = 0;
                 List<VisualObject> layoutChild = new List<VisualObject>();
                 lock (Child)
-                    foreach (VisualObject child in Child)
+                    foreach (VisualObject child in ChildrenFromTop)
                     {
                         FullSize fullSize = child.Style.Positioning.FullSize;
                         if (!child.Enabled || !child.Style.Positioning.InLayout || fullSize == FullSize.Both
@@ -397,8 +415,6 @@ namespace TUI.Base
             {
                 // Initializing min size
                 minSize = startOffset + endOffset;
-                if (minSize == 0)
-                    minSize = 1;
                 int defaultMinSize = minSize;
 
                 // Initializing resulting array
@@ -454,6 +470,8 @@ namespace TUI.Base
                 }
                 if (minSize > defaultMinSize)
                     minSize -= middleOffset;
+                if (minSize == 0)
+                    minSize = 1;
 
                 // There could be some unused relative size left since we are calculating relative size with Math.Floor
                 // Adding +1 to relative sizes with the largest fractional parts.
@@ -506,7 +524,7 @@ namespace TUI.Base
             public virtual VisualObject UpdateChild()
             {
                 lock (Child)
-                    foreach (VisualObject child in Child)
+                    foreach (VisualObject child in ChildrenFromTop)
                         if (child.Enabled)
                             child.Update();
                 return this as VisualObject;
@@ -618,7 +636,7 @@ namespace TUI.Base
             {
                 bool forceSection = ForceSection;
                 lock (Child)
-                    foreach (VisualObject child in Child)
+                    foreach (VisualObject child in ChildrenFromBottom)
                         if (child.Enabled)
                         {
                             child.Apply();

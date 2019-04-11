@@ -62,7 +62,8 @@ namespace TUI.Base
             Lock holderLock = locked.Holder.Configuration.Lock;
 
             // Checking whether lock is still active
-            if ((DateTime.UtcNow - locked.Time) > TimeSpan.FromMilliseconds(locked.Delay))
+            if ((DateTime.UtcNow - locked.Time) > TimeSpan.FromMilliseconds(locked.Delay)
+                && (!holderLock.DuringTouchSession || locked.Touch.TouchSessionIndex != locked.Touch.Session.TouchSessionIndex))
             {
                 if (holderLock.Personal)
                     PersonalLocked.TryRemove(touch.Session.UserIndex, out _);
@@ -107,17 +108,16 @@ namespace TUI.Base
         public virtual bool TouchedChild(Touch touch)
         {
             lock (Child)
-                for (int i = Child.Count - 1; i >= 0; i--)
+                foreach (VisualObject child in ChildrenFromTop)
                 {
-                    var o = Child[i];
-                    int saveX = o.X, saveY = o.Y;
-                    if (o.Enabled && o.Contains(touch))
+                    int saveX = child.X, saveY = child.Y;
+                    if (child.Enabled && child.Contains(touch))
                     {
                         touch.MoveBack(saveX, saveY);
-                        if (o.Touched(touch))
+                        if (child.Touched(touch))
                         {
-                            if (Configuration.Ordered && SetTop(o))
-                                PostSetTop(o);
+                            if (Configuration.Ordered && SetTop(child))
+                                PostSetTop(child);
                             return true;
                         }
                         touch.Move(saveX, saveY);

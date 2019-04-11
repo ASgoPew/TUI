@@ -8,15 +8,38 @@ namespace TUI.Base
     {
         #region Data
 
-        public int IndexInParent { get; private set; } = -1;
+            #region IDOM
+
+            public List<VisualObject> Child { get; private set; } = new List<VisualObject>();
+            public VisualObject Parent { get; private set; } = null;
+
+            public IEnumerable<VisualObject> DescendantDFS => GetDescendantDFS();
+            public IEnumerable<VisualObject> DescendantBFS => GetDescendantBFS();
+
+        #endregion
+            #region IVisual
+
+            public int X { get; set; }
+            public int Y { get; set; }
+            public int Width { get; set; }
+            public int Height { get; set; }
+
+            public IEnumerable<(int, int)> Points => GetPoints();
+
+            #endregion
+
+        public int IndexInParent => Parent.Child.IndexOf(this as VisualObject);
         public RootVisualObject Root { get; set; }
         public virtual dynamic Provider => Root.Provider;
         public bool UsesDefaultMainProvider => Provider is MainTileProvider;
         public bool Enabled { get; set; } = true;
+        public int Layer { get; set; } = 0;
         public UIConfiguration Configuration { get; set; }
         private Dictionary<string, object> Shortcuts { get; set; }
         //protected object UpdateLocker { get; set; } = new object();
 
+        public IEnumerable<VisualObject> ChildrenFromTop => GetChildrenFromTop();
+        public IEnumerable<VisualObject> ChildrenFromBottom => GetChildrenFromBottom();
         public IEnumerable<(int X, int Y)> AbsolutePoints => GetAbsolutePoints();
         public IEnumerable<(int X, int Y)> ProviderPoints => GetProviderPoints();
         public (int X, int Y) AbsoluteXY(int dx = 0, int dy = 0) =>
@@ -28,16 +51,6 @@ namespace TUI.Base
 
         #region IDOM
 
-            #region Data
-
-            public List<VisualObject> Child { get; private set; } = new List<VisualObject>();
-            public VisualObject Parent { get; private set; } = null;
-
-            public IEnumerable<VisualObject> DescendantDFS => GetDescendantDFS();
-            public IEnumerable<VisualObject> DescendantBFS => GetDescendantBFS();
-
-            #endregion
-
             #region Initialize
 
             public void InitializeDOM()
@@ -47,18 +60,23 @@ namespace TUI.Base
             #endregion
             #region Add
 
-            public virtual VisualObject Add(VisualObject child)
+            public virtual VisualObject Add(VisualObject child, int layer = 0)
             {
                 lock (Child)
-                    Child.Add(child);
+                {
+                    int index = 0;
+                    while (index < Child.Count && Child[index].Layer <= layer)
+                        index++;
+                    Child.Insert(index, child);
+                }
                 child.Parent = this as VisualObject;
-                child.IndexInParent = Child.Count - 1;
+                child.Layer = layer;
                 return child;
             }
 
-            public virtual VisualObject AddToLayout(VisualObject child)
+            public virtual VisualObject AddToLayout(VisualObject child, int layer = 0)
             {
-                Add(child);
+                Add(child, layer);
                 child.Style.Positioning.InLayout = true;
                 return child;
             }
@@ -74,7 +92,6 @@ namespace TUI.Base
                 if (removed)
                 {
                     child.Parent = null;
-                    child.IndexInParent = -1;
                     if (Shortcuts != null)
                         foreach (var pair in Shortcuts.Where(o => o.Value == child))
                             Shortcuts.Remove(pair.Key);
@@ -92,17 +109,20 @@ namespace TUI.Base
                     throw new InvalidOperationException("Trying to Select an object that isn't a child of current VisualDOM");
 
                 lock (Child)
-                    foreach (VisualObject child in Child)
+                    foreach (VisualObject child in ChildrenFromTop)
                         child.Enabled = false;
                 o.Enabled = true;
 
                 return this as VisualObject;
             }
 
+            #endregion
+            #region Deselect
+
             public virtual VisualObject Deselect()
             {
                 lock (Child)
-                    foreach (VisualObject child in Child)
+                    foreach (VisualObject child in ChildrenFromTop)
                         child.Enabled = true;
 
                 return this as VisualObject;
@@ -136,7 +156,7 @@ namespace TUI.Base
                 return false;
             }
 
-            #endregion
+        #endregion
             #region SetTop
 
             public virtual bool SetTop(VisualObject o)
@@ -144,18 +164,41 @@ namespace TUI.Base
                 lock (Child)
                 {
                     int index = Child.IndexOf(o);
-                    if (index > 0)
+                    int previousIndex = index;
+                    if (index < 0)
+                        throw new InvalidOperationException("Trying to SetTop an object that isn't a child of current VisualDOM");
+                    int count = Child.Count;
+                    index++;
+                    while (index < count && Child[index].Layer <= o.Layer)
+                        index++;
+
+                    if (index == previousIndex + 1)
+                        return false;
+
+                    Child.Remove(o);
+                    Child.Insert(index - 1, o);
+                    return true;
+                }
+            }
+
+            /*public virtual bool SetTop(VisualObject o)
+            {
+                lock (Child)
+                {
+                    int index = Child.IndexOf(o);
+                    int last = Child.Count - 1;
+                    if (index < last)
                     {
                         Child.Remove(o);
-                        Child.Insert(0, o);
+                        Child.Add(o);
                         return true;
                     }
-                    else if (index == 0)
+                    else if (index == last)
                         return false;
                     else
                         throw new InvalidOperationException("Trying to SetTop an object that isn't a child of current VisualDOM");
                 }
-            }
+            }*/
 
             #endregion
             #region DFS, BFS
@@ -164,7 +207,7 @@ namespace TUI.Base
             {
                 list.Add(this as VisualObject);
                 lock (Child)
-                    foreach (VisualObject child in Child)
+                    foreach (VisualObject child in ChildrenFromTop)
                         child.DFS(list);
             }
 
@@ -175,7 +218,7 @@ namespace TUI.Base
                 while (index < list.Count)
                 {
                     lock (list[index].Child)
-                        foreach (VisualObject o in list[index].Child)
+                        foreach (VisualObject o in list[index].ChildrenFromTop)
                             list.Add(o);
                     index++;
                 }
@@ -203,17 +246,6 @@ namespace TUI.Base
 
         #endregion
         #region IVisual
-
-            #region Data
-
-            public int X { get; set; }
-            public int Y { get; set; }
-            public int Width { get; set; }
-            public int Height { get; set; }
-
-            public IEnumerable<(int, int)> Points => GetPoints();
-
-            #endregion
 
             #region Initialize
 
@@ -365,7 +397,28 @@ namespace TUI.Base
         }
 
         #endregion
-        #region AbsolutePoints
+        #region GetChildrenFromTop
+
+        private IEnumerable<VisualObject> GetChildrenFromTop()
+        {
+            int index = Child.Count - 1;
+            while (index >= 0)
+                yield return Child[index--];
+        }
+
+        #endregion
+        #region GetChildrenFromBottom
+
+        private IEnumerable<VisualObject> GetChildrenFromBottom()
+        {
+            int count = Child.Count;
+            int index = 0;
+            while (index < count)
+                yield return Child[index++];
+        }
+
+        #endregion
+        #region GetAbsolutePoints
 
         private IEnumerable<(int, int)> GetAbsolutePoints()
         {
@@ -376,7 +429,7 @@ namespace TUI.Base
         }
 
         #endregion
-        #region ProviderPoints
+        #region GetProviderPoints
 
         private IEnumerable<(int, int)> GetProviderPoints()
         {

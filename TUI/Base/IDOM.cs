@@ -7,7 +7,7 @@ namespace TUI.Base
         List<T> Child { get; }
         T Parent { get; }
 
-        T Add(T child);
+        T Add(T child, int layer);
         T Remove(T child);
         T Select(T child);
         T Deselect();

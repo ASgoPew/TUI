@@ -17,13 +17,15 @@ namespace TUI.Base
         public bool Personal { get; set; }
         public int Delay { get; set; }
         public bool AllowThisTouchSession { get; set; }
+        public bool DuringTouchSession { get; set; }
 
-        public Lock(LockLevel level, bool personal = true, int delay = DefaultDelay, bool allowThisTouchSession = true)
+        public Lock(LockLevel level, bool personal = true, int delay = DefaultDelay, bool allowThisTouchSession = true, bool duringTouchSession = false)
         {
             Level = level;
             Personal = personal;
             Delay = delay;
             AllowThisTouchSession = allowThisTouchSession;
+            DuringTouchSession = duringTouchSession;
         }
 
         public Lock(Lock config)
