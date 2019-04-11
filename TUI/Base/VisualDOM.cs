@@ -8,9 +8,7 @@ namespace TUI.Base
     {
         #region Data
 
-        public virtual string Name => GetType().Name;
-        public string FullName => Parent != null ? Parent.FullName + "." + Name : Name;
-
+        public int IndexInParent { get; private set; } = -1;
         public RootVisualObject Root { get; set; }
         public virtual dynamic Provider => Root.Provider;
         public bool UsesDefaultMainProvider => Provider is MainTileProvider;
@@ -54,6 +52,7 @@ namespace TUI.Base
                 lock (Child)
                     Child.Add(child);
                 child.Parent = this as VisualObject;
+                child.IndexInParent = Child.Count - 1;
                 return child;
             }
 
@@ -75,6 +74,7 @@ namespace TUI.Base
                 if (removed)
                 {
                     child.Parent = null;
+                    child.IndexInParent = -1;
                     if (Shortcuts != null)
                         foreach (var pair in Shortcuts.Where(o => o.Value == child))
                             Shortcuts.Remove(pair.Key);

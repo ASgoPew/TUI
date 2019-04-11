@@ -13,13 +13,21 @@ namespace TUI.Base
         public GridCell Cell { get; private set; }
         protected internal bool ForceSection { get; protected set; } = false;
 
+        public virtual string Name => GetType().Name;
+        public string FullName =>
+            Parent != null
+                ? (Cell != null
+                    ? $"{Parent.FullName}[{Cell.Column},{Cell.Line} = {Name}]"
+                    : $"{Parent.FullName}[{IndexInParent} = {Name}]")
+                : Name;
+
         #endregion
 
         #region IDOM
 
-            #region Remove
+        #region Remove
 
-            public override VisualObject Remove(VisualObject child)
+        public override VisualObject Remove(VisualObject child)
             {
                 child = base.Remove(child);
                 if (child != null)
@@ -179,7 +187,7 @@ namespace TUI.Base
             #endregion
             #region UpdateFullSize
 
-            public virtual VisualObject UpdateFullSize()
+            public VisualObject UpdateFullSize()
             {
                 ExternalOffset offset = Style.Layout.Offset ?? UIDefault.ExternalOffset;
                 int layoutX = offset.Left, layoutY = offset.Up;
@@ -486,7 +494,7 @@ namespace TUI.Base
             #endregion
             #region CustomUpdate
 
-            public VisualObject CustomUpdate()
+            public virtual VisualObject CustomUpdate()
             {
                 Configuration.CustomUpdate?.Invoke(this as VisualObject);
                 return this as VisualObject;
@@ -546,7 +554,7 @@ namespace TUI.Base
             #endregion
             #region ApplyTiles
 
-            public virtual VisualObject ApplyTiles()
+            public VisualObject ApplyTiles()
             {
                 if (Style.InActive == null && Style.Tile == null && Style.TileColor == null
                     && Style.Wall == null && Style.WallColor == null)
@@ -597,7 +605,7 @@ namespace TUI.Base
             #endregion
             #region CustomApply
 
-            public VisualObject CustomApply()
+            public virtual VisualObject CustomApply()
             {
                 Configuration.CustomApply?.Invoke(this);
                 return this;
