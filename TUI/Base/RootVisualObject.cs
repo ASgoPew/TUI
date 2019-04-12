@@ -1,4 +1,5 @@
-﻿using TUI.Base.Style;
+﻿using System;
+using TUI.Base.Style;
 using TUI.Hooks.Args;
 
 namespace TUI.Base
@@ -9,6 +10,11 @@ namespace TUI.Base
 
         public override string Name { get; }
         public override dynamic Provider { get; }
+        public override int Layer
+        {
+            get => UsesDefaultMainProvider ? 0 : Provider.IsPersonal ? 2 : 1;
+            set => throw new Exception("You can't set a layer for RootVisualObject");
+        }
 
         #endregion
 

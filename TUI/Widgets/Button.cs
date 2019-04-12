@@ -46,10 +46,13 @@ namespace TUI.Widgets
         {
             Configuration.Lock = Configuration.Lock ?? new Lock(LockLevel.Self, true, ButtonStyle.BlinkDelay, true, true);
             Offset offset = ButtonStyle.TextOffset;
-            if (offset.Left < 3)
-                offset.Left = 3;
-            if (offset.Right < 3)
-                offset.Right = 3;
+            if (ButtonStyle.BlinkStyle == ButtonBlinkStyle.Left || ButtonStyle.BlinkStyle == ButtonBlinkStyle.Right)
+            {
+                if (offset.Left < 3)
+                    offset.Left = 3;
+                if (offset.Right < 3)
+                    offset.Right = 3;
+            }
         }
 
         #endregion
@@ -101,7 +104,7 @@ namespace TUI.Widgets
             ButtonBlinkStyle blinkStyle = ButtonStyle.BlinkStyle;
             if (blinkStyle == ButtonBlinkStyle.Full)
             {
-                lock (BlinkLocker)
+                //lock (BlinkLocker)
             }
             else if (blinkStyle == ButtonBlinkStyle.Left)
             {

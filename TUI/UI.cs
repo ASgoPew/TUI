@@ -228,7 +228,7 @@ namespace TUI
             else
                 throw new InvalidOperationException("Trying to SetTop an object that isn't a child of current VisualDOM");
 
-            // Let the fake provider actually become top
+            // Let a custom provider actually become top
             if (result)
                 UI.Hooks.SetTop.Invoke(new SetTopArgs(o));
             

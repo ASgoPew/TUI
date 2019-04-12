@@ -33,7 +33,7 @@ namespace TUI.Base
         public virtual dynamic Provider => Root.Provider;
         public bool UsesDefaultMainProvider => Provider is MainTileProvider;
         public bool Enabled { get; set; } = true;
-        public int Layer { get; set; } = 0;
+        public virtual int Layer { get; set; } = 0;
         public UIConfiguration Configuration { get; set; }
         private Dictionary<string, object> Shortcuts { get; set; }
         //protected object UpdateLocker { get; set; } = new object();

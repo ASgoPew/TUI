@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26430.15
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.156
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TUI", "TUI\TUI.csproj", "{64B9C632-B1D6-4DD2-A763-4437F92E1ADB}"
 EndProject
@@ -11,8 +11,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TUITests", "TUITests\TUITes
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TUIPlugin", "TUIPlugin\TUIPlugin.csproj", "{FCFE5D2B-8AD3-465F-A606-48A4C2228787}"
+	ProjectSection(ProjectDependencies) = postProject
+		{64B9C632-B1D6-4DD2-A763-4437F92E1ADB} = {64B9C632-B1D6-4DD2-A763-4437F92E1ADB}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TUIPlusLua", "TUIPlusLua\TUIPlusLua.csproj", "{794B575E-E743-4CE2-98CA-F7F71E9CE815}"
+	ProjectSection(ProjectDependencies) = postProject
+		{64B9C632-B1D6-4DD2-A763-4437F92E1ADB} = {64B9C632-B1D6-4DD2-A763-4437F92E1ADB}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

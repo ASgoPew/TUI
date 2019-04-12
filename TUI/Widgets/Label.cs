@@ -87,7 +87,7 @@ namespace TUI.Widgets
             Alignment alignment = style.TextAlignment;
             Side side = style.TextSide;
 
-            (int sx, int sy) = AbsoluteXY();
+            (int sx, int sy) = ProviderXY();
             int spaceW = Width - indentation.Left - indentation.Right;
             int spaceH = Height - indentation.Up - indentation.Down;
 		    int textW = TextW;

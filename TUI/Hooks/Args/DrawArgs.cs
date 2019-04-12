@@ -7,6 +7,8 @@
         public int Width { get; set; }
         public int Height { get; set; }
         public bool ForcedSection { get; set; }
+        public int UserIndex { get; set; } = -1;
+        public int ExceptUserIndex { get; set; } = -1;
 
         public DrawArgs(int x, int y, int width, int height, bool forcedSection)
         {

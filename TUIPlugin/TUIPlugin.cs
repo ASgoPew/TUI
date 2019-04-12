@@ -180,18 +180,17 @@ namespace TUIPlugin
         public static void OnDraw(DrawArgs args)
         {
             int size = Math.Max(args.Width, args.Height);
-            //if (size >= 50 || args.ForcedSection)
-            //{
+            if (size >= 50 || args.ForcedSection)
+            {
                 int lowX = Netplay.GetSectionX(args.X);
                 int highX = Netplay.GetSectionX(args.X + args.Width - 1);
                 int lowY = Netplay.GetSectionY(args.Y);
                 int highY = Netplay.GetSectionY(args.Y + args.Height - 1);
-                TSPlayer.All.SendData(PacketTypes.TileSendSection, null, args.X, args.Y, args.Width, args.Height);
-                TSPlayer.All.SendData(PacketTypes.TileFrameSection, null, lowX, lowY, highX, highY);
-            //}
-            //else
-                // Custom SendTileSquare
-                //TSPlayer.All.SendTileSquare(args.X, args.Y, size);
+                NetMessage.SendData(10, args.UserIndex, args.ExceptUserIndex, null, args.X, args.Y, args.Width, args.Height);
+                NetMessage.SendData(11, args.UserIndex, args.ExceptUserIndex, null, lowX, lowY, highX, highY);
+            }
+            else
+                NetMessage.SendData(20, args.UserIndex, args.ExceptUserIndex, null, size, args.X, args.Y);
         }
     }
 }
