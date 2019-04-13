@@ -10,13 +10,13 @@ namespace TUI.Base
 
             #region IDOM
 
-            public List<VisualObject> Child { get; private set; } = new List<VisualObject>();
+            protected List<VisualObject> Child { get; private set; } = new List<VisualObject>();
             public VisualObject Parent { get; private set; } = null;
 
             public IEnumerable<VisualObject> DescendantDFS => GetDescendantDFS();
             public IEnumerable<VisualObject> DescendantBFS => GetDescendantBFS();
 
-        #endregion
+            #endregion
             #region IVisual
 
             public int X { get; set; }

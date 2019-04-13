@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using TUI.Base.Style;
 using TUI.Hooks.Args;
 
@@ -75,8 +76,10 @@ namespace TUI.Base
 
         protected override void ApplyThisNative()
         {
+            Stopwatch sw = Stopwatch.StartNew();
             Clear();
             base.ApplyThisNative();
+            Console.WriteLine($"Apply ({Name}): {sw.ElapsedMilliseconds}");
         }
 
         #endregion

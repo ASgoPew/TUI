@@ -11,7 +11,7 @@ namespace TUI.Base
         public UIStyle Style { get; set; }
         public VisualObject[,] Grid { get; set; }
         public GridCell Cell { get; private set; }
-        protected internal bool ForceSection { get; protected set; } = false;
+        public bool ForceSection { get; protected set; } = false;
 
         public virtual string Name => GetType().Name;
         public string FullName =>
@@ -386,7 +386,7 @@ namespace TUI.Base
                 int totalW = 0, totalH = 0;
                 List<VisualObject> layoutChild = new List<VisualObject>();
                 lock (Child)
-                    foreach (VisualObject child in ChildrenFromTop)
+                    foreach (VisualObject child in ChildrenFromBottom)
                     {
                         FullSize fullSize = child.Style.Positioning.FullSize;
                         if (!child.Enabled || !child.Style.Positioning.InLayout || fullSize == FullSize.Both
@@ -701,12 +701,12 @@ namespace TUI.Base
         #endregion
         #region Draw
 
-        public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1, int userIndex = -1, int exceptUserIndex = -1, bool? forceSection = null)
+        public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1, int userIndex = -1, int exceptUserIndex = -1, bool? forceSection = null, bool frame = true)
         {
             bool realForceSection = forceSection ?? ForceSection;
             (int ax, int ay) = AbsoluteXY();
             Console.WriteLine($"Draw ({Name}): {ax + dx}, {ay + dy}, {(width >= 0 ? width : Width)}, {(height >= 0 ? height : Height)}: {realForceSection}");
-            UI.DrawRect(ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height, realForceSection, userIndex, exceptUserIndex);
+            UI.DrawRect(ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height, realForceSection, userIndex, exceptUserIndex, frame);
             return this;
         }
 

@@ -9,8 +9,9 @@
         public bool ForcedSection { get; set; }
         public int UserIndex { get; set; } = -1;
         public int ExceptUserIndex { get; set; } = -1;
+        public bool Frame { get; set; } = true;
 
-        public DrawArgs(int x, int y, int width, int height, bool forcedSection, int userIndex, int exceptUserIndex)
+        public DrawArgs(int x, int y, int width, int height, bool forcedSection, int userIndex, int exceptUserIndex, bool frame)
         {
             X = x;
             Y = y;
@@ -19,6 +20,7 @@
             ForcedSection = forcedSection;
             UserIndex = userIndex;
             ExceptUserIndex = exceptUserIndex;
+            Frame = frame;
         }
     }
 }

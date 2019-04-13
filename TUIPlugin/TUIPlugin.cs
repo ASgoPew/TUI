@@ -187,7 +187,8 @@ namespace TUIPlugin
                 int lowY = Netplay.GetSectionY(args.Y);
                 int highY = Netplay.GetSectionY(args.Y + args.Height - 1);
                 NetMessage.SendData(10, args.UserIndex, args.ExceptUserIndex, null, args.X, args.Y, args.Width, args.Height);
-                NetMessage.SendData(11, args.UserIndex, args.ExceptUserIndex, null, lowX, lowY, highX, highY);
+                if (args.Frame)
+                    NetMessage.SendData(11, args.UserIndex, args.ExceptUserIndex, null, lowX, lowY, highX, highY);
             }
             else
                 NetMessage.SendData(20, args.UserIndex, args.ExceptUserIndex, null, size, args.X, args.Y);

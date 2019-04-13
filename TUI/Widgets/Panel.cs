@@ -64,18 +64,21 @@ namespace TUI.Widgets
 
         public void Resize(int width, int height)
         {
-            if (width < Style.Grid.MinWidth)
-                width = Style.Grid.MinWidth;
-            if (height < Style.Grid.MinHeight)
-                height = Style.Grid.MinHeight;
+            GridStyle grid = Style.Grid;
+            int minWidth = grid?.MinWidth ?? 1;
+            int minHeight = grid?.MinWidth ?? 1;
+            if (width < minWidth)
+                width = minWidth;
+            if (height < minHeight)
+                height = minHeight;
             if (width == Width && height == Height)
                 return;
             if (UsesDefaultMainProvider)
-                Clear().Draw().SetWH(width, height).Update().Apply().Draw();
+                Clear().Draw(frame: false).SetWH(width, height).Update().Apply().Draw();
             else
             {
                 int oldWidth = Width, oldHeight = Height;
-                SetWH(width, height).Update().Apply().Draw(0, 0, oldWidth, oldHeight).Draw();
+                SetWH(width, height).Update().Apply().Draw(0, 0, oldWidth, oldHeight, frame: false).Draw();
             }
         }
 

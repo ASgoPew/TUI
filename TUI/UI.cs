@@ -285,11 +285,7 @@ namespace TUI
             lock (Child)
                 foreach (VisualObject child in Child)
                     if (child.Enabled)
-                    {
-                        Stopwatch sw = Stopwatch.StartNew();
                         child.Apply();
-                        Console.WriteLine($"Apply ({child.Name}): {sw.ElapsedMilliseconds}");
-                    }
         }
 
         #endregion
@@ -306,9 +302,9 @@ namespace TUI
         #endregion
         #region DrawRect
 
-        public static void DrawRect(int x, int y, int width, int height, bool forcedSection, int userIndex = -1, int exceptUserIndex = -1)
+        public static void DrawRect(int x, int y, int width, int height, bool forcedSection, int userIndex = -1, int exceptUserIndex = -1, bool frame = true)
         {
-            UI.Hooks.Draw.Invoke(new DrawArgs(x, y, width, height, forcedSection, userIndex, exceptUserIndex));
+            UI.Hooks.Draw.Invoke(new DrawArgs(x, y, width, height, forcedSection, userIndex, exceptUserIndex, frame));
         }
 
         #endregion

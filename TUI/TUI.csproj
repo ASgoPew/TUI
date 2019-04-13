@@ -78,7 +78,9 @@
     <Compile Include="Widgets\Checkbox.cs" />
     <Compile Include="Widgets\Label.cs" />
     <Compile Include="Widgets\Panel.cs" />
+    <Compile Include="Widgets\Separator.cs" />
     <Compile Include="Widgets\Slider.cs" />
+    <Compile Include="Widgets\VerticalList.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
