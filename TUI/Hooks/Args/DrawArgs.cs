@@ -10,13 +10,15 @@
         public int UserIndex { get; set; } = -1;
         public int ExceptUserIndex { get; set; } = -1;
 
-        public DrawArgs(int x, int y, int width, int height, bool forcedSection)
+        public DrawArgs(int x, int y, int width, int height, bool forcedSection, int userIndex, int exceptUserIndex)
         {
             X = x;
             Y = y;
             Width = width;
             Height = height;
             ForcedSection = forcedSection;
+            UserIndex = userIndex;
+            ExceptUserIndex = exceptUserIndex;
         }
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TUI.Base
 {
-    public class UIUserSession
+    public class UserSession
     {
         /// <summary>
         /// Session enabled state: if set to true all touches up the TouchState.End would be ignored.
@@ -28,7 +28,7 @@ namespace TUI.Base
         internal bool EndTouchHandled { get; set; }
         public ConcurrentDictionary<object, object> Data { get; } = new ConcurrentDictionary<object, object>();
 
-        public UIUserSession(int userIndex)
+        public UserSession(int userIndex)
         {
             UserIndex = userIndex;
         }

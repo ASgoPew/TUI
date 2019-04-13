@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Base\PulseType.cs" />
     <Compile Include="Base\Style\Alignment.cs" />
     <Compile Include="Base\Style\Direction.cs" />
     <Compile Include="Base\Style\FullSize.cs" />
@@ -70,12 +71,14 @@
     <Compile Include="UI.cs" />
     <Compile Include="Base\UIConfiguration.cs" />
     <Compile Include="Base\Style\UIStyle.cs" />
-    <Compile Include="Base\UIUserSession.cs" />
+    <Compile Include="Base\UserSession.cs" />
     <Compile Include="Base\VisualDOM.cs" />
     <Compile Include="Base\VisualObject.cs" />
     <Compile Include="Widgets\Button.cs" />
+    <Compile Include="Widgets\Checkbox.cs" />
     <Compile Include="Widgets\Label.cs" />
     <Compile Include="Widgets\Panel.cs" />
+    <Compile Include="Widgets\Slider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

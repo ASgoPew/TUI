@@ -25,6 +25,10 @@ namespace TUI.Base
         /// </summary>
         public Action<VisualObject> CustomApply { get; set; }
         /// <summary>
+        /// Delegate for custom pulse event handling.
+        /// </summary>
+        public Action<VisualObject, PulseType> CustomPulse { get; set; }
+        /// <summary>
         /// Once node is touched all future touches within the same session will pass to this node.
         /// </summary>
         public bool SessionAcquire { get; set; } = true;

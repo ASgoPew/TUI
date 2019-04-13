@@ -23,7 +23,7 @@ namespace TUI.Widgets
         public LabelUnderline TextUnderline { get; set; } = LabelUnderline.Nothing;
         public byte TextUnderlineColor { get; set; } = UIDefault.LabelTextColor;
 
-        public LabelStyle() { }
+        public LabelStyle() : base() { }
 
         public LabelStyle(LabelStyle style)
             : base(style)
@@ -56,7 +56,7 @@ namespace TUI.Widgets
         #region Initialize
 
         public Label(int x, int y, int width, int height, string text, UIConfiguration configuration = null, LabelStyle style = null, Func<VisualObject, Touch, bool> callback = null)
-            : base(x, y, width, height, configuration, style, callback)
+            : base(x, y, width, height, configuration, style ?? new LabelStyle(), callback)
         {
             RawText = text;
         }

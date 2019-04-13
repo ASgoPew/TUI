@@ -167,9 +167,59 @@ namespace TUI.Base
 
         #endregion
 
+        #region Pulse
+
+            public virtual VisualObject Pulse(PulseType type)
+            {
+                // Pulse event handling related to this node
+                PulseThis(type);
+
+                // Recursive Pulse call
+                PulseChild(type);
+
+                return this;
+            }
+
+            #region PulseThis
+
+            public VisualObject PulseThis(PulseType type)
+            {
+                PulseThisNative(type);
+                CustomPulse(type);
+                return this;
+            }
+
+            #endregion
+            #region PulseThisNative
+
+            protected virtual void PulseThisNative(PulseType type) { }
+
+            #endregion
+            #region CustomPulse
+
+            public virtual VisualObject CustomPulse(PulseType type)
+            {
+                Configuration.CustomPulse?.Invoke(this, type);
+                return this;
+            }
+
+            #endregion
+            #region PulseChild
+
+            public virtual VisualObject PulseChild(PulseType type)
+            {
+                lock (Child)
+                    foreach (VisualObject child in ChildrenFromTop)
+                        child.Pulse(type);
+                return this;
+            }
+
+            #endregion
+
+        #endregion
         #region Update
 
-            public virtual VisualObject Update()
+        public virtual VisualObject Update()
             {
                 // Updates related to this node
                 UpdateThis();
@@ -177,7 +227,7 @@ namespace TUI.Base
                 // Recursive Update call
                 UpdateChild();
 
-                return this as VisualObject;
+                return this;
             }
 
             #region UpdateThis
@@ -186,7 +236,7 @@ namespace TUI.Base
             {
                 UpdateThisNative();
                 CustomUpdate();
-                return this as VisualObject;
+                return this;
             }
 
             #endregion
@@ -235,7 +285,7 @@ namespace TUI.Base
                             child.SetXYWH(child.X, y, child.Width, height);
                         //Console.WriteLine($"FullSize: {child.FullName}, {child.XYWH()}");
                     }
-                return this as VisualObject;
+                return this;
             }
 
             #endregion
@@ -372,7 +422,7 @@ namespace TUI.Base
             public VisualObject UpdateGrid()
             {
                 if (Style.Grid == null)
-                    return this as VisualObject;
+                    return this;
                 if (Grid == null)
                     SetupGrid();
 
@@ -393,7 +443,7 @@ namespace TUI.Base
                     }
                 }
 
-                return this as VisualObject;
+                return this;
             }
 
             #endregion
@@ -514,8 +564,8 @@ namespace TUI.Base
 
             public virtual VisualObject CustomUpdate()
             {
-                Configuration.CustomUpdate?.Invoke(this as VisualObject);
-                return this as VisualObject;
+                Configuration.CustomUpdate?.Invoke(this);
+                return this;
             }
 
             #endregion
@@ -527,7 +577,7 @@ namespace TUI.Base
                     foreach (VisualObject child in ChildrenFromTop)
                         if (child.Enabled)
                             child.Update();
-                return this as VisualObject;
+                return this;
             }
 
             #endregion
@@ -572,9 +622,9 @@ namespace TUI.Base
             #endregion
             #region ApplyTiles
 
-            public VisualObject ApplyTiles()
+            public virtual VisualObject ApplyTiles()
             {
-                if (Style.InActive == null && Style.Tile == null && Style.TileColor == null
+                if (Style.Active == null && Style.InActive == null && Style.Tile == null && Style.TileColor == null
                     && Style.Wall == null && Style.WallColor == null)
                     return this;
 
@@ -651,18 +701,19 @@ namespace TUI.Base
         #endregion
         #region Draw
 
-        public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1)
+        public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1, int userIndex = -1, int exceptUserIndex = -1, bool? forceSection = null)
         {
+            bool realForceSection = forceSection ?? ForceSection;
             (int ax, int ay) = AbsoluteXY();
-            Console.WriteLine($"Draw ({Name}): {ax + dx}, {ay + dy}, {(width >= 0 ? width : Width)}, {(height >= 0 ? height : Height)}: {ForceSection}");
-            UI.DrawRect(ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height, ForceSection);
+            Console.WriteLine($"Draw ({Name}): {ax + dx}, {ay + dy}, {(width >= 0 ? width : Width)}, {(height >= 0 ? height : Height)}: {realForceSection}");
+            UI.DrawRect(ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height, realForceSection, userIndex, exceptUserIndex);
             return this;
         }
 
         #endregion
         #region DrawPoints
 
-        public virtual VisualObject DrawPoints(List<(int, int)> list)
+        public virtual VisualObject DrawPoints(List<(int, int)> list, int userIndex = -1, int exceptUserIndex = -1, bool? forceSection = null)
         {
             if (list.Count == 0)
                 return this;
@@ -682,7 +733,7 @@ namespace TUI.Base
                     maxY = y;
             }
 
-            return Draw(minX, minY, maxX - minX + 1, maxY - minY + 1);
+            return Draw(minX, minY, maxX - minX + 1, maxY - minY + 1, userIndex, exceptUserIndex, forceSection);
         }
 
         #endregion

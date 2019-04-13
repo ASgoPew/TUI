@@ -17,7 +17,7 @@ namespace TUI
         public static bool ShowGrid = false;
         public static HookManager Hooks = new HookManager();
         public static List<RootVisualObject> Child = new List<RootVisualObject>();
-        public static UIUserSession[] Session = new UIUserSession[MaxUsers];
+        public static UserSession[] Session = new UserSession[MaxUsers];
         public static int SessionIndex = 0;
 
         #endregion
@@ -28,7 +28,7 @@ namespace TUI
         {
             SessionIndex = 0;
             MaxUsers = maxUsers;
-            Session = new UIUserSession[MaxUsers];
+            Session = new UserSession[MaxUsers];
 
             Hooks.Initialize.Invoke(new InitializeArgs(maxUsers));
         }
@@ -79,7 +79,7 @@ namespace TUI
         public static void InitializeUser(int userIndex)
         {
             lock (Session)
-                Session[userIndex] = new UIUserSession(userIndex);
+                Session[userIndex] = new UserSession(userIndex);
         }
 
         #endregion
@@ -87,7 +87,7 @@ namespace TUI
 
         public static void RemoveUser(int userIndex)
         {
-            UIUserSession session = Session[userIndex];
+            UserSession session = Session[userIndex];
 
             if (session.PreviousTouch != null && session.PreviousTouch.State != TouchState.End)
             {
@@ -103,7 +103,7 @@ namespace TUI
 
         public static bool Touched(int userIndex, Touch touch)
         {
-            UIUserSession session = Session[userIndex];
+            UserSession session = Session[userIndex];
             touch.SetSession(session);
 
             lock (session)
@@ -306,9 +306,9 @@ namespace TUI
         #endregion
         #region DrawRect
 
-        public static void DrawRect(int x, int y, int width, int height, bool forcedSection)
+        public static void DrawRect(int x, int y, int width, int height, bool forcedSection, int userIndex = -1, int exceptUserIndex = -1)
         {
-            UI.Hooks.Draw.Invoke(new DrawArgs(x, y, width, height, forcedSection));
+            UI.Hooks.Draw.Invoke(new DrawArgs(x, y, width, height, forcedSection, userIndex, exceptUserIndex));
         }
 
         #endregion

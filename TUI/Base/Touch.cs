@@ -16,7 +16,7 @@ namespace TUI.Base
         public int AbsoluteX { get; private set; }
         public int AbsoluteY { get; private set; }
         public TouchState State { get; internal set; }
-        public UIUserSession Session { get; internal set; }
+        public UserSession Session { get; internal set; }
         public int TouchSessionIndex { get; internal set; }
         public bool InsideUI { get; internal set; }
         //public Locked Locked { get; internal set; }
@@ -118,7 +118,7 @@ namespace TUI.Base
         #endregion
         #region SetSession
 
-        public void SetSession(UIUserSession session)
+        public void SetSession(UserSession session)
         {
             Session = session;
             TouchSessionIndex = Session.TouchSessionIndex;
