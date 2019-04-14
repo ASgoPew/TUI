@@ -18,6 +18,7 @@
     public class LayoutStyle
     {
         public ushort ObjectsOffset { get; internal set; } = 0;
+        public ushort ObjectCount { get; internal set; } = 0;
         /// <summary>
         /// Layout offset.
         /// </summary>
