@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using TUI.Base.Style;
 
 namespace TUI.Base
@@ -13,6 +14,7 @@ namespace TUI.Base
         public GridCell Cell { get; private set; }
         public bool ForceSection { get; protected set; } = false;
 
+        public override bool Orderable => !Style.Positioning.InLayout;
         public virtual string Name => GetType().Name;
         public string FullName =>
             Parent != null
@@ -166,10 +168,19 @@ namespace TUI.Base
         }
 
         #endregion
+        #region LayoutSkip
+
+        public VisualObject LayoutSkip(ushort value)
+        {
+            Style.Layout.ObjectsOffset = value;
+            return this;
+        }
+
+        #endregion
 
         #region Pulse
 
-            public virtual VisualObject Pulse(PulseType type)
+        public virtual VisualObject Pulse(PulseType type)
             {
                 // Pulse event handling related to this node
                 PulseThis(type);
@@ -219,7 +230,7 @@ namespace TUI.Base
         #endregion
         #region Update
 
-        public virtual VisualObject Update()
+            public virtual VisualObject Update()
             {
                 // Updates related to this node
                 UpdateThis();
@@ -301,6 +312,7 @@ namespace TUI.Base
                 int indent = Style.Layout.ChildIndent ?? Parent?.Style?.Grid?.DefaultChildIndent ?? UIDefault.CellsIndent;
 
                 (int layoutW, int layoutH, List<VisualObject> layoutChild) = CalculateLayoutSize(direction, indent);
+                layoutChild = layoutChild.Skip(Style.Layout.ObjectsOffset).ToList();
                 if (layoutChild.Count == 0)
                     return;
 

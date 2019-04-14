@@ -38,6 +38,7 @@ namespace TUI.Base
         private Dictionary<string, object> Shortcuts { get; set; }
         //protected object UpdateLocker { get; set; } = new object();
 
+        public virtual bool Orderable => true;
         public IEnumerable<VisualObject> ChildrenFromTop => GetChildrenFromTop();
         public IEnumerable<VisualObject> ChildrenFromBottom => GetChildrenFromBottom();
         public IEnumerable<(int X, int Y)> AbsolutePoints => GetAbsolutePoints();

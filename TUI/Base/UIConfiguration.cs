@@ -57,7 +57,6 @@ namespace TUI.Base
         /// Allows to touch this node only if touch.State == TouchState.End. False by default.
         /// </summary>
         public bool UseEnd { get; set; } = false;
-        //public bool Orderable { get; set; } = true;
 
         public UIConfiguration() { }
 

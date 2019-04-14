@@ -17,6 +17,7 @@
 
     public class LayoutStyle
     {
+        public ushort ObjectsOffset { get; internal set; } = 0;
         /// <summary>
         /// Layout offset.
         /// </summary>
@@ -53,7 +54,7 @@
         public Alignment? DefaultAlignment { get; set; }
         public Direction? DefaultDirection { get; set; }
         public Side? DefaultSide { get; set; }
-        public int? DefaultChildIndent { get; set; }
+        public ushort? DefaultChildIndent { get; set; }
 
         public GridStyle(ISize[] columns = null, ISize[] lines = null)
         {
@@ -72,11 +73,11 @@
         /// <summary>
         /// Parent related positioning styles.
         /// </summary>
-        public PositioningStyle Positioning { get; set; } = new PositioningStyle();
+        public PositioningStyle Positioning { get; protected set; } = new PositioningStyle();
         /// <summary>
         /// Child layout related styles.
         /// </summary>
-        public LayoutStyle Layout { get; set; } = new LayoutStyle();
+        public LayoutStyle Layout { get; protected set; } = new LayoutStyle();
         /// <summary>
         /// Grid related styles. Null by default. Use <see cref="VisualDOM.SetupGrid(GridConfiguration, bool)"/> for initializing grid.
         /// </summary>

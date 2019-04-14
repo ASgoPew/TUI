@@ -116,7 +116,7 @@ namespace TUI.Base
                         touch.MoveBack(saveX, saveY);
                         if (child.Touched(touch))
                         {
-                            if (Configuration.Ordered && SetTop(child))
+                            if (Configuration.Ordered && child.Orderable && SetTop(child))
                                 PostSetTop(child);
                             return true;
                         }
