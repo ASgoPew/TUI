@@ -180,7 +180,7 @@ namespace TUI.Base
 
         #region Pulse
 
-        public virtual VisualObject Pulse(PulseType type)
+            public virtual VisualObject Pulse(PulseType type)
             {
                 // Pulse event handling related to this node
                 PulseThis(type);

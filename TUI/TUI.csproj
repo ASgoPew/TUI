@@ -76,6 +76,7 @@
     <Compile Include="Base\VisualObject.cs" />
     <Compile Include="Widgets\Button.cs" />
     <Compile Include="Widgets\Checkbox.cs" />
+    <Compile Include="Widgets\ItemFrame.cs" />
     <Compile Include="Widgets\Label.cs" />
     <Compile Include="Widgets\Panel.cs" />
     <Compile Include="Widgets\Separator.cs" />
