@@ -44,10 +44,10 @@ namespace TUI.Widgets
         #region Data
 
         public override string Name => $"{GetType().Name} ({RawText})";
-        private string RawText { get; set; }
-        private List<(string Text, int Width)> Lines { get; set; }
-        private int TextW { get; set; }
-        private int TextH { get; set; }
+        protected string RawText { get; set; }
+        protected List<(string Text, int Width)> Lines { get; set; }
+        protected int TextW { get; set; }
+        protected int TextH { get; set; }
 
         public LabelStyle LabelStyle => Style as LabelStyle;
 
@@ -58,7 +58,7 @@ namespace TUI.Widgets
         public Label(int x, int y, int width, int height, string text, UIConfiguration configuration = null, LabelStyle style = null, Func<VisualObject, Touch, bool> callback = null)
             : base(x, y, width, height, configuration, style ?? new LabelStyle(), callback)
         {
-            RawText = text;
+            RawText = text.ToLower();
         }
 
         #endregion
@@ -150,7 +150,15 @@ namespace TUI.Widgets
                         charX += 2;
                     }
 				    else
+                    {
+                        for (int x = 0; x < indentation.Horizontal; x++)
+                            for (int statueY = 0; statueY <= Math.Min(lineH - 1, 3); statueY++)
+                            {
+                                dynamic tile = Provider[sx + charX + x, sy + charY + statueY];
+                                tile.active(false);
+                            }
 					    charX += indentation.Horizontal;
+                    }
                 }
                 if (charY + 2 * lineH + indentation.Vertical + indentation.Down > Height)
                     break;

@@ -1,8 +1,6 @@
-﻿using System;
-using TUI;
+﻿using TUI;
 using TUI.Base;
 using TUI.Base.Style;
-using TUI.Widgets;
 
 namespace TUITests
 {

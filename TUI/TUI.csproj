@@ -53,6 +53,7 @@
     <Compile Include="Hooks\Args\EnabledArgs.cs" />
     <Compile Include="Base\GridCell.cs" />
     <Compile Include="Hooks\Args\InitializeArgs.cs" />
+    <Compile Include="Hooks\Args\TouchCancelArgs.cs" />
     <Compile Include="Hooks\Hook.cs" />
     <Compile Include="Hooks\HookManager.cs" />
     <Compile Include="Hooks\Args\SetXYWHArgs.cs" />
@@ -76,7 +77,9 @@
     <Compile Include="Base\VisualObject.cs" />
     <Compile Include="Widgets\Button.cs" />
     <Compile Include="Widgets\Checkbox.cs" />
+    <Compile Include="Widgets\InputLabel.cs" />
     <Compile Include="Widgets\ItemFrame.cs" />
+    <Compile Include="Widgets\ItemRack.cs" />
     <Compile Include="Widgets\Label.cs" />
     <Compile Include="Widgets\Panel.cs" />
     <Compile Include="Widgets\Separator.cs" />

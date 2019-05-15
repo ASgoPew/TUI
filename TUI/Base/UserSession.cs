@@ -19,10 +19,10 @@ namespace TUI.Base
         public int TouchSessionIndex { get; internal set; } = 0;
         public int Count { get; internal set; } = 0;
         public int ProjectileID { get; set; } = -1;
+        public Touch PreviousTouch { get; internal set; }
         public Touch BeginTouch { get; internal set; }
         public VisualObject BeginObject { get; internal set; }
         public VisualObject Acquired { get; internal set; }
-        public Touch PreviousTouch { get; internal set; }
         public bool Used { get; internal set; }
         internal HashSet<VisualObject> LockedObjects { get; set; } = new HashSet<VisualObject>();
         internal bool EndTouchHandled { get; set; }

@@ -1,8 +1,9 @@
-﻿using TUI.Base;
+﻿using System;
+using TUI.Base;
 
 namespace TUI.Hooks.Args
 {
-    public class EnabledArgs
+    public class EnabledArgs : EventArgs
     {
         public RootVisualObject Root { get; set; }
         public bool Value { get; set; }

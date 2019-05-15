@@ -1,5 +1,4 @@
-﻿using System;
-using TUI.Base;
+﻿using TUI.Base;
 
 namespace TUI.Widgets
 {

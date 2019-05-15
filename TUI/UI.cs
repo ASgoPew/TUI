@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Timers;
 using TUI.Base;
 using TUI.Base.Style;
 using TUI.Hooks;
@@ -19,6 +20,8 @@ namespace TUI
         public static List<RootVisualObject> Child = new List<RootVisualObject>();
         public static UserSession[] Session = new UserSession[MaxUsers];
         public static int SessionIndex = 0;
+        public static Timer Timer;
+        public static int MaxHoldTouchMilliseconds = 30000;
 
         #endregion
 
@@ -29,6 +32,9 @@ namespace TUI
             SessionIndex = 0;
             MaxUsers = maxUsers;
             Session = new UserSession[MaxUsers];
+            Timer = new Timer(5000) { AutoReset = true };
+            Timer.Elapsed += OnTimerElapsed;
+            Timer.Start();
 
             Hooks.Initialize.Invoke(new InitializeArgs(maxUsers));
         }
@@ -40,9 +46,29 @@ namespace TUI
         {
             Hooks.Deinitialize.Invoke(new EventArgs());
             Child.Clear();
+            Timer.Stop();
         }
 
         #endregion
+        #region OnTimerElapsed
+
+        public static void OnTimerElapsed(object sender, ElapsedEventArgs args)
+        {
+            for (int i = 0; i < Session.Length; i++)
+            {
+                UserSession session = Session[i];
+                if (session != null)
+                {
+                    Touch previous = session.PreviousTouch;
+                    Touch begin = session.BeginTouch;
+                    if (previous != null && begin != null && previous.State != TouchState.End && (previous.Time - begin.Time).TotalMilliseconds >= MaxHoldTouchMilliseconds)
+                        Hooks.TouchCancel.Invoke(new TouchCancelArgs(i, session, previous));
+                }
+            }
+        }
+
+        #endregion
+
         #region Create
 
         internal static RootVisualObject Create(RootVisualObject root)

@@ -43,6 +43,7 @@ namespace TUIPlugin
             TShockAPI.GetDataHandlers.NewProjectile += OnNewProjectile;
             UI.Hooks.CanTouch.Event += OnCanTouch;
             UI.Hooks.Draw.Event += OnDraw;
+            UI.Hooks.TouchCancel.Event += OnTouchCancel;
 
             UI.Initialize(255);
         }
@@ -59,6 +60,7 @@ namespace TUIPlugin
                 TShockAPI.GetDataHandlers.NewProjectile -= OnNewProjectile;
                 UI.Hooks.CanTouch.Event -= OnCanTouch;
                 UI.Hooks.Draw.Event -= OnDraw;
+                UI.Hooks.TouchCancel.Event -= OnTouchCancel;
             }
             base.Dispose(disposing);
         }
@@ -192,6 +194,18 @@ namespace TUIPlugin
             }
             else
                 NetMessage.SendData(20, args.UserIndex, args.ExceptUserIndex, null, size, args.X, args.Y);
+        }
+
+        public static void OnTouchCancel(TouchCancelArgs args)
+        {
+            TSPlayer player = args.Touch.Player();
+            player.SendWarningMessage("You are holding mouce for too long.");
+            Console.WriteLine("TUI: TOO LONG");
+            player.SendData(PacketTypes.ProjectileDestroy, null, args.Session.ProjectileID, player.Index);
+            Touch simulatedEndTouch = args.Touch.SimulatedEndTouch();
+            simulatedEndTouch.Undo = true;
+            UI.Touched(args.UserIndex, simulatedEndTouch);
+            playerDesignState[args.UserIndex] = DesignState.Waiting;
         }
     }
 }

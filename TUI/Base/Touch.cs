@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace TUI.Base
 {
@@ -13,6 +14,17 @@ namespace TUI.Base
     {
         #region Data
 
+            #region IVisual
+
+            public int X { get; set; }
+            public int Y { get; set; }
+            public int Width { get; set; }
+            public int Height { get; set; }
+
+            public IEnumerable<(int, int)> Points { get { yield return (X, Y); } }
+
+            #endregion
+
         public int AbsoluteX { get; private set; }
         public int AbsoluteY { get; private set; }
         public TouchState State { get; internal set; }
@@ -23,6 +35,7 @@ namespace TUI.Base
         public bool Undo { get; set; }
         public byte Prefix { get; private set; }
         public byte StateByte { get; private set; }
+        public DateTime Time { get; private set; }
 
         public bool Red      => (StateByte & 1) > 0;
         public bool Green    => (StateByte & 2) > 0;
@@ -34,17 +47,6 @@ namespace TUI.Base
         #endregion
 
         #region IVisual
-
-            #region Data
-
-            public int X { get; set; }
-            public int Y { get; set; }
-            public int Width { get; set; }
-            public int Height { get; set; }
-
-            public IEnumerable<(int, int)> Points { get { yield return (X, Y); } }
-
-            #endregion
 
             #region Initialize
 
@@ -113,6 +115,7 @@ namespace TUI.Base
             State = state;
             Prefix = prefix;
             StateByte = stateByte;
+            Time = DateTime.UtcNow;
         }
 
         #endregion

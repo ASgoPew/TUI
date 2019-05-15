@@ -74,13 +74,13 @@
         /// <summary>
         /// Parent related positioning styles.
         /// </summary>
-        public PositioningStyle Positioning { get; protected set; } = new PositioningStyle();
+        public PositioningStyle Positioning { get; set; } = new PositioningStyle();
         /// <summary>
         /// Child layout related styles.
         /// </summary>
-        public LayoutStyle Layout { get; protected set; } = new LayoutStyle();
+        public LayoutStyle Layout { get; set; } = new LayoutStyle();
         /// <summary>
-        /// Grid related styles. Null by default. Use <see cref="VisualDOM.SetupGrid(GridConfiguration, bool)"/> for initializing grid.
+        /// Grid related styles. Null by default. Use <see cref="VisualObject.SetupGrid(GridStyle, bool)"/> for initializing grid.
         /// </summary>
         public GridStyle Grid { get; internal set; }
         

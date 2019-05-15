@@ -1,8 +1,9 @@
-﻿using TUI.Base;
+﻿using System;
+using TUI.Base;
 
 namespace TUI.Hooks.Args
 {
-    public class SetXYWHArgs
+    public class SetXYWHArgs : EventArgs
     {
         public RootVisualObject Root { get; set; }
         public int X { get; set; }

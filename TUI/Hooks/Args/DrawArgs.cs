@@ -1,6 +1,8 @@
-﻿namespace TUI.Hooks.Args
+﻿using System;
+
+namespace TUI.Hooks.Args
 {
-    public class DrawArgs
+    public class DrawArgs : EventArgs
     {
         public int X { get; set; }
         public int Y { get; set; }

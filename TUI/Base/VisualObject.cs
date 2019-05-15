@@ -127,6 +127,24 @@ namespace TUI.Base
         public override string ToString() => FullName;
 
         #endregion
+        #region SetupPositioning
+
+        public VisualObject SetupPositioning(PositioningStyle positioning)
+        {
+            Style.Positioning = positioning;
+            return this;
+        }
+
+        #endregion
+        #region SetupLayout
+
+        public VisualObject SetupLayout(LayoutStyle layout)
+        {
+            Style.Layout = layout;
+            return this;
+        }
+
+        #endregion
         #region SetupGrid
 
         public VisualObject SetupGrid(GridStyle gridStyle = null, bool fillWithEmptyObjects = true)

@@ -1,6 +1,8 @@
-﻿namespace TUI.Hooks.Args
+﻿using System;
+
+namespace TUI.Hooks.Args
 {
-    public class InitializeArgs
+    public class InitializeArgs : EventArgs
     {
         public int MaxUsers { get; private set; }
 

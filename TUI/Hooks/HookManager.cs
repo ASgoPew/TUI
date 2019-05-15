@@ -12,5 +12,6 @@ namespace TUI.Hooks
         public Hook<SetTopArgs> SetTop = new Hook<SetTopArgs>();
         public Hook<EnabledArgs> Enabled = new Hook<EnabledArgs>();
         public Hook<CanTouchArgs> CanTouch = new Hook<CanTouchArgs>();
+        public Hook<TouchCancelArgs> TouchCancel = new Hook<TouchCancelArgs>();
     }
 }
