@@ -8,7 +8,6 @@ using TShockAPI;
 using TUI;
 using TUI.Base;
 using TUI.Hooks.Args;
-using static TShockAPI.GetDataHandlers;
 
 namespace TUIPlugin
 {
@@ -40,7 +39,7 @@ namespace TUIPlugin
             ServerApi.Hooks.ServerConnect.Register(this, OnServerConnect);
             ServerApi.Hooks.ServerLeave.Register(this, OnServerLeave);
             ServerApi.Hooks.NetGetData.Register(this, OnGetData, 100);
-            TShockAPI.GetDataHandlers.NewProjectile += OnNewProjectile;
+            GetDataHandlers.NewProjectile += OnNewProjectile;
             UI.Hooks.CanTouch.Event += OnCanTouch;
             UI.Hooks.Draw.Event += OnDraw;
             UI.Hooks.TouchCancel.Event += OnTouchCancel;
@@ -123,7 +122,7 @@ namespace TUIPlugin
             }
         }
 
-        public static void OnNewProjectile(object sender, NewProjectileEventArgs args)
+        public static void OnNewProjectile(object sender, GetDataHandlers.NewProjectileEventArgs args)
         {
             TSPlayer player = TShock.Players[args.Owner];
             if (args.Handled || args.Type != 651 || player?.TPlayer == null)
@@ -206,6 +205,24 @@ namespace TUIPlugin
             simulatedEndTouch.Undo = true;
             UI.Touched(args.UserIndex, simulatedEndTouch);
             playerDesignState[args.UserIndex] = DesignState.Waiting;
+        }
+
+        public static void OnSignText(SignTextArgs args)
+        {
+            if (args.Sign == null)
+            {
+                int id = Sign.ReadSign(args.X, args.Y);
+                if (id >= 0)
+                {
+                    Main.sign[id].text = args.Text;
+                    args.Sign = Main.sign[id];
+                }
+            }
+            else
+            {
+                Sign sign = args.Sign;
+                sign.text = args.Text;
+            }
         }
     }
 }

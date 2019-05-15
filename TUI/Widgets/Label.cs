@@ -10,7 +10,7 @@ namespace TUI.Widgets
 
     public enum LabelUnderline
     {
-        Nothing = 0,
+        None = 0,
         Underline
     }
 
@@ -20,7 +20,7 @@ namespace TUI.Widgets
         public Offset TextOffset { get; set; } = new Offset(UIDefault.LabelOffset);
         public Alignment TextAlignment { get; set; } = UIDefault.Alignment;
         public Side TextSide { get; set; } = UIDefault.Side;
-        public LabelUnderline TextUnderline { get; set; } = LabelUnderline.Nothing;
+        public LabelUnderline TextUnderline { get; set; } = LabelUnderline.None;
         public byte TextUnderlineColor { get; set; } = UIDefault.LabelTextColor;
 
         public LabelStyle() : base() { }

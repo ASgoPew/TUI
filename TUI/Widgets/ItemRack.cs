@@ -1,6 +1,7 @@
 ﻿using System;
 using TUI.Base;
 using TUI.Base.Style;
+using TUI.Hooks.Args;
 
 namespace TUI.Widgets
 {
@@ -10,7 +11,6 @@ namespace TUI.Widgets
     {
         public short Type { get; set; } = 0;
         public bool Left { get; set; } = true;
-        public byte Prefix { get; set; } = 0;
 
         public ItemRackStyle() : base() { }
 
@@ -19,7 +19,6 @@ namespace TUI.Widgets
         {
             Type = style.Type;
             Left = style.Left;
-            Prefix = style.Prefix;
         }
     }
 
@@ -29,7 +28,10 @@ namespace TUI.Widgets
     {
         #region Data
 
+        protected dynamic Sign { get; set; } = null;
+
         public ItemRackStyle ItemRackStyle => Style as ItemRackStyle;
+        public string Text => Sign?.text;
 
         #endregion
 
@@ -39,6 +41,7 @@ namespace TUI.Widgets
                 Func<VisualObject, Touch, bool> callback = null)
             : base(x, y, 3, 3, new UIConfiguration(), style ?? new ItemRackStyle(), callback)
         {
+            style.Active = true;
         }
 
         #endregion
@@ -58,27 +61,47 @@ namespace TUI.Widgets
             (int sx, int sy) = ProviderXY();
             short type = ItemRackStyle.Type;
             bool left = ItemRackStyle.Left;
-            byte prefix = ItemRackStyle.Prefix;
             int fx = left ? 54 : 0;
+            bool sign = !string.IsNullOrWhiteSpace(Text);
             for (int x = 0; x < 3; x++)
                 for (int y = 0; y < 3; y++)
                 {
                     dynamic tile = Provider[sx + x, sy + y];
-                    tile.sTileHeader = 32;
-                    tile.type = 334;
+                    if (sign && y == 0)
+                    {
+                        tile.type = 55;
+                        tile.frameX = (x == 0) ? 144 : (x == 1) ? 126 : 162;
+                    }
+                    else
+                        tile.type = 334;
                     if (y == 1 && x < 2)
                     {
                         if (x == 0)
                             tile.frameX = (short)((left ? 20100 : 5100) + type);
                         else
-                            tile.frameX = (short)((left ? 25000 : 10000) + prefix);
+                            tile.frameX = (short)((left ? 25000 : 10000));
                     }
                     else
                         tile.frameX = (short)(fx + x * 18);
-                    tile.frameY = (short)(y * 18);
+                    tile.frameY = sign ? 0 : (short)(y * 18);
                 }
         }
 
         #endregion
+        #region SetText
+
+        public void SetText(string text)
+        {
+            (int x, int y) = AbsoluteXY();
+            SignTextArgs args = new SignTextArgs(text, x, y, Sign);
+            UI.Hooks.SignText.Invoke(args);
+            Sign = args.Sign;
+        }
+
+        #endregion
+        protected override void UpdateThisNative()
+        {
+            base.UpdateThisNative();
+        }
     }
 }
