@@ -127,6 +127,18 @@ namespace TUI.Base
         public override string ToString() => FullName;
 
         #endregion
+        #region SetXYWH
+
+        public override VisualObject SetXYWH(int x, int y, int width, int height)
+        {
+            int oldX = X, oldY = Y, oldWidth = Width, oldHeight = Height;
+            base.SetXYWH(x, y, width, height);
+            if (oldX != X || oldY != Y || oldWidth != Width || oldHeight != Height)
+                Pulse(PulseType.SetXYWH);
+            return this;
+        }
+
+        #endregion
         #region SetupPositioning
 
         public VisualObject SetupPositioning(PositioningStyle positioning)

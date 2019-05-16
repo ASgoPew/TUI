@@ -45,7 +45,12 @@ namespace TUI
         public static void Deinitialize()
         {
             Hooks.Deinitialize.Invoke(new EventArgs());
-            Child.Clear();
+            lock (Child)
+            {
+                foreach (RootVisualObject child in Child)
+                    child.Pulse(PulseType.Dispose);
+                Child.Clear();
+            }
             Timer.Stop();
         }
 

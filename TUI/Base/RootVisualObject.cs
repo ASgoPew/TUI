@@ -38,6 +38,7 @@ namespace TUI.Base
         public override VisualObject SetXYWH(int x, int y, int width = -1, int height = -1)
         {
             base.SetXYWH(x, y, width, height);
+            // MainTileProvider ignores this SetXYWH
             Provider.SetXYWH(x, y, width, height);
             UI.Hooks.SetXYWH.Invoke(new SetXYWHArgs(this, x, y, width, height));
             return this;

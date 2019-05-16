@@ -43,6 +43,8 @@ namespace TUIPlugin
             UI.Hooks.CanTouch.Event += OnCanTouch;
             UI.Hooks.Draw.Event += OnDraw;
             UI.Hooks.TouchCancel.Event += OnTouchCancel;
+            UI.Hooks.CreateSign.Event += OnCreateSign;
+            UI.Hooks.RemoveSign.Event += OnRemoveSign;
 
             UI.Initialize(255);
         }
@@ -60,6 +62,8 @@ namespace TUIPlugin
                 UI.Hooks.CanTouch.Event -= OnCanTouch;
                 UI.Hooks.Draw.Event -= OnDraw;
                 UI.Hooks.TouchCancel.Event -= OnTouchCancel;
+                UI.Hooks.CreateSign.Event -= OnCreateSign;
+                UI.Hooks.RemoveSign.Event -= OnRemoveSign;
             }
             base.Dispose(disposing);
         }
@@ -207,21 +211,45 @@ namespace TUIPlugin
             playerDesignState[args.UserIndex] = DesignState.Waiting;
         }
 
-        public static void OnSignText(SignTextArgs args)
+        public static void OnCreateSign(CreateSignArgs args)
         {
-            if (args.Sign == null)
+            ITile tile = Main.tile[args.X, args.Y];
+            Main.tile[args.X, args.Y] = new Tile() { type = 55, frameX = 0, frameY = 0 };
+            int id = Sign.ReadSign(args.X, args.Y);
+            Main.tile[args.X, args.Y] = tile;
+            if (id >= 0)
+                args.Sign = Main.sign[id];
+        }
+
+        public static void OnRemoveSign(RemoveSignArgs args)
+        {
+            Sign.KillSign(args.Sign.x, args.Sign.y);
+        }
+
+        public static void SendSign(int signIndex)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            using (BinaryWriter bw = new BinaryWriter(ms))
             {
-                int id = Sign.ReadSign(args.X, args.Y);
-                if (id >= 0)
-                {
-                    Main.sign[id].text = args.Text;
-                    args.Sign = Main.sign[id];
-                }
-            }
-            else
-            {
-                Sign sign = args.Sign;
-                sign.text = args.Text;
+                ms.Position += 2L;
+                bw.Write((byte)PacketTypes.TileSendSection);
+                bw.Write((bool)false); //Not compressed
+                bw.Write((int)0);
+                bw.Write((int)0);
+                bw.Write((short)0); //Width
+                bw.Write((short)0); //Height
+                bw.Write((short)0); //Chests
+                bw.Write((short)1); //Signs
+
+                Sign sign = Main.sign[signIndex];
+                bw.Write((short)signIndex);
+                //bw.Write()
+
+                short pos = (short)ms.Position;
+                ms.Position = 0L;
+                bw.Write((short)pos);
+                ms.Position = pos;
+                Player.SendRawData(ms.ToArray());
             }
         }
     }
