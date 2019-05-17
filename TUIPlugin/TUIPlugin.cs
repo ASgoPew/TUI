@@ -213,20 +213,30 @@ namespace TUIPlugin
 
         public static void OnCreateSign(CreateSignArgs args)
         {
-            ITile tile = Main.tile[args.X, args.Y];
-            Main.tile[args.X, args.Y] = new Tile() { type = 55, frameX = 0, frameY = 0 };
-            int id = Sign.ReadSign(args.X, args.Y);
-            Main.tile[args.X, args.Y] = tile;
-            if (id >= 0)
-                args.Sign = Main.sign[id];
+            if (args.Node.GetRoot().Provider is MainTileProvider)
+            {
+                Main.tile[args.X, args.Y] = new Tile() { type = 55, frameX = 0, frameY = 0 };
+                int id = Sign.ReadSign(args.X, args.Y);
+                if (id >= 0)
+                    args.Sign = Main.sign[id];
+            }
+            else
+            {
+                int id = FakeReadSign(args.X, args.Y);
+                if (id >= 0)
+                    args.Sign = Main.sign[id];
+            }
         }
 
         public static void OnRemoveSign(RemoveSignArgs args)
         {
-            Sign.KillSign(args.Sign.x, args.Sign.y);
+            if (args.Sign is FakeSign)
+                FakeKillSign(args.Sign);
+            else
+                Sign.KillSign(args.Sign.x, args.Sign.y);
         }
 
-        public static void SendSign(int signIndex)
+        /*public static void SendSign(int signIndex)
         {
             using (MemoryStream ms = new MemoryStream())
             using (BinaryWriter bw = new BinaryWriter(ms))
@@ -243,14 +253,65 @@ namespace TUIPlugin
 
                 Sign sign = Main.sign[signIndex];
                 bw.Write((short)signIndex);
-                //bw.Write()
+                bw.Write((short)sign.x);
+                bw.Write((short)sign.y);
+                bw.Write((string)sign.text);
+
+                bw.Write((short)0); //TileEntities
 
                 short pos = (short)ms.Position;
                 ms.Position = 0L;
                 bw.Write((short)pos);
                 ms.Position = pos;
-                Player.SendRawData(ms.ToArray());
+                TSPlayer.All.SendRawData(ms.ToArray());
             }
+        }*/
+
+        public static int FakeReadSign(int i, int j, bool CreateIfMissing = true)
+        {
+            int num5 = -1;
+            for (int k = 0; k < 1000; k++)
+            {
+                if (Main.sign[k] != null && Main.sign[k].x == i && Main.sign[k].y == j)
+                {
+                    num5 = k;
+                    break;
+                }
+            }
+            if (num5 < 0 && CreateIfMissing)
+            {
+                for (int l = 0; l < 1000; l++)
+                {
+                    if (Main.sign[l] == null)
+                    {
+                        num5 = l;
+                        ITile oldTile = Main.tile[i, j];
+                        Main.sign[l] = new FakeSign()
+                        {
+                            x = i,
+                            y = j,
+                            text = "",
+                            tile = oldTile,
+                            index = (short)l
+                        };
+                        Main.tile[i, j] = new Tile() { type = 55, frameX = 0, frameY = 0, sTileHeader = UI.FakeSignSTileHeader };
+                        break;
+                    }
+                }
+            }
+            return num5;
         }
+
+        public static void FakeKillSign(FakeSign sign)
+        {
+            Main.tile[sign.x, sign.y] = sign.tile;
+            Main.sign[sign.index] = null;
+        }
+    }
+
+    public class FakeSign : Sign
+    {
+        public ITile tile { get; set; }
+        public short index { get; set; }
     }
 }

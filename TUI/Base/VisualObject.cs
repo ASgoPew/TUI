@@ -132,9 +132,12 @@ namespace TUI.Base
         public override VisualObject SetXYWH(int x, int y, int width, int height)
         {
             int oldX = X, oldY = Y, oldWidth = Width, oldHeight = Height;
-            base.SetXYWH(x, y, width, height);
-            if (oldX != X || oldY != Y || oldWidth != Width || oldHeight != Height)
-                Pulse(PulseType.SetXYWH);
+            if (oldX != x || oldY != y || oldWidth != width || oldHeight != height)
+            {
+                Pulse(PulseType.PreSetXYWH);
+                base.SetXYWH(x, y, width, height);
+                Pulse(PulseType.PostSetXYWH);
+            }
             return this;
         }
 

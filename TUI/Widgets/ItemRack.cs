@@ -32,6 +32,7 @@ namespace TUI.Widgets
 
         public ItemRackStyle ItemRackStyle => Style as ItemRackStyle;
         public string Text => Sign?.text;
+        protected string _Text { get; set; }
 
         #endregion
 
@@ -67,6 +68,8 @@ namespace TUI.Widgets
                 for (int y = 0; y < 3; y++)
                 {
                     dynamic tile = Provider[sx + x, sy + y];
+                    if (sign && x == 0 && y == 0)
+                        tile.sTileHeader = (short)UI.FakeSignSTileHeader;
                     tile.type = (ushort)(sign && y == 0 ? 55 : 334);
                     if (sign && y == 0)
                         tile.frameX = (short)((x == 0) ? 144 : (x == 1) ? 126 : 162);
@@ -84,6 +87,7 @@ namespace TUI.Widgets
         #endregion
         #region SetText
 
+        // Use this only after adding ItemRack to parent.
         public void SetText(string text)
         {
             if (Sign == null)
@@ -97,7 +101,7 @@ namespace TUI.Widgets
         public void CreateSign()
         {
             (int x, int y) = AbsoluteXY();
-            CreateSignArgs args = new CreateSignArgs(x, y, Sign);
+            CreateSignArgs args = new CreateSignArgs(x, y, Sign, this);
             UI.Hooks.CreateSign.Invoke(args);
             if (args.Sign == null)
                 throw new Exception("Can't create new sign.");
@@ -110,7 +114,7 @@ namespace TUI.Widgets
         public string RemoveSign()
         {
             if (Sign == null)
-                throw new Exception("EBLAN TI BLYAT");
+                return _Text;
             string text = Sign.text;
             UI.Hooks.RemoveSign.Invoke(new RemoveSignArgs(Sign));
             Sign = null;
@@ -123,12 +127,12 @@ namespace TUI.Widgets
         protected override void PulseThisNative(PulseType type)
         {
             base.PulseThisNative(type);
-            if (Sign == null)
-                return;
-            if (type == PulseType.SetXYWH)
+            if (type == PulseType.PreSetXYWH)
+                _Text = RemoveSign();
+            else if (type == PulseType.PostSetXYWH && _Text != null)
             {
                 (int x, int y) = AbsoluteXY();
-                SetText(RemoveSign());
+                SetText(_Text);
             }
             else if (type == PulseType.Dispose)
                 RemoveSign();

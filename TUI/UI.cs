@@ -22,6 +22,7 @@ namespace TUI
         public static int SessionIndex = 0;
         public static Timer Timer;
         public static int MaxHoldTouchMilliseconds = 30000;
+        public const short FakeSignSTileHeader = 29728;
 
         #endregion
 

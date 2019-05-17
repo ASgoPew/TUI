@@ -3,7 +3,8 @@
     public enum PulseType
     {
         Reset = 0,
-        SetXYWH,
+        PreSetXYWH,
+        PostSetXYWH,
         Dispose,
         User1,
         User2,
