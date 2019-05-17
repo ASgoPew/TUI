@@ -61,7 +61,7 @@ namespace TUI.Base
             {
                 lock (Child)
                     foreach (VisualObject child in ChildrenFromTop)
-                        if (child != o && child.Enabled && o.Intersecting(child))
+                        if (child != o && child.Active && o.Intersecting(child))
                             return true;
                 return false;
             }
@@ -345,6 +345,8 @@ namespace TUI.Base
                 int indent = Style.Layout.ChildIndent ?? Parent?.Style?.Grid?.DefaultChildIndent ?? UIDefault.CellsIndent;
 
                 (int layoutW, int layoutH, List<VisualObject> layoutChild) = CalculateLayoutSize(direction, indent);
+                for (int i = 0; i < Style.Layout.ObjectsOffset; i++)
+                    layoutChild[i].Visible = false;
                 layoutChild = layoutChild.Skip(Style.Layout.ObjectsOffset).ToList();
                 if (layoutChild.Count == 0)
                     return;
@@ -356,17 +358,17 @@ namespace TUI.Base
                 if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
                     sx = offset.Left;
                 else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
-                    sx = Width - offset.Right - layoutW;
+                    sx = Math.Min(Width - offset.Right - layoutW, Width - offset.Left);
                 else
-                    sx = (Width - layoutW + 1) / 2;
+                    sx = Math.Max((Width - layoutW + 1) / 2, offset.Left);
 
                 // Initializing sy
                 if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
                     sy = offset.Up;
                 else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
-                    sy = Height - offset.Down - layoutH;
+                    sy = Math.Min(Height - offset.Down - layoutH, Height - offset.Up);
                 else
-                    sy = (Height - layoutH + 1) / 2;
+                    sy = Math.Max((Height - layoutH + 1) / 2, offset.Up);
 
                 // Updating cell objects padding
                 int cx = direction == Direction.Left ? layoutW - layoutChild[0].Width : 0;
@@ -405,7 +407,19 @@ namespace TUI.Base
                             sideDeltaX = (layoutW - child.Width) / 2;
                     }
 
-                    child.SetXY(sx + cx + sideDeltaX, sy + cy + sideDeltaY);
+                    int resultX = sx + cx + sideDeltaX;
+                    int resultY = sy + cy + sideDeltaY;
+                    if (!LayoutContains(resultX, resultY, offset)
+                        || !LayoutContains(resultX + child.Width - 1, resultY + child.Height - 1, offset))
+                    {
+                        for (int l = k; l < layoutChild.Count; l++)
+                            layoutChild[l].Visible = false;
+                        break;
+                    }
+                    else
+                        child.Visible = true;
+
+                    child.SetXY(resultX, resultY);
                     //Console.WriteLine($"Layout: {child.FullName}, {child.XYWH()}");
 
                     if (k == layoutChild.Count - 1)
@@ -460,6 +474,12 @@ namespace TUI.Base
 
                 return (totalW, totalH, layoutChild);
             }
+
+        #endregion
+            #region LayoutContains
+
+            public virtual bool LayoutContains(int x, int y, ExternalOffset offset) =>
+                x >= offset.Left && y >= offset.Up && x < Width - offset.Right && y < Height - offset.Down;
 
             #endregion
             #region UpdateGrid
@@ -620,7 +640,7 @@ namespace TUI.Base
             {
                 lock (Child)
                     foreach (VisualObject child in ChildrenFromTop)
-                        if (child.Enabled)
+                        if (child.Active)
                             child.Update();
                 return this;
             }
@@ -632,7 +652,7 @@ namespace TUI.Base
 
             public virtual VisualObject Apply()
             {
-                if (!Active())
+                if (!CalculateActive())
                     throw new InvalidOperationException("Trying to call Apply() an not active object.");
 
                 // Applying related to this node
@@ -732,7 +752,7 @@ namespace TUI.Base
                 bool forceSection = ForceSection;
                 lock (Child)
                     foreach (VisualObject child in ChildrenFromBottom)
-                        if (child.Enabled)
+                        if (child.Active)
                         {
                             child.Apply();
                             forceSection = forceSection || child.ForceSection;

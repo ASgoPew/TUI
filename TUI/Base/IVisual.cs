@@ -14,6 +14,7 @@ namespace TUI.Base
         T Move(int dx, int dy);
         T MoveBack(int dx, int dy);
         bool Contains(int x, int y);
+        bool ContainsRelative(int x, int y);
         bool Intersecting(int x, int y, int width, int height);
         bool Intersecting(T o);
         IEnumerable<(int, int)> Points { get; }

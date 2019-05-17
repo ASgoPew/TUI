@@ -97,6 +97,8 @@ namespace TUI.Base
 
             public bool Contains(int x, int y) =>
                 x >= X && y >= Y && x < X + Width && y < Y + Height;
+            public bool ContainsRelative(int x, int y) =>
+                x >= 0 && y >= 0 && x < Width && y < Height;
             public bool Intersecting(int x, int y, int width, int height) =>
                 x < X + Width && X < x + width && y < Y + Height && Y < y + height;
             public bool Intersecting(Touch o) => false;

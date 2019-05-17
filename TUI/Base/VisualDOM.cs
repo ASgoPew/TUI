@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using TUI.Base.Style;
 
 namespace TUI.Base
 {
@@ -33,11 +34,13 @@ namespace TUI.Base
         public virtual dynamic Provider => Root.Provider;
         public bool UsesDefaultMainProvider => Provider is MainTileProvider;
         public bool Enabled { get; set; } = true;
+        public bool Visible { get; protected internal set; } = true;
         public virtual int Layer { get; set; } = 0;
         public UIConfiguration Configuration { get; set; }
         private Dictionary<string, object> Shortcuts { get; set; }
         //protected object UpdateLocker { get; set; } = new object();
 
+        public virtual bool Active => Enabled && Visible;
         public virtual bool Orderable => true;
         public IEnumerable<VisualObject> ChildrenFromTop => GetChildrenFromTop();
         public IEnumerable<VisualObject> ChildrenFromBottom => GetChildrenFromBottom();
@@ -297,6 +300,9 @@ namespace TUI.Base
             public virtual bool Contains(int x, int y) =>
                 x >= X && y >= Y && x < X + Width && y < Y + Height;
 
+            public virtual bool ContainsRelative(int x, int y) =>
+                x >= 0 && y >= 0 && x < Width && y < Height;
+
             public virtual bool Intersecting(int x, int y, int width, int height) =>
                 x < X + Width && X < x + width && y < Y + Height && Y < y + height;
 
@@ -364,9 +370,9 @@ namespace TUI.Base
         }
 
         #endregion
-        #region Active
+        #region CalculateActive
 
-        public bool Active()
+        public bool CalculateActive()
         {
             VisualDOM node = this;
 
@@ -374,7 +380,7 @@ namespace TUI.Base
             was.Add(node);
             while (node != null)
             {
-                if (!node.Enabled)
+                if (!node.Active)
                     return false;
                 was.Add(node);
                 node = node.Parent;

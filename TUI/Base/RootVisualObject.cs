@@ -25,6 +25,7 @@ namespace TUI.Base
                 UIConfiguration configuration = null, UIStyle style = null, object provider = null)
             : base(x, y, width, height, configuration ?? new UIConfiguration() { UseBegin = false }, style)
         {
+            Configuration.UseOutsideTouches = false;
             Name = name;
             if (provider == null)
                 Provider = new MainTileProvider();

@@ -29,7 +29,7 @@ namespace TUI.Base
 
         public virtual bool Touched(Touch touch)
         {
-            if (!Active())
+            if (!CalculateActive())
                 throw new InvalidOperationException("Trying to call Touched on object that is not active");
 
             if (IsLocked(touch))
@@ -111,7 +111,7 @@ namespace TUI.Base
                 foreach (VisualObject child in ChildrenFromTop)
                 {
                     int saveX = child.X, saveY = child.Y;
-                    if (child.Enabled && child.Contains(touch))
+                    if (child.Active && child.Contains(touch))
                     {
                         touch.MoveBack(saveX, saveY);
                         if (child.Touched(touch))

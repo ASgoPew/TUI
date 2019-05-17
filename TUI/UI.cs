@@ -199,9 +199,9 @@ namespace TUI
             touch.MoveBack(saveX, saveY);
             bool inside = touch.Intersecting(0, 0, o.Width, o.Height);
 
-            if (o.Enabled && inside)
+            if (o.Active && inside)
                 insideUI = true;
-            if (o.Enabled && (inside || o.Configuration.UseOutsideTouches))
+            if (o.Active && (inside || o.Configuration.UseOutsideTouches))
                 if (o.Touched(touch))
                     return true;
 
@@ -219,7 +219,7 @@ namespace TUI
                 {
                     RootVisualObject o = Child[i];
                     int saveX = o.X, saveY = o.Y;
-                    if (o.Enabled && o.Contains(touch))
+                    if (o.Active && o.Contains(touch))
                     {
                         insideUI = true;
                         touch.MoveBack(saveX, saveY);
@@ -289,7 +289,7 @@ namespace TUI
         {
             bool intersects = false;
             foreach (RootVisualObject child in Child)
-                if (child != o && child.Enabled && o.Intersecting(child))
+                if (child != o && child.Active && o.Intersecting(child))
                 {
                     intersects = true;
                     if (o.Provider.Tile == child.Provider.Tile)
@@ -305,7 +305,7 @@ namespace TUI
         {
             lock (Child)
                 foreach (VisualObject child in Child)
-                    if (child.Enabled)
+                    if (child.Active)
                         child.Update();
         }
 
@@ -316,7 +316,7 @@ namespace TUI
         {
             lock (Child)
                 foreach (VisualObject child in Child)
-                    if (child.Enabled)
+                    if (child.Active)
                         child.Apply();
         }
 
@@ -327,7 +327,7 @@ namespace TUI
         {
             lock (Child)
                 foreach (VisualObject child in Child)
-                    if (child.Enabled)
+                    if (child.Active)
                         child.Draw();
         }
 
