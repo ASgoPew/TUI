@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace TUI.Base.Style
 {
@@ -59,10 +60,10 @@ namespace TUI.Base.Style
         public Side? DefaultSide { get; set; }
         public ushort? DefaultChildIndent { get; set; }
 
-        public GridStyle(ISize[] columns = null, ISize[] lines = null)
+        public GridStyle(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null)
         {
-            Columns = columns ?? new ISize[] { new Relative(100) };
-            Lines = lines ?? new ISize[] { new Relative(100) };
+            Columns = columns?.ToArray() ?? new ISize[] { new Relative(100) };
+            Lines = lines?.ToArray() ?? new ISize[] { new Relative(100) };
         }
 
         public GridStyle(GridStyle style)
