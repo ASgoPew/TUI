@@ -205,7 +205,7 @@ namespace TUI.Base
 
         public VisualObject LayoutSkip(ushort value)
         {
-            Style.Layout.ObjectsOffset = value;
+            Style.Layout.Index = value;
             return this;
         }
 
@@ -344,36 +344,41 @@ namespace TUI.Base
                 Side side = Style.Layout.Side ?? parentGridStyle?.DefaultSide ?? UIDefault.Side;
                 int indent = Style.Layout.ChildIndent ?? Parent?.Style?.Grid?.DefaultChildIndent ?? UIDefault.CellsIndent;
 
-                (int layoutW, int layoutH, List<VisualObject> layoutChild) = CalculateLayoutSize(direction, indent);
-                for (int i = 0; i < Style.Layout.ObjectsOffset; i++)
+                (int abstractLayoutW, int abstractLayoutH, List<VisualObject> layoutChild) = CalculateLayoutSize(direction, indent);
+                for (int i = 0; i < Style.Layout.Index; i++)
                     layoutChild[i].Visible = false;
-                layoutChild = layoutChild.Skip(Style.Layout.ObjectsOffset).ToList();
-                if (layoutChild.Count == 0)
+                if (layoutChild.Count - Style.Layout.Index <= 0)
                     return;
+                layoutChild = layoutChild.Skip(Style.Layout.Index).ToList();
 
-                // Calculating cell objects position
-                int sx, sy;
+                // Calculating layout box position
+                int layoutX, layoutY, layoutW, layoutH;
 
                 // Initializing sx
                 if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
-                    sx = offset.Left;
+                    layoutX = offset.Left;
                 else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
-                    sx = Math.Min(Width - offset.Right - layoutW, Width - offset.Left);
+                    layoutX = Width - offset.Right - abstractLayoutW;
                 else
-                    sx = Math.Max((Width - layoutW + 1) / 2, offset.Left);
+                    layoutX = (Width - abstractLayoutW + 1) / 2;
+                layoutX = Math.Max(layoutX, offset.Left);
+                layoutW = Math.Min(abstractLayoutW, Width - offset.Left - offset.Right);
 
                 // Initializing sy
                 if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
-                    sy = offset.Up;
+                    layoutY = offset.Up;
                 else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
-                    sy = Math.Min(Height - offset.Down - layoutH, Height - offset.Up);
+                    layoutY = Height - offset.Down - abstractLayoutH;
                 else
-                    sy = Math.Max((Height - layoutH + 1) / 2, offset.Up);
+                    layoutY = (Height - abstractLayoutH + 1) / 2;
+                layoutY = Math.Max(layoutY, offset.Up);
+                layoutH = Math.Min(abstractLayoutH, Height - offset.Up - offset.Down);
 
                 // Updating cell objects padding
-                int cx = direction == Direction.Left ? layoutW - layoutChild[0].Width : 0;
-                int cy = direction == Direction.Up ? layoutH - layoutChild[0].Height : 0;
-                for (int k = 0; k < layoutChild.Count; k++)
+                int cx = direction == Direction.Left ? Math.Min(abstractLayoutW - layoutChild[0].Width, Width - layoutX - offset.Right - layoutChild[0].Width) : 0;
+                int cy = direction == Direction.Up ? Math.Min(abstractLayoutH - layoutChild[0].Height, Height - layoutY - offset.Down - layoutChild[0].Height) : 0;
+                int k = 0;
+                for (; k < layoutChild.Count; k++)
                 {
                     VisualObject child = layoutChild[k];
                     // Calculating side alignment
@@ -381,45 +386,40 @@ namespace TUI.Base
                     if (direction == Direction.Left)
                     {
                         if (side == Side.Left)
-                            sideDeltaY = layoutH - child.Height;
+                            sideDeltaY = abstractLayoutH - child.Height;
                         else if (side == Side.Center)
-                            sideDeltaY = (layoutH - child.Height) / 2;
+                            sideDeltaY = (abstractLayoutH - child.Height) / 2;
                     }
                     else if (direction == Direction.Right)
                     {
                         if (side == Side.Right)
-                            sideDeltaY = layoutH - child.Height;
+                            sideDeltaY = abstractLayoutH - child.Height;
                         else if (side == Side.Center)
-                            sideDeltaY = (layoutH - child.Height) / 2;
+                            sideDeltaY = (abstractLayoutH - child.Height) / 2;
                     }
                     else if (direction == Direction.Up)
                     {
                         if (side == Side.Right)
-                            sideDeltaX = layoutW - child.Width;
+                            sideDeltaX = abstractLayoutW - child.Width;
                         else if (side == Side.Center)
-                            sideDeltaX = (layoutW - child.Width) / 2;
+                            sideDeltaX = (abstractLayoutW - child.Width) / 2;
                     }
                     else if (direction == Direction.Down)
                     {
                         if (side == Side.Left)
-                            sideDeltaX = layoutW - child.Width;
+                            sideDeltaX = abstractLayoutW - child.Width;
                         else if (side == Side.Center)
-                            sideDeltaX = (layoutW - child.Width) / 2;
+                            sideDeltaX = (abstractLayoutW - child.Width) / 2;
                     }
 
-                    int resultX = sx + cx + sideDeltaX;
-                    int resultY = sy + cy + sideDeltaY;
-                    if (!LayoutContains(resultX, resultY, offset)
-                        || !LayoutContains(resultX + child.Width - 1, resultY + child.Height - 1, offset))
-                    {
-                        for (int l = k; l < layoutChild.Count; l++)
-                            layoutChild[l].Visible = false;
-                        break;
-                    }
-                    else
-                        child.Visible = true;
+                    int resultX = layoutX + cx + sideDeltaX;
+                    int resultY = layoutY + cy + sideDeltaY;
+                    //Console.WriteLine($"{Width}, {Height}: {resultX}, {resultY}, {resultX + child.Width - 1}, {resultY + child.Height - 1}");
+                    child.Visible = LayoutContains(resultX, resultY, offset)
+                        && LayoutContains(resultX + child.Width - 1, resultY + child.Height - 1, offset);
 
-                    child.SetXY(resultX, resultY);
+                    if (child.Visible)
+                        child.SetXY(resultX, resultY);
                     //Console.WriteLine($"Layout: {child.FullName}, {child.XYWH()}");
 
                     if (k == layoutChild.Count - 1)
@@ -433,7 +433,17 @@ namespace TUI.Base
                         cy = cy + indent + child.Height;
                     else if (direction == Direction.Up)
                         cy = cy - indent - layoutChild[k + 1].Height;
+
+                    if (layoutX + cx < offset.Left || layoutX + cx + layoutChild[k + 1].Width > Width - offset.Right
+                            || layoutY + cy < offset.Up || layoutY + cy + layoutChild[k + 1].Height > Height - offset.Down)
+                    {
+                        for (int i = k + 1; i < layoutChild.Count; i++)
+                            layoutChild[i].Visible = false;
+                        break;
+                    }
                 }
+
+                Style.Layout.Objects = layoutChild.Take(k).ToList();
             }
 
             #endregion
@@ -778,8 +788,9 @@ namespace TUI.Base
         #endregion
         #region DrawPoints
 
-        public virtual VisualObject DrawPoints(List<(int, int)> list, int userIndex = -1, int exceptUserIndex = -1, bool? forceSection = null)
+        public virtual VisualObject DrawPoints(IEnumerable<(int, int)> points, int userIndex = -1, int exceptUserIndex = -1, bool? forceSection = null)
         {
+            List<(int, int)> list = points.ToList();
             if (list.Count == 0)
                 return this;
 

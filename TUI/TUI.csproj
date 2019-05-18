@@ -87,6 +87,7 @@
     <Compile Include="Widgets\Separator.cs" />
     <Compile Include="Widgets\Slider.cs" />
     <Compile Include="Widgets\VerticalList.cs" />
+    <Compile Include="Widgets\VisualList.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

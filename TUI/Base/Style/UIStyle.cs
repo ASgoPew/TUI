@@ -1,4 +1,6 @@
-﻿namespace TUI.Base.Style
+﻿using System.Collections.Generic;
+
+namespace TUI.Base.Style
 {
     public class PositioningStyle
     {
@@ -17,8 +19,8 @@
 
     public class LayoutStyle
     {
-        public ushort ObjectsOffset { get; internal set; } = 0;
-        public ushort ObjectCount { get; internal set; } = 0;
+        public ushort Index { get; internal set; } = 0;
+        public List<VisualObject> Objects { get; internal set; } = null;
         /// <summary>
         /// Layout offset.
         /// </summary>
