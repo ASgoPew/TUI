@@ -31,8 +31,7 @@ namespace TUI.Widgets
         public dynamic Sign { get; set; } = null;
 
         public ItemRackStyle ItemRackStyle => Style as ItemRackStyle;
-        public string Text => Sign?.text;
-        protected string _Text { get; set; }
+        public string Text { get; protected set; } = null;
 
         #endregion
 
@@ -42,7 +41,6 @@ namespace TUI.Widgets
                 Func<VisualObject, Touch, bool> callback = null)
             : base(x, y, 3, 3, new UIConfiguration(), style ?? new ItemRackStyle(), callback)
         {
-            style.Active = true;
         }
 
         #endregion
@@ -68,8 +66,9 @@ namespace TUI.Widgets
                 for (int y = 0; y < 3; y++)
                 {
                     dynamic tile = Provider[sx + x, sy + y];
+                    tile.active(true);
                     if (sign && x == 0 && y == 0)
-                        tile.sTileHeader = (short)UI.FakeSignSTileHeader;
+                        tile.sTileHeader = (short)(UI.FakeSignSTileHeader | (Style.InActive == true ? 64 : Style.InActive == false ? 0 : tile.inActive() ? 64 : 0));
                     tile.type = (ushort)(sign && y == 0 ? 55 : 334);
                     if (sign && y == 0)
                         tile.frameX = (short)((x == 0) ? 144 : (x == 1) ? 126 : 162);
@@ -90,9 +89,7 @@ namespace TUI.Widgets
         // Use this only after adding ItemRack to parent.
         public void SetText(string text)
         {
-            if (Sign == null)
-                CreateSign();
-            Sign.text = text;
+            Text = text;
         }
 
         #endregion
@@ -100,25 +97,26 @@ namespace TUI.Widgets
 
         public void CreateSign()
         {
+            if (Text == null)
+                throw new NullReferenceException("CreateSign: Text is null");
             (int x, int y) = AbsoluteXY();
             CreateSignArgs args = new CreateSignArgs(x, y, Sign, this);
             UI.Hooks.CreateSign.Invoke(args);
             if (args.Sign == null)
                 throw new Exception("Can't create new sign.");
             Sign = args.Sign;
+            Sign.text = Text;
         }
 
         #endregion
         #region RemoveSign
 
-        public string RemoveSign()
+        public void RemoveSign()
         {
             if (Sign == null)
-                return _Text;
-            string text = Sign.text;
+                return;
             UI.Hooks.RemoveSign.Invoke(new RemoveSignArgs(Sign));
             Sign = null;
-            return text;
         }
 
         #endregion
@@ -128,14 +126,26 @@ namespace TUI.Widgets
         {
             base.PulseThisNative(type);
             if (type == PulseType.PreSetXYWH)
-                _Text = RemoveSign();
-            else if (type == PulseType.PostSetXYWH && _Text != null)
-            {
-                (int x, int y) = AbsoluteXY();
-                SetText(_Text);
-            }
+                RemoveSign();
+            else if (type == PulseType.PostSetXYWH && Text != null)
+                CreateSign();
             else if (type == PulseType.Dispose)
                 RemoveSign();
+        }
+
+        #endregion
+        #region UpdateThisNative
+
+        protected override void UpdateThisNative()
+        {
+            base.UpdateThisNative();
+
+            (int x, int y) = AbsoluteXY();
+            if (Text != null && (Sign == null || Sign.text != Text || Sign.x != x || Sign.y != y))
+            {
+                RemoveSign();
+                CreateSign();
+            }
         }
 
         #endregion

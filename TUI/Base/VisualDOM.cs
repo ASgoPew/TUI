@@ -39,6 +39,7 @@ namespace TUI.Base
         private Dictionary<string, object> Shortcuts { get; set; }
         //protected object UpdateLocker { get; set; } = new object();
 
+        public virtual VisualObject GetChild(int index) => Child[index];
         public virtual bool Active => Enabled && Visible;
         public virtual bool Orderable => true;
         public IEnumerable<VisualObject> ChildrenFromTop => GetChildrenFromTop();

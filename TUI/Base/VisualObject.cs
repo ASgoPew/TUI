@@ -19,8 +19,8 @@ namespace TUI.Base
         public string FullName =>
             Parent != null
                 ? (Cell != null
-                    ? $"{Parent.FullName}[{Cell.Column},{Cell.Line} = {Name}]"
-                    : $"{Parent.FullName}[{IndexInParent} = {Name}]")
+                    ? $"{Parent.FullName}[{Cell.Column},{Cell.Line}].{Name}"
+                    : $"{Parent.FullName}[{IndexInParent}].{Name}")
                 : Name;
 
         #endregion

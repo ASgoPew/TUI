@@ -305,7 +305,8 @@ namespace TUIPlugin
         public static void FakeKillSign(FakeSign sign)
         {
             Main.tile[sign.x, sign.y] = sign.tile;
-            Main.sign[sign.index] = null;
+            sign.text = null;
+            Sign.KillSign(sign.x, sign.y);
         }
     }
 
