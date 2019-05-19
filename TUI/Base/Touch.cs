@@ -21,7 +21,7 @@ namespace TUI.Base
             public int Width { get; set; }
             public int Height { get; set; }
 
-            public IEnumerable<(int, int)> Points { get { yield return (X, Y); } }
+            public IEnumerable<(int, int)> Points { get { throw new InvalidOperationException(); } }
 
             #endregion
 

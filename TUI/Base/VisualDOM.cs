@@ -313,8 +313,8 @@ namespace TUI.Base
 
             private IEnumerable<(int, int)> GetPoints()
             {
-                for (int x = X; x < X + Width; x++)
-                    for (int y = Y; y < Y + Height; y++)
+                for (int x = 0; x < Width; x++)
+                    for (int y = 0; y < Height; y++)
                         yield return (x, y);
             }
 
