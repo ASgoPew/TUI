@@ -17,12 +17,11 @@ namespace TUI
         public static int MaxUsers;
         public static bool ShowGrid = false;
         public static HookManager Hooks = new HookManager();
-        public static List<RootVisualObject> Child = new List<RootVisualObject>();
         public static UserSession[] Session = new UserSession[MaxUsers];
-        public static int SessionIndex = 0;
-        public static Timer Timer;
         public static int MaxHoldTouchMilliseconds = 30000;
         public const short FakeSignSTileHeader = 29728;
+        private static List<RootVisualObject> Child = new List<RootVisualObject>();
+        private static Timer Timer;
 
         #endregion
 
@@ -30,7 +29,6 @@ namespace TUI
 
         public static void Initialize(int maxUsers = 256)
         {
-            SessionIndex = 0;
             MaxUsers = maxUsers;
             Session = new UserSession[MaxUsers];
             Timer = new Timer(5000) { AutoReset = true };
