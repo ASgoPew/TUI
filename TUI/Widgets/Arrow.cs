@@ -29,7 +29,7 @@ namespace TUI.Widgets
     {
         #region Data
 
-        public static Dictionary<Direction, byte[,]> Slope = new Dictionary<Direction, byte[,]>()
+        protected static readonly Dictionary<Direction, byte[,]> Slope = new Dictionary<Direction, byte[,]>()
         {
             { Direction.Left, new byte[2, 2] { { 2, 3 }, { 4, 1 } } },
             { Direction.Up, new byte[2, 2] { { 2, 1 }, { 3, 4 } } },
