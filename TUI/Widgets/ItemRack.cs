@@ -41,6 +41,7 @@ namespace TUI.Widgets
                 Func<VisualObject, Touch, bool> callback = null)
             : base(x, y, 3, 3, new UIConfiguration(), style ?? new ItemRackStyle(), callback)
         {
+            ForceSection = true;
         }
 
         #endregion
@@ -57,6 +58,7 @@ namespace TUI.Widgets
         protected override void ApplyThisNative()
         {
             base.ApplyThisNative();
+
             (int sx, int sy) = ProviderXY();
             short type = ItemRackStyle.Type;
             bool left = ItemRackStyle.Left;

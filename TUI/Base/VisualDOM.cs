@@ -37,6 +37,7 @@ namespace TUI.Base
         public virtual int Layer { get; set; } = 0;
         public UIConfiguration Configuration { get; set; }
         private Dictionary<string, object> Shortcuts { get; set; }
+        protected object ApplyLocker { get; set; } = new object();
         //protected object UpdateLocker { get; set; } = new object();
 
         public virtual VisualObject GetChild(int index) => Child[index];

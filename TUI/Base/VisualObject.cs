@@ -13,6 +13,8 @@ namespace TUI.Base
         public VisualObject[,] Grid { get; set; }
         public GridCell Cell { get; private set; }
         public bool ForceSection { get; protected set; } = false;
+        private int ApplyX;
+        private int ApplyY;
 
         public override bool Orderable => !Style.Positioning.InLayout;
         public virtual string Name => GetType().Name;
@@ -22,6 +24,12 @@ namespace TUI.Base
                     ? $"{Parent.FullName}[{Cell.Column},{Cell.Line}].{Name}"
                     : $"{Parent.FullName}[{IndexInParent}].{Name}")
                 : Name;
+        protected dynamic Tile(int x, int y)
+        {
+            if (x < 0 || y < 0 || x >= Width || y >= Height)
+                return null;
+            return Provider[ApplyX + x, ApplyY + y];
+        }
 
         #endregion
 
@@ -660,35 +668,53 @@ namespace TUI.Base
         #endregion
         #region Apply
 
+            /// <summary>
+            /// Draws everything related to this VisualObject incluing all child objects (directly changes tiles on tile provider).
+            /// </summary>
+            /// <returns></returns>
             public virtual VisualObject Apply()
             {
                 if (!CalculateActive())
                     throw new InvalidOperationException("Trying to call Apply() an not active object.");
 
-                // Applying related to this node
-                ApplyThis();
+                lock (ApplyLocker)
+                {
+                    // Applying related to this node
+                    ApplyThis();
 
-                // Recursive Apply call
-                ApplyChild();
+                    // Recursive Apply call
+                    ApplyChild();
+                }
 
                 return this;
             }
 
             #region ApplyThis
 
+            /// <summary>
+            /// Draws everything related to this particular VisualObject. Doesn't include drawing child objects.
+            /// </summary>
+            /// <returns></returns>
             public VisualObject ApplyThis()
             {
-                ApplyThisNative();
-                CustomApply();
+                lock (ApplyLocker)
+                {
+                    ApplyThisNative();
+                    CustomApply();
+                }
                 return this;
             }
 
             #endregion
             #region ApplyThisNative
 
+            /// <summary>
+            /// By default draws tiles/walls and grid if UI.ShowGrid is true. Overwrite this method for own widgets drawing.
+            /// Don't call this method directly, call ApplyThis() instead.
+            /// </summary>
             protected virtual void ApplyThisNative()
             {
-                ForceSection = false;
+                //ForceSection = false;
                 ApplyTiles();
                 if (UI.ShowGrid && Style.Grid != null)
                     ShowGrid();
@@ -699,27 +725,30 @@ namespace TUI.Base
 
             public virtual VisualObject ApplyTiles()
             {
-                if (Style.Active == null && Style.InActive == null && Style.Tile == null && Style.TileColor == null
-                    && Style.Wall == null && Style.WallColor == null)
-                    return this;
-
-                foreach ((int x, int y) in ProviderPoints)
+                lock (ApplyLocker)
                 {
-                    dynamic tile = Provider[x, y];
-                    if (tile == null)
-                        throw new NullReferenceException($"tile is null: {x}, {y}");
-                    if (Style.Active != null)
-                        tile.active(Style.Active.Value);
-                    if (Style.InActive != null)
-                        tile.inActive(Style.InActive.Value);
-                    if (Style.Tile != null)
-                        tile.type = Style.Tile.Value;
-                    if (Style.TileColor != null)
-                        tile.color(Style.TileColor.Value);
-                    if (Style.Wall != null)
-                        tile.wall = Style.Wall.Value;
-                    if (Style.WallColor != null)
-                        tile.wallColor(Style.WallColor.Value);
+                    if (Style.Active == null && Style.InActive == null && Style.Tile == null && Style.TileColor == null
+                        && Style.Wall == null && Style.WallColor == null)
+                        return this;
+
+                    foreach ((int x, int y) in ProviderPoints)
+                    {
+                        dynamic tile = Provider[x, y];
+                        if (tile == null)
+                            throw new NullReferenceException($"tile is null: {x}, {y}");
+                        if (Style.Active != null)
+                            tile.active(Style.Active.Value);
+                        if (Style.InActive != null)
+                            tile.inActive(Style.InActive.Value);
+                        if (Style.Tile != null)
+                            tile.type = Style.Tile.Value;
+                        if (Style.TileColor != null)
+                            tile.color(Style.TileColor.Value);
+                        if (Style.Wall != null)
+                            tile.wall = Style.Wall.Value;
+                        if (Style.WallColor != null)
+                            tile.wallColor(Style.WallColor.Value);
+                    }
                 }
                 return this;
             }
@@ -729,20 +758,23 @@ namespace TUI.Base
 
             public void ShowGrid()
             {
-                (int sx, int sy) = ProviderXY();
-                for (int i = 0; i < Style.Grid.Columns.Length; i++)
-                    for (int j = 0; j < Style.Grid.Lines.Length; j++)
-                    {
-                        (int columnX, int columnSize) = Style.Grid.ResultingColumns[i];
-                        (int lineY, int lineSize) = Style.Grid.ResultingLines[j];
-                        for (int x = columnX; x < columnX + columnSize; x++)
-                            for (int y = lineY; y < lineY + lineSize; y++)
-                            {
-                                dynamic tile = Provider[sx + x, sy + y];
-                                tile.wall = (byte)155;
-                                tile.wallColor((byte)(25 + (i + j) % 2));
-                            }
-                    }
+                lock (ApplyLocker)
+                {
+                    (int sx, int sy) = ProviderXY();
+                    for (int i = 0; i < Style.Grid.Columns.Length; i++)
+                        for (int j = 0; j < Style.Grid.Lines.Length; j++)
+                        {
+                            (int columnX, int columnSize) = Style.Grid.ResultingColumns[i];
+                            (int lineY, int lineSize) = Style.Grid.ResultingLines[j];
+                            for (int x = columnX; x < columnX + columnSize; x++)
+                                for (int y = lineY; y < lineY + lineSize; y++)
+                                {
+                                    dynamic tile = Provider[sx + x, sy + y];
+                                    tile.wall = (byte)155;
+                                    tile.wallColor((byte)(25 + (i + j) % 2));
+                                }
+                        }
+                }
             }
 
             #endregion
@@ -750,7 +782,8 @@ namespace TUI.Base
 
             public virtual VisualObject CustomApply()
             {
-                Configuration.CustomApply?.Invoke(this);
+                lock (ApplyLocker)
+                    Configuration.CustomApply?.Invoke(this);
                 return this;
             }
 
@@ -759,15 +792,18 @@ namespace TUI.Base
 
             public virtual VisualObject ApplyChild()
             {
-                bool forceSection = ForceSection;
-                lock (Child)
-                    foreach (VisualObject child in ChildrenFromBottom)
-                        if (child.Active)
-                        {
-                            child.Apply();
-                            forceSection = forceSection || child.ForceSection;
-                        }
-                ForceSection = forceSection;
+                lock (ApplyLocker)
+                {
+                    bool forceSection = ForceSection;
+                    lock (Child)
+                        foreach (VisualObject child in ChildrenFromBottom)
+                            if (child.Active)
+                            {
+                                child.Apply();
+                                forceSection = forceSection || child.ForceSection;
+                            }
+                    ForceSection = forceSection;
+                }
                 return this;
             }
 
@@ -780,7 +816,9 @@ namespace TUI.Base
         {
             bool realForceSection = forceSection ?? ForceSection;
             (int ax, int ay) = AbsoluteXY();
+#if DEBUG
             Console.WriteLine($"Draw ({Name}): {ax + dx}, {ay + dy}, {(width >= 0 ? width : Width)}, {(height >= 0 ? height : Height)}: {realForceSection}");
+#endif
             UI.DrawRect(ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height, realForceSection, userIndex, exceptUserIndex, frame);
             return this;
         }

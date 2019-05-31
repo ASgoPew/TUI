@@ -37,19 +37,22 @@ namespace TUI.Widgets
         public static List<char> Characters = new List<char> { 'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',' ' };
         public static List<char> All = Digits.Concat(Characters).ToList();
 
+        public Action<InputLabel, string> InputLabelCallback;
+
         public InputLabelStyle InputLabelStyle => Style as InputLabelStyle;
 
         #endregion
 
         #region Initialize
 
-        public InputLabel(int x, int y, string text, InputLabelStyle style = null)
+        public InputLabel(int x, int y, string text, InputLabelStyle style = null, Action<InputLabel, string> callback = null)
             : base(x, y, text.Length * 2, style?.TextUnderline == LabelUnderline.Underline ? 3 : 2, text,
-                  new UIConfiguration() { UseEnd=true, UseOutsideTouches=true }, style ?? new InputLabelStyle())
+                  new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true }, style ?? new InputLabelStyle())
         {
             InputLabelStyle ilstyle = InputLabelStyle;
             ilstyle.TextOffset = new Offset() { Left = 0, Up = 0, Right = 0, Down = 0, Horizontal = 2, Vertical = 0 };
             ilstyle.TextAlignment = Alignment.UpLeft;
+            InputLabelCallback = callback;
         }
 
         #endregion
@@ -65,19 +68,22 @@ namespace TUI.Widgets
 
         public override bool Invoke(Touch touch)
         {
-            if (touch.State == TouchState.End)
+            if (touch.State == TouchState.End || touch.State == TouchState.Moving)
             {
-                List<char> charShift = InputLabelStyle.Type == InputLabelType.Digits ? Digits : (InputLabelStyle.Type == InputLabelType.Characters ? Characters : All);
-                int delta = touch.Session.BeginTouch.AbsoluteY - touch.AbsoluteY;
+                List<char> charShift = InputLabelStyle.Type == InputLabelType.Digits
+                    ? Digits
+                    : (InputLabelStyle.Type == InputLabelType.Characters ? Characters : All);
+                int delta = touch.Session.PreviousTouch.AbsoluteY - touch.AbsoluteY;
                 if (delta % charShift.Count != 0)
                 {
                     int charPosition = touch.Session.BeginTouch.X / 2;
                     int charIndex = charShift.IndexOf(RawText[charPosition]);
                     char newChar = charShift[((charIndex + delta) % charShift.Count + charShift.Count) % charShift.Count];
                     string newText = $"{RawText.Substring(0, charPosition)}{newChar}{RawText.Substring(charPosition + 1, (RawText.Length - charPosition - 1))}";
-                    Console.WriteLine("New text: " + newText);
                     SetText(newText);
                     ApplyThis().Draw();
+                    if (touch.State == TouchState.End)
+                        InputLabelCallback?.Invoke(this, newText);
                 }
             }
             return true;
