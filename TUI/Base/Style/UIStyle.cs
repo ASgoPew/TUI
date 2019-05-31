@@ -22,6 +22,7 @@ namespace TUI.Base.Style
     {
         public ushort Index { get; internal set; } = 0;
         public List<VisualObject> Objects { get; internal set; } = null;
+        public int Indent { get; internal set; } = 0;
         /// <summary>
         /// Layout offset.
         /// </summary>

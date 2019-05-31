@@ -67,7 +67,7 @@ namespace TUI.Widgets
             base.ApplyThisNative();
 
             foreach ((int x, int y) in Points)
-                Tile(x, y).slope(Slope[ArrowStyle.Direction][y, x]);
+                Tile(x, y)?.slope(Slope[ArrowStyle.Direction][y, x]);
         }
 
         #endregion

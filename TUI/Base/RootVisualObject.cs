@@ -87,5 +87,15 @@ namespace TUI.Base
         }
 
         #endregion
+        #region Tile
+
+        protected override dynamic Tile(int x, int y)
+        {
+            if (x < 0 || y < 0 || x >= Width || y >= Height)
+                throw new ArgumentOutOfRangeException($"{FullName}: Invalid tile x or y.");
+            return Provider[ProviderX + x, ProviderY + y];
+        }
+
+        #endregion
     }
 }

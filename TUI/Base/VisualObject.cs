@@ -13,8 +13,8 @@ namespace TUI.Base
         public VisualObject[,] Grid { get; set; }
         public GridCell Cell { get; private set; }
         public bool ForceSection { get; protected set; } = false;
-        internal int ApplyX;
-        internal int ApplyY;
+        public int ProviderX;
+        public int ProviderY;
 
         public override bool Orderable => !Style.Positioning.InLayout;
         public virtual string Name => GetType().Name;
@@ -24,12 +24,6 @@ namespace TUI.Base
                     ? $"{Parent.FullName}[{Cell.Column},{Cell.Line}].{Name}"
                     : $"{Parent.FullName}[{IndexInParent}].{Name}")
                 : Name;
-        protected dynamic Tile(int x, int y)
-        {
-            if (x < 0 || y < 0 || x >= Width || y >= Height)
-                return null;
-            return Provider[ApplyX + x, ApplyY + y];
-        }
 
         #endregion
 
@@ -130,6 +124,18 @@ namespace TUI.Base
         }
 
         #endregion
+        #region Tile
+
+        protected virtual dynamic Tile(int x, int y)
+        {
+            if (x < 0 || y < 0 || x >= Width || y >= Height)
+                throw new ArgumentOutOfRangeException($"{FullName}: Invalid tile x or y.");
+            if (X + x < 0 || X + x >= Parent.Width || Y + y < 0 || Y + y >= Parent.Height)
+                return null;
+            return Provider[ProviderX + x, ProviderY + y];
+        }
+
+        #endregion
         #region ToString
 
         public override string ToString() => FullName;
@@ -218,10 +224,18 @@ namespace TUI.Base
         }
 
         #endregion
+        #region LayoutIndent
 
+        public VisualObject LayoutIndent(int value)
+        {
+            Style.Layout.Indent = value;
+            return this;
+        }
+
+        #endregion
         #region Pulse
 
-            public virtual VisualObject Pulse(PulseType type)
+        public virtual VisualObject Pulse(PulseType type)
             {
                 // Pulse event handling related to this node
                 PulseThis(type);
@@ -294,12 +308,22 @@ namespace TUI.Base
             #endregion
             #region UpdateThisNative
 
+            /// <summary>
+            /// Updates related to this node. At the moment of calling this method node position must be set up completely.
+            /// </summary>
             protected virtual void UpdateThisNative()
             {
+                // Find Root node
                 if (Root == null)
                     Root = GetRoot() as RootVisualObject;
+                // Update position relative to Provider
+                (ProviderX, ProviderY) = ProviderXY();
+                Console.WriteLine($"{FullName}: {ProviderX}, {ProviderY}; {UsesDefaultMainProvider}; {Parent}; {Root}");
+                // Update child objects with Style.FullSize
                 UpdateFullSize();
+                // Update child objects in layout
                 UpdateLayout();
+                // Update child objects in grid
                 if (Style.Grid != null)
                     UpdateGrid();
             }
@@ -351,6 +375,7 @@ namespace TUI.Base
                 Direction direction = Style.Layout.Direction ?? parentGridStyle?.DefaultDirection ?? UIDefault.Direction;
                 Side side = Style.Layout.Side ?? parentGridStyle?.DefaultSide ?? UIDefault.Side;
                 int indent = Style.Layout.ChildIndent ?? Parent?.Style?.Grid?.DefaultChildIndent ?? UIDefault.CellsIndent;
+                int layoutIndent = Style.Layout.Indent;
 
                 (int abstractLayoutW, int abstractLayoutH, List<VisualObject> layoutChild) = CalculateLayoutSize(direction, indent);
                 for (int i = 0; i < Style.Layout.Index; i++)
@@ -360,7 +385,7 @@ namespace TUI.Base
                 layoutChild = layoutChild.Skip(Style.Layout.Index).ToList();
 
                 // Calculating layout box position
-                int layoutX, layoutY, layoutW, layoutH;
+                int layoutX, layoutY;
 
                 // Initializing sx
                 if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
@@ -370,7 +395,6 @@ namespace TUI.Base
                 else
                     layoutX = (Width - abstractLayoutW + 1) / 2;
                 layoutX = Math.Max(layoutX, offset.Left);
-                layoutW = Math.Min(abstractLayoutW, Width - offset.Left - offset.Right);
 
                 // Initializing sy
                 if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
@@ -380,16 +404,30 @@ namespace TUI.Base
                 else
                     layoutY = (Height - abstractLayoutH + 1) / 2;
                 layoutY = Math.Max(layoutY, offset.Up);
-                layoutH = Math.Min(abstractLayoutH, Height - offset.Up - offset.Down);
 
                 // Updating cell objects padding
-                int cx = direction == Direction.Left ? Math.Min(abstractLayoutW - layoutChild[0].Width, Width - layoutX - offset.Right - layoutChild[0].Width) : 0;
-                int cy = direction == Direction.Up ? Math.Min(abstractLayoutH - layoutChild[0].Height, Height - layoutY - offset.Down - layoutChild[0].Height) : 0;
+                int cx = direction == Direction.Left
+                    ? Math.Min(abstractLayoutW - layoutChild[0].Width, Width - layoutX - offset.Right - layoutChild[0].Width)
+                    : 0;
+                int cy = direction == Direction.Up
+                    ? Math.Min(abstractLayoutH - layoutChild[0].Height, Height - layoutY - offset.Down - layoutChild[0].Height)
+                    : 0;
+
+                // Layout indent for smooth scrolling
+                if (direction == Direction.Right)
+                    cx = cx - layoutIndent;
+                else if (direction == Direction.Left)
+                    cx = cx + layoutIndent;
+                else if (direction == Direction.Down)
+                    cy = cy - layoutIndent;
+                else if (direction == Direction.Up)
+                    cy = cy + layoutIndent;
+
                 int k = 0;
                 for (; k < layoutChild.Count; k++)
                 {
-                    VisualObject child = layoutChild[k];
                     // Calculating side alignment
+                    VisualObject child = layoutChild[k];
                     int sideDeltaX = 0, sideDeltaY = 0;
                     if (direction == Direction.Left)
                     {
@@ -423,8 +461,10 @@ namespace TUI.Base
                     int resultX = layoutX + cx + sideDeltaX;
                     int resultY = layoutY + cy + sideDeltaY;
                     //Console.WriteLine($"{Width}, {Height}: {resultX}, {resultY}, {resultX + child.Width - 1}, {resultY + child.Height - 1}");
-                    child.Visible = LayoutContains(resultX, resultY, offset)
-                        && LayoutContains(resultX + child.Width - 1, resultY + child.Height - 1, offset);
+                    //child.Visible = LayoutContains(resultX, resultY, offset)
+                    //    && LayoutContains(resultX + child.Width - 1, resultY + child.Height - 1, offset);
+                    child.Visible = Intersecting(resultX, resultY, child.Width, child.Height, offset.Left, offset.Up,
+                        Width - offset.Right - offset.Left, Height - offset.Down - offset.Up);
 
                     if (child.Visible)
                         child.SetXY(resultX, resultY);
@@ -496,8 +536,11 @@ namespace TUI.Base
         #endregion
             #region LayoutContains
 
-            public virtual bool LayoutContains(int x, int y, ExternalOffset offset) =>
-                x >= offset.Left && y >= offset.Up && x < Width - offset.Right && y < Height - offset.Down;
+            public bool Intersecting(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2) =>
+                x1 < x2 + w2 && y1 < y2 + h2 && x2 < x1 + w1 && y2 < y1 + h1;
+
+            //public virtual bool LayoutContains(int x, int y, ExternalOffset offset) =>
+                //x >= offset.Left && y >= offset.Up && x < Width - offset.Right && y < Height - offset.Down;
 
             #endregion
             #region UpdateGrid
@@ -679,9 +722,6 @@ namespace TUI.Base
 
                 lock (ApplyLocker)
                 {
-                    // Setting apply bounds
-                    (ApplyX, ApplyY) = ProviderXY();
-
                     // Applying related to this node
                     ApplyThis();
 
@@ -755,7 +795,7 @@ namespace TUI.Base
                     {
                         dynamic tile = Tile(x, y);
                         if (tile == null)
-                            throw new NullReferenceException($"tile is null: {x}, {y}");
+                            continue;
                         if (Style.Active != null)
                             tile.active(Style.Active.Value);
                         if (Style.InActive != null)
@@ -789,6 +829,8 @@ namespace TUI.Base
                                 for (int y = lineY; y < lineY + lineSize; y++)
                                 {
                                     dynamic tile = Tile(x, y);
+                                    if (tile == null)
+                                        continue;
                                     tile.wall = (byte)155;
                                     tile.wallColor((byte)(25 + (i + j) % 2));
                                 }
@@ -875,7 +917,7 @@ namespace TUI.Base
         public virtual VisualObject Clear()
         {
             foreach ((int x, int y) in Points)
-                Tile(x, y).ClearEverything();
+                Tile(x, y)?.ClearEverything();
             return this;
         }
 

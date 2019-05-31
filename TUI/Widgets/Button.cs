@@ -147,7 +147,7 @@ namespace TUI.Widgets
             {
                 dynamic tile = Tile(x, y);
                 if (tile == null)
-                    throw new NullReferenceException($"tile is null: {x}, {y}");
+                    continue;
                 if (Style.Active != null)
                     tile.active(Style.Active.Value);
                 if (Style.InActive != null)
@@ -192,13 +192,13 @@ namespace TUI.Widgets
             else if (blinkStyle == ButtonBlinkStyle.Left)
             {
                 for (int y = 0; y < Height; y++)
-                    Tile(0, y).wallColor(blinkColor);
+                    Tile(0, y)?.wallColor(blinkColor);
                 Draw(-Height + 1, 0, Height, Height, forceSection: false);
             }
             else if (blinkStyle == ButtonBlinkStyle.Right)
             {
                 for (int y = 0; y < Height; y++)
-                    Tile(Width - 1, y).wallColor(blinkColor);
+                    Tile(Width - 1, y)?.wallColor(blinkColor);
                 Draw(Width - 1, 0, Height, Height, forceSection: false);
             }
         }

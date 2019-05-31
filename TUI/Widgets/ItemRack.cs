@@ -67,6 +67,8 @@ namespace TUI.Widgets
                 for (int y = 0; y < 3; y++)
                 {
                     dynamic tile = Tile(x, y);
+                    if (tile == null)
+                        continue;
                     tile.active(true);
                     if (sign && x == 0 && y == 0)
                         tile.sTileHeader = (short)(UI.FakeSignSTileHeader | (Style.InActive == true ? 64 : Style.InActive == false ? 0 : tile.inActive() ? 64 : 0));

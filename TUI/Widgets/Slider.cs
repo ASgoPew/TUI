@@ -88,7 +88,7 @@ namespace TUI.Widgets
             {
                 dynamic tile = Tile(x, y);
                 if (tile == null)
-                    throw new NullReferenceException($"tile is null: {x}, {y}");
+                    continue;
                 if (Style.Active != null)
                     tile.active(Style.Active.Value);
                 if (Style.InActive != null)
