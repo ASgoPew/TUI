@@ -74,14 +74,16 @@ namespace TUI.Base
         }
 
         #endregion
-        #region Apply
+        #region ApplyThisNative
 
         protected override void ApplyThisNative()
         {
             Stopwatch sw = Stopwatch.StartNew();
             Clear();
             base.ApplyThisNative();
+#if DEBUG
             Console.WriteLine($"Apply ({Name}): {sw.ElapsedMilliseconds}");
+#endif
         }
 
         #endregion

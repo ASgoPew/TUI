@@ -143,10 +143,9 @@ namespace TUI.Widgets
             bool full = blinkStyle == ButtonBlinkStyle.Full;
             bool left = blinkStyle == ButtonBlinkStyle.Left;
             bool right = blinkStyle == ButtonBlinkStyle.Right;
-            (int sx, int sy) = ProviderXY();
-            foreach ((int x, int y) in ProviderPoints)
+            foreach ((int x, int y) in Points)
             {
-                dynamic tile = Provider[x, y];
+                dynamic tile = Tile(x, y);
                 if (tile == null)
                     throw new NullReferenceException($"tile is null: {x}, {y}");
                 if (Style.Active != null)
@@ -160,7 +159,7 @@ namespace TUI.Widgets
                 if (Style.Wall != null)
                     tile.wall = Style.Wall.Value;
                 if (Style.WallColor != null)
-                    tile.wallColor(Pressed && (full || left && x == sx || right && x == sx + Width - 1)
+                    tile.wallColor(Pressed && (full || left && x == 0 || right && x == Width - 1)
                         ? blinkColor : Style.WallColor.Value);
             }
             return this;
@@ -192,16 +191,14 @@ namespace TUI.Widgets
                 Apply().Draw();
             else if (blinkStyle == ButtonBlinkStyle.Left)
             {
-                (int sx, int sy) = ProviderXY();
-                for (int y = sy; y < sy + Height; y++)
-                    Provider[sx, y].wallColor(blinkColor);
+                for (int y = 0; y < Height; y++)
+                    Tile(0, y).wallColor(blinkColor);
                 Draw(-Height + 1, 0, Height, Height, forceSection: false);
             }
             else if (blinkStyle == ButtonBlinkStyle.Right)
             {
-                (int sx, int sy) = ProviderXY(Width - 1);
-                for (int y = sy; y < sy + Height; y++)
-                    Provider[sx, y].wallColor(blinkColor);
+                for (int y = 0; y < Height; y++)
+                    Tile(Width - 1, y).wallColor(blinkColor);
                 Draw(Width - 1, 0, Height, Height, forceSection: false);
             }
         }

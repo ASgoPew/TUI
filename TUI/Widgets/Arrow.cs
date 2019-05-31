@@ -66,9 +66,8 @@ namespace TUI.Widgets
         {
             base.ApplyThisNative();
 
-            (int sx, int sy) = ProviderXY();
             foreach ((int x, int y) in Points)
-                Provider[sx + x, sy + y].slope(Slope[ArrowStyle.Direction][y, x]);
+                Tile(x, y).slope(Slope[ArrowStyle.Direction][y, x]);
         }
 
         #endregion

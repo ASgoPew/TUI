@@ -84,10 +84,9 @@ namespace TUI.Widgets
                     && Style.Wall == null && Style.WallColor == null)
                 return this;
 
-            (int sx, int sy) = ProviderXY();
-            foreach ((int x, int y) in ProviderPoints)
+            foreach ((int x, int y) in Points)
             {
-                dynamic tile = Provider[x, y];
+                dynamic tile = Tile(x, y);
                 if (tile == null)
                     throw new NullReferenceException($"tile is null: {x}, {y}");
                 if (Style.Active != null)
@@ -101,7 +100,7 @@ namespace TUI.Widgets
                 if (Style.Wall != null)
                     tile.wall = Style.Wall.Value;
                 if (Style.WallColor != null)
-                    tile.wallColor((x - sx > Value) ? Style.WallColor.Value : (x - sx == Value) ? SliderStyle.SeparatorColor : SliderStyle.UsedColor);
+                    tile.wallColor((x > Value) ? Style.WallColor.Value : (x == Value) ? SliderStyle.SeparatorColor : SliderStyle.UsedColor);
             }
             return this;
         }

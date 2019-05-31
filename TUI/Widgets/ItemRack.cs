@@ -59,7 +59,6 @@ namespace TUI.Widgets
         {
             base.ApplyThisNative();
 
-            (int sx, int sy) = ProviderXY();
             short type = ItemRackStyle.Type;
             bool left = ItemRackStyle.Left;
             int fx = left ? 54 : 0;
@@ -67,7 +66,7 @@ namespace TUI.Widgets
             for (int x = 0; x < 3; x++)
                 for (int y = 0; y < 3; y++)
                 {
-                    dynamic tile = Provider[sx + x, sy + y];
+                    dynamic tile = Tile(x, y);
                     tile.active(true);
                     if (sign && x == 0 && y == 0)
                         tile.sTileHeader = (short)(UI.FakeSignSTileHeader | (Style.InActive == true ? 64 : Style.InActive == false ? 0 : tile.inActive() ? 64 : 0));

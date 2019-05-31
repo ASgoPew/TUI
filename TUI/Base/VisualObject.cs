@@ -13,8 +13,8 @@ namespace TUI.Base
         public VisualObject[,] Grid { get; set; }
         public GridCell Cell { get; private set; }
         public bool ForceSection { get; protected set; } = false;
-        private int ApplyX;
-        private int ApplyY;
+        internal int ApplyX;
+        internal int ApplyY;
 
         public override bool Orderable => !Style.Positioning.InLayout;
         public virtual string Name => GetType().Name;
@@ -679,6 +679,9 @@ namespace TUI.Base
 
                 lock (ApplyLocker)
                 {
+                    // Setting apply bounds
+                    (ApplyX, ApplyY) = ProviderXY();
+
                     // Applying related to this node
                     ApplyThis();
 
@@ -689,6 +692,23 @@ namespace TUI.Base
                 return this;
             }
 
+            /*#region ApplyPosition
+
+            private (int x, int y) ApplyPositionMove()
+            {
+                int x = X, y = Y;
+                ApplyX += x;
+                ApplyY += y;
+                return (x, y);
+            }
+
+            private void ApplyPositionMoveBack(int x, int y)
+            {
+                ApplyX -= x;
+                ApplyY -= y;
+            }
+
+            #endregion*/
             #region ApplyThis
 
             /// <summary>
@@ -731,9 +751,9 @@ namespace TUI.Base
                         && Style.Wall == null && Style.WallColor == null)
                         return this;
 
-                    foreach ((int x, int y) in ProviderPoints)
+                    foreach ((int x, int y) in Points)
                     {
-                        dynamic tile = Provider[x, y];
+                        dynamic tile = Tile(x, y);
                         if (tile == null)
                             throw new NullReferenceException($"tile is null: {x}, {y}");
                         if (Style.Active != null)
@@ -760,7 +780,6 @@ namespace TUI.Base
             {
                 lock (ApplyLocker)
                 {
-                    (int sx, int sy) = ProviderXY();
                     for (int i = 0; i < Style.Grid.Columns.Length; i++)
                         for (int j = 0; j < Style.Grid.Lines.Length; j++)
                         {
@@ -769,7 +788,7 @@ namespace TUI.Base
                             for (int x = columnX; x < columnX + columnSize; x++)
                                 for (int y = lineY; y < lineY + lineSize; y++)
                                 {
-                                    dynamic tile = Provider[sx + x, sy + y];
+                                    dynamic tile = Tile(x, y);
                                     tile.wall = (byte)155;
                                     tile.wallColor((byte)(25 + (i + j) % 2));
                                 }
@@ -855,8 +874,8 @@ namespace TUI.Base
 
         public virtual VisualObject Clear()
         {
-            foreach ((int x, int y) in ProviderPoints)
-                Provider[x, y].ClearEverything();
+            foreach ((int x, int y) in Points)
+                Tile(x, y).ClearEverything();
             return this;
         }
 

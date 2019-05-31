@@ -30,12 +30,10 @@ namespace TUI.Widgets
             UIConfiguration configuration = null, UIStyle style = null, object provider = null)
             : base(name, x, y, width, height, configuration ?? new UIConfiguration() { UseBegin = false }, style, provider)
         {
-            DragObject = drag;
-            ResizeObject = resize;
             if (drag != null)
-                Add(drag, 1000000);
+                DragObject = Add(drag, 1000000) as PanelDrag;
             if (resize != null)
-                Add(resize, 1000000);
+                ResizeObject = Add(resize, 1000000) as PanelResize;
         }
 
         internal protected Panel(string name, int x, int y, int width, int height, UIConfiguration configuration = null,
@@ -176,7 +174,10 @@ namespace TUI.Widgets
         {
         }
 
-        public override VisualObject Update() =>
+        protected override void UpdateThisNative()
+        {
+            base.UpdateThisNative();
             SetXY(Parent.Width - 1, Parent.Height - 1);
+        }
     }
 }

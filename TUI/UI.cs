@@ -148,8 +148,6 @@ namespace TUI
                 if (touch.State == TouchState.Moving && touch.AbsoluteX == previous.AbsoluteX && touch.AbsoluteY == previous.AbsoluteY)
                     return session.Used;
 
-                Console.WriteLine($"{touch.X},{touch.Y} {touch.State}");
-
                 Stopwatch sw = Stopwatch.StartNew();
 
                 if (touch.State == TouchState.Begin)
@@ -177,7 +175,7 @@ namespace TUI
                 }
 
                 long elapsed = sw.ElapsedMilliseconds;
-                Console.WriteLine("Elapsed: " + elapsed);
+                Console.WriteLine($"Touch ({touch.X},{touch.Y}): {touch.State}; elapsed: {elapsed}");
 
                 session.Count++;
                 session.PreviousTouch = touch;
@@ -283,7 +281,7 @@ namespace TUI
         #endregion
         #region ChildInterSectingOthers
 
-        public static (bool, bool) ChildIntersectingOthers(RootVisualObject o)
+        public static (bool intersects, bool needsApply) ChildIntersectingOthers(RootVisualObject o)
         {
             bool intersects = false;
             foreach (RootVisualObject child in Child)
@@ -302,7 +300,7 @@ namespace TUI
         public static void Update()
         {
             lock (Child)
-                foreach (VisualObject child in Child)
+                foreach (RootVisualObject child in Child)
                     if (child.Active)
                         child.Update();
         }
@@ -313,7 +311,7 @@ namespace TUI
         public static void Apply()
         {
             lock (Child)
-                foreach (VisualObject child in Child)
+                foreach (RootVisualObject child in Child)
                     if (child.Active)
                         child.Apply();
         }
@@ -324,7 +322,7 @@ namespace TUI
         public static void Draw()
         {
             lock (Child)
-                foreach (VisualObject child in Child)
+                foreach (RootVisualObject child in Child)
                     if (child.Active)
                         child.Draw();
         }

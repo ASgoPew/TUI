@@ -87,7 +87,6 @@ namespace TUI.Widgets
             Alignment alignment = style.TextAlignment;
             Side side = style.TextSide;
 
-            (int sx, int sy) = ProviderXY();
             int spaceW = Width - indentation.Left - indentation.Right;
             int spaceH = Height - indentation.Up - indentation.Down;
 		    int textW = TextW;
@@ -135,7 +134,7 @@ namespace TUI.Widgets
 					    for (int statueX = 0; statueX < 2; statueX++)
 						    for (int statueY = 0; statueY <= Math.Min(lineH - 1, 3); statueY++)
                             {
-                                dynamic tile = Provider[sx + charX + statueX, sy + charY + statueY];
+                                dynamic tile = Tile(charX + statueX, charY + statueY); ;
                                 tile.frameX = (short)(statueFrame + statueX * 18);
                                 tile.frameY = (short)(statueY * 18);
                                 tile.active(true);
@@ -153,10 +152,7 @@ namespace TUI.Widgets
                     {
                         for (int x = 0; x < indentation.Horizontal; x++)
                             for (int statueY = 0; statueY <= Math.Min(lineH - 1, 3); statueY++)
-                            {
-                                dynamic tile = Provider[sx + charX + x, sy + charY + statueY];
-                                tile.active(false);
-                            }
+                                Tile(charX + x, charY + statueY).active(false);
 					    charX += indentation.Horizontal;
                     }
                 }

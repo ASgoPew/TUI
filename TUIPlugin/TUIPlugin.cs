@@ -202,7 +202,7 @@ namespace TUIPlugin
         public static void OnTouchCancel(TouchCancelArgs args)
         {
             TSPlayer player = args.Touch.Player();
-            player.SendWarningMessage("You are holding mouce for too long.");
+            player.SendWarningMessage("You are holding mouse for too long.");
             Console.WriteLine("TUI: TOO LONG");
             player.SendData(PacketTypes.ProjectileDestroy, null, args.Session.ProjectileID, player.Index);
             Touch simulatedEndTouch = args.Touch.SimulatedEndTouch();
