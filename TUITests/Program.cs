@@ -39,8 +39,7 @@ namespace TUITests
             RootVisualObject root = UI.CreateRoot("Game", 55, 115, 50, 40);
             root.SetupGrid(new GridStyle(new ISize[] { new Relative(100), new Absolute(20) }, new ISize[] { new Absolute(20), new Relative(100) })
             {
-                Offset = new Offset() { Right = 1 },
-                DefaultAlignment = Alignment.DownRight
+                Offset = new Offset() { Right = 1 }
             });
             UI.Update();
             UI.Touched(me.Index, new Touch(124, 110, TouchState.Begin, 0, 0));

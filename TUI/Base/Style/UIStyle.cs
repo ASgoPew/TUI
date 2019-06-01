@@ -3,46 +3,74 @@ using System.Linq;
 
 namespace TUI.Base.Style
 {
-    public class PositioningStyle
+    public class AlignmentStyle
     {
         /// <summary>
-        /// If set to true and object has a parent then X and Y would be ignored, instead object
-        /// would be positioned in parent's layout.
+        /// Alignment inside parent.
         /// </summary>
-        public bool InLayout { get; set; } = false;
+        public Alignment Alignment { get; set; }
         /// <summary>
-        /// Object size matches parent horizontal/vertical/both size automatically.
-        /// <para>If <see cref="FullSize"/> != None and <see cref="InLayout"/> == true then matching parent size consideres layout offset.</para>
-        /// Doesn't work if object is a cell of parent's grid.
+        /// Offset for <see cref="Alignment"/> inside parent.
         /// </summary>
-        public FullSize FullSize { get; set; } = FullSize.None;
+        public ExternalOffset Offset { get; set; }
+
+        public AlignmentStyle(Alignment alignment, ExternalOffset offset = null)
+        {
+            Alignment = alignment;
+            Offset = offset ?? new ExternalOffset(UIDefault.ExternalOffset);
+        }
+
+        public AlignmentStyle(AlignmentStyle alignmentStyle)
+            : this(alignmentStyle.Alignment, alignmentStyle.Offset) { }
     }
 
     public class LayoutStyle
     {
+        /// <summary>
+        /// Begin index for <see cref="Objects"/> list in layout.
+        /// </summary>
         public ushort Index { get; internal set; } = 0;
+        /// <summary>
+        /// Child elements inside layout.
+        /// </summary>
         public List<VisualObject> Objects { get; internal set; } = null;
-        public int Indent { get; internal set; } = 0;
+        /// <summary>
+        /// Whole layout indentation.
+        /// </summary>
+        public int LayoutIndent { get; internal set; } = 0;
+
         /// <summary>
         /// Layout offset.
         /// </summary>
         public ExternalOffset Offset { get; set; }
         /// <summary>
-        /// Object placing alignment in child layout. Looks to parent's grid default value if not present.
+        /// Object placing alignment in child layout.
         /// </summary>
-        public Alignment? Alignment { get; set; }
+        public Alignment Alignment { get; set; }
         /// <summary>
-        /// Object placing direction in child layout. Looks to parent's grid default value if not present.
+        /// Object placing direction in child layout.
         /// </summary>
-        public Direction? Direction { get; set; }
+        public Direction Direction { get; set; }
         /// <summary>
-        /// Object placing side relative to direction in child layout. Looks to parent's grid default value if not present.
+        /// Object placing side relative to direction in child layout.
         /// </summary>
-        public Side? Side { get; set; }
+        public Side Side { get; set; }
         /// <summary>
-        /// Distance between objects in child layout. Looks to parent's grid default value if not present.
+        /// Distance between objects in child layout.
         /// </summary>
-        public int? ChildIndent { get; set; }
+        public int ChildIndent { get; set; }
+
+        public LayoutStyle(Alignment alignment = Style.Alignment.Center, Direction direction = Style.Direction.Down, Side side = Style.Side.Center, ExternalOffset offset = null, int childIndent = 1)
+        {
+            Alignment = alignment;
+            Direction = direction;
+            Side = side;
+            Offset = offset ?? new ExternalOffset(UIDefault.ExternalOffset);
+            ChildIndent = childIndent;
+        }
+
+        public LayoutStyle(LayoutStyle layoutStyle)
+            : this(layoutStyle.Alignment, layoutStyle.Direction, layoutStyle.Side, layoutStyle.Offset, layoutStyle.ChildIndent) { }
     }
 
     public class GridStyle
@@ -55,11 +83,6 @@ namespace TUI.Base.Style
         public ISize[] Columns { get; internal set; }
         public ISize[] Lines { get; internal set; }
         public Offset Offset { get; set; }
-        public ExternalOffset DefaultOffset { get; set; }
-        public Alignment? DefaultAlignment { get; set; }
-        public Direction? DefaultDirection { get; set; }
-        public Side? DefaultSide { get; set; }
-        public ushort? DefaultChildIndent { get; set; }
 
         public GridStyle(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null)
         {
@@ -76,18 +99,39 @@ namespace TUI.Base.Style
     public class UIStyle
     {
         /// <summary>
-        /// Parent related positioning styles.
+        /// Node positioning with alignment inside parent. Not set by default (null).
+        /// <para></para>
+        /// Use <see cref="VisualObject.SetAlignmentInParent(AlignmentStyle)"/> to initialize alignment.
         /// </summary>
-        public PositioningStyle Positioning { get; set; } = new PositioningStyle();
+        public AlignmentStyle Alignment { get; internal set; } = null;
+
         /// <summary>
-        /// Child layout related styles.
+        /// Child objects positioning in Layout. Not set by default (null).
+        /// <para></para>
+        /// Use <see cref="VisualObject.SetupLayout(LayoutStyle)"/>
         /// </summary>
-        public LayoutStyle Layout { get; set; } = new LayoutStyle();
+        public LayoutStyle Layout { get; internal set; } = null;
         /// <summary>
-        /// Grid related styles. Null by default. Use <see cref="VisualObject.SetupGrid(GridStyle, bool)"/> for initializing grid.
+        /// Child objects positioning in grid. Not set by default (null).
+        /// <para></para>
+        /// Use <see cref="VisualObject.SetupGrid(GridStyle, bool)"/> to initialize grid.
         /// </summary>
         public GridStyle Grid { get; internal set; }
-        
+
+        /// <summary>
+        /// If set to true and object has a parent then X and Y would be ignored, instead object
+        /// would be positioned in parent's layout.
+        /// </summary>
+        public bool InLayout { get; set; } = false;
+        /// <summary>
+        /// Object size matches parent horizontal/vertical/both size automatically.
+        /// <para></para>
+        /// If node is in parent's layout/alignment then matching parent size consideres layout/alignment offset.
+        /// <para></para>
+        /// Can't be used with grid positioning.
+        /// </summary>
+        public FullSize FullSize { get; set; } = FullSize.None;
+
         public bool? Active { get; set; }
         public ushort? Tile { get; set; }
         public byte? TileColor { get; set; }

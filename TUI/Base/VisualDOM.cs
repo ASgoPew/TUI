@@ -79,13 +79,6 @@ namespace TUI.Base
                 return child;
             }
 
-            public virtual VisualObject AddToLayout(VisualObject child, int layer = 0)
-            {
-                Add(child, layer);
-                child.Style.Positioning.InLayout = true;
-                return child;
-            }
-
             #endregion
             #region Remove
 

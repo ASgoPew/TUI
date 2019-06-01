@@ -65,3 +65,15 @@ UI.Draw();
 1. RootVisualObject **CreateRoot**(string *name*, int *x*, int *y*, int *width*, int *height*, UIConfiguration *configuration* = null, UIStyle *style* = null, object *provider* = null)
 2. Panel **CreatePanel**(string *name*, int *x*, int *y*, int *width*, int *height*, UIConfiguration *configuration* = null, UIStyle *style* = null, object *provider* = null)
 3. Panel **CreatePanel**(string *name*, int *x*, int *y*, int *width*, int *height*, UIConfiguration *configuration* = null, UIStyle *style* = null, object *provider* = null)
+
+## Способы автоматического регулирования позиции и размеров объекта внутри родителя
+
+Позиционирование дочерних объектов внутри текущей вершины:
+1. **Layout**
+2. **Grid**
+
+Позиционирование текущей вершины внутри родительской:
+1. **Alignment**
+
+Регулирование размеров объекта относительно родителя:
+1. **FullSize**

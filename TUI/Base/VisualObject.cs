@@ -16,7 +16,7 @@ namespace TUI.Base
         public int ProviderX;
         public int ProviderY;
 
-        public override bool Orderable => !Style.Positioning.InLayout;
+        public override bool Orderable => !Style.InLayout;
         public virtual string Name => GetType().Name;
         public string FullName =>
             Parent != null
@@ -29,6 +29,29 @@ namespace TUI.Base
 
         #region IDOM
 
+            #region AddToLayout
+
+            /// <summary>
+            /// Add object as a child in layout. Removes child alignment and grid positioning.
+            /// </summary>
+            /// <param name="child">Object to add as a child.</param>
+            /// <param name="layer">Layer where to add the object.</param>
+            /// <returns></returns>
+            public virtual VisualObject AddToLayout(VisualObject child, int layer = 0)
+            {
+                child.Style.Alignment = null;
+                if (child.Cell != null)
+                {
+                    Grid[child.Cell.Column, child.Cell.Line] = null;
+                    child.Cell = null;
+                }
+
+                Add(child, layer);
+                child.Style.InLayout = true;
+                return child;
+            }
+
+            #endregion
             #region Remove
 
             public override VisualObject Remove(VisualObject child)
@@ -86,13 +109,13 @@ namespace TUI.Base
         public VisualObject()
             : this(0, 0, 0, 0, new UIConfiguration() { UseBegin = false })
         {
-            Style.Positioning.FullSize = FullSize.Both;
+            Style.FullSize = FullSize.Both;
         }
 
         public VisualObject(UIConfiguration configuration)
             : this(0, 0, 0, 0, configuration)
         {
-            Style.Positioning.FullSize = FullSize.Both;
+            Style.FullSize = FullSize.Both;
         }
 
         public VisualObject(UIStyle style)
@@ -103,6 +126,14 @@ namespace TUI.Base
         #endregion
         #region operator[,]
 
+        /// <summary>
+        /// Get: Get a child in grid.
+        /// <para></para>
+        /// Set: Add object as a child to grid. Removes child alignment and layout positioning.
+        /// </summary>
+        /// <param name="column"></param>
+        /// <param name="line"></param>
+        /// <returns></returns>
         public VisualObject this[int column, int line]
         {
             get => Grid[column, line];
@@ -110,6 +141,9 @@ namespace TUI.Base
             {
                 if (value != null)
                 {
+                    value.Style.InLayout = false;
+                    value.Style.Alignment = null;
+
                     if (Grid[column, line] != null)
                         Remove(Grid[column, line]);
                     Grid[column, line] = Add(value);
@@ -156,15 +190,6 @@ namespace TUI.Base
         }
 
         #endregion
-        #region SetupPositioning
-
-        public VisualObject SetupPositioning(PositioningStyle positioning)
-        {
-            Style.Positioning = positioning;
-            return this;
-        }
-
-        #endregion
         #region SetupLayout
 
         public VisualObject SetupLayout(LayoutStyle layout)
@@ -199,18 +224,68 @@ namespace TUI.Base
         }
 
         #endregion
+        #region SetAlignmentInParent
+
+        /// <summary>
+        /// Setup alignment positioning inside parent. Removes layout and grid positioning.
+        /// </summary>
+        /// <param name="alignmentStyle"></param>
+        /// <returns></returns>
+        public VisualObject SetAlignmentInParent(AlignmentStyle alignmentStyle)
+        {
+            if (Cell != null)
+            {
+                Parent.Grid[Cell.Column, Cell.Line] = null;
+                Cell = null;
+            }
+            Style.InLayout = false;
+
+            Style.Alignment = alignmentStyle;
+            return this;
+        }
+
+        #endregion
         #region SetFullSize
 
+        /// <summary>
+        /// Set automatic stretching to parent size. Removes grid positioning.
+        /// </summary>
+        /// <param name="horizontal"></param>
+        /// <param name="vertical"></param>
+        /// <returns></returns>
         public VisualObject SetFullSize(bool horizontal = true, bool vertical = true)
         {
+            if (Cell != null)
+            {
+                Parent.Grid[Cell.Column, Cell.Line] = null;
+                Cell = null;
+            }
+
             if (horizontal && vertical)
-                Style.Positioning.FullSize = FullSize.Both;
+                Style.FullSize = FullSize.Both;
             else if (horizontal)
-                Style.Positioning.FullSize = FullSize.Horizontal;
+                Style.FullSize = FullSize.Horizontal;
             else if (vertical)
-                Style.Positioning.FullSize = FullSize.Vertical;
+                Style.FullSize = FullSize.Vertical;
             else
-                Style.Positioning.FullSize = FullSize.None;
+                Style.FullSize = FullSize.None;
+            return this;
+        }
+
+        /// <summary>
+        /// Set automatic stretching to parent size. Removes grid positioning.
+        /// </summary>
+        /// <param name="fullSize"></param>
+        /// <returns></returns>
+        public VisualObject SetFullSize(FullSize fullSize)
+        {
+            if (Cell != null)
+            {
+                Parent.Grid[Cell.Column, Cell.Line] = null;
+                Cell = null;
+            }
+
+            Style.FullSize = fullSize;
             return this;
         }
 
@@ -228,7 +303,7 @@ namespace TUI.Base
 
         public VisualObject LayoutIndent(int value)
         {
-            Style.Layout.Indent = value;
+            Style.Layout.LayoutIndent = value;
             return this;
         }
 
@@ -316,13 +391,22 @@ namespace TUI.Base
                 // Find Root node
                 if (Root == null)
                     Root = GetRoot() as RootVisualObject;
+
                 // Update position relative to Provider
                 (ProviderX, ProviderY) = ProviderXY();
-                Console.WriteLine($"{FullName}: {ProviderX}, {ProviderY}; {UsesDefaultMainProvider}; {Parent}; {Root}");
+
+                /////////////////////////// Child size updates ///////////////////////////
+
                 // Update child objects with Style.FullSize
                 UpdateFullSize();
+
+                ///////////////////////// Child position updates /////////////////////////
+
+                // Update child objects with alignment
+                UpdateAlignment();
                 // Update child objects in layout
-                UpdateLayout();
+                if (Style.Layout != null)
+                    UpdateLayout();
                 // Update child objects in grid
                 if (Style.Grid != null)
                     UpdateGrid();
@@ -331,26 +415,27 @@ namespace TUI.Base
             #endregion
             #region UpdateFullSize
 
-            public VisualObject UpdateFullSize()
+            protected void UpdateFullSize()
             {
-                ExternalOffset offset = Style.Layout.Offset ?? UIDefault.ExternalOffset;
-                int layoutX = offset.Left, layoutY = offset.Up;
-                int layoutW = Width - layoutX - offset.Right, layoutH = Height - layoutY - offset.Down;
+                ExternalOffset offset = Style.Layout?.Offset;
                 lock (Child)
                     foreach (VisualObject child in ChildrenFromTop)
                     {
-                        FullSize fullSize = child.Style.Positioning.FullSize;
+                        FullSize fullSize = child.Style.FullSize;
                         if (fullSize == FullSize.None)
                             continue;
 
-                        // If InLayout then FullSize should match parent size minus layout offset
+                        // If InLayout is set then FullSize should match parent size minus layout offset.
+                        // If Alignment is set then FullSize should match parent size minus alignment offset.
                         int x = 0, y = 0, width = Width, height = Height;
-                        if (child.Style.Positioning.InLayout)
+                        if (child.Style.InLayout || child.Style.Alignment != null)
                         {
-                            x = layoutX;
-                            y = layoutY;
-                            width = layoutW;
-                            height = layoutH;
+                            if (child.Style.Alignment != null)
+                                offset = child.Style.Alignment.Offset;
+                            x = offset.Left;
+                            y = offset.Up;
+                            width = Width - x - offset.Right;
+                            height = Height - y - offset.Down;
                         }
 
                         if (fullSize == FullSize.Both)
@@ -361,21 +446,52 @@ namespace TUI.Base
                             child.SetXYWH(child.X, y, child.Width, height);
                         //Console.WriteLine($"FullSize: {child.FullName}, {child.XYWH()}");
                     }
-                return this;
+            }
+
+            #endregion
+            #region UpdateAlignment
+
+            protected void UpdateAlignment()
+            {
+                lock (Child)
+                    foreach (VisualObject child in ChildrenFromTop)
+                    {
+                        AlignmentStyle positioning = child.Style.Alignment;
+                        if (positioning  == null)
+                            continue;
+
+                        ExternalOffset offset = positioning.Offset ?? UIDefault.ExternalOffset;
+                        Alignment alignment = positioning.Alignment;
+                        int x, y;
+                        if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
+                            x = offset.Left;
+                        else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
+                            x = Width - offset.Right - child.Width;
+                        else
+                            x = (int)Math.Floor((Width - child.Width) / 2f);
+
+                        if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
+                            y = offset.Up;
+                        else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
+                            y = Height - offset.Down - child.Height;
+                        else
+                            y = (int)Math.Floor((Height - child.Height) / 2f);
+
+                        child.SetXY(x, y);
+                    }
             }
 
             #endregion
             #region UpdateLayout
 
-            public void UpdateLayout()
+            protected void UpdateLayout()
             {
-                GridStyle parentGridStyle = Parent?.Style?.Grid;
-                ExternalOffset offset = Style.Layout.Offset ?? parentGridStyle?.DefaultOffset ?? UIDefault.ExternalOffset;
-                Alignment alignment = Style.Layout.Alignment ?? parentGridStyle?.DefaultAlignment ?? UIDefault.Alignment;
-                Direction direction = Style.Layout.Direction ?? parentGridStyle?.DefaultDirection ?? UIDefault.Direction;
-                Side side = Style.Layout.Side ?? parentGridStyle?.DefaultSide ?? UIDefault.Side;
-                int indent = Style.Layout.ChildIndent ?? Parent?.Style?.Grid?.DefaultChildIndent ?? UIDefault.CellsIndent;
-                int layoutIndent = Style.Layout.Indent;
+                ExternalOffset offset = Style.Layout.Offset;
+                Alignment alignment = Style.Layout.Alignment;
+                Direction direction = Style.Layout.Direction;
+                Side side = Style.Layout.Side;
+                int indent = Style.Layout.ChildIndent;
+                int layoutIndent = Style.Layout.LayoutIndent;
 
                 (int abstractLayoutW, int abstractLayoutH, List<VisualObject> layoutChild) = CalculateLayoutSize(direction, indent);
                 for (int i = 0; i < Style.Layout.Index; i++)
@@ -505,8 +621,8 @@ namespace TUI.Base
                 lock (Child)
                     foreach (VisualObject child in ChildrenFromBottom)
                     {
-                        FullSize fullSize = child.Style.Positioning.FullSize;
-                        if (!child.Enabled || !child.Style.Positioning.InLayout || fullSize == FullSize.Both
+                        FullSize fullSize = child.Style.FullSize;
+                        if (!child.Enabled || !child.Style.InLayout || fullSize == FullSize.Both
                                 || (fullSize == FullSize.Horizontal && (direction == Direction.Left || direction == Direction.Right))
                                 || (fullSize == FullSize.Vertical && (direction == Direction.Up || direction == Direction.Down)))
                             continue;
@@ -545,13 +661,8 @@ namespace TUI.Base
             #endregion
             #region UpdateGrid
 
-            public VisualObject UpdateGrid()
+            protected void UpdateGrid()
             {
-                if (Style.Grid == null)
-                    return this;
-                if (Grid == null)
-                    SetupGrid();
-
                 CalculateGridSizes();
 
                 // Main cell loop
@@ -568,8 +679,6 @@ namespace TUI.Base
                         //Console.WriteLine($"Grid: {cell.FullName}, {cell.XYWH()}");
                     }
                 }
-
-                return this;
             }
 
             #endregion
@@ -688,10 +797,9 @@ namespace TUI.Base
             #endregion
             #region CustomUpdate
 
-            public virtual VisualObject CustomUpdate()
+            protected virtual void CustomUpdate()
             {
                 Configuration.CustomUpdate?.Invoke(this);
-                return this;
             }
 
             #endregion
