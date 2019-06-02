@@ -154,7 +154,7 @@ namespace TUI.Base
                 return false;
             }
 
-        #endregion
+            #endregion
             #region SetTop
 
             public virtual bool SetTop(VisualObject o)

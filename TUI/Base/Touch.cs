@@ -29,6 +29,7 @@ namespace TUI.Base
         public int AbsoluteY { get; private set; }
         public TouchState State { get; internal set; }
         public UserSession Session { get; internal set; }
+        public VisualObject Object { get; internal set; }
         public int TouchSessionIndex { get; internal set; }
         public bool InsideUI { get; internal set; }
         //public Locked Locked { get; internal set; }

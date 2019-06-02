@@ -81,6 +81,7 @@
     <Compile Include="Widgets\Arrow.cs" />
     <Compile Include="Widgets\Button.cs" />
     <Compile Include="Widgets\Checkbox.cs" />
+    <Compile Include="Widgets\FormField.cs" />
     <Compile Include="Widgets\InputLabel.cs" />
     <Compile Include="Widgets\ItemRack.cs" />
     <Compile Include="Widgets\Label.cs" />

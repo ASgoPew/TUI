@@ -97,9 +97,10 @@ namespace TUI.Base
 
         public virtual bool CanTouch(Touch touch)
         {
-            CanTouchArgs args = new CanTouchArgs(this as VisualObject, touch);
+            VisualObject @this = this as VisualObject;
+            CanTouchArgs args = new CanTouchArgs(@this, touch);
             UI.Hooks.CanTouch.Invoke(args);
-            return args.CanTouch && Configuration.CustomCanTouch?.Invoke(this as VisualObject, touch) != false;
+            return args.CanTouch && Configuration.CustomCanTouch?.Invoke(@this, touch) != false;
         }
 
         #endregion
@@ -145,15 +146,18 @@ namespace TUI.Base
 
         public virtual bool TouchedThis(Touch touch)
         {
+            VisualObject @this = this as VisualObject;
             if (touch.State == TouchState.Begin)
-                touch.Session.BeginObject = this as VisualObject;
+                touch.Session.BeginObject = @this;
+
+            touch.Object = @this;
 
             TrySetLock(touch);
 
             bool used = Invoke(touch);
 
             if (Configuration.SessionAcquire && used)
-                touch.Session.Acquired = this as VisualObject;
+                touch.Session.Acquired = @this;
 
             return used;
         }
@@ -163,20 +167,21 @@ namespace TUI.Base
 
         public void TrySetLock(Touch touch)
         {
+            VisualObject @this = this as VisualObject;
             // You can't lock the same object twice per touch session
-            if (Configuration.Lock != null && !touch.Session.LockedObjects.Contains(this as VisualObject))
+            if (Configuration.Lock != null && !touch.Session.LockedObjects.Contains(@this))
             {
                 Lock lockConfig = Configuration.Lock;
                 int userIndex = touch.Session.UserIndex;
-                VisualObject target = lockConfig.Level == LockLevel.Self ? this as VisualObject : Root;
+                VisualObject target = lockConfig.Level == LockLevel.Self ? @this : Root;
 
                 // We are going to set lock only if target doesn't have an existing one
                 lock (target.PersonalLocked)
                     if ((lockConfig.Personal && !target.PersonalLocked.ContainsKey(userIndex))
                         || (!lockConfig.Personal && target.Locked == null))
                         {
-                            Locked locked = new Locked(this as VisualObject, DateTime.UtcNow, lockConfig.Delay, touch);
-                            touch.Session.LockedObjects.Add(this as VisualObject);
+                            Locked locked = new Locked(@this, DateTime.UtcNow, lockConfig.Delay, touch);
+                            touch.Session.LockedObjects.Add(@this);
                             if (lockConfig.Personal)
                                 target.PersonalLocked[userIndex] = locked;
                             else

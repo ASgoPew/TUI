@@ -561,13 +561,13 @@ namespace TUI.Base
 
                 // Layout indent for smooth scrolling
                 if (direction == Direction.Right)
-                    cx = cx - layoutIndent;
-                else if (direction == Direction.Left)
                     cx = cx + layoutIndent;
+                else if (direction == Direction.Left)
+                    cx = cx - layoutIndent;
                 else if (direction == Direction.Down)
-                    cy = cy - layoutIndent;
-                else if (direction == Direction.Up)
                     cy = cy + layoutIndent;
+                else if (direction == Direction.Up)
+                    cy = cy - layoutIndent;
 
                 int k = 0;
                 for (; k < layoutChild.Count; k++)
