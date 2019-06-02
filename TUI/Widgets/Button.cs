@@ -132,7 +132,7 @@ namespace TUI.Widgets
         #endregion
         #region ApplyTiles
 
-        public override VisualObject ApplyTiles()
+        public override VisualObject ApplyTiles(bool clearTiles = true)
         {
             if (Style.Active == null && Style.InActive == null && Style.Tile == null && Style.TileColor == null
                     && Style.Wall == null && Style.WallColor == null)
@@ -148,6 +148,8 @@ namespace TUI.Widgets
                 dynamic tile = Tile(x, y);
                 if (tile == null)
                     continue;
+                if (clearTiles)
+                    tile.ClearEverything();
                 if (Style.Active != null)
                     tile.active(Style.Active.Value);
                 if (Style.InActive != null)

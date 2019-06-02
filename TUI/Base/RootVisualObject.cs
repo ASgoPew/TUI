@@ -76,20 +76,20 @@ namespace TUI.Base
         #endregion
         #region ApplyThisNative
 
-        protected override void ApplyThisNative()
+        protected override void ApplyThisNative(bool clearTiles = true)
         {
             Stopwatch sw = Stopwatch.StartNew();
-            Clear();
-            base.ApplyThisNative();
+            base.ApplyThisNative(clearTiles);
 #if DEBUG
             Console.WriteLine($"Apply ({Name}): {sw.ElapsedMilliseconds}");
 #endif
+            sw.Stop();
         }
 
         #endregion
         #region Tile
 
-        protected override dynamic Tile(int x, int y)
+        public override dynamic Tile(int x, int y)
         {
             if (x < 0 || y < 0 || x >= Width || y >= Height)
                 throw new ArgumentOutOfRangeException($"{FullName}: Invalid tile x or y.");

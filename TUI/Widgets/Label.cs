@@ -73,9 +73,9 @@ namespace TUI.Widgets
         #endregion
         #region ApplyThisNative
 
-        protected override void ApplyThisNative()    
+        protected override void ApplyThisNative(bool clearTiles = true)    
         {
-            base.ApplyThisNative();
+            base.ApplyThisNative(clearTiles);
 
             LabelStyle style = Style as LabelStyle;
             string text = GetText();

@@ -82,10 +82,10 @@
     <Compile Include="Widgets\Button.cs" />
     <Compile Include="Widgets\Checkbox.cs" />
     <Compile Include="Widgets\InputLabel.cs" />
-    <Compile Include="Widgets\ItemFrame.cs" />
     <Compile Include="Widgets\ItemRack.cs" />
     <Compile Include="Widgets\Label.cs" />
     <Compile Include="Widgets\Panel.cs" />
+    <Compile Include="Widgets\ScrollBackground.cs" />
     <Compile Include="Widgets\ScrollButton.cs" />
     <Compile Include="Widgets\Separator.cs" />
     <Compile Include="Widgets\Slider.cs" />

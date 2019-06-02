@@ -62,9 +62,9 @@ namespace TUI.Widgets
         #endregion
         #region ApplyThisNative
 
-        protected override void ApplyThisNative()
+        protected override void ApplyThisNative(bool clearTiles = true)
         {
-            base.ApplyThisNative();
+            base.ApplyThisNative(clearTiles);
 
             foreach ((int x, int y) in Points)
                 Tile(x, y)?.slope(Slope[ArrowStyle.Direction][y, x]);

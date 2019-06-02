@@ -13,8 +13,9 @@ namespace TUI.Base
         public VisualObject[,] Grid { get; set; }
         public GridCell Cell { get; private set; }
         public bool ForceSection { get; protected set; } = false;
-        public int ProviderX;
-        public int ProviderY;
+        public int ProviderX { get; protected set; }
+        public int ProviderY { get; protected set; }
+        public ExternalOffset Bounds { get; protected set; }
 
         public override bool Orderable => !Style.InLayout;
         public virtual string Name => GetType().Name;
@@ -160,11 +161,12 @@ namespace TUI.Base
         #endregion
         #region Tile
 
-        protected virtual dynamic Tile(int x, int y)
+        public virtual dynamic Tile(int x, int y)
         {
             if (x < 0 || y < 0 || x >= Width || y >= Height)
                 throw new ArgumentOutOfRangeException($"{FullName}: Invalid tile x or y.");
-            if (X + x < 0 || X + x >= Parent.Width || Y + y < 0 || Y + y >= Parent.Height)
+            ExternalOffset bounds = Bounds;
+            if (X + x < bounds.Left || X + x >= Parent.Width - bounds.Right || Y + y < bounds.Up || Y + y >= Parent.Height - bounds.Down)
                 return null;
             return Provider[ProviderX + x, ProviderY + y];
         }
@@ -294,6 +296,9 @@ namespace TUI.Base
 
         public VisualObject LayoutSkip(ushort value)
         {
+            if (Style.Layout == null)
+                throw new Exception("Layout is not set for this object: " + FullName);
+
             Style.Layout.Index = value;
             return this;
         }
@@ -303,6 +308,9 @@ namespace TUI.Base
 
         public VisualObject LayoutIndent(int value)
         {
+            if (Style.Layout == null)
+                throw new Exception("Layout is not set for this object: " + FullName);
+
             Style.Layout.LayoutIndent = value;
             return this;
         }
@@ -391,9 +399,14 @@ namespace TUI.Base
                 // Find Root node
                 if (Root == null)
                     Root = GetRoot() as RootVisualObject;
-
                 // Update position relative to Provider
                 (ProviderX, ProviderY) = ProviderXY();
+                // Update Bounds
+                Bounds = Style.InLayout
+                    ? Parent.Style.Layout.Offset
+                    : Style.Alignment?.Offset ?? new ExternalOffset(UIDefault.ExternalOffset);
+                if (Parent != null)
+                    IntersectBoundsWithParent();
 
                 /////////////////////////// Child size updates ///////////////////////////
 
@@ -410,6 +423,23 @@ namespace TUI.Base
                 // Update child objects in grid
                 if (Style.Grid != null)
                     UpdateGrid();
+            }
+
+            #endregion
+            #region IntersectBoundsWithParent
+
+            public void IntersectBoundsWithParent()
+            {
+                ExternalOffset bounds = Bounds, parentBounds = Parent?.Bounds;
+                if (parentBounds == null)
+                    return;
+                Bounds = new ExternalOffset()
+                {
+                    Left = Math.Max(bounds.Left, parentBounds.Left - X),
+                    Up = Math.Max(bounds.Up, parentBounds.Up - Y),
+                    Right = Math.Max(bounds.Right, parentBounds.Right - (Parent.Width - (X + Width))),
+                    Down = Math.Max(bounds.Down, parentBounds.Down - (Parent.Height - (Y + Height)))
+                };
             }
 
             #endregion
@@ -597,14 +627,6 @@ namespace TUI.Base
                         cy = cy + indent + child.Height;
                     else if (direction == Direction.Up)
                         cy = cy - indent - layoutChild[k + 1].Height;
-
-                    if (layoutX + cx < offset.Left || layoutX + cx + layoutChild[k + 1].Width > Width - offset.Right
-                            || layoutY + cy < offset.Up || layoutY + cy + layoutChild[k + 1].Height > Height - offset.Down)
-                    {
-                        for (int i = k + 1; i < layoutChild.Count; i++)
-                            layoutChild[i].Visible = false;
-                        break;
-                    }
                 }
 
                 Style.Layout.Objects = layoutChild.Take(k).ToList();
@@ -650,7 +672,7 @@ namespace TUI.Base
             }
 
         #endregion
-            #region LayoutContains
+            #region Intersecting
 
             public bool Intersecting(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2) =>
                 x1 < x2 + w2 && y1 < y2 + h2 && x2 < x1 + w1 && y2 < y1 + h1;
@@ -823,7 +845,7 @@ namespace TUI.Base
             /// Draws everything related to this VisualObject incluing all child objects (directly changes tiles on tile provider).
             /// </summary>
             /// <returns></returns>
-            public virtual VisualObject Apply()
+            public virtual VisualObject Apply(bool clearTiles = true)
             {
                 if (!CalculateActive())
                     throw new InvalidOperationException("Trying to call Apply() an not active object.");
@@ -831,7 +853,7 @@ namespace TUI.Base
                 lock (ApplyLocker)
                 {
                     // Applying related to this node
-                    ApplyThis();
+                    ApplyThis(clearTiles);
 
                     // Recursive Apply call
                     ApplyChild();
@@ -863,11 +885,11 @@ namespace TUI.Base
             /// Draws everything related to this particular VisualObject. Doesn't include drawing child objects.
             /// </summary>
             /// <returns></returns>
-            public VisualObject ApplyThis()
+            public VisualObject ApplyThis(bool clearTiles = true)
             {
                 lock (ApplyLocker)
                 {
-                    ApplyThisNative();
+                    ApplyThisNative(clearTiles);
                     CustomApply();
                 }
                 return this;
@@ -880,10 +902,10 @@ namespace TUI.Base
             /// By default draws tiles/walls and grid if UI.ShowGrid is true. Overwrite this method for own widgets drawing.
             /// Don't call this method directly, call ApplyThis() instead.
             /// </summary>
-            protected virtual void ApplyThisNative()
+            protected virtual void ApplyThisNative(bool clearTiles = true)
             {
                 //ForceSection = false;
-                ApplyTiles();
+                ApplyTiles(clearTiles);
                 if (UI.ShowGrid && Style.Grid != null)
                     ShowGrid();
             }
@@ -891,11 +913,11 @@ namespace TUI.Base
             #endregion
             #region ApplyTiles
 
-            public virtual VisualObject ApplyTiles()
+            public virtual VisualObject ApplyTiles(bool clearTiles = true)
             {
                 lock (ApplyLocker)
                 {
-                    if (Style.Active == null && Style.InActive == null && Style.Tile == null && Style.TileColor == null
+                    if (!clearTiles && Style.Active == null && Style.InActive == null && Style.Tile == null && Style.TileColor == null
                         && Style.Wall == null && Style.WallColor == null)
                         return this;
 
@@ -904,6 +926,8 @@ namespace TUI.Base
                         dynamic tile = Tile(x, y);
                         if (tile == null)
                             continue;
+                        if (clearTiles)
+                            tile.ClearEverything();
                         if (Style.Active != null)
                             tile.active(Style.Active.Value);
                         if (Style.InActive != null)
@@ -968,7 +992,7 @@ namespace TUI.Base
                         foreach (VisualObject child in ChildrenFromBottom)
                             if (child.Active)
                             {
-                                child.Apply();
+                                child.Apply(false);
                                 forceSection = forceSection || child.ForceSection;
                             }
                     ForceSection = forceSection;

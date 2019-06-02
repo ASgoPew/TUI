@@ -15,8 +15,6 @@ namespace TUI.Widgets
         {
         }
 
-        public override VisualObject Pulse(PulseType type) => this;
-        public override VisualObject Update() => UpdateThis();
-        public override VisualObject Apply() => ApplyTiles();
+        public override VisualObject Apply(bool clearTiles = true) => ApplyTiles(clearTiles);
     }
 }
