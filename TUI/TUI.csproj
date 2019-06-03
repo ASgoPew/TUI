@@ -87,6 +87,7 @@
     <Compile Include="Widgets\Label.cs" />
     <Compile Include="Widgets\Panel.cs" />
     <Compile Include="Widgets\ScrollBackground.cs" />
+    <Compile Include="Widgets\ScrollBar.cs" />
     <Compile Include="Widgets\ScrollButton.cs" />
     <Compile Include="Widgets\Separator.cs" />
     <Compile Include="Widgets\Slider.cs" />

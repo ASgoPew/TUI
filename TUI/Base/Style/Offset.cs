@@ -12,6 +12,9 @@
             this.Horizontal = indent.Horizontal;
             this.Vertical = indent.Vertical;
         }
+
+        public override string ToString() =>
+            $"InternalOffset {{ Horizontal={Horizontal}, Vertical={Vertical} }}";
     }
 
     public class ExternalOffset
@@ -30,6 +33,9 @@
             this.Right = indent.Right;
             this.Down = indent.Down;
         }
+
+        public override string ToString() =>
+            $"ExternalOffset {{ Left={Left}, Up={Up}, Right={Right}, Down={Down} }}";
     }
 
     public class Offset
@@ -52,5 +58,8 @@
             this.Horizontal = indent.Horizontal;
             this.Vertical = indent.Vertical;
         }
+
+        public override string ToString() =>
+            $"Offset {{ Left={Left}, Up={Up}, Right={Right}, Down={Down}, Horizontal={Horizontal}, Vertical={Vertical} }}";
     }
 }

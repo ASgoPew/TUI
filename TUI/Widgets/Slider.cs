@@ -67,7 +67,7 @@ namespace TUI.Widgets
             if (Value != value)
             {
                 Value = value;
-                ApplyTiles().Draw(Value < oldValue ? Value : oldValue, 0, Value > oldValue ? Value + 1 : oldValue + 1);
+                ApplyTiles().Draw(Value < oldValue ? Value : oldValue, 0, Value > oldValue ? Value + 1 - oldValue : oldValue + 1 - value);
             }
             if (touch.State == TouchState.End && Value != OldValue && (!SliderStyle.TriggerOnDrag || oldValue != value)
                     || SliderStyle.TriggerOnDrag && oldValue != value)

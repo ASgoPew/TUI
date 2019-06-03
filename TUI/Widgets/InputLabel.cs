@@ -38,6 +38,7 @@ namespace TUI.Widgets
         public static List<char> All = Digits.Concat(Characters).ToList();
 
         public Action<InputLabel, string> InputLabelCallback;
+        protected string BeginValue;
 
         public InputLabelStyle InputLabelStyle => Style as InputLabelStyle;
 
@@ -68,6 +69,8 @@ namespace TUI.Widgets
 
         public override bool Invoke(Touch touch)
         {
+            if (touch.State == TouchState.Begin)
+                BeginValue = GetText();
             if (touch.State == TouchState.End || touch.State == TouchState.Moving)
             {
                 List<char> charShift = InputLabelStyle.Type == InputLabelType.Digits
@@ -81,10 +84,11 @@ namespace TUI.Widgets
                     char newChar = charShift[((charIndex + delta) % charShift.Count + charShift.Count) % charShift.Count];
                     string newText = $"{RawText.Substring(0, charPosition)}{newChar}{RawText.Substring(charPosition + 1, (RawText.Length - charPosition - 1))}";
                     SetText(newText);
-                    ApplyThis().Draw();
-                    if (touch.State == TouchState.End)
-                        InputLabelCallback?.Invoke(this, newText);
+                    ApplyThis(false).Draw();
                 }
+                string value = GetText();
+                if (touch.State == TouchState.End && value != BeginValue)
+                    InputLabelCallback?.Invoke(this, value);
             }
             return true;
         }

@@ -38,6 +38,7 @@ namespace TUI.Base.Style
         /// Whole layout indentation.
         /// </summary>
         public int LayoutIndent { get; internal set; } = 0;
+        public int IndentLimit { get; internal set; }
 
         /// <summary>
         /// Layout offset.

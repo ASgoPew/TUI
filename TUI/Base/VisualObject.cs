@@ -66,6 +66,8 @@ namespace TUI.Base
                         Grid[cell.Column, cell.Line] = null;
                         child.Cell = null;
                     }
+                    if (child.Style.InLayout)
+                        Style.Layout.Objects.Remove(child);
                 }
                 return child;
             }
@@ -122,6 +124,7 @@ namespace TUI.Base
         public VisualObject(UIStyle style)
             : this(0, 0, 0, 0, new UIConfiguration() { UseBegin = false }, style)
         {
+            Style.FullSize = FullSize.Both;
         }
 
         #endregion
@@ -166,7 +169,7 @@ namespace TUI.Base
             if (x < 0 || y < 0 || x >= Width || y >= Height)
                 throw new ArgumentOutOfRangeException($"{FullName}: Invalid tile x or y.");
             ExternalOffset bounds = Bounds;
-            if (X + x < bounds.Left || X + x >= Parent.Width - bounds.Right || Y + y < bounds.Up || Y + y >= Parent.Height - bounds.Down)
+            if (x < bounds.Left || x >= Width - bounds.Right || y < bounds.Up || y >= Height - bounds.Down)
                 return null;
             return Provider[ProviderX + x, ProviderY + y];
         }
@@ -316,6 +319,7 @@ namespace TUI.Base
         }
 
         #endregion
+
         #region Pulse
 
         public virtual VisualObject Pulse(PulseType type)
@@ -401,12 +405,8 @@ namespace TUI.Base
                     Root = GetRoot() as RootVisualObject;
                 // Update position relative to Provider
                 (ProviderX, ProviderY) = ProviderXY();
-                // Update Bounds
-                Bounds = Style.InLayout
-                    ? Parent.Style.Layout.Offset
-                    : Style.Alignment?.Offset ?? new ExternalOffset(UIDefault.ExternalOffset);
-                if (Parent != null)
-                    IntersectBoundsWithParent();
+                // Update apply tile bounds
+                UpdateBounds();
 
                 /////////////////////////// Child size updates ///////////////////////////
 
@@ -426,20 +426,38 @@ namespace TUI.Base
             }
 
             #endregion
-            #region IntersectBoundsWithParent
+            #region UpdateBounds
 
-            public void IntersectBoundsWithParent()
+            protected void UpdateBounds()
             {
-                ExternalOffset bounds = Bounds, parentBounds = Parent?.Bounds;
-                if (parentBounds == null)
-                    return;
-                Bounds = new ExternalOffset()
+                if (Style.InLayout || Style.Alignment != null)
                 {
-                    Left = Math.Max(bounds.Left, parentBounds.Left - X),
-                    Up = Math.Max(bounds.Up, parentBounds.Up - Y),
-                    Right = Math.Max(bounds.Right, parentBounds.Right - (Parent.Width - (X + Width))),
-                    Down = Math.Max(bounds.Down, parentBounds.Down - (Parent.Height - (Y + Height)))
-                };
+                    ExternalOffset parentOffset = Style.InLayout ? Parent.Style.Layout.Offset : Style.Alignment.Offset;
+                    Bounds = new ExternalOffset()
+                    {
+                        Left = Math.Max(0, parentOffset.Left - X),
+                        Up = Math.Max(0, parentOffset.Up - Y),
+                        Right = Math.Max(0, (X + Width) - (Parent.Width - parentOffset.Right)),
+                        Down = Math.Max(0, (Y + Height) - (Parent.Height - parentOffset.Down)),
+                    };
+                }
+                else
+                    Bounds = new ExternalOffset(UIDefault.ExternalOffset);
+
+                // Intersecting bounds with parent's Bounds
+                if (Parent != null)
+                {
+                    ExternalOffset parentBounds = Parent.Bounds;
+                    if (parentBounds == null)
+                        return;
+                    Bounds = new ExternalOffset()
+                    {
+                        Left = Math.Max(Bounds.Left, parentBounds.Left - X),
+                        Up = Math.Max(Bounds.Up, parentBounds.Up - Y),
+                        Right = Math.Max(Bounds.Right, parentBounds.Right - (Parent.Width - (X + Width))),
+                        Down = Math.Max(Bounds.Down, parentBounds.Down - (Parent.Height - (Y + Height)))
+                    };
+                }
             }
 
             #endregion
@@ -524,6 +542,7 @@ namespace TUI.Base
                 int layoutIndent = Style.Layout.LayoutIndent;
 
                 (int abstractLayoutW, int abstractLayoutH, List<VisualObject> layoutChild) = CalculateLayoutSize(direction, indent);
+                Style.Layout.Objects = layoutChild;
                 for (int i = 0; i < Style.Layout.Index; i++)
                     layoutChild[i].Visible = false;
                 if (layoutChild.Count - Style.Layout.Index <= 0)
@@ -531,7 +550,7 @@ namespace TUI.Base
                 layoutChild = layoutChild.Skip(Style.Layout.Index).ToList();
 
                 // Calculating layout box position
-                int layoutX, layoutY;
+                int layoutX, layoutY, layoutW, layoutH;
 
                 // Initializing sx
                 if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
@@ -541,6 +560,7 @@ namespace TUI.Base
                 else
                     layoutX = (Width - abstractLayoutW + 1) / 2;
                 layoutX = Math.Max(layoutX, offset.Left);
+                layoutW = Math.Min(abstractLayoutW, Width - offset.Left - offset.Right);
 
                 // Initializing sy
                 if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
@@ -550,6 +570,7 @@ namespace TUI.Base
                 else
                     layoutY = (Height - abstractLayoutH + 1) / 2;
                 layoutY = Math.Max(layoutY, offset.Up);
+                layoutH = Math.Min(abstractLayoutH, Height - offset.Up - offset.Down);
 
                 // Updating cell objects padding
                 int cx = direction == Direction.Left
@@ -561,13 +582,13 @@ namespace TUI.Base
 
                 // Layout indent for smooth scrolling
                 if (direction == Direction.Right)
-                    cx = cx + layoutIndent;
-                else if (direction == Direction.Left)
                     cx = cx - layoutIndent;
+                else if (direction == Direction.Left)
+                    cx = cx + layoutIndent;
                 else if (direction == Direction.Down)
-                    cy = cy + layoutIndent;
-                else if (direction == Direction.Up)
                     cy = cy - layoutIndent;
+                else if (direction == Direction.Up)
+                    cy = cy + layoutIndent;
 
                 int k = 0;
                 for (; k < layoutChild.Count; k++)
@@ -612,8 +633,7 @@ namespace TUI.Base
                     child.Visible = Intersecting(resultX, resultY, child.Width, child.Height, offset.Left, offset.Up,
                         Width - offset.Right - offset.Left, Height - offset.Down - offset.Up);
 
-                    if (child.Visible)
-                        child.SetXY(resultX, resultY);
+                    child.SetXY(resultX, resultY);
                     //Console.WriteLine($"Layout: {child.FullName}, {child.XYWH()}");
 
                     if (k == layoutChild.Count - 1)
@@ -629,13 +649,17 @@ namespace TUI.Base
                         cy = cy - indent - layoutChild[k + 1].Height;
                 }
 
-                Style.Layout.Objects = layoutChild.Take(k).ToList();
+                if (direction == Direction.Left || direction == Direction.Right)
+                    Style.Layout.IndentLimit = abstractLayoutW - layoutW;
+                else if (direction == Direction.Up || direction == Direction.Down)
+                    Style.Layout.IndentLimit = abstractLayoutH - layoutH;
             }
 
             #endregion
             #region CalculateLayoutSize
 
-            private (int, int, List<VisualObject>) CalculateLayoutSize(Direction direction, int indent)
+            private (int absoluteLayoutW, int absoluteLayoutH, List<VisualObject> objects) CalculateLayoutSize(
+                Direction direction, int indent)
             {
                 // Calculating total objects width and height
                 int totalW = 0, totalH = 0;
@@ -644,9 +668,9 @@ namespace TUI.Base
                     foreach (VisualObject child in ChildrenFromBottom)
                     {
                         FullSize fullSize = child.Style.FullSize;
-                        if (!child.Enabled || !child.Style.InLayout || fullSize == FullSize.Both
-                                || (fullSize == FullSize.Horizontal && (direction == Direction.Left || direction == Direction.Right))
-                                || (fullSize == FullSize.Vertical && (direction == Direction.Up || direction == Direction.Down)))
+                        if (!child.Enabled || !child.Style.InLayout || fullSize == FullSize.Both)
+                                //|| (fullSize == FullSize.Horizontal && (direction == Direction.Left || direction == Direction.Right))
+                                //|| (fullSize == FullSize.Vertical && (direction == Direction.Up || direction == Direction.Down)))
                             continue;
 
                         layoutChild.Add(child);
@@ -671,7 +695,7 @@ namespace TUI.Base
                 return (totalW, totalH, layoutChild);
             }
 
-        #endregion
+            #endregion
             #region Intersecting
 
             public bool Intersecting(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2) =>
