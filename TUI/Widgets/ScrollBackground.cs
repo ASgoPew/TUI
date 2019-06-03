@@ -10,13 +10,15 @@ namespace TUI.Widgets
 {
     public class ScrollBackground : VisualObject
     {
+        private Action<ScrollBackground, int> ScrollBackgroundCallback;
         public int BeginIndent { get; protected set; }
         public bool AllowToPull { get; set; }
         public bool RememberTouchPosition { get; set; }
 
-        public ScrollBackground(bool allowToPull = true, bool rememberTouchPosition = true)
+        public ScrollBackground(Action<ScrollBackground, int> callback = null, bool allowToPull = true, bool rememberTouchPosition = true)
             : base(0, 0, 0, 0, new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true })
         {
+            ScrollBackgroundCallback = callback;
             SetFullSize(FullSize.Both);
             AllowToPull = allowToPull;
             RememberTouchPosition = rememberTouchPosition;
