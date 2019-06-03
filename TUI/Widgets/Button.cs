@@ -132,7 +132,7 @@ namespace TUI.Widgets
         #endregion
         #region ApplyTiles
 
-        public override VisualObject ApplyTiles(bool clearTiles = true)
+        public override VisualObject ApplyTiles(bool clearTiles = false)
         {
             if (Style.Active == null && Style.InActive == null && Style.Tile == null && Style.TileColor == null
                     && Style.Wall == null && Style.WallColor == null)
@@ -190,7 +190,7 @@ namespace TUI.Widgets
         protected virtual void Blink(ButtonBlinkStyle blinkStyle, byte blinkColor)
         {
             if (blinkStyle == ButtonBlinkStyle.Full)
-                Apply().Draw();
+                Apply(true).Draw();
             else if (blinkStyle == ButtonBlinkStyle.Left)
             {
                 for (int y = 0; y < Height; y++)

@@ -82,7 +82,7 @@ namespace TUI.Base
             public override void PostSetTop(VisualObject o)
             {
                 if (ChildIntersectingOthers(o))
-                    o.Apply().Draw();
+                    o.Apply(true).Draw();
             }
 
             private bool ChildIntersectingOthers(VisualObject o)
@@ -869,7 +869,7 @@ namespace TUI.Base
             /// Draws everything related to this VisualObject incluing all child objects (directly changes tiles on tile provider).
             /// </summary>
             /// <returns></returns>
-            public virtual VisualObject Apply(bool clearTiles = true)
+            public virtual VisualObject Apply(bool clearTiles = false)
             {
                 if (!CalculateActive())
                     throw new InvalidOperationException("Trying to call Apply() an not active object.");
@@ -909,7 +909,7 @@ namespace TUI.Base
             /// Draws everything related to this particular VisualObject. Doesn't include drawing child objects.
             /// </summary>
             /// <returns></returns>
-            public VisualObject ApplyThis(bool clearTiles = true)
+            public VisualObject ApplyThis(bool clearTiles = false)
             {
                 lock (ApplyLocker)
                 {
@@ -926,7 +926,7 @@ namespace TUI.Base
             /// By default draws tiles/walls and grid if UI.ShowGrid is true. Overwrite this method for own widgets drawing.
             /// Don't call this method directly, call ApplyThis() instead.
             /// </summary>
-            protected virtual void ApplyThisNative(bool clearTiles = true)
+            protected virtual void ApplyThisNative(bool clearTiles = false)
             {
                 //ForceSection = false;
                 ApplyTiles(clearTiles);
@@ -937,7 +937,7 @@ namespace TUI.Base
             #endregion
             #region ApplyTiles
 
-            public virtual VisualObject ApplyTiles(bool clearTiles = true)
+            public virtual VisualObject ApplyTiles(bool clearTiles = false)
             {
                 lock (ApplyLocker)
                 {
@@ -1098,7 +1098,7 @@ namespace TUI.Base
         public virtual VisualObject Popdown()
         {
             (this["popup"] as VisualObject).Disable();
-            return Apply().Draw();
+            return Apply(true).Draw();
         }
 
         #endregion

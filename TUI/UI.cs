@@ -273,7 +273,7 @@ namespace TUI
             if (intersects)
             {
                 if (needsApply)
-                    o.Apply();
+                    o.Apply(true);
                 o.Draw();
             }
         }
@@ -313,7 +313,7 @@ namespace TUI
             lock (Child)
                 foreach (RootVisualObject child in Child)
                     if (child.Active)
-                        child.Apply();
+                        child.Apply(true);
         }
 
         #endregion

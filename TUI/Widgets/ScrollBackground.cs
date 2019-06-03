@@ -65,7 +65,7 @@ namespace TUI.Widgets
                     if (Parent.Style.Layout.LayoutIndent != newIndent)
                     {
                         Parent.LayoutIndent(newIndent);
-                        Parent.Update().Apply().Draw();
+                        Parent.Update().Apply(true).Draw();
                     }
                 }
             }

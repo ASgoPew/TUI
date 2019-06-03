@@ -55,7 +55,7 @@ namespace TUI.Widgets
         public override bool Invoke(Touch touch)
         {
             Set(!Value);
-            Apply().Draw();
+            Apply(true).Draw();
             return true;
         }
 

@@ -67,7 +67,7 @@ namespace TUI.Widgets
             if (Value != value)
             {
                 Value = value;
-                ApplyTiles().Draw(Value < oldValue ? Value : oldValue, 0, Value > oldValue ? Value + 1 - oldValue : oldValue + 1 - value);
+                ApplyTiles(false).Draw(Value < oldValue ? Value : oldValue, 0, Value > oldValue ? Value + 1 - oldValue : oldValue + 1 - value);
             }
             if (touch.State == TouchState.End && Value != OldValue && (!SliderStyle.TriggerOnDrag || oldValue != value)
                     || SliderStyle.TriggerOnDrag && oldValue != value)
@@ -78,7 +78,7 @@ namespace TUI.Widgets
         #endregion
         #region ApplyTiles
 
-        public override VisualObject ApplyTiles(bool clearTiles = true)
+        public override VisualObject ApplyTiles(bool clearTiles = false)
         {
             if (Style.Active == null && Style.InActive == null && Style.Tile == null && Style.TileColor == null
                     && Style.Wall == null && Style.WallColor == null)

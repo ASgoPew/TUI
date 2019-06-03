@@ -76,7 +76,7 @@ namespace TUI.Base
         #endregion
         #region ApplyThisNative
 
-        protected override void ApplyThisNative(bool clearTiles = true)
+        protected override void ApplyThisNative(bool clearTiles = false)
         {
             Stopwatch sw = Stopwatch.StartNew();
             base.ApplyThisNative(clearTiles);

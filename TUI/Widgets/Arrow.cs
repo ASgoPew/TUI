@@ -62,7 +62,7 @@ namespace TUI.Widgets
         #endregion
         #region ApplyThisNative
 
-        protected override void ApplyThisNative(bool clearTiles = true)
+        protected override void ApplyThisNative(bool clearTiles = false)
         {
             base.ApplyThisNative(clearTiles);
 
