@@ -49,6 +49,7 @@
     <Compile Include="Base\Style\Direction.cs" />
     <Compile Include="Base\Style\FullSize.cs" />
     <Compile Include="Base\UIDefault.cs" />
+    <Compile Include="Hooks\Args\LogArgs.cs" />
     <Compile Include="Hooks\Args\RemoveSignArgs.cs" />
     <Compile Include="Hooks\Args\CreateSignArgs.cs" />
     <Compile Include="Hooks\Args\CanTouchArgs.cs" />

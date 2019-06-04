@@ -10,19 +10,29 @@ namespace TUI.Widgets
 {
     public class ScrollBackground : VisualObject
     {
+        #region Data
+
         private Action<ScrollBackground, int> ScrollBackgroundCallback;
         public int BeginIndent { get; protected set; }
         public bool AllowToPull { get; set; }
         public bool RememberTouchPosition { get; set; }
 
-        public ScrollBackground(Action<ScrollBackground, int> callback = null, bool allowToPull = true, bool rememberTouchPosition = true)
-            : base(0, 0, 0, 0, new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true })
+        #endregion
+
+        #region Initialize
+
+        public ScrollBackground(bool allowToPull = true, bool rememberTouchPosition = true, bool useMoving = true, Action<ScrollBackground, int> callback = null)
+            : base(0, 0, 0, 0, new UIConfiguration() { UseMoving=useMoving, UseEnd=true, UseOutsideTouches=true })
         {
-            ScrollBackgroundCallback = callback;
-            SetFullSize(FullSize.Both);
             AllowToPull = allowToPull;
             RememberTouchPosition = rememberTouchPosition;
+            ScrollBackgroundCallback = callback;
+
+            SetFullSize(FullSize.Both);
         }
+
+        #endregion
+        #region Invoke
 
         public override bool Invoke(Touch touch)
         {
@@ -34,7 +44,7 @@ namespace TUI.Widgets
             bool vertical = layout.Direction == Direction.Up || layout.Direction == Direction.Down;
             if (touch.State == TouchState.Begin)
                 BeginIndent = indent;
-            if (touch.State != TouchState.Begin)
+            if (touch.State == TouchState.End || (Configuration.UseMoving && touch.State == TouchState.Moving))
             {
                 int newIndent;
                 if (RememberTouchPosition)
@@ -48,9 +58,9 @@ namespace TUI.Widgets
                         newIndent = indent + indentDelta;
                 }
                 else
-                    newIndent = vertical
+                    newIndent = BeginIndent + (vertical
                         ? touch.Session.BeginTouch.AbsoluteY - touch.AbsoluteY
-                        : touch.Session.BeginTouch.AbsoluteX - touch.AbsoluteX;
+                        : touch.Session.BeginTouch.AbsoluteX - touch.AbsoluteX);
                 if (newIndent != indent || touch.State == TouchState.End)
                 {
                     VisualObject first = layout.Objects.FirstOrDefault();
@@ -66,6 +76,7 @@ namespace TUI.Widgets
                     }
                     if (Parent.Style.Layout.LayoutIndent != newIndent)
                     {
+                        ScrollBackgroundCallback?.Invoke(this, newIndent);
                         Parent.LayoutIndent(newIndent);
                         Parent.Update().Apply(true).Draw();
                     }
@@ -73,5 +84,7 @@ namespace TUI.Widgets
             }
             return true;
         }
+
+        #endregion
     }
 }

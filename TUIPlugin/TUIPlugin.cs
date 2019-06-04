@@ -45,6 +45,7 @@ namespace TUIPlugin
             UI.Hooks.TouchCancel.Event += OnTouchCancel;
             UI.Hooks.CreateSign.Event += OnCreateSign;
             UI.Hooks.RemoveSign.Event += OnRemoveSign;
+            UI.Hooks.Log.Event += OnLog;
 
             UI.Initialize(255);
         }
@@ -64,6 +65,7 @@ namespace TUIPlugin
                 UI.Hooks.TouchCancel.Event -= OnTouchCancel;
                 UI.Hooks.CreateSign.Event -= OnCreateSign;
                 UI.Hooks.RemoveSign.Event -= OnRemoveSign;
+                UI.Hooks.Log.Event -= OnLog;
             }
             base.Dispose(disposing);
         }
@@ -220,99 +222,25 @@ namespace TUIPlugin
                 if (id >= 0)
                     args.Sign = Main.sign[id];
             }
-            else
-            {
-                int id = FakeReadSign(args.X, args.Y);
-                if (id >= 0)
-                    args.Sign = Main.sign[id];
-            }
         }
 
         public static void OnRemoveSign(RemoveSignArgs args)
         {
-            if (args.Sign is FakeSign)
-                FakeKillSign(args.Sign);
-            else
+            if (args.Sign.x >= 0 && args.Sign.y >= 0)
                 Sign.KillSign(args.Sign.x, args.Sign.y);
         }
 
-        /*public static void SendSign(int signIndex)
+        public static void OnLog(LogArgs args)
         {
-            using (MemoryStream ms = new MemoryStream())
-            using (BinaryWriter bw = new BinaryWriter(ms))
-            {
-                ms.Position += 2L;
-                bw.Write((byte)PacketTypes.TileSendSection);
-                bw.Write((bool)false); //Not compressed
-                bw.Write((int)0);
-                bw.Write((int)0);
-                bw.Write((short)0); //Width
-                bw.Write((short)0); //Height
-                bw.Write((short)0); //Chests
-                bw.Write((short)1); //Signs
-
-                Sign sign = Main.sign[signIndex];
-                bw.Write((short)signIndex);
-                bw.Write((short)sign.x);
-                bw.Write((short)sign.y);
-                bw.Write((string)sign.text);
-
-                bw.Write((short)0); //TileEntities
-
-                short pos = (short)ms.Position;
-                ms.Position = 0L;
-                bw.Write((short)pos);
-                ms.Position = pos;
-                TSPlayer.All.SendRawData(ms.ToArray());
-            }
-        }*/
-
-        public static int FakeReadSign(int i, int j, bool CreateIfMissing = true)
-        {
-            int num5 = -1;
-            for (int k = 0; k < 1000; k++)
-            {
-                if (Main.sign[k] != null && Main.sign[k].x == i && Main.sign[k].y == j)
-                {
-                    num5 = k;
-                    break;
-                }
-            }
-            if (num5 < 0 && CreateIfMissing)
-            {
-                for (int l = 0; l < 1000; l++)
-                {
-                    if (Main.sign[l] == null)
-                    {
-                        num5 = l;
-                        ITile oldTile = Main.tile[i, j];
-                        Main.sign[l] = new FakeSign()
-                        {
-                            x = i,
-                            y = j,
-                            text = "",
-                            tile = oldTile,
-                            index = (short)l
-                        };
-                        Main.tile[i, j] = new Tile() { type = 55, frameX = 0, frameY = 0, sTileHeader = UI.FakeSignSTileHeader };
-                        break;
-                    }
-                }
-            }
-            return num5;
+            args.Text = "TUI: " + args.Text;
+            if (args.Type == LogType.Success)
+                TShock.Log.ConsoleInfo(args.Text);
+            else if (args.Type == LogType.Info)
+                TShock.Log.ConsoleInfo(args.Text);
+            else if (args.Type == LogType.Warning)
+                TShock.Log.ConsoleError(args.Text);
+            else if (args.Type == LogType.Error)
+                TShock.Log.ConsoleError(args.Text);
         }
-
-        public static void FakeKillSign(FakeSign sign)
-        {
-            Main.tile[sign.x, sign.y] = sign.tile;
-            sign.text = null;
-            Sign.KillSign(sign.x, sign.y);
-        }
-    }
-
-    public class FakeSign : Sign
-    {
-        public ITile tile { get; set; }
-        public short index { get; set; }
     }
 }

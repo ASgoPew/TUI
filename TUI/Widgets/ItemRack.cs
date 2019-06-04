@@ -106,7 +106,10 @@ namespace TUI.Widgets
             CreateSignArgs args = new CreateSignArgs(x, y, Sign, this);
             UI.Hooks.CreateSign.Invoke(args);
             if (args.Sign == null)
-                throw new Exception("Can't create new sign.");
+            {
+                UI.Hooks.Log.Invoke(new LogArgs("Can't create new sign.", LogType.Error));
+                return;
+            }
             Sign = args.Sign;
             Sign.text = Text;
         }

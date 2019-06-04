@@ -49,7 +49,7 @@ namespace TUI.Widgets
             if (x == X && y == Y)
                 return;
             if (UsesDefaultMainProvider)
-                Clear().Draw().SetXY(x, y).Apply(true).Draw();
+                Clear().Draw().SetXY(x, y).Update().Apply(true).Draw();
             else
             {
                 int oldX = X, oldY = Y;
@@ -82,6 +82,8 @@ namespace TUI.Widgets
 
         #endregion
     }
+
+    #region PanelDrag
 
     public class PanelDrag : VisualObject
     {
@@ -121,6 +123,9 @@ namespace TUI.Widgets
         }
     }
 
+    #endregion
+    #region PanelResize
+
     public class PanelResize : VisualObject
     {
         public PanelResize(int x, int y, int width, int height, UIConfiguration configuration = null, UIStyle style = null, Func<VisualObject, Touch, bool> callback = null)
@@ -159,6 +164,9 @@ namespace TUI.Widgets
         }
     }
 
+    #endregion
+    #region DefaultPanelDrag
+
     public sealed class DefaultPanelDrag : PanelDrag
     {
         public DefaultPanelDrag()
@@ -167,17 +175,17 @@ namespace TUI.Widgets
         }
     }
 
+    #endregion
+    #region DefaultPanelResize
+
     public sealed class DefaultPanelResize : PanelResize
     {
         public DefaultPanelResize()
             : base(0, 0, 1, 1, new UIConfiguration() { UseMoving = true, UseEnd = true, UseOutsideTouches = true })
         {
-        }
-
-        protected override void UpdateThisNative()
-        {
-            base.UpdateThisNative();
-            SetXY(Parent.Width - 1, Parent.Height - 1);
+            SetAlignmentInParent(new AlignmentStyle(Alignment.DownRight));
         }
     }
+
+    #endregion
 }
