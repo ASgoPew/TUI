@@ -23,6 +23,15 @@ namespace TUI
         private static List<RootVisualObject> Child = new List<RootVisualObject>();
         private static Timer Timer;
 
+        public static IEnumerable<RootVisualObject> Roots
+        {
+            get
+            {
+                foreach (RootVisualObject child in Child)
+                    yield return child;
+            }
+        }
+        
         #endregion
 
         #region Initialize
@@ -220,7 +229,7 @@ namespace TUI
                 {
                     RootVisualObject o = Child[i];
                     int saveX = o.X, saveY = o.Y;
-                    if (o.Active && o.Contains(touch))
+                    if (o.Active && o.Contains(touch) && o.Players.Contains(touch.Session.UserIndex))
                     {
                         insideUI = true;
                         touch.MoveBack(saveX, saveY);
@@ -335,9 +344,9 @@ namespace TUI
         #endregion
         #region DrawRect
 
-        public static void DrawRect(int x, int y, int width, int height, bool forcedSection, int userIndex = -1, int exceptUserIndex = -1, bool frame = true)
+        public static void DrawRect(VisualObject node, int x, int y, int width, int height, bool forcedSection, int userIndex = -1, int exceptUserIndex = -1, bool frame = true)
         {
-            UI.Hooks.Draw.Invoke(new DrawArgs(x, y, width, height, forcedSection, userIndex, exceptUserIndex, frame));
+            UI.Hooks.Draw.Invoke(new DrawArgs(node, x, y, width, height, forcedSection, userIndex, exceptUserIndex, frame));
         }
 
         #endregion

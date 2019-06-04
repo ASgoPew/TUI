@@ -1,6 +1,8 @@
 ﻿using OTAPI.Tile;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Timers;
 using Terraria;
 using Terraria.ID;
 using TerrariaApi.Server;
@@ -26,7 +28,10 @@ namespace TUIPlugin
         public override string Name => "TUIPlugin";
         public override Version Version => new Version(0, 1, 0, 0);
 
-        public static DesignState[] playerDesignState = new DesignState[256];
+        public static int RegionAreaX = 80;
+        public static int RegionAreaY = 50;
+        public static DesignState[] playerDesignState = new DesignState[Main.maxPlayers];
+        private static Timer RegionTimer = new Timer(1000) { AutoReset = true };
 
         public TUIPlugin(Main game)
             : base(game)
@@ -45,6 +50,8 @@ namespace TUIPlugin
             UI.Hooks.CreateSign.Event += OnCreateSign;
             UI.Hooks.RemoveSign.Event += OnRemoveSign;
             UI.Hooks.Log.Event += OnLog;
+            RegionTimer.Elapsed += OnRegionTimer;
+            RegionTimer.Start();
 
             UI.Initialize(255);
         }
@@ -65,6 +72,8 @@ namespace TUIPlugin
                 UI.Hooks.CreateSign.Event -= OnCreateSign;
                 UI.Hooks.RemoveSign.Event -= OnRemoveSign;
                 UI.Hooks.Log.Event -= OnLog;
+                RegionTimer.Elapsed -= OnRegionTimer;
+                RegionTimer.Stop();
             }
             base.Dispose(disposing);
         }
@@ -183,6 +192,13 @@ namespace TUIPlugin
 
         public static void OnDraw(DrawArgs args)
         {
+            HashSet<int> players;
+            if (args.UserIndex == -1)
+                players = (args.Node.GetRoot() as RootVisualObject).Players;
+            else
+                players = new HashSet<int>() { args.UserIndex };
+            players.Remove(args.ExceptUserIndex);
+
             int size = Math.Max(args.Width, args.Height);
             if (size >= 50 || args.ForcedSection)
             {
@@ -190,12 +206,15 @@ namespace TUIPlugin
                 int highX = Netplay.GetSectionX(args.X + args.Width - 1);
                 int lowY = Netplay.GetSectionY(args.Y);
                 int highY = Netplay.GetSectionY(args.Y + args.Height - 1);
-                NetMessage.SendData(10, args.UserIndex, args.ExceptUserIndex, null, args.X, args.Y, args.Width, args.Height);
+                foreach (int i in players)
+                    NetMessage.SendData(10, i, -1, null, args.X, args.Y, args.Width, args.Height);
                 if (args.Frame)
-                    NetMessage.SendData(11, args.UserIndex, args.ExceptUserIndex, null, lowX, lowY, highX, highY);
+                    foreach (int i in players)
+                        NetMessage.SendData(11, i, -1, null, lowX, lowY, highX, highY);
             }
             else
-                NetMessage.SendData(20, args.UserIndex, args.ExceptUserIndex, null, size, args.X, args.Y);
+                foreach (int i in players)
+                    NetMessage.SendData(20, i, -1, null, size, args.X, args.Y);
         }
 
         public static void OnTouchCancel(TouchCancelArgs args)
@@ -265,6 +284,32 @@ namespace TUIPlugin
                 TShock.Log.ConsoleError(args.Text);
             else if (args.Type == LogType.Error)
                 TShock.Log.ConsoleError(args.Text);
+        }
+
+        private void OnRegionTimer(object sender, ElapsedEventArgs e)
+        {
+            foreach (RootVisualObject root in UI.Roots)
+            {
+                (int x, int y) = root.AbsoluteXY();
+                int sx = x - RegionAreaX;
+                int sy = y - RegionAreaY;
+                int ex = x + RegionAreaX + root.Width - 1;
+                int ey = y + RegionAreaY + root.Height - 1;
+                foreach (TSPlayer plr in TShock.Players)
+                {
+                    if (plr?.Active != true)
+                        continue;
+                    int tx = plr.TileX, ty = plr.TileY;
+                    if ((tx >= sx) && (tx <= ex) && (ty >= sy) && (ty <= ey))
+                    {
+                        if (root.Players.Add(plr.Index))
+                            UI.Hooks.Draw.Invoke(new DrawArgs(root, x, y, root.Width,
+                                root.Height, root.ForceSection, plr.Index, -1, true));
+                    }
+                    else
+                        root.Players.Remove(plr.Index);
+                }
+            }
         }
     }
 }

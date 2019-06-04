@@ -20,3 +20,12 @@ C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.csproj.CopyComplete
 C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.dll
 C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.pdb
 C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\TUI.xml
+E:\YandexDisk\Repos\TUI\TUI\bin\Debug\TUI.xml
+E:\YandexDisk\Repos\TUI\TUI\bin\Debug\TUI.dll
+E:\YandexDisk\Repos\TUI\TUI\bin\Debug\TUI.pdb
+E:\YandexDisk\Repos\TUI\TUI\bin\Debug\System.ValueTuple.dll
+E:\YandexDisk\Repos\TUI\TUI\bin\Debug\System.ValueTuple.xml
+E:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.csproj.CoreCompileInputs.cache
+E:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.csproj.CopyComplete
+E:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.dll
+E:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.pdb

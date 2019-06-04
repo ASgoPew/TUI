@@ -1,4 +1,5 @@
 ﻿using System;
+using TUI.Base;
 
 namespace TUI.Hooks.Args
 {
@@ -12,9 +13,11 @@ namespace TUI.Hooks.Args
         public int UserIndex { get; set; } = -1;
         public int ExceptUserIndex { get; set; } = -1;
         public bool Frame { get; set; } = true;
+        public VisualObject Node { get; set; }
 
-        public DrawArgs(int x, int y, int width, int height, bool forcedSection, int userIndex, int exceptUserIndex, bool frame)
+        public DrawArgs(VisualObject node, int x, int y, int width, int height, bool forcedSection, int userIndex, int exceptUserIndex, bool frame)
         {
+            Node = node;
             X = x;
             Y = y;
             Width = width;

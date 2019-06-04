@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using TUI.Base.Style;
 using TUI.Hooks.Args;
@@ -9,6 +10,8 @@ namespace TUI.Base
     {
         #region Data
 
+        public HashSet<int> Players = new HashSet<int>();
+
         public override string Name { get; }
         public override dynamic Provider { get; }
         public override int Layer
@@ -16,7 +19,7 @@ namespace TUI.Base
             get => UsesDefaultMainProvider ? 0 : Provider.IsPersonal ? 2 : 1;
             set => throw new Exception("You can't set a layer for RootVisualObject");
         }
-
+        
         #endregion
 
         #region Initialize

@@ -1036,7 +1036,7 @@ namespace TUI.Base
 #if DEBUG
             Console.WriteLine($"Draw ({Name}): {ax + dx}, {ay + dy}, {(width >= 0 ? width : Width)}, {(height >= 0 ? height : Height)}: {realForceSection}");
 #endif
-            UI.DrawRect(ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height, realForceSection, userIndex, exceptUserIndex, frame);
+            UI.DrawRect(this, ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height, realForceSection, userIndex, exceptUserIndex, frame);
             return this;
         }
 
