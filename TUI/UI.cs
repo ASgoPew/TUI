@@ -148,7 +148,9 @@ namespace TUI
                 if (touch.State == TouchState.Moving && touch.AbsoluteX == previous.AbsoluteX && touch.AbsoluteY == previous.AbsoluteY)
                     return session.Used;
 
+#if DEBUG
                 Stopwatch sw = Stopwatch.StartNew();
+#endif
 
                 if (touch.State == TouchState.Begin)
                 {
@@ -174,8 +176,11 @@ namespace TUI
                     session.EndTouchHandled = touch.InsideUI || session.BeginTouch.InsideUI;
                 }
 
+#if DEBUG
                 long elapsed = sw.ElapsedMilliseconds;
-                Console.WriteLine($"Touch ({touch.X},{touch.Y}): {touch.State}; elapsed: {elapsed}");
+                sw.Stop();
+                Console.WriteLine($"Touch ({touch.X},{touch.Y}): {touch.State} ({touch.Object}); elapsed: {elapsed}");
+#endif
 
                 session.Count++;
                 session.PreviousTouch = touch;

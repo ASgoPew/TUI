@@ -27,7 +27,6 @@ namespace TUIPlugin
         public override Version Version => new Version(0, 1, 0, 0);
 
         public static DesignState[] playerDesignState = new DesignState[256];
-        public static ITile tile;
 
         public TUIPlugin(Main game)
             : base(game)
@@ -150,8 +149,6 @@ namespace TUIPlugin
                     int tileX = (int)Math.Floor((args.Position.X + 5) / 16);
                     int tileY = (int)Math.Floor((args.Position.Y + 5) / 16);
 
-                    tile = Main.tile[tileX, tileY];
-
                     if (UI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Begin, prefix, 0)))
                         UI.Session[args.Owner].ProjectileID = args.Identity;
                     playerDesignState[args.Owner] = DesignState.Moving;
@@ -215,19 +212,46 @@ namespace TUIPlugin
 
         public static void OnCreateSign(CreateSignArgs args)
         {
-            if (args.Node.GetRoot().Provider is MainTileProvider)
+            if (args.Node.GetRoot().Provider.GetType().Name != "FakeTileRectangle")
             {
                 Main.tile[args.X, args.Y] = new Tile() { type = 55, frameX = 0, frameY = 0 };
                 int id = Sign.ReadSign(args.X, args.Y);
                 if (id >= 0)
                     args.Sign = Main.sign[id];
             }
+            else
+                CreateFakeSign(args);
+        }
+
+        public static void CreateFakeSign(CreateSignArgs args)
+        {
+            Sign sign = new Sign()
+            {
+                x = args.X,
+                y = args.Y
+            };
+            try
+            {
+                args.Node.GetRoot().Provider.AddSign(sign);
+                args.Sign = sign;
+            }
+            catch (Exception e)
+            {
+                TShock.Log.ConsoleError("Can't create FAKE sign: " + e);
+            }
         }
 
         public static void OnRemoveSign(RemoveSignArgs args)
         {
-            if (args.Sign.x >= 0 && args.Sign.y >= 0)
+            if (args.Node.GetRoot().Provider.GetType().Name != "FakeTileRectangle")
                 Sign.KillSign(args.Sign.x, args.Sign.y);
+            else
+                RemoveFakeSign(args);
+        }
+
+        public static void RemoveFakeSign(RemoveSignArgs args)
+        {
+            args.Node.GetRoot().Provider.RemoveSign(args.Sign);
         }
 
         public static void OnLog(LogArgs args)

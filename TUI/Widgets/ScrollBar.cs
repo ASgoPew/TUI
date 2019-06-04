@@ -25,16 +25,20 @@ namespace TUI.Widgets
     #endregion
 
 
-    class ScrollBar : VisualObject
+    public class ScrollBar : VisualObject
     {
+        protected int _Width { get; set; }
+        protected bool Vertical { get; set; }
         public ScrollBackground Slider { get; internal set; }
 
         public ScrollBarStyle ScrollBarStyle => Style as ScrollBarStyle;
 
         public ScrollBar(Direction side = Direction.Right, int width = 1, ScrollBarStyle style = null)
-            : base(0, 0, 0, 0, new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true }, style)
+            : base(0, 0, 0, 0, new UIConfiguration(), style ?? new ScrollBarStyle())
         {
-            if (side == Direction.Left || side == Direction.Right)
+            Vertical = side == Direction.Left || side == Direction.Right;
+            _Width = width;
+            if (Vertical)
             {
                 Width = width;
                 SetFullSize(FullSize.Vertical);
@@ -42,7 +46,7 @@ namespace TUI.Widgets
                     SetAlignmentInParent(new AlignmentStyle(Alignment.Left));
                 else
                     SetAlignmentInParent(new AlignmentStyle(Alignment.Right));
-                SetupLayout(new LayoutStyle(Alignment.Center, Direction.Down));
+                SetupLayout(new LayoutStyle(Alignment.Up, Direction.Up));
             }
             else
             {
@@ -52,18 +56,57 @@ namespace TUI.Widgets
                     SetAlignmentInParent(new AlignmentStyle(Alignment.Up));
                 else
                     SetAlignmentInParent(new AlignmentStyle(Alignment.Down));
-                SetupLayout(new LayoutStyle(Alignment.Center, Direction.Right));
+                SetupLayout(new LayoutStyle(Alignment.Left, Direction.Left));
             }
-            Slider = AddToLayout(new ScrollBackground(false, true)) as ScrollBackground;
+            Slider = AddToLayout(new ScrollBackground(false, true, true, ScrollAction)) as ScrollBackground;
             Slider.SetFullSize(FullSize.None);
-            Slider.SetXYWH(0, 0, width, width);
             Slider.Style.WallColor = ScrollBarStyle.SliderColor;
+        }
+
+        public static void ScrollAction(ScrollBackground @this, int value)
+        {
+            //int newIndent = (int)Math.Round((value / (float)@this.Limit) * @this.Parent.Style.Layout.IndentLimit);
+            //Console.WriteLine(newIndent);
+            @this.Parent.Parent
+                .LayoutIndent(value)
+                .Update()
+                .Apply(true)
+                .Draw();
         }
 
         protected override void UpdateThisNative()
         {
-            base.UpdateThisNative();
+            Style.Layout.LayoutIndent = Parent.Style.Layout.LayoutIndent;
+            int limit = Parent.Style.Layout.IndentLimit;
             Slider.Style.WallColor = ScrollBarStyle.SliderColor;
+            if (Vertical)
+                Slider.SetWH(_Width, Math.Min(Math.Max(Height - limit, 1), Height));
+            else
+                Slider.SetWH(Math.Min(Math.Max(Width - limit, 1), Width), _Width);
+            ForceSection = Parent.ForceSection;
+
+            base.UpdateThisNative();
+
+            Style.Layout.IndentLimit = limit;
+        }
+
+        public override bool Invoke(Touch touch)
+        {
+            if (Vertical)
+            {
+                if (touch.Y > Slider.Y)
+                    ScrollAction(Slider, Style.Layout.LayoutIndent + touch.Y - (Slider.Y + Slider.Height) + 1);
+                else
+                    ScrollAction(Slider, Style.Layout.LayoutIndent - (Slider.Y - touch.Y));
+            }
+            else
+            {
+                if (touch.X > Slider.X)
+                    ScrollAction(Slider, Style.Layout.LayoutIndent + touch.X - (Slider.X + Slider.Width) + 1);
+                else
+                    ScrollAction(Slider, Style.Layout.LayoutIndent - (Slider.X - touch.X));
+            }
+            return true;
         }
     }
 }

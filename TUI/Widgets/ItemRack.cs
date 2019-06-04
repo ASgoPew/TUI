@@ -7,10 +7,20 @@ namespace TUI.Widgets
 {
     #region ItemRackStyle
 
+    public enum ItemSize
+    {
+        Tiny = 0,
+        Small,
+        Normal,
+        Large,
+        Massive
+    }
+
     public class ItemRackStyle : UIStyle
     {
         public short Type { get; set; } = 0;
         public bool Left { get; set; } = true;
+        public ItemSize Size { get; set; } = ItemSize.Normal;
 
         public ItemRackStyle() : base() { }
 
@@ -27,6 +37,8 @@ namespace TUI.Widgets
     public class ItemRack : VisualObject
     {
         #region Data
+
+        protected static readonly int[] Sizes = new int[] { 7, 9, 0, 1, 2 };
 
         public dynamic Sign { get; set; } = null;
 
@@ -63,6 +75,7 @@ namespace TUI.Widgets
             bool left = ItemRackStyle.Left;
             int fx = left ? 54 : 0;
             bool sign = Sign != null;
+            int prefix = Sizes[(int)ItemRackStyle.Size];
             for (int x = 0; x < 3; x++)
                 for (int y = 0; y < 3; y++)
                 {
@@ -70,8 +83,6 @@ namespace TUI.Widgets
                     if (tile == null)
                         continue;
                     tile.active(true);
-                    if (sign && x == 0 && y == 0)
-                        tile.sTileHeader = (short)(UI.FakeSignSTileHeader | (Style.InActive == true ? 64 : Style.InActive == false ? 0 : tile.inActive() ? 64 : 0));
                     tile.type = (ushort)(sign && y == 0 ? 55 : 334);
                     if (sign && y == 0)
                         tile.frameX = (short)((x == 0) ? 144 : (x == 1) ? 126 : 162);
@@ -79,7 +90,7 @@ namespace TUI.Widgets
                         tile.frameX = (short)
                             (x == 0
                             ? (left ? 20100 : 5100) + type
-                            : left ? 25000 : 10000);
+                            : (left ? 25000 : 10000) + prefix);
                     else
                         tile.frameX = (short)(fx + x * 18);
                     tile.frameY = (short)(sign && y == 0 ? 0 : y * 18);
@@ -121,7 +132,7 @@ namespace TUI.Widgets
         {
             if (Sign == null)
                 return;
-            UI.Hooks.RemoveSign.Invoke(new RemoveSignArgs(Sign));
+            UI.Hooks.RemoveSign.Invoke(new RemoveSignArgs(this, Sign));
             Sign = null;
         }
 

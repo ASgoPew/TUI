@@ -14,6 +14,7 @@ namespace TUI.Widgets
 
         private Action<ScrollBackground, int> ScrollBackgroundCallback;
         public int BeginIndent { get; protected set; }
+        public int Limit { get; protected set; }
         public bool AllowToPull { get; set; }
         public bool RememberTouchPosition { get; set; }
 
@@ -40,7 +41,7 @@ namespace TUI.Widgets
                 throw new Exception("Scroll has no parent or parent doesn't have layout.");
             LayoutStyle layout = Parent.Style.Layout;
             int indent = layout.LayoutIndent;
-            int limit = layout.IndentLimit;
+            Limit = layout.IndentLimit;
             bool vertical = layout.Direction == Direction.Up || layout.Direction == Direction.Down;
             if (touch.State == TouchState.Begin)
                 BeginIndent = indent;
@@ -71,14 +72,17 @@ namespace TUI.Widgets
                     {
                         if (newIndent < 0)
                             newIndent = 0;
-                        else if (newIndent > limit)
-                            newIndent = limit;
+                        else if (newIndent > Limit)
+                            newIndent = Limit;
                     }
                     if (Parent.Style.Layout.LayoutIndent != newIndent)
                     {
-                        ScrollBackgroundCallback?.Invoke(this, newIndent);
                         Parent.LayoutIndent(newIndent);
-                        Parent.Update().Apply(true).Draw();
+                        Action<ScrollBackground, int> callback = ScrollBackgroundCallback;
+                        if (callback != null)
+                            callback.Invoke(this, newIndent);
+                        else
+                            Parent.Update().Apply(true).Draw();
                     }
                 }
             }
