@@ -114,7 +114,7 @@ namespace TUI.Widgets
             if (Text == null)
                 throw new NullReferenceException("CreateSign: Text is null");
             (int x, int y) = AbsoluteXY();
-            CreateSignArgs args = new CreateSignArgs(x, y, Sign, this);
+            CreateSignArgs args = new CreateSignArgs(x, y, this);
             TUI.Hooks.CreateSign.Invoke(args);
             if (args.Sign == null)
             {

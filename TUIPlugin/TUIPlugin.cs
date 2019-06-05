@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OTAPI.Tile;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Timers;
@@ -8,6 +9,7 @@ using TerrariaApi.Server;
 using TShockAPI;
 using TUI.Base;
 using TUI.Hooks.Args;
+using TUI.Widgets.Media;
 
 namespace TUIPlugin
 {
@@ -23,7 +25,7 @@ namespace TUIPlugin
     {
         #region Data
 
-        public override string Author => "ASgo";
+        public override string Author => "ASgo & Anzhelika";
         public override string Description => "Plugin conntion to TUI library";
         public override string Name => "TUIPlugin";
         public override Version Version => new Version(0, 1, 0, 0);
@@ -60,6 +62,11 @@ namespace TUIPlugin
             TUI.TUI.Hooks.Log.Event += OnLog;
             RegionTimer.Elapsed += OnRegionTimer;
             RegionTimer.Start();
+
+            if (!ImageData.Readers.ContainsKey(".dat"))
+                ImageData.Readers.Add(".dat", ReadWorldEdit);
+            if (!ImageData.Readers.ContainsKey(".TEditSch"))
+                ImageData.Readers.Add(".TEditSch", ReadTEdit);
 
             TUI.TUI.Initialize(255);
         }
@@ -348,6 +355,7 @@ namespace TUIPlugin
         }
 
         #endregion
+
         #region OnRegionTimer
 
         private void OnRegionTimer(object sender, ElapsedEventArgs e)
@@ -375,6 +383,314 @@ namespace TUIPlugin
                 }
             }
         }
+
+        #endregion
+
+        #region ReadWorldEdit
+
+        private void ReadWorldEdit(BinaryReader br, ImageData image)
+        {
+            br.ReadInt32();
+            br.ReadInt32();
+            int w = br.ReadInt32(), h = br.ReadInt32();
+            image.Width = w;
+            image.Height = h;
+            ITile[,] tiles = new ITile[w, h];
+            for (int i = 0; i < w; i++)
+                for (int j = 0; j < h; j++)
+                    tiles[i, j] = ReadTile(br);
+            image.Tiles = tiles;
+            try
+            {
+                int signCount = br.ReadInt32();
+                List<SignData> signs = new List<SignData>();
+                for (int i = 0; i < signCount; i++)
+                    signs.Add(ReadSign(br));
+                image.Signs = signs;
+            }
+            catch (EndOfStreamException) { }
+        }
+
+        #region ReadTile
+
+        public static ITile ReadTile(BinaryReader br)
+        {
+            Tile tile = new Tile
+            {
+                sTileHeader = br.ReadInt16(),
+                bTileHeader = br.ReadByte(),
+                bTileHeader2 = br.ReadByte()
+            };
+
+            if (tile.active())
+            {
+                tile.type = br.ReadUInt16();
+                if (Main.tileFrameImportant[tile.type])
+                {
+                    tile.frameX = br.ReadInt16();
+                    tile.frameY = br.ReadInt16();
+                }
+            }
+            tile.wall = br.ReadByte();
+            tile.liquid = br.ReadByte();
+            return tile;
+        }
+
+        #endregion
+        #region ReadSign
+
+        public static SignData ReadSign(BinaryReader br) =>
+            new SignData()
+            {
+                X = br.ReadInt32(),
+                Y = br.ReadInt32(),
+                Text = br.ReadString()
+            };
+
+        #endregion
+
+        #endregion
+        #region ReadTEdit
+
+        private void ReadTEdit(BinaryReader br, ImageData image)
+        {
+            br.ReadString();
+            br.ReadUInt32();
+            int w = br.ReadInt32(), h = br.ReadInt32();
+            image.Width = w;
+            image.Height = h;
+            image.Tiles = LoadTileData(br, w, h);
+            LoadChestData(br);
+            image.Signs = LoadSignData(br);
+        }
+
+        #region LoadTileData
+
+        private static ITile[,] LoadTileData(BinaryReader br, int w, int h)
+        {
+            ITile[,] tiles = new ITile[w, h];
+            for (int x = 0; x < w; x++)
+            {
+                for (int y = 0; y < h; y++)
+                {
+                    int rle;
+                    ITile tile = DeserializeTileData(br, out rle);
+                    tiles[x, y] = tile;
+                    while (rle > 0)
+                    {
+                        y++;
+                        if (y > h)
+                        {
+                            throw new Exception(string.Format("TEdit: Invalid Tile Data: RLE Compression outside of bounds [{0},{1}]", x, y));
+                        }
+                        tiles[x, y] = (Tile)tile.Clone();
+                        rle--;
+                    }
+                }
+            }
+            return tiles;
+        }
+
+        #endregion
+        #region DeserializeTileData
+
+        private static ITile DeserializeTileData(BinaryReader br, out int rle)
+        {
+            ITile tile = new Tile();
+            rle = 0;
+            byte header3 = 0;
+            byte header4 = 0;
+            byte header5 = br.ReadByte();
+            if ((header5 & 1) == 1)
+            {
+                header4 = br.ReadByte();
+                if ((header4 & 1) == 1)
+                {
+                    header3 = br.ReadByte();
+                }
+            }
+            if ((header5 & 2) == 2)
+            {
+                tile.active(true);
+                int tileType;
+                if ((header5 & 32) != 32)
+                {
+                    tileType = (int)br.ReadByte();
+                }
+                else
+                {
+                    byte lowerByte = br.ReadByte();
+                    tileType = (int)br.ReadByte();
+                    tileType = (tileType << 8 | (int)lowerByte);
+                }
+                tile.type = (ushort)tileType;
+                if (!Main.tileFrameImportant[tileType])
+                {
+                    tile.frameX = -1;
+                    tile.frameY = -1;
+                }
+                else
+                {
+                    tile.frameX = br.ReadInt16();
+                    tile.frameY = br.ReadInt16();
+                    if (tile.type == 144)
+                    {
+                        tile.frameY = 0;
+                    }
+                }
+                if ((header3 & 8) == 8)
+                {
+                    tile.color(br.ReadByte());
+                }
+            }
+            if ((header5 & 4) == 4)
+            {
+                tile.wall = br.ReadByte();
+                if ((header3 & 16) == 16)
+                {
+                    tile.wallColor(br.ReadByte());
+                }
+            }
+            byte liquidType = (byte)((header5 & 24) >> 3);
+            if (liquidType != 0)
+            {
+                tile.liquid = br.ReadByte();
+                tile.liquidType(liquidType);
+            }
+            if (header4 > 1)
+            {
+                if ((header4 & 2) == 2)
+                {
+                    tile.wire(true);
+                }
+                if ((header4 & 4) == 4)
+                {
+                    tile.wire2(true);
+                }
+                if ((header4 & 8) == 8)
+                {
+                    tile.wire3(true);
+                }
+                byte brickStyle = (byte)((header4 & 112) >> 4);
+                if (brickStyle != 0 && Main.tileSolid.Length > tile.type && Main.tileSolid[tile.type])
+                {
+                    if (brickStyle == 1)
+                        tile.halfBrick(true);
+                    else if (brickStyle > 0)
+                        tile.slope((byte)(brickStyle - 1));
+                }
+            }
+            if (header3 > 0)
+            {
+                if ((header3 & 2) == 2)
+                {
+                    tile.actuator(true);
+                }
+                if ((header3 & 4) == 4)
+                {
+                    tile.inActive(true);
+                }
+                if ((header3 & 32) == 32)
+                {
+                    tile.wire4(true);
+                }
+            }
+            byte rleStorageType = (byte)((header5 & 192) >> 6);
+            if (rleStorageType == 0)
+            {
+                rle = 0;
+            }
+            else if (rleStorageType != 1)
+            {
+                rle = (int)br.ReadInt16();
+            }
+            else
+            {
+                rle = (int)br.ReadByte();
+            }
+            return tile;
+        }
+
+        #endregion
+        #region LoadChestData
+
+        private static IEnumerable<Chest> LoadChestData(BinaryReader r)
+        {
+            int totalChests = (int)r.ReadInt16();
+            int maxItems = (int)r.ReadInt16();
+            int itemsPerChest;
+            int overflowItems;
+            if (maxItems > Chest.maxItems)
+            {
+                itemsPerChest = Chest.maxItems;
+                overflowItems = maxItems - Chest.maxItems;
+            }
+            else
+            {
+                itemsPerChest = maxItems;
+                overflowItems = 0;
+            }
+            int num;
+            for (int i = 0; i < totalChests; i = num + 1)
+            {
+                Chest chest = new Chest
+                {
+                    x = r.ReadInt32(),
+                    y = r.ReadInt32(),
+                    name = r.ReadString()
+                };
+                for (int slot = 0; slot < itemsPerChest; slot++)
+                {
+                    short stackSize = r.ReadInt16();
+                    chest.item[slot].stack = (int)stackSize;
+                    if (stackSize > 0)
+                    {
+                        int id = r.ReadInt32();
+                        byte prefix = r.ReadByte();
+                        chest.item[slot].netID = id;
+                        chest.item[slot].stack = (int)stackSize;
+                        chest.item[slot].prefix = prefix;
+                    }
+                }
+                for (int overflow = 0; overflow < overflowItems; overflow++)
+                {
+                    if (r.ReadInt16() > 0)
+                    {
+                        r.ReadInt32();
+                        r.ReadByte();
+                    }
+                }
+                yield return chest;
+                num = i;
+            }
+            yield break;
+        }
+
+        #endregion
+        #region LoadSignData
+
+        private static List<SignData> LoadSignData(BinaryReader br)
+        {
+            short totalSigns = br.ReadInt16();
+            int num;
+            List<SignData> signs = new List<SignData>();
+            for (int i = 0; i < (int)totalSigns; i = num + 1)
+            {
+                string text = br.ReadString();
+                int x = br.ReadInt32();
+                int y = br.ReadInt32();
+                signs.Add(new SignData()
+                {
+                    X = x,
+                    Y = y,
+                    Text = text
+                });
+                num = i;
+            }
+            return signs;
+        }
+
+        #endregion
 
         #endregion
     }

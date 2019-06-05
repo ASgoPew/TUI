@@ -10,11 +10,10 @@ namespace TUI.Hooks.Args
         public dynamic Sign { get; set; }
         public VisualObject Node { get; set; }
 
-        public CreateSignArgs(int x, int y, dynamic sign, VisualObject node)
+        public CreateSignArgs(int x, int y, VisualObject node)
         {
             X = x;
             Y = y;
-            Sign = sign;
             Node = node;
         }
     }
