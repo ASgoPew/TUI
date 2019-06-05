@@ -10,6 +10,7 @@ namespace TUI.Widgets.Media
         #region Data
 
         public ImageData Data { get; protected set; }
+        public string Path { get; protected set; }
 
         #endregion
 
@@ -19,10 +20,7 @@ namespace TUI.Widgets.Media
                 UIStyle style = null, Func<VisualObject, Touch, bool> callback = null)
             : base(x, y, 0, 0, configuration, style, callback)
         {
-            ImageData[] images = ImageData.Load(path);
-            if (images.Length != 1)
-                throw new System.IO.IOException("File not found or path is a folder: " + path);
-            Data = images[0];
+            Path = path;
         }
 
         #endregion
@@ -43,6 +41,15 @@ namespace TUI.Widgets.Media
         protected override void UpdateThisNative()
         {
             base.UpdateThisNative();
+
+            if (Data == null)
+            {
+                ImageData[] images = ImageData.Load(Path);
+                if (images.Length != 1)
+                    throw new System.IO.IOException("File not found or path is a folder: " + Path);
+                Data = images[0];
+                SetWH(Data.Width, Data.Height);
+            }
 
             (int x, int y) = AbsoluteXY();
             foreach (SignData sign in Data.Signs)

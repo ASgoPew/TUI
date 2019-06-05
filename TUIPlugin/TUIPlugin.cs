@@ -390,9 +390,10 @@ namespace TUIPlugin
 
         private void ReadWorldEdit(BinaryReader br, ImageData image)
         {
-            br.ReadInt32();
-            br.ReadInt32();
+            int x = br.ReadInt32();
+            int y = br.ReadInt32();
             int w = br.ReadInt32(), h = br.ReadInt32();
+            Console.WriteLine($"x={x}, y={y}, w={w}, h={h}");
             image.Width = w;
             image.Height = h;
             ITile[,] tiles = new ITile[w, h];
@@ -404,9 +405,9 @@ namespace TUIPlugin
             {
                 int signCount = br.ReadInt32();
                 List<SignData> signs = new List<SignData>();
+                image.Signs = signs;
                 for (int i = 0; i < signCount; i++)
                     signs.Add(ReadSign(br));
-                image.Signs = signs;
             }
             catch (EndOfStreamException) { }
         }
@@ -614,10 +615,11 @@ namespace TUIPlugin
         #endregion
         #region LoadChestData
 
-        private static IEnumerable<Chest> LoadChestData(BinaryReader r)
+        private static List<Chest> LoadChestData(BinaryReader r)
         {
             int totalChests = (int)r.ReadInt16();
             int maxItems = (int)r.ReadInt16();
+            Console.WriteLine($"totalChests: {totalChests}, maxItems: {maxItems}");
             int itemsPerChest;
             int overflowItems;
             if (maxItems > Chest.maxItems)
@@ -631,6 +633,7 @@ namespace TUIPlugin
                 overflowItems = 0;
             }
             int num;
+            List<Chest> chests = new List<Chest>();
             for (int i = 0; i < totalChests; i = num + 1)
             {
                 Chest chest = new Chest
@@ -660,10 +663,10 @@ namespace TUIPlugin
                         r.ReadByte();
                     }
                 }
-                yield return chest;
+                chests.Add(chest);
                 num = i;
             }
-            yield break;
+            return chests;
         }
 
         #endregion
@@ -672,6 +675,7 @@ namespace TUIPlugin
         private static List<SignData> LoadSignData(BinaryReader br)
         {
             short totalSigns = br.ReadInt16();
+            Console.WriteLine("TOTAL SIGNS: " + totalSigns);
             int num;
             List<SignData> signs = new List<SignData>();
             for (int i = 0; i < (int)totalSigns; i = num + 1)

@@ -1,4 +1,7 @@
-﻿namespace TUITests
+﻿using TUI.Base;
+using TUI.Base.Style;
+
+namespace TUITests
 {
     struct kek
     {
