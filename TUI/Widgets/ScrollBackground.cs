@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TUI.Base;
 using TUI.Base.Style;
 
@@ -20,7 +17,7 @@ namespace TUI.Widgets
 
         #endregion
 
-        #region Initialize
+        #region Constructor
 
         public ScrollBackground(bool allowToPull = true, bool rememberTouchPosition = true, bool useMoving = true, Action<ScrollBackground, int> callback = null)
             : base(0, 0, 0, 0, new UIConfiguration() { UseMoving=useMoving, UseEnd=true, UseOutsideTouches=true })
@@ -82,7 +79,7 @@ namespace TUI.Widgets
                         if (callback != null)
                             callback.Invoke(this, newIndent);
                         else
-                            Parent.Update().Apply(true).Draw();
+                            Parent.Update().Apply().Draw();
                     }
                 }
             }

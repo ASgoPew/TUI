@@ -41,7 +41,7 @@ namespace TUI.Widgets
 
         #endregion
 
-        #region Initialize
+        #region Constructor
 
         public Arrow(int x, int y, ArrowStyle style = null, Func<VisualObject, Touch, bool> callback = null)
             : base(x, y, 2, 2, null, style, callback)
@@ -62,9 +62,9 @@ namespace TUI.Widgets
         #endregion
         #region ApplyThisNative
 
-        protected override void ApplyThisNative(bool clearTiles = false)
+        protected override void ApplyThisNative()
         {
-            base.ApplyThisNative(clearTiles);
+            base.ApplyThisNative();
 
             foreach ((int x, int y) in Points)
                 Tile(x, y)?.slope(Slope[ArrowStyle.Direction][y, x]);

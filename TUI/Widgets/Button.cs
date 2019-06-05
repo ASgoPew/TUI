@@ -53,7 +53,7 @@ namespace TUI.Widgets
 
         #endregion
 
-        #region Initialize
+        #region Constructor
 
         public Button(int x, int y, int width, int height, string text, UIConfiguration configuration = null,
                 ButtonStyle style = null, Func<VisualObject, Touch, bool> callback = null)
@@ -130,45 +130,32 @@ namespace TUI.Widgets
         }
 
         #endregion
-        #region ApplyTiles
+        #region ApplyTile
 
-        public override VisualObject ApplyTiles(bool clearTiles = false)
+        protected override void ApplyTile(int x, int y, dynamic tile)
         {
-            if (Style.Active == null && Style.InActive == null && Style.Tile == null && Style.TileColor == null
-                    && Style.Wall == null && Style.WallColor == null)
-                return this;
-
-            ButtonBlinkStyle blinkStyle = ButtonStyle.BlinkStyle;
-            byte blinkColor = ButtonStyle.BlinkColor;
-            bool full = blinkStyle == ButtonBlinkStyle.Full;
-            bool left = blinkStyle == ButtonBlinkStyle.Left;
-            bool right = blinkStyle == ButtonBlinkStyle.Right;
-            foreach ((int x, int y) in Points)
+            if (Style.Active != null)
+                tile.active(Style.Active.Value);
+            else if (Style.Tile != null)
+                tile.active(true);
+            else if (Style.Wall != null)
+                tile.active(false);
+            if (Style.InActive != null)
+                tile.inActive(Style.InActive.Value);
+            if (Style.Tile != null)
+                tile.type = Style.Tile.Value;
+            if (Style.TileColor != null)
+                tile.color(Style.TileColor.Value);
+            if (Style.Wall != null)
+                tile.wall = Style.Wall.Value;
+            if (Style.WallColor != null)
             {
-                dynamic tile = Tile(x, y);
-                if (tile == null)
-                    continue;
-                if (clearTiles)
-                    tile.ClearEverything();
-                if (Style.Active != null)
-                    tile.active(Style.Active.Value);
-                else if (Style.Tile != null)
-                    tile.active(true);
-                else if (Style.Wall != null)
-                    tile.active(false);
-                if (Style.InActive != null)
-                    tile.inActive(Style.InActive.Value);
-                if (Style.Tile != null)
-                    tile.type = Style.Tile.Value;
-                if (Style.TileColor != null)
-                    tile.color(Style.TileColor.Value);
-                if (Style.Wall != null)
-                    tile.wall = Style.Wall.Value;
-                if (Style.WallColor != null)
-                    tile.wallColor(Pressed && (full || left && x == 0 || right && x == Width - 1)
-                        ? blinkColor : Style.WallColor.Value);
+                ButtonBlinkStyle blinkStyle = ButtonStyle.BlinkStyle;
+                tile.wallColor(Pressed && (blinkStyle == ButtonBlinkStyle.Full
+                    || blinkStyle == ButtonBlinkStyle.Left && x == 0
+                    || blinkStyle == ButtonBlinkStyle.Right && x == Width - 1)
+                        ? ButtonStyle.BlinkColor : Style.WallColor.Value);
             }
-            return this;
         }
 
         #endregion
@@ -177,7 +164,6 @@ namespace TUI.Widgets
         private void TryEndBlink(ButtonBlinkStyle blinkStyle, byte type)
         {
             State |= type;
-            Console.WriteLine(State);
             if (State == 3)
                 EndBlink(blinkStyle);
         }
@@ -194,7 +180,7 @@ namespace TUI.Widgets
         protected virtual void Blink(ButtonBlinkStyle blinkStyle, byte blinkColor)
         {
             if (blinkStyle == ButtonBlinkStyle.Full)
-                Apply(true).Draw();
+                Apply().Draw();
             else if (blinkStyle == ButtonBlinkStyle.Left)
             {
                 for (int y = 0; y < Height; y++)

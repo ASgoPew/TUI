@@ -14,7 +14,5 @@ namespace TUI.Widgets
             : base(0, 0, width, height, null, style)
         {
         }
-
-        public override VisualObject Apply(bool clearTiles = true) => ApplyTiles(clearTiles);
     }
 }

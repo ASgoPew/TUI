@@ -47,7 +47,7 @@ namespace TUI.Widgets
 
         #endregion
 
-        #region Initialize
+        #region Constructor
 
         public ItemRack(int x, int y, ItemRackStyle style = null,
                 Func<VisualObject, Touch, bool> callback = null)
@@ -67,9 +67,9 @@ namespace TUI.Widgets
         #endregion
         #region ApplyThisNative
 
-        protected override void ApplyThisNative(bool clearTiles = false)
+        protected override void ApplyThisNative()
         {
-            base.ApplyThisNative(clearTiles);
+            base.ApplyThisNative();
 
             short type = ItemRackStyle.Type;
             bool left = ItemRackStyle.Left;
@@ -115,10 +115,10 @@ namespace TUI.Widgets
                 throw new NullReferenceException("CreateSign: Text is null");
             (int x, int y) = AbsoluteXY();
             CreateSignArgs args = new CreateSignArgs(x, y, Sign, this);
-            UI.Hooks.CreateSign.Invoke(args);
+            TUI.Hooks.CreateSign.Invoke(args);
             if (args.Sign == null)
             {
-                UI.Hooks.Log.Invoke(new LogArgs("Can't create new sign.", LogType.Error));
+                TUI.Hooks.Log.Invoke(new LogArgs("Can't create new sign.", LogType.Error));
                 return;
             }
             Sign = args.Sign;
@@ -132,7 +132,7 @@ namespace TUI.Widgets
         {
             if (Sign == null)
                 return;
-            UI.Hooks.RemoveSign.Invoke(new RemoveSignArgs(this, Sign));
+            TUI.Hooks.RemoveSign.Invoke(new RemoveSignArgs(this, Sign));
             Sign = null;
         }
 

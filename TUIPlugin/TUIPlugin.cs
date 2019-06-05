@@ -1,5 +1,4 @@
-﻿using OTAPI.Tile;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Timers;
@@ -7,7 +6,6 @@ using Terraria;
 using Terraria.ID;
 using TerrariaApi.Server;
 using TShockAPI;
-using TUI;
 using TUI.Base;
 using TUI.Hooks.Args;
 
@@ -54,16 +52,16 @@ namespace TUIPlugin
             ServerApi.Hooks.ServerLeave.Register(this, OnServerLeave);
             ServerApi.Hooks.NetGetData.Register(this, OnGetData, 100);
             GetDataHandlers.NewProjectile += OnNewProjectile;
-            UI.Hooks.CanTouch.Event += OnCanTouch;
-            UI.Hooks.Draw.Event += OnDraw;
-            UI.Hooks.TouchCancel.Event += OnTouchCancel;
-            UI.Hooks.CreateSign.Event += OnCreateSign;
-            UI.Hooks.RemoveSign.Event += OnRemoveSign;
-            UI.Hooks.Log.Event += OnLog;
+            TUI.TUI.Hooks.CanTouch.Event += OnCanTouch;
+            TUI.TUI.Hooks.Draw.Event += OnDraw;
+            TUI.TUI.Hooks.TouchCancel.Event += OnTouchCancel;
+            TUI.TUI.Hooks.CreateSign.Event += OnCreateSign;
+            TUI.TUI.Hooks.RemoveSign.Event += OnRemoveSign;
+            TUI.TUI.Hooks.Log.Event += OnLog;
             RegionTimer.Elapsed += OnRegionTimer;
             RegionTimer.Start();
 
-            UI.Initialize(255);
+            TUI.TUI.Initialize(255);
         }
 
         #endregion
@@ -73,18 +71,18 @@ namespace TUIPlugin
         {
             if (disposing)
             {
-                UI.Deinitialize();
+                TUI.TUI.Deinitialize();
 
                 ServerApi.Hooks.ServerConnect.Deregister(this, OnServerConnect);
                 ServerApi.Hooks.ServerLeave.Deregister(this, OnServerLeave);
                 ServerApi.Hooks.NetGetData.Deregister(this, OnGetData);
                 TShockAPI.GetDataHandlers.NewProjectile -= OnNewProjectile;
-                UI.Hooks.CanTouch.Event -= OnCanTouch;
-                UI.Hooks.Draw.Event -= OnDraw;
-                UI.Hooks.TouchCancel.Event -= OnTouchCancel;
-                UI.Hooks.CreateSign.Event -= OnCreateSign;
-                UI.Hooks.RemoveSign.Event -= OnRemoveSign;
-                UI.Hooks.Log.Event -= OnLog;
+                TUI.TUI.Hooks.CanTouch.Event -= OnCanTouch;
+                TUI.TUI.Hooks.Draw.Event -= OnDraw;
+                TUI.TUI.Hooks.TouchCancel.Event -= OnTouchCancel;
+                TUI.TUI.Hooks.CreateSign.Event -= OnCreateSign;
+                TUI.TUI.Hooks.RemoveSign.Event -= OnRemoveSign;
+                TUI.TUI.Hooks.Log.Event -= OnLog;
                 RegionTimer.Elapsed -= OnRegionTimer;
                 RegionTimer.Stop();
             }
@@ -97,9 +95,9 @@ namespace TUIPlugin
 
         private void OnGamePostInitialize(EventArgs args)
         {
-            UI.Update();
-            UI.Apply();
-            UI.Draw();
+            TUI.TUI.Update();
+            TUI.TUI.Apply();
+            TUI.TUI.Draw();
         }
 
         #endregion
@@ -108,7 +106,7 @@ namespace TUIPlugin
         private static void OnServerConnect(ConnectEventArgs args)
         {
             playerDesignState[args.Who] = DesignState.Waiting;
-            UI.InitializeUser(args.Who);
+            TUI.TUI.InitializeUser(args.Who);
         }
 
         #endregion
@@ -116,7 +114,7 @@ namespace TUIPlugin
 
         private static void OnServerLeave(LeaveEventArgs args)
         {
-            UI.RemoveUser(args.Who);
+            TUI.TUI.RemoveUser(args.Who);
         }
 
         #endregion
@@ -143,8 +141,8 @@ namespace TUIPlugin
                     else
                         return;
 
-                    UI.Touched(player.Index, new Touch(ex, ey, TouchState.End, prefix, designStateByte));
-                    args.Handled = UI.EndTouchHandled(player.Index);
+                    TUI.TUI.Touched(player.Index, new Touch(ex, ey, TouchState.End, prefix, designStateByte));
+                    args.Handled = TUI.TUI.EndTouchHandled(player.Index);
                     playerDesignState[player.Index] = DesignState.Waiting;
                 }
             }
@@ -157,12 +155,12 @@ namespace TUIPlugin
                     byte owner = br.ReadByte();
                     if (owner != args.Msg.whoAmI)
                         return;
-                    Touch previousTouch = UI.Session[owner].PreviousTouch;
-                    if (UI.Session[owner].ProjectileID == projectileID && previousTouch != null && previousTouch.State != TouchState.End)
+                    Touch previousTouch = TUI.TUI.Session[owner].PreviousTouch;
+                    if (TUI.TUI.Session[owner].ProjectileID == projectileID && previousTouch != null && previousTouch.State != TouchState.End)
                     {
                         Touch simulatedEndTouch = previousTouch.SimulatedEndTouch();
                         simulatedEndTouch.Undo = true;
-                        UI.Touched(owner, simulatedEndTouch);
+                        TUI.TUI.Touched(owner, simulatedEndTouch);
                         playerDesignState[owner] = DesignState.Waiting;
                     }
                 }
@@ -194,8 +192,8 @@ namespace TUIPlugin
                     int tileX = (int)Math.Floor((args.Position.X + 5) / 16);
                     int tileY = (int)Math.Floor((args.Position.Y + 5) / 16);
 
-                    if (UI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Begin, prefix, 0)))
-                        UI.Session[args.Owner].ProjectileID = args.Identity;
+                    if (TUI.TUI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Begin, prefix, 0)))
+                        TUI.TUI.Session[args.Owner].ProjectileID = args.Identity;
                     playerDesignState[args.Owner] = DesignState.Moving;
                     //args.Handled = true;
                 }
@@ -203,7 +201,7 @@ namespace TUIPlugin
                 {
                     int tileX = (int)Math.Floor((args.Position.X + 5) / 16);
                     int tileY = (int)Math.Floor((args.Position.Y + 5) / 16);
-                    UI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Moving, prefix, 0));
+                    TUI.TUI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Moving, prefix, 0));
                 }
             }
             catch (Exception e)
@@ -271,7 +269,7 @@ namespace TUIPlugin
             player.SendData(PacketTypes.ProjectileDestroy, null, args.Session.ProjectileID, player.Index);
             Touch simulatedEndTouch = args.Touch.SimulatedEndTouch();
             simulatedEndTouch.Undo = true;
-            UI.Touched(args.UserIndex, simulatedEndTouch);
+            TUI.TUI.Touched(args.UserIndex, simulatedEndTouch);
             playerDesignState[args.UserIndex] = DesignState.Waiting;
         }
 
@@ -354,7 +352,7 @@ namespace TUIPlugin
 
         private void OnRegionTimer(object sender, ElapsedEventArgs e)
         {
-            foreach (RootVisualObject root in UI.Roots)
+            foreach (RootVisualObject root in TUI.TUI.Roots)
             {
                 (int x, int y) = root.AbsoluteXY();
                 int sx = x - RegionAreaX;
@@ -369,7 +367,7 @@ namespace TUIPlugin
                     if ((tx >= sx) && (tx <= ex) && (ty >= sy) && (ty <= ey))
                     {
                         if (root.Players.Add(plr.Index))
-                            UI.Hooks.Draw.Invoke(new DrawArgs(root, x, y, root.Width,
+                            TUI.TUI.Hooks.Draw.Invoke(new DrawArgs(root, x, y, root.Width,
                                 root.Height, root.ForceSection, plr.Index, -1, true));
                     }
                     else

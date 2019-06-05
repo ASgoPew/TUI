@@ -10,7 +10,7 @@ using TUI.Widgets;
 
 namespace TUI
 {
-    public static class UI
+    public static class TUI
     {
         #region Data
 
@@ -22,6 +22,7 @@ namespace TUI
         public const short FakeSignSTileHeader = 29728;
         private static List<RootVisualObject> Child = new List<RootVisualObject>();
         private static Timer Timer;
+        public static bool UpdateAllowed = false;
 
         public static IEnumerable<RootVisualObject> Roots
         {
@@ -31,7 +32,7 @@ namespace TUI
                     yield return child;
             }
         }
-        
+
         #endregion
 
         #region Initialize
@@ -131,7 +132,7 @@ namespace TUI
             if (session.PreviousTouch != null && session.PreviousTouch.State != TouchState.End)
             {
                 Touch simulatedEndTouch = session.PreviousTouch.SimulatedEndTouch();
-                UI.Touched(userIndex, simulatedEndTouch);
+                TUI.Touched(userIndex, simulatedEndTouch);
             }
 
             Session[userIndex] = null;
@@ -272,7 +273,7 @@ namespace TUI
 
             // Let a custom provider actually become top
             if (result)
-                UI.Hooks.SetTop.Invoke(new SetTopArgs(o));
+                TUI.Hooks.SetTop.Invoke(new SetTopArgs(o));
             
             return result;
         }
@@ -287,7 +288,7 @@ namespace TUI
             if (intersects)
             {
                 if (needsApply)
-                    o.Apply(true);
+                    o.Apply();
                 o.Draw();
             }
         }
@@ -327,7 +328,7 @@ namespace TUI
             lock (Child)
                 foreach (RootVisualObject child in Child)
                     if (child.Active)
-                        child.Apply(true);
+                        child.Apply();
         }
 
         #endregion
@@ -346,7 +347,7 @@ namespace TUI
 
         public static void DrawRect(VisualObject node, int x, int y, int width, int height, bool forcedSection, int userIndex = -1, int exceptUserIndex = -1, bool frame = true)
         {
-            UI.Hooks.Draw.Invoke(new DrawArgs(node, x, y, width, height, forcedSection, userIndex, exceptUserIndex, frame));
+            TUI.Hooks.Draw.Invoke(new DrawArgs(node, x, y, width, height, forcedSection, userIndex, exceptUserIndex, frame));
         }
 
         #endregion

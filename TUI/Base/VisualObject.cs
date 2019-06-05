@@ -12,7 +12,7 @@ namespace TUI.Base
         public UIStyle Style { get; set; }
         public VisualObject[,] Grid { get; set; }
         public GridCell Cell { get; private set; }
-        public bool ForceSection { get; protected set; } = false;
+        public bool ForceSection { get; protected internal set; } = false;
         public int ProviderX { get; protected set; }
         public int ProviderY { get; protected set; }
         public ExternalOffset Bounds { get; protected set; }
@@ -82,7 +82,7 @@ namespace TUI.Base
             public override void PostSetTop(VisualObject o)
             {
                 if (ChildIntersectingOthers(o))
-                    o.Apply(true).Draw();
+                    o.Apply().Draw();
             }
 
             private bool ChildIntersectingOthers(VisualObject o)
@@ -98,7 +98,7 @@ namespace TUI.Base
 
         #endregion
 
-        #region Initialize
+        #region Constructor
 
         public VisualObject(int x, int y, int width, int height, UIConfiguration configuration = null, UIStyle style = null, Func<VisualObject, Touch, bool> callback = null)
             : base(x, y, width, height, configuration, callback)
@@ -869,15 +869,17 @@ namespace TUI.Base
             /// Draws everything related to this VisualObject incluing all child objects (directly changes tiles on tile provider).
             /// </summary>
             /// <returns></returns>
-            public virtual VisualObject Apply(bool clearTiles = false)
+            public virtual VisualObject Apply()
             {
+#if DEBUG
                 if (!CalculateActive())
                     throw new InvalidOperationException("Trying to call Apply() an not active object.");
+#endif
 
                 lock (ApplyLocker)
                 {
                     // Applying related to this node
-                    ApplyThis(clearTiles);
+                    ApplyThis();
 
                     // Recursive Apply call
                     ApplyChild();
@@ -892,11 +894,11 @@ namespace TUI.Base
             /// Draws everything related to this particular VisualObject. Doesn't include drawing child objects.
             /// </summary>
             /// <returns></returns>
-            public VisualObject ApplyThis(bool clearTiles = false)
+            public VisualObject ApplyThis()
             {
                 lock (ApplyLocker)
                 {
-                    ApplyThisNative(clearTiles);
+                    ApplyThisNative();
                     CustomApply();
                 }
                 return this;
@@ -909,23 +911,23 @@ namespace TUI.Base
             /// By default draws tiles/walls and grid if UI.ShowGrid is true. Overwrite this method for own widgets drawing.
             /// Don't call this method directly, call ApplyThis() instead.
             /// </summary>
-            protected virtual void ApplyThisNative(bool clearTiles = false)
+            protected virtual void ApplyThisNative()
             {
                 //ForceSection = false;
-                ApplyTiles(clearTiles);
-                if (UI.ShowGrid && Style.Grid != null)
+                ApplyTiles();
+                if (TUI.ShowGrid && Style.Grid != null)
                     ShowGrid();
             }
 
             #endregion
             #region ApplyTiles
 
-            public virtual VisualObject ApplyTiles(bool clearTiles = false)
+            public VisualObject ApplyTiles()
             {
                 lock (ApplyLocker)
                 {
-                    if (!clearTiles && Style.Active == null && Style.InActive == null && Style.Tile == null && Style.TileColor == null
-                        && Style.Wall == null && Style.WallColor == null)
+                    if (Style.Active == null && Style.InActive == null && Style.Tile == null && Style.TileColor == null
+                            && Style.Wall == null && Style.WallColor == null)
                         return this;
 
                     foreach ((int x, int y) in Points)
@@ -933,27 +935,33 @@ namespace TUI.Base
                         dynamic tile = Tile(x, y);
                         if (tile == null)
                             continue;
-                        if (clearTiles)
-                            tile.ClearEverything();
-                        if (Style.Active != null)
-                            tile.active(Style.Active.Value);
-                        else if (Style.Tile != null)
-                            tile.active(true);
-                        else if (Style.Wall != null)
-                            tile.active(false);
-                        if (Style.InActive != null)
-                            tile.inActive(Style.InActive.Value);
-                        if (Style.Tile != null)
-                            tile.type = Style.Tile.Value;
-                        if (Style.TileColor != null)
-                            tile.color(Style.TileColor.Value);
-                        if (Style.Wall != null)
-                            tile.wall = Style.Wall.Value;
-                        if (Style.WallColor != null)
-                            tile.wallColor(Style.WallColor.Value);
+                        ApplyTile(x, y, tile);
                     }
                 }
                 return this;
+            }
+
+            #endregion
+            #region ApplyTile
+
+            protected virtual void ApplyTile(int x, int y, dynamic tile)
+            {
+                if (Style.Active != null)
+                    tile.active(Style.Active.Value);
+                else if (Style.Tile != null)
+                    tile.active(true);
+                else if (Style.Wall != null)
+                    tile.active(false);
+                if (Style.InActive != null)
+                    tile.inActive(Style.InActive.Value);
+                if (Style.Tile != null)
+                    tile.type = Style.Tile.Value;
+                if (Style.TileColor != null)
+                    tile.color(Style.TileColor.Value);
+                if (Style.Wall != null)
+                    tile.wall = Style.Wall.Value;
+                if (Style.WallColor != null)
+                    tile.wallColor(Style.WallColor.Value);
             }
 
             #endregion
@@ -1003,7 +1011,7 @@ namespace TUI.Base
                         foreach (VisualObject child in ChildrenFromBottom)
                             if (child.Active)
                             {
-                                child.Apply(false);
+                                child.Apply();
                                 forceSection = forceSection || child.ForceSection;
                             }
                     ForceSection = forceSection;
@@ -1023,7 +1031,7 @@ namespace TUI.Base
 #if DEBUG
             Console.WriteLine($"Draw ({Name}): {ax + dx}, {ay + dy}, {(width >= 0 ? width : Width)}, {(height >= 0 ? height : Height)}: {realForceSection}");
 #endif
-            UI.DrawRect(this, ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height, realForceSection, userIndex, exceptUserIndex, frame);
+            TUI.DrawRect(this, ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height, realForceSection, userIndex, exceptUserIndex, frame);
             return this;
         }
 
@@ -1066,53 +1074,6 @@ namespace TUI.Base
 
         #endregion
 
-        #region PopUp
-
-        /// <summary>
-        /// Adds popup background object and popup to it's child if specified. Touching background will hide popup.
-        /// <para></para>
-        /// Returns popup background.
-        /// </summary>
-        /// <param name="popup">Popup object to add to popup background.</param>
-        /// <returns>Popup background</returns>
-        public virtual VisualObject PopUpShow(VisualObject popup = null)
-        {
-            VisualObject popupBackground = this["popupBackground"] as VisualObject;
-            if (popupBackground != null)
-            {
-                if (!popupBackground.Enabled)
-                    popupBackground.Enable().Apply(false).Draw();
-                VisualObject oldPopup = this["popup"] as VisualObject;
-                if (popup != null && oldPopup != popup)
-                {
-                    Remove(oldPopup);
-                    this["popup"] = Add(popup);
-                }
-            }
-            else
-            {
-                popupBackground = new VisualObject(0, 0, 0, 0, null, null, (self, touch) => PopUpHide() == this).SetFullSize();
-                this["popupBackground"] = Add(popupBackground, Int32.MaxValue);
-                if (popup != null)
-                {
-                    this["popup"] = popupBackground.Add(popup);
-                    Apply(true).Draw();
-                }
-            }
-            return popupBackground;
-        }
-
-        /// <summary>
-        /// Hides popup.
-        /// </summary>
-        /// <returns>this</returns>
-        public virtual VisualObject PopUpHide()
-        {
-            (this["popupBackground"] as VisualObject).Disable();
-            return Apply(true).Draw();
-        }
-
-        #endregion
         #region Database
 
         public virtual void Database()

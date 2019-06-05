@@ -38,7 +38,7 @@ namespace TUI.Widgets
 
         #endregion
 
-        #region Initialize
+        #region Constructor
 
         public Slider(int x, int y, int width, int height, SliderStyle style = null, Action<Slider, int> callback = null, int defaultValue = 0, int lockDelay = 300)
             : base(x, y, width, height, new UIConfiguration() { UseMoving = true, UseEnd = true, UseOutsideTouches = true }, style)
@@ -67,7 +67,7 @@ namespace TUI.Widgets
             if (Value != value)
             {
                 Value = value;
-                ApplyTiles(false).Draw(Value < oldValue ? Value : oldValue, 0, Value > oldValue ? Value + 1 - oldValue : oldValue + 1 - value);
+                ApplyTiles().Draw(Value < oldValue ? Value : oldValue, 0, Value > oldValue ? Value + 1 - oldValue : oldValue + 1 - value);
             }
             if (touch.State == TouchState.End && Value != OldValue && (!SliderStyle.TriggerOnDrag || oldValue != value)
                     || SliderStyle.TriggerOnDrag && oldValue != value)
@@ -76,39 +76,26 @@ namespace TUI.Widgets
         }
 
         #endregion
-        #region ApplyTiles
+        #region ApplyTile
 
-        public override VisualObject ApplyTiles(bool clearTiles = false)
+        protected override void ApplyTile(int x, int y, dynamic tile)
         {
-            if (Style.Active == null && Style.InActive == null && Style.Tile == null && Style.TileColor == null
-                    && Style.Wall == null && Style.WallColor == null)
-                return this;
-
-            foreach ((int x, int y) in Points)
-            {
-                dynamic tile = Tile(x, y);
-                if (tile == null)
-                    continue;
-                if (clearTiles)
-                    tile.ClearEverything();
-                if (Style.Active != null)
-                    tile.active(Style.Active.Value);
-                else if (Style.Tile != null)
-                    tile.active(true);
-                else if (Style.Wall != null)
-                    tile.active(false);
-                if (Style.InActive != null)
-                    tile.inActive(Style.InActive.Value);
-                if (Style.Tile != null)
-                    tile.type = Style.Tile.Value;
-                if (Style.TileColor != null)
-                    tile.color(Style.TileColor.Value);
-                if (Style.Wall != null)
-                    tile.wall = Style.Wall.Value;
-                if (Style.WallColor != null)
-                    tile.wallColor((x > Value) ? Style.WallColor.Value : (x == Value) ? SliderStyle.SeparatorColor : SliderStyle.UsedColor);
-            }
-            return this;
+            if (Style.Active != null)
+                tile.active(Style.Active.Value);
+            else if (Style.Tile != null)
+                tile.active(true);
+            else if (Style.Wall != null)
+                tile.active(false);
+            if (Style.InActive != null)
+                tile.inActive(Style.InActive.Value);
+            if (Style.Tile != null)
+                tile.type = Style.Tile.Value;
+            if (Style.TileColor != null)
+                tile.color(Style.TileColor.Value);
+            if (Style.Wall != null)
+                tile.wall = Style.Wall.Value;
+            if (Style.WallColor != null)
+                tile.wallColor((x > Value) ? Style.WallColor.Value : (x == Value) ? SliderStyle.SeparatorColor : SliderStyle.UsedColor);
         }
 
         #endregion

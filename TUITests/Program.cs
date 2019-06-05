@@ -1,6 +1,4 @@
-﻿using System;
-using TUI;
-using TUI.Base;
+﻿using TUI.Base;
 using TUI.Base.Style;
 
 namespace TUITests
@@ -34,25 +32,25 @@ namespace TUITests
 
         static void Main(string[] args)
         {
-            UI.Initialize();
+            TUI.TUI.Initialize();
             UIPlayer me = new UIPlayer();
-            UI.InitializeUser(me.Index);
-            RootVisualObject root = UI.CreateRoot("Game", 55, 115, 50, 40);
+            TUI.TUI.InitializeUser(me.Index);
+            RootVisualObject root = TUI.TUI.CreateRoot("Game", 55, 115, 50, 40);
             root.SetupGrid(new GridStyle(new ISize[] { new Relative(100), new Absolute(20) }, new ISize[] { new Absolute(20), new Relative(100) })
             {
                 Offset = new Offset() { Right = 1 }
             });
-            UI.Update();
-            UI.Touched(me.Index, new Touch(124, 110, TouchState.Begin, 0, 0));
-            UI.Touched(me.Index, new Touch(125, 110, TouchState.Moving, 0, 0));
-            UI.Touched(me.Index, new Touch(124, 110, TouchState.Moving, 0, 0));
-            UI.Touched(me.Index, new Touch(125, 110, TouchState.Moving, 0, 0));
-            UI.Touched(me.Index, new Touch(124, 110, TouchState.End, 0, 0));
-            UI.Touched(me.Index, new Touch(124, 110, TouchState.Begin, 0, 0));
-            UI.Touched(me.Index, new Touch(125, 110, TouchState.Moving, 0, 0));
-            UI.Touched(me.Index, new Touch(124, 110, TouchState.Moving, 0, 0));
-            UI.Touched(me.Index, new Touch(125, 110, TouchState.Moving, 0, 0));
-            UI.Touched(me.Index, new Touch(124, 110, TouchState.End, 0, 0));
+            TUI.TUI.Update();
+            TUI.TUI.Touched(me.Index, new Touch(124, 110, TouchState.Begin, 0, 0));
+            TUI.TUI.Touched(me.Index, new Touch(125, 110, TouchState.Moving, 0, 0));
+            TUI.TUI.Touched(me.Index, new Touch(124, 110, TouchState.Moving, 0, 0));
+            TUI.TUI.Touched(me.Index, new Touch(125, 110, TouchState.Moving, 0, 0));
+            TUI.TUI.Touched(me.Index, new Touch(124, 110, TouchState.End, 0, 0));
+            TUI.TUI.Touched(me.Index, new Touch(124, 110, TouchState.Begin, 0, 0));
+            TUI.TUI.Touched(me.Index, new Touch(125, 110, TouchState.Moving, 0, 0));
+            TUI.TUI.Touched(me.Index, new Touch(124, 110, TouchState.Moving, 0, 0));
+            TUI.TUI.Touched(me.Index, new Touch(125, 110, TouchState.Moving, 0, 0));
+            TUI.TUI.Touched(me.Index, new Touch(124, 110, TouchState.End, 0, 0));
             //game.Remove(game["lol"]);
             //UI.Touched(me, new Touch(24, 10, TouchState.Begin, session));
         }

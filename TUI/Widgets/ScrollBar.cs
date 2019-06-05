@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TUI.Base;
 using TUI.Base.Style;
 
@@ -27,11 +23,17 @@ namespace TUI.Widgets
 
     public class ScrollBar : VisualObject
     {
+        #region Data
+
         protected int _Width { get; set; }
         protected bool Vertical { get; set; }
         public ScrollBackground Slider { get; internal set; }
 
         public ScrollBarStyle ScrollBarStyle => Style as ScrollBarStyle;
+
+        #endregion
+
+        #region Constructor
 
         public ScrollBar(Direction side = Direction.Right, int width = 1, ScrollBarStyle style = null)
             : base(0, 0, 0, 0, new UIConfiguration(), style ?? new ScrollBarStyle())
@@ -61,7 +63,12 @@ namespace TUI.Widgets
             Slider = AddToLayout(new ScrollBackground(false, true, true, ScrollAction)) as ScrollBackground;
             Slider.SetFullSize(FullSize.None);
             Slider.Style.WallColor = ScrollBarStyle.SliderColor;
+            if (Style.WallColor == null)
+                Style.WallColor = 0;
         }
+
+        #endregion
+        #region ScrollAction
 
         public static void ScrollAction(ScrollBackground @this, int value)
         {
@@ -70,9 +77,12 @@ namespace TUI.Widgets
             @this.Parent.Parent
                 .LayoutIndent(value)
                 .Update()
-                .Apply(true)
+                .Apply()
                 .Draw();
         }
+
+        #endregion
+        #region UpdateThisNative
 
         protected override void UpdateThisNative()
         {
@@ -89,6 +99,9 @@ namespace TUI.Widgets
 
             Style.Layout.IndentLimit = limit;
         }
+
+        #endregion
+        #region Invoke
 
         public override bool Invoke(Touch touch)
         {
@@ -108,5 +121,7 @@ namespace TUI.Widgets
             }
             return true;
         }
+
+        #endregion
     }
 }

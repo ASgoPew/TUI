@@ -9,6 +9,7 @@ namespace TUI.Base
         T Add(T child, int layer);
         T Remove(T child);
         T Select(T child);
+        T Selected();
         T Deselect();
         T GetRoot();
         bool IsAncestorFor(T o);

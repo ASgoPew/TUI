@@ -24,7 +24,7 @@ namespace TUI.Widgets
 
         #endregion
 
-        #region Initialize
+        #region Constructor
 
         internal protected Panel(string name, int x, int y, int width, int height, PanelDrag drag, PanelResize resize,
             UIConfiguration configuration = null, UIStyle style = null, object provider = null)
@@ -49,7 +49,7 @@ namespace TUI.Widgets
             if (x == X && y == Y)
                 return;
             if (UsesDefaultMainProvider)
-                Clear().Draw().SetXY(x, y).Update().Apply(true).Draw();
+                Clear().Draw().SetXY(x, y).Update().Apply().Draw();
             else
             {
                 int oldX = X, oldY = Y;
@@ -72,11 +72,11 @@ namespace TUI.Widgets
             if (width == Width && height == Height)
                 return;
             if (UsesDefaultMainProvider)
-                Clear().Draw(frame: false).SetWH(width, height).Update().Apply(true).Draw();
+                Clear().Draw(frame: false).SetWH(width, height).Update().Apply().Draw();
             else
             {
                 int oldWidth = Width, oldHeight = Height;
-                SetWH(width, height).Update().Apply(true).Draw(0, 0, oldWidth, oldHeight, frame: false).Draw();
+                SetWH(width, height).Update().Apply().Draw(0, 0, oldWidth, oldHeight, frame: false).Draw();
             }
         }
 

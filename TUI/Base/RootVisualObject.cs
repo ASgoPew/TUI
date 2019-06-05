@@ -19,10 +19,14 @@ namespace TUI.Base
             get => UsesDefaultMainProvider ? 0 : Provider.IsPersonal ? 2 : 1;
             set => throw new Exception("You can't set a layer for RootVisualObject");
         }
+
+        public VisualObject PopUpBackground { get; protected set; }
+        protected Dictionary<VisualObject, Action<VisualObject>> PopUpCancelCallbacks =
+            new Dictionary<VisualObject, Action<VisualObject>>();
         
         #endregion
 
-        #region Initialize
+        #region Constructor
 
         internal RootVisualObject(string name, int x, int y, int width, int height,
                 UIConfiguration configuration = null, UIStyle style = null, object provider = null)
@@ -54,7 +58,7 @@ namespace TUI.Base
             base.SetXYWH(x, y, width, height);
             // MainTileProvider ignores this SetXYWH
             Provider.SetXYWH(x, y, width, height);
-            UI.Hooks.SetXYWH.Invoke(new SetXYWHArgs(this, x, y, width, height));
+            TUI.Hooks.SetXYWH.Invoke(new SetXYWHArgs(this, x, y, width, height));
             return this;
         }
 
@@ -67,7 +71,7 @@ namespace TUI.Base
             {
                 Enabled = true;
                 Provider.SetEnabled(true);
-                UI.Hooks.Enabled.Invoke(new EnabledArgs(this, true));
+                TUI.Hooks.Enabled.Invoke(new EnabledArgs(this, true));
             }
             return this;
         }
@@ -81,7 +85,7 @@ namespace TUI.Base
             {
                 Enabled = false;
                 Provider.SetEnabled(false);
-                UI.Hooks.Enabled.Invoke(new EnabledArgs(this, false));
+                TUI.Hooks.Enabled.Invoke(new EnabledArgs(this, false));
             }
             return this;
         }
@@ -89,14 +93,18 @@ namespace TUI.Base
         #endregion
         #region ApplyThisNative
 
-        protected override void ApplyThisNative(bool clearTiles = false)
+        protected override void ApplyThisNative()
         {
+            Clear();
+
+#if DEBUG
             Stopwatch sw = Stopwatch.StartNew();
-            base.ApplyThisNative(clearTiles);
+#endif
+            base.ApplyThisNative();
 #if DEBUG
             Console.WriteLine($"Apply ({Name}): {sw.ElapsedMilliseconds}");
-#endif
             sw.Stop();
+#endif
         }
 
         #endregion
@@ -106,6 +114,57 @@ namespace TUI.Base
         {
             base.UpdateThisNative();
             Provider.Update();
+        }
+
+        #endregion
+        #region ShowPopUp
+
+        /// <summary>
+        /// Draws popup object.
+        /// </summary>
+        /// <returns>this</returns>
+        public virtual VisualObject ShowPopUp(VisualObject popup, UIStyle background = null, Action<VisualObject> cancelCallback = null)
+        {
+            if (PopUpBackground == null)
+            {
+                PopUpBackground = new VisualObject(0, 0, 0, 0, new UIConfiguration() { SessionAcquire=true }, null, (self, touch) =>
+                {
+                    VisualObject selected = self.Selected();
+                    if (selected != null && PopUpCancelCallbacks.TryGetValue(selected, out Action<VisualObject> cancel))
+                        cancel.Invoke(this);
+                    else
+                        HidePopUp();
+                    return true;
+                });
+                Add(PopUpBackground, Int32.MaxValue);
+            }
+            if (background != null)
+                PopUpBackground.Style = background;
+            PopUpBackground.SetFullSize();
+            PopUpBackground.Add(popup);
+            if (cancelCallback != null)
+                PopUpCancelCallbacks[popup] = cancelCallback;
+            PopUpBackground.ForceSection = ForceSection;
+            Update();
+            PopUpBackground.Select(popup).Enable().Apply().Draw();
+            return this;
+        }
+
+        #endregion
+        #region HidePopUp
+
+        /// <summary>
+        /// Hides popup.
+        /// </summary>
+        /// <returns>this</returns>
+        public virtual VisualObject HidePopUp()
+        {
+            if (PopUpBackground != null)
+            {
+                PopUpBackground.Disable();
+                return Apply().Draw();
+            }
+            return this;
         }
 
         #endregion

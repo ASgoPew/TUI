@@ -16,7 +16,7 @@ namespace TUI.Base
 
         #endregion
 
-        #region Initialize
+        #region Constructor
 
         public Touchable(int x, int y, int width, int height, UIConfiguration configuration = null, Func<VisualObject, Touch, bool> callback = null)
             : base(x, y, width, height, configuration)
@@ -29,8 +29,10 @@ namespace TUI.Base
 
         public virtual bool Touched(Touch touch)
         {
+#if DEBUG
             if (!CalculateActive())
                 throw new InvalidOperationException("Trying to call Touched on object that is not active");
+#endif
 
             if (IsLocked(touch))
                 return true;
@@ -99,7 +101,7 @@ namespace TUI.Base
         {
             VisualObject @this = this as VisualObject;
             CanTouchArgs args = new CanTouchArgs(@this, touch);
-            UI.Hooks.CanTouch.Invoke(args);
+            TUI.Hooks.CanTouch.Invoke(args);
             return args.CanTouch && Configuration.CustomCanTouch?.Invoke(@this, touch) != false;
         }
 

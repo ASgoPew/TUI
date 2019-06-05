@@ -73,12 +73,12 @@
     <Compile Include="Base\Touchable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Base\IVisual.cs" />
-    <Compile Include="UI.cs" />
     <Compile Include="Base\UIConfiguration.cs" />
     <Compile Include="Base\Style\UIStyle.cs" />
     <Compile Include="Base\UserSession.cs" />
     <Compile Include="Base\VisualDOM.cs" />
     <Compile Include="Base\VisualObject.cs" />
+    <Compile Include="TUI.cs" />
     <Compile Include="Widgets\Arrow.cs" />
     <Compile Include="Widgets\Button.cs" />
     <Compile Include="Widgets\Checkbox.cs" />

@@ -49,7 +49,7 @@ namespace TUI.Base
 
         #region IVisual
 
-            #region Initialize
+            #region InitializeVisual
 
             public void InitializeVisual(int x, int y, int width = 1, int height = 1)
             {
@@ -108,7 +108,7 @@ namespace TUI.Base
 
         #endregion
 
-        #region Initialize
+        #region Constructor
 
         public Touch(int x, int y, TouchState state, byte prefix = 0, byte stateByte = 0)
         {

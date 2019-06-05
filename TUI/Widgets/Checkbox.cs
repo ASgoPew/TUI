@@ -36,7 +36,7 @@ namespace TUI.Widgets
 
         #endregion
 
-        #region Initialize
+        #region Constructor
 
         public Checkbox(int x, int y, int size, CheckboxStyle style = null, Action<Checkbox, bool> callback = null, bool defaultValue = false, int lockDelay = 300)
             : base(x, y, size, size, new UIConfiguration(), style ?? new CheckboxStyle())
@@ -55,7 +55,7 @@ namespace TUI.Widgets
         public override bool Invoke(Touch touch)
         {
             Set(!Value);
-            Apply(true).Draw();
+            Apply().Draw();
             return true;
         }
 

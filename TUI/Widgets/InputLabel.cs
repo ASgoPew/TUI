@@ -44,7 +44,7 @@ namespace TUI.Widgets
 
         #endregion
 
-        #region Initialize
+        #region Constructor
 
         public InputLabel(int x, int y, string text, InputLabelStyle style = null, Action<InputLabel, string> callback = null)
             : base(x, y, text.Length * 2, style?.TextUnderline == LabelUnderline.Underline ? 3 : 2, text,
@@ -84,7 +84,7 @@ namespace TUI.Widgets
                     char newChar = charShift[((charIndex + delta) % charShift.Count + charShift.Count) % charShift.Count];
                     string newText = $"{RawText.Substring(0, charPosition)}{newChar}{RawText.Substring(charPosition + 1, (RawText.Length - charPosition - 1))}";
                     SetText(newText);
-                    ApplyThis(false).Draw();
+                    ApplyThis().Draw();
                 }
                 string value = GetText();
                 if (touch.State == TouchState.End && value != BeginValue)

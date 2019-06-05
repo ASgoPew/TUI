@@ -56,19 +56,33 @@ namespace TUI.Base
 
         #region IDOM
 
-            #region Initialize
+            #region InitializeDOM
 
-            public void InitializeDOM()
+            internal void InitializeDOM()
             {
             }
 
             #endregion
             #region Add
 
+            /// <summary>
+            /// Adds object as a child in specified layer (0 by default). Does nothing if object is already a child.
+            /// </summary>
+            /// <param name="child">Object to add as a child.</param>
+            /// <param name="layer">Layout to add object to.</param>
+            /// <returns>Added object</returns>
             public virtual VisualObject Add(VisualObject child, int layer = 0)
             {
                 lock (Child)
                 {
+                    if (Child.Contains(child))
+                    {
+                        if (child.Layer != layer)
+                            Remove(child);
+                        else
+                            return child;
+                    }
+
                     int index = 0;
                     while (index < Child.Count && Child[index].Layer <= layer)
                         index++;
@@ -82,6 +96,11 @@ namespace TUI.Base
             #endregion
             #region Remove
 
+            /// <summary>
+            /// Removes child object.
+            /// </summary>
+            /// <param name="child">Child object.</param>
+            /// <returns>this</returns>
             public virtual VisualObject Remove(VisualObject child)
             {
                 bool removed;
@@ -102,6 +121,11 @@ namespace TUI.Base
             #endregion
             #region Select
 
+            /// <summary>
+            /// Enable specified child and disable all other child objects.
+            /// </summary>
+            /// <param name="o">Child to select.</param>
+            /// <returns>this</returns>
             public virtual VisualObject Select(VisualObject o)
             {
                 if (!Child.Contains(o))
@@ -109,20 +133,37 @@ namespace TUI.Base
 
                 lock (Child)
                     foreach (VisualObject child in ChildrenFromTop)
-                        child.Enabled = false;
-                o.Enabled = true;
+                        child.Disable();
+                o.Enable();
 
                 return this as VisualObject;
             }
 
             #endregion
+            #region Selected
+
+            /// <summary>
+            /// Object selected with <see cref="Select(VisualObject)"/>. Searches for first Enabled child.
+            /// </summary>
+            /// <returns>Selected child object</returns>
+            public virtual VisualObject Selected()
+            {
+                lock (Child)
+                    return Child.FirstOrDefault(c => c.Enabled);
+            }
+
+            #endregion
             #region Deselect
 
+            /// <summary>
+            /// Enables all child objects.
+            /// </summary>
+            /// <returns>this</returns>
             public virtual VisualObject Deselect()
             {
                 lock (Child)
                     foreach (VisualObject child in ChildrenFromTop)
-                        child.Enabled = true;
+                        child.Enable();
 
                 return this as VisualObject;
             }
@@ -130,6 +171,10 @@ namespace TUI.Base
             #endregion
             #region GetRoot
 
+            /// <summary>
+            /// Searches for root node (VisualObject) in hierarchy. Must be a RootVisualObject in a valid TUI tree.
+            /// </summary>
+            /// <returns>Root object</returns>
             public VisualObject GetRoot()
             {
                 VisualDOM node = this;
@@ -141,9 +186,13 @@ namespace TUI.Base
             #endregion
             #region IsAncestorFor
 
-            public bool IsAncestorFor(VisualObject o)
+            /// <summary>
+            /// Checks if this node is an ancestor for an object.
+            /// </summary>
+            /// <param name="child">Object to check whether current node is an ancestor for it.</param>
+            public bool IsAncestorFor(VisualObject child)
             {
-                VisualObject node = Parent;
+                VisualObject node = child.Parent;
 
                 while (node != null)
                 {
@@ -158,46 +207,32 @@ namespace TUI.Base
             #endregion
             #region SetTop
 
-            public virtual bool SetTop(VisualObject o)
+            /// <summary>
+            /// Places child object on top of layer.
+            /// </summary>
+            /// <param name="child">Child object to place on top of layer.</param>
+            /// <returns>True if child object position changed</returns>
+            public virtual bool SetTop(VisualObject child)
             {
                 lock (Child)
                 {
-                    int index = Child.IndexOf(o);
+                    int index = Child.IndexOf(child);
                     int previousIndex = index;
                     if (index < 0)
                         throw new InvalidOperationException("Trying to SetTop an object that isn't a child of current VisualDOM");
                     int count = Child.Count;
                     index++;
-                    while (index < count && Child[index].Layer <= o.Layer)
+                    while (index < count && Child[index].Layer <= child.Layer)
                         index++;
 
                     if (index == previousIndex + 1)
                         return false;
 
-                    Child.Remove(o);
-                    Child.Insert(index - 1, o);
+                    Child.Remove(child);
+                    Child.Insert(index - 1, child);
                     return true;
                 }
             }
-
-            /*public virtual bool SetTop(VisualObject o)
-            {
-                lock (Child)
-                {
-                    int index = Child.IndexOf(o);
-                    int last = Child.Count - 1;
-                    if (index < last)
-                    {
-                        Child.Remove(o);
-                        Child.Add(o);
-                        return true;
-                    }
-                    else if (index == last)
-                        return false;
-                    else
-                        throw new InvalidOperationException("Trying to SetTop an object that isn't a child of current VisualDOM");
-                }
-            }*/
 
             #endregion
             #region DFS, BFS
@@ -241,14 +276,14 @@ namespace TUI.Base
                     yield return o;
             }
 
-            #endregion
+        #endregion
 
         #endregion
         #region IVisual
 
-            #region Initialize
+            #region InitializeVisual
 
-            public void InitializeVisual(int x, int y, int width, int height)
+            internal void InitializeVisual(int x, int y, int width, int height)
             {
                 X = x;
                 Y = y;
@@ -317,7 +352,7 @@ namespace TUI.Base
 
         #endregion
 
-        #region Initialize
+        #region Constructor
 
         public VisualDOM(int x, int y, int width, int height, UIConfiguration configuration = null)
         {

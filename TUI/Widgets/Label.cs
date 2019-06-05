@@ -53,7 +53,7 @@ namespace TUI.Widgets
 
         #endregion
 
-        #region Initialize
+        #region Constructor
 
         public Label(int x, int y, int width, int height, string text, UIConfiguration configuration = null, LabelStyle style = null, Func<VisualObject, Touch, bool> callback = null)
             : base(x, y, width, height, configuration, style ?? new LabelStyle(), callback)
@@ -73,9 +73,9 @@ namespace TUI.Widgets
         #endregion
         #region ApplyThisNative
 
-        protected override void ApplyThisNative(bool clearTiles = false)    
+        protected override void ApplyThisNative()    
         {
-            base.ApplyThisNative(clearTiles);
+            base.ApplyThisNative();
 
             LabelStyle style = Style as LabelStyle;
             string text = GetText();
