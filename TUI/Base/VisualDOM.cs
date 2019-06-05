@@ -406,16 +406,13 @@ namespace TUI.Base
         {
             VisualDOM node = this;
 
-            HashSet<VisualDOM> was = new HashSet<VisualDOM>();
-            was.Add(node);
-            while (node != null)
+            while (!(node is RootVisualObject) && node != null)
             {
                 if (!node.Active)
                     return false;
-                was.Add(node);
                 node = node.Parent;
             }
-            return true;
+            return node is RootVisualObject;
         }
 
         #endregion
