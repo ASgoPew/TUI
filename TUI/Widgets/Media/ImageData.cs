@@ -13,8 +13,8 @@ namespace TUI.Widgets.Media
         public dynamic Tiles;
         public int Width, Height;
 
-        public static Dictionary<string, Action<BinaryReader, ImageData>> Readers =
-            new Dictionary<string, Action<BinaryReader, ImageData>>();
+        public static Dictionary<string, Action<string, ImageData>> Readers =
+            new Dictionary<string, Action<string, ImageData>>();
 
         #endregion
 
@@ -45,13 +45,11 @@ namespace TUI.Widgets.Media
         private static ImageData LoadImage(string path)
         {
             if (!Readers.TryGetValue(Path.GetExtension(path),
-                    out Action<BinaryReader, ImageData> reader))
+                    out Action<string, ImageData> reader))
                 return null;
             
             ImageData image = new ImageData();
-            using (FileStream fs = File.OpenRead(path))
-            using (BinaryReader br = new BinaryReader(fs))
-                reader.Invoke(br, image);
+            reader.Invoke(path, image);
             return image;
         }
 

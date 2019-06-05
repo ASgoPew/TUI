@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Timers;
 using Terraria;
 using Terraria.ID;
@@ -272,7 +273,7 @@ namespace TUIPlugin
         {
             TSPlayer player = args.Touch.Player();
             player.SendWarningMessage("You are holding mouse for too long.");
-            Console.WriteLine("TUI: TOO LONG");
+            TUI.TUI.Hooks.Log.Invoke(new LogArgs($"TUI: Touch too long ({player.Name}).", LogType.Info));
             player.SendData(PacketTypes.ProjectileDestroy, null, args.Session.ProjectileID, player.Index);
             Touch simulatedEndTouch = args.Touch.SimulatedEndTouch();
             simulatedEndTouch.Undo = true;
@@ -388,28 +389,34 @@ namespace TUIPlugin
 
         #region ReadWorldEdit
 
-        private void ReadWorldEdit(BinaryReader br, ImageData image)
+        private void ReadWorldEdit(string path, ImageData image)
         {
-            int x = br.ReadInt32();
-            int y = br.ReadInt32();
-            int w = br.ReadInt32(), h = br.ReadInt32();
-            Console.WriteLine($"x={x}, y={y}, w={w}, h={h}");
-            image.Width = w;
-            image.Height = h;
-            ITile[,] tiles = new ITile[w, h];
-            for (int i = 0; i < w; i++)
-                for (int j = 0; j < h; j++)
-                    tiles[i, j] = ReadTile(br);
-            image.Tiles = tiles;
-            try
+            using (FileStream fs = File.Open(path, FileMode.Open))
+            using (GZipStream zs = new GZipStream(fs, CompressionMode.Decompress))
+            using (BufferedStream bs = new BufferedStream(zs, 1048576))
+            using (BinaryReader br = new BinaryReader(bs))
             {
-                int signCount = br.ReadInt32();
-                List<SignData> signs = new List<SignData>();
-                image.Signs = signs;
-                for (int i = 0; i < signCount; i++)
-                    signs.Add(ReadSign(br));
+                br.ReadInt32();
+                br.ReadInt32();
+                int w = br.ReadInt32();
+                int h = br.ReadInt32();
+                image.Width = w;
+                image.Height = h;
+                ITile[,] tiles = new ITile[w, h];
+                for (int i = 0; i < w; i++)
+                    for (int j = 0; j < h; j++)
+                        tiles[i, j] = ReadTile(br);
+                image.Tiles = tiles;
+                try
+                {
+                    int signCount = br.ReadInt32();
+                    List<SignData> signs = new List<SignData>();
+                    image.Signs = signs;
+                    for (int i = 0; i < signCount; i++)
+                        signs.Add(ReadSign(br));
+                }
+                catch (EndOfStreamException) { }
             }
-            catch (EndOfStreamException) { }
         }
 
         #region ReadTile
@@ -453,16 +460,20 @@ namespace TUIPlugin
         #endregion
         #region ReadTEdit
 
-        private void ReadTEdit(BinaryReader br, ImageData image)
+        private void ReadTEdit(string path, ImageData image)
         {
-            br.ReadString();
-            br.ReadUInt32();
-            int w = br.ReadInt32(), h = br.ReadInt32();
-            image.Width = w;
-            image.Height = h;
-            image.Tiles = LoadTileData(br, w, h);
-            LoadChestData(br);
-            image.Signs = LoadSignData(br);
+            using (FileStream fs = File.OpenRead(path))
+            using (BinaryReader br = new BinaryReader(fs))
+            {
+                br.ReadString();
+                br.ReadUInt32();
+                int w = br.ReadInt32(), h = br.ReadInt32();
+                image.Width = w;
+                image.Height = h;
+                image.Tiles = LoadTileData(br, w, h);
+                LoadChestData(br);
+                image.Signs = LoadSignData(br);
+            }
         }
 
         #region LoadTileData
@@ -619,7 +630,6 @@ namespace TUIPlugin
         {
             int totalChests = (int)r.ReadInt16();
             int maxItems = (int)r.ReadInt16();
-            Console.WriteLine($"totalChests: {totalChests}, maxItems: {maxItems}");
             int itemsPerChest;
             int overflowItems;
             if (maxItems > Chest.maxItems)
@@ -675,7 +685,6 @@ namespace TUIPlugin
         private static List<SignData> LoadSignData(BinaryReader br)
         {
             short totalSigns = br.ReadInt16();
-            Console.WriteLine("TOTAL SIGNS: " + totalSigns);
             int num;
             List<SignData> signs = new List<SignData>();
             for (int i = 0; i < (int)totalSigns; i = num + 1)
