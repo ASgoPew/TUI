@@ -23,6 +23,8 @@ namespace TUIPlugin
     [ApiVersion(2, 1)]
     public class TUIPlugin : TerrariaPlugin
     {
+        #region Data
+
         public override string Author => "ASgo";
         public override string Description => "Plugin conntion to TUI library";
         public override string Name => "TUIPlugin";
@@ -33,13 +35,21 @@ namespace TUIPlugin
         public static DesignState[] playerDesignState = new DesignState[Main.maxPlayers];
         private static Timer RegionTimer = new Timer(1000) { AutoReset = true };
 
+        #endregion
+
+        #region Constructor
+
         public TUIPlugin(Main game)
             : base(game)
         {
         }
 
+        #endregion
+        #region Initialize
+
         public override void Initialize()
         {
+            ServerApi.Hooks.GamePostInitialize.Register(this, OnGamePostInitialize, Int32.MinValue);
             ServerApi.Hooks.ServerConnect.Register(this, OnServerConnect);
             ServerApi.Hooks.ServerLeave.Register(this, OnServerLeave);
             ServerApi.Hooks.NetGetData.Register(this, OnGetData, 100);
@@ -55,6 +65,9 @@ namespace TUIPlugin
 
             UI.Initialize(255);
         }
+
+        #endregion
+        #region Dispose
 
         protected override void Dispose(bool disposing)
         {
@@ -78,18 +91,38 @@ namespace TUIPlugin
             base.Dispose(disposing);
         }
 
-        public static void OnServerConnect(ConnectEventArgs args)
+        #endregion
+
+        #region OnGamePostInitialize
+
+        private void OnGamePostInitialize(EventArgs args)
+        {
+            UI.Update();
+            UI.Apply();
+            UI.Draw();
+        }
+
+        #endregion
+        #region OnServerConnect
+
+        private static void OnServerConnect(ConnectEventArgs args)
         {
             playerDesignState[args.Who] = DesignState.Waiting;
             UI.InitializeUser(args.Who);
         }
 
-        public static void OnServerLeave(LeaveEventArgs args)
+        #endregion
+        #region OnServerLeave
+
+        private static void OnServerLeave(LeaveEventArgs args)
         {
             UI.RemoveUser(args.Who);
         }
 
-        public static void OnGetData(GetDataEventArgs args)
+        #endregion
+        #region OnGetData
+
+        private static void OnGetData(GetDataEventArgs args)
         {
             if (args.Handled)
                 return;
@@ -136,7 +169,10 @@ namespace TUIPlugin
             }
         }
 
-        public static void OnNewProjectile(object sender, GetDataHandlers.NewProjectileEventArgs args)
+        #endregion
+        #region OnNewProjectile
+
+        private static void OnNewProjectile(object sender, GetDataHandlers.NewProjectileEventArgs args)
         {
             TSPlayer player = TShock.Players[args.Owner];
             if (args.Handled || args.Type != 651 || player?.TPlayer == null)
@@ -176,7 +212,11 @@ namespace TUIPlugin
             }
         }
 
-        public static void OnCanTouch(CanTouchArgs args)
+        #endregion
+
+        #region OnCanTouch
+
+        private static void OnCanTouch(CanTouchArgs args)
         {
             if (args.Node.Configuration.Permission is string permission)
             {
@@ -190,7 +230,10 @@ namespace TUIPlugin
             }
         }
 
-        public static void OnDraw(DrawArgs args)
+        #endregion
+        #region OnDraw
+
+        private static void OnDraw(DrawArgs args)
         {
             HashSet<int> players;
             if (args.UserIndex == -1)
@@ -217,7 +260,10 @@ namespace TUIPlugin
                     NetMessage.SendData(20, i, -1, null, size, args.X, args.Y);
         }
 
-        public static void OnTouchCancel(TouchCancelArgs args)
+        #endregion
+        #region OnTouchCancel
+
+        private static void OnTouchCancel(TouchCancelArgs args)
         {
             TSPlayer player = args.Touch.Player();
             player.SendWarningMessage("You are holding mouse for too long.");
@@ -229,11 +275,15 @@ namespace TUIPlugin
             playerDesignState[args.UserIndex] = DesignState.Waiting;
         }
 
-        public static void OnCreateSign(CreateSignArgs args)
+        #endregion
+        #region OnCreateSign
+
+        private static void OnCreateSign(CreateSignArgs args)
         {
             if (args.Node.GetRoot().Provider.GetType().Name != "FakeTileRectangle")
             {
-                Main.tile[args.X, args.Y] = new Tile() { type = 55, frameX = 0, frameY = 0 };
+                Tile tile = new Tile() { type = 55, frameX = 0, frameY = 0 };
+                Main.tile[args.X, args.Y] = tile;
                 int id = Sign.ReadSign(args.X, args.Y);
                 if (id >= 0)
                     args.Sign = Main.sign[id];
@@ -242,7 +292,38 @@ namespace TUIPlugin
                 CreateFakeSign(args);
         }
 
-        public static void CreateFakeSign(CreateSignArgs args)
+        #endregion
+        #region OnRemoveSign
+
+        private static void OnRemoveSign(RemoveSignArgs args)
+        {
+            if (args.Node.GetRoot().Provider.GetType().Name != "FakeTileRectangle")
+                Sign.KillSign(args.Sign.x, args.Sign.y);
+            else
+                RemoveFakeSign(args);
+        }
+
+        #endregion
+        #region OnLog
+
+        private static void OnLog(LogArgs args)
+        {
+            args.Text = "TUI: " + args.Text;
+            if (args.Type == LogType.Success)
+                TShock.Log.ConsoleInfo(args.Text);
+            else if (args.Type == LogType.Info)
+                TShock.Log.ConsoleInfo(args.Text);
+            else if (args.Type == LogType.Warning)
+                TShock.Log.ConsoleError(args.Text);
+            else if (args.Type == LogType.Error)
+                TShock.Log.ConsoleError(args.Text);
+        }
+
+        #endregion
+
+        #region CreateFakeSign
+
+        private static void CreateFakeSign(CreateSignArgs args)
         {
             Sign sign = new Sign()
             {
@@ -260,31 +341,16 @@ namespace TUIPlugin
             }
         }
 
-        public static void OnRemoveSign(RemoveSignArgs args)
-        {
-            if (args.Node.GetRoot().Provider.GetType().Name != "FakeTileRectangle")
-                Sign.KillSign(args.Sign.x, args.Sign.y);
-            else
-                RemoveFakeSign(args);
-        }
+        #endregion
+        #region RemoveFakeSign
 
-        public static void RemoveFakeSign(RemoveSignArgs args)
+        private static void RemoveFakeSign(RemoveSignArgs args)
         {
             args.Node.GetRoot().Provider.RemoveSign(args.Sign);
         }
 
-        public static void OnLog(LogArgs args)
-        {
-            args.Text = "TUI: " + args.Text;
-            if (args.Type == LogType.Success)
-                TShock.Log.ConsoleInfo(args.Text);
-            else if (args.Type == LogType.Info)
-                TShock.Log.ConsoleInfo(args.Text);
-            else if (args.Type == LogType.Warning)
-                TShock.Log.ConsoleError(args.Text);
-            else if (args.Type == LogType.Error)
-                TShock.Log.ConsoleError(args.Text);
-        }
+        #endregion
+        #region OnRegionTimer
 
         private void OnRegionTimer(object sender, ElapsedEventArgs e)
         {
@@ -311,5 +377,7 @@ namespace TUIPlugin
                 }
             }
         }
+
+        #endregion
     }
 }

@@ -37,6 +37,16 @@ namespace TUI.Base
         }
 
         #endregion
+        #region Tile
+
+        public override dynamic Tile(int x, int y)
+        {
+            if (x < 0 || y < 0 || x >= Width || y >= Height)
+                throw new ArgumentOutOfRangeException($"{FullName}: Invalid tile x or y.");
+            return Provider[ProviderX + x, ProviderY + y];
+        }
+
+        #endregion
         #region SetXYWH
 
         public override VisualObject SetXYWH(int x, int y, int width = -1, int height = -1)
@@ -90,13 +100,12 @@ namespace TUI.Base
         }
 
         #endregion
-        #region Tile
+        #region UpdateThisNative
 
-        public override dynamic Tile(int x, int y)
+        protected override void UpdateThisNative()
         {
-            if (x < 0 || y < 0 || x >= Width || y >= Height)
-                throw new ArgumentOutOfRangeException($"{FullName}: Invalid tile x or y.");
-            return Provider[ProviderX + x, ProviderY + y];
+            base.UpdateThisNative();
+            Provider.Update();
         }
 
         #endregion

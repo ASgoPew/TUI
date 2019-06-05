@@ -10,6 +10,8 @@ namespace TUI.Base
         internal int Y = 0;
         internal bool Enabled = true;
 
+        private FieldInfo TileField;
+
         public MainTileProvider(object tile = null)
         {
             Tile = tile;
@@ -23,7 +25,8 @@ namespace TUI.Base
                         Module[] modules = asm.GetModules();
                         if (modules.Length == 0)
                             continue;
-                        Tile = modules[0]?.GetType("Terraria.Main")?.GetField("tile")?.GetValue(null);
+                        TileField = modules[0]?.GetType("Terraria.Main")?.GetField("tile");
+                        Tile = TileField?.GetValue(null);
                     }
                 }
             }
@@ -43,6 +46,11 @@ namespace TUI.Base
         public void SetEnabled(bool enabled)
         {
             Enabled = enabled;
+        }
+
+        public void Update()
+        {
+            Tile = TileField?.GetValue(null);
         }
     }
 }

@@ -152,6 +152,10 @@ namespace TUI.Widgets
                     tile.ClearEverything();
                 if (Style.Active != null)
                     tile.active(Style.Active.Value);
+                else if (Style.Tile != null)
+                    tile.active(true);
+                else if (Style.Wall != null)
+                    tile.active(false);
                 if (Style.InActive != null)
                     tile.inActive(Style.InActive.Value);
                 if (Style.Tile != null)

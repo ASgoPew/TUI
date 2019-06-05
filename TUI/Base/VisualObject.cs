@@ -886,23 +886,6 @@ namespace TUI.Base
                 return this;
             }
 
-            /*#region ApplyPosition
-
-            private (int x, int y) ApplyPositionMove()
-            {
-                int x = X, y = Y;
-                ApplyX += x;
-                ApplyY += y;
-                return (x, y);
-            }
-
-            private void ApplyPositionMoveBack(int x, int y)
-            {
-                ApplyX -= x;
-                ApplyY -= y;
-            }
-
-            #endregion*/
             #region ApplyThis
 
             /// <summary>
@@ -954,6 +937,10 @@ namespace TUI.Base
                             tile.ClearEverything();
                         if (Style.Active != null)
                             tile.active(Style.Active.Value);
+                        else if (Style.Tile != null)
+                            tile.active(true);
+                        else if (Style.Wall != null)
+                            tile.active(false);
                         if (Style.InActive != null)
                             tile.inActive(Style.InActive.Value);
                         if (Style.Tile != null)
@@ -1079,25 +1066,49 @@ namespace TUI.Base
 
         #endregion
 
-        #region Popup
+        #region PopUp
 
-        public virtual VisualObject Popup()
+        /// <summary>
+        /// Adds popup background object and popup to it's child if specified. Touching background will hide popup.
+        /// <para></para>
+        /// Returns popup background.
+        /// </summary>
+        /// <param name="popup">Popup object to add to popup background.</param>
+        /// <returns>Popup background</returns>
+        public virtual VisualObject PopUpShow(VisualObject popup = null)
         {
-            VisualObject popup = this["popup"] as VisualObject;
-            if (popup != null)
-                popup.Enable();
+            VisualObject popupBackground = this["popupBackground"] as VisualObject;
+            if (popupBackground != null)
+            {
+                if (!popupBackground.Enabled)
+                    popupBackground.Enable().Apply(false).Draw();
+                VisualObject oldPopup = this["popup"] as VisualObject;
+                if (popup != null && oldPopup != popup)
+                {
+                    Remove(oldPopup);
+                    this["popup"] = Add(popup);
+                }
+            }
             else
             {
-                popup = new VisualObject(0, 0, 0, 0, null, null, (self, touch) => Popdown() == this).SetFullSize();
-                this["popup"] = Add(popup);
-                Update();
+                popupBackground = new VisualObject(0, 0, 0, 0, null, null, (self, touch) => PopUpHide() == this).SetFullSize();
+                this["popupBackground"] = Add(popupBackground, Int32.MaxValue);
+                if (popup != null)
+                {
+                    this["popup"] = popupBackground.Add(popup);
+                    Apply(true).Draw();
+                }
             }
-            return popup;
+            return popupBackground;
         }
 
-        public virtual VisualObject Popdown()
+        /// <summary>
+        /// Hides popup.
+        /// </summary>
+        /// <returns>this</returns>
+        public virtual VisualObject PopUpHide()
         {
-            (this["popup"] as VisualObject).Disable();
+            (this["popupBackground"] as VisualObject).Disable();
             return Apply(true).Draw();
         }
 
