@@ -165,8 +165,6 @@ namespace TUI.Widgets.Media
 
         protected override void ApplyThisNative()
         {
-            base.ApplyThisNative();
-
             dynamic tiles = Data?.Tiles;
             if (tiles != null)
                 foreach ((int x, int y) in Points)
@@ -180,6 +178,8 @@ namespace TUI.Widgets.Media
                     tile.wall = 155;
                     tile.wallColor((byte)((x + y) % 2 == 0 ? 29 : 24));
                 }
+
+            base.ApplyThisNative();
         }
 
         #endregion

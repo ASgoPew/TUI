@@ -14,15 +14,16 @@ namespace TUI.Widgets.Media
     {
         #region Data
 
-        public static readonly int[,] BrokenVideo = new int[7, 5]
+        public static readonly byte[,] BrokenVideo = new byte[8, 5]
         {
-            { 1, 2, 3, 4, 5 },
-            { 1, 2, 3, 4, 5 },
-            { 1, 2, 3, 4, 5 },
-            { 1, 2, 3, 4, 5 },
-            { 1, 2, 3, 4, 5 },
-            { 1, 2, 3, 4, 5 },
-            { 1, 2, 3, 4, 5 }
+            { 25, 25, 25, 25, 21 },
+            { 26, 26, 26, 26, 29 },
+            { 20, 20, 20, 20, 24 },
+            { 17, 17, 17, 17, 29 },
+            { 24, 24, 24, 24, 20 },
+            { 13, 13, 13, 13, 29 },
+            { 21, 21, 21, 21, 26 },
+            { 29, 29, 29, 29, 29 }
         };
 
         public string Path { get; protected set; }
@@ -31,13 +32,15 @@ namespace TUI.Widgets.Media
         protected Timer Timer = new Timer() { AutoReset = true };
         protected int CurrentImage = -1;
 
+        public bool Playing => Timer.Enabled;
+
         #endregion
 
         #region Constructor
 
         public Video(int x, int y, string path, int delay = 500, UIConfiguration configuration = null,
                 UIStyle style = null, Func<VisualObject, Touch, bool> callback = null)
-            : base(x, y, 7, 5, configuration, style, callback)
+            : base(x, y, 8, 5, configuration, style, callback)
         {
             Path = path;
             Delay = delay;
@@ -60,7 +63,8 @@ namespace TUI.Widgets.Media
 
         public Video Start()
         {
-            Timer.Start();
+            if (Images.Count != 0)
+                Timer.Start();
             return this;
         }
 
@@ -83,13 +87,12 @@ namespace TUI.Widgets.Media
             {
                 TUI.Hooks.Log.Invoke(new LogArgs("Invalid video folder: " + Path, LogType.Error));
                 Path = null;
-                SetWH(3, 3);
                 return false;
             }
             
             foreach (ImageData data in images)
             {
-                Image image = new Image(0, 0, data);
+                Image image = new Image(0, 0, data, new UIConfiguration() { UseBegin=false }, new UIStyle(Style));
                 Add(image);
                 Images.Add(image);
                 image.Load();
@@ -111,6 +114,24 @@ namespace TUI.Widgets.Media
                     Parent.UpdateThis();
                     Update();
                     return;
+                }
+        }
+
+        #endregion
+        #region ApplyThisNative
+
+        protected override void ApplyThisNative()
+        {
+            base.ApplyThisNative();
+
+            if (Images.Count == 0)
+                foreach ((int x, int y) in Points)
+                {
+                    dynamic tile = Tile(x, y);
+                    if (tile == null)
+                        continue;
+                    tile.wall = 155;
+                    tile.wallColor((byte)BrokenVideo[x, y]);
                 }
         }
 

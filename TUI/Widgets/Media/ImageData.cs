@@ -39,13 +39,13 @@ namespace TUI.Widgets.Media
         public static ImageData[] Load(string path)
         {
             List<ImageData> images = new List<ImageData>();
-            if (Path.HasExtension(path))
+            if (Path.HasExtension(path) && File.Exists(path))
             {
                 ImageData image = new ImageData(path);
                 if (image.Tiles != null)
                     images.Add(image);
             }
-            else
+            else if (Directory.Exists(path))
                 foreach (string f in Directory.EnumerateFiles(path))
                 {
                     ImageData image = new ImageData(f);
