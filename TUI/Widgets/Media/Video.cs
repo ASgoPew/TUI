@@ -16,8 +16,8 @@ namespace TUI.Widgets.Media
 
         public static readonly byte[,] BrokenVideo = new byte[8, 5]
         {
-            { 25, 25, 25, 25, 21 },
-            { 26, 26, 26, 26, 29 },
+            { 26, 26, 26, 26, 21 },
+            { 15, 15, 15, 15, 29 },
             { 20, 20, 20, 20, 24 },
             { 17, 17, 17, 17, 29 },
             { 24, 24, 24, 24, 20 },
