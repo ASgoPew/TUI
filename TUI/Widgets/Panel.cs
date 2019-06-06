@@ -170,7 +170,7 @@ namespace TUI.Widgets
     public sealed class DefaultPanelDrag : PanelDrag
     {
         public DefaultPanelDrag()
-            : base(0, 0, 1, 1, new UIConfiguration() { UseMoving = true, UseEnd = true, UseOutsideTouches = true })
+            : base(0, 0, 1, 1, new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true, Permission="TUI.Control" })
         {
         }
     }
@@ -181,7 +181,7 @@ namespace TUI.Widgets
     public sealed class DefaultPanelResize : PanelResize
     {
         public DefaultPanelResize()
-            : base(0, 0, 1, 1, new UIConfiguration() { UseMoving = true, UseEnd = true, UseOutsideTouches = true })
+            : base(0, 0, 1, 1, new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true, Permission="TUI.Control" })
         {
             SetAlignmentInParent(new AlignmentStyle(Alignment.DownRight));
         }

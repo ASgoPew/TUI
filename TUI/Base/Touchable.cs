@@ -37,7 +37,7 @@ namespace TUI.Base
             if (IsLocked(touch))
                 return true;
             if (!CanTouch(touch))
-                return false;
+                return !touch.Session.Enabled;
 
             bool used = TouchedChild(touch);
             if (!used && CanTouchThis(touch))

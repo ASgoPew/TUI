@@ -10,6 +10,27 @@ using TUI.Hooks.Args;
 
 namespace TUI.Widgets.Media
 {
+    #region VideoStyle
+
+    public class VideoStyle : UIStyle
+    {
+        public string Path { get; set; }
+        public int Delay { get; set; } = 500;
+        public bool Repeat { get; set; } = false;
+
+        public VideoStyle() : base() { }
+
+        public VideoStyle(VideoStyle style)
+            : base(style)
+        {
+            Path = style.Path;
+            Delay = style.Delay;
+            Repeat = style.Repeat;
+        }
+    }
+
+    #endregion
+
     public class Video : VisualObject
     {
         #region Data
@@ -26,25 +47,22 @@ namespace TUI.Widgets.Media
             { 29, 29, 29, 29, 29 }
         };
 
-        public string Path { get; protected set; }
-        public int Delay { get; }
         protected List<Image> Images = new List<Image>();
         protected Timer Timer = new Timer() { AutoReset = true };
-        protected int CurrentImage = -1;
+        protected int CurrentImage = 0;
 
         public bool Playing => Timer.Enabled;
+        public VideoStyle VideoStyle => Style as VideoStyle;
 
         #endregion
 
         #region Constructor
 
-        public Video(int x, int y, string path, int delay = 500, UIConfiguration configuration = null,
-                UIStyle style = null, Func<VisualObject, Touch, bool> callback = null)
+        public Video(int x, int y, UIConfiguration configuration = null, UIStyle style = null,
+                Func<VisualObject, Touch, bool> callback = null)
             : base(x, y, 8, 5, configuration, style, callback)
         {
-            Path = path;
-            Delay = delay;
-            Timer.Interval = delay;
+            Timer.Interval = VideoStyle.Delay;
             Timer.Elapsed += Next;
         }
 
@@ -82,21 +100,23 @@ namespace TUI.Widgets.Media
 
         public bool Load()
         {
-            ImageData[] images = ImageData.Load(Path);
+            ImageData[] images = ImageData.Load(VideoStyle.Path);
             if (images.Length == 0)
             {
-                TUI.Hooks.Log.Invoke(new LogArgs("Invalid video folder: " + Path, LogType.Error));
-                Path = null;
+                TUI.Hooks.Log.Invoke(new LogArgs("Invalid video folder: " + VideoStyle.Path, LogType.Error));
+                VideoStyle.Path = null;
                 return false;
             }
             
             foreach (ImageData data in images)
             {
                 Image image = new Image(0, 0, data, new UIConfiguration() { UseBegin=false }, new UIStyle(Style));
-                Add(image);
+                Add(image.Disable());
                 Images.Add(image);
                 image.Load();
             }
+            Images[0].Enable();
+
             return true;
         }
 
@@ -107,7 +127,7 @@ namespace TUI.Widgets.Media
         {
             base.UpdateThisNative();
 
-            if (Path != null && Images.Count == 0)
+            if (VideoStyle.Path != null && Images.Count == 0)
                 if (Load())
                 {
                     SetWH(Images.Max(i => i.Width), Images.Max(i => i.Height));
@@ -145,6 +165,9 @@ namespace TUI.Widgets.Media
 
             CurrentImage = (CurrentImage + 1) % Images.Count;
             Select(Images[CurrentImage]).Update().Apply().Draw();
+
+            if (CurrentImage == Images.Count - 1 && !VideoStyle.Repeat)
+                Stop();
         }
 
         #endregion
