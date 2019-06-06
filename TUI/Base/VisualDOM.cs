@@ -97,7 +97,7 @@ namespace TUI.Base
             #region Remove
 
             /// <summary>
-            /// Removes child object.
+            /// Removes child object. Calls Dispose() on removed object.
             /// </summary>
             /// <param name="child">Child object.</param>
             /// <returns>this</returns>
@@ -113,6 +113,7 @@ namespace TUI.Base
                     if (Shortcuts != null)
                         foreach (var pair in Shortcuts.Where(o => o.Value == child))
                             Shortcuts.Remove(pair.Key);
+                    child.Dispose();
                     return child;
                 }
                 return null;

@@ -86,7 +86,7 @@ namespace TUI.Widgets
         #region Copy
 
         public Button(Button button)
-            : this(button.X, button.Y, button.Width, button.Height, button.GetText(), new UIConfiguration(button.Configuration), new ButtonStyle(button.ButtonStyle), button.Callback)
+            : this(button.X, button.Y, button.Width, button.Height, button.Get(), new UIConfiguration(button.Configuration), new ButtonStyle(button.ButtonStyle), button.Callback)
         {
         }
 

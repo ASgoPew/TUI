@@ -40,25 +40,27 @@ namespace TUI.Widgets
             int indent = layout.LayoutIndent;
             Limit = layout.IndentLimit;
             bool vertical = layout.Direction == Direction.Up || layout.Direction == Direction.Down;
+            bool forward = layout.Direction == Direction.Right || layout.Direction == Direction.Down;
             if (touch.State == TouchState.Begin)
                 BeginIndent = indent;
             if (touch.State == TouchState.End || (Configuration.UseMoving && touch.State == TouchState.Moving))
             {
                 int newIndent;
+                int indentDelta;
                 if (RememberTouchPosition)
                 {
-                    int indentDelta = vertical
-                        ? touch.AbsoluteY - touch.Session.PreviousTouch.AbsoluteY
-                        : touch.AbsoluteX - touch.Session.PreviousTouch.AbsoluteX;
-                    if (layout.Direction == Direction.Right || layout.Direction == Direction.Down)
-                        newIndent = indent - indentDelta;
-                    else
-                        newIndent = indent + indentDelta;
+                    indentDelta = vertical
+                        ? touch.AbsoluteY - touch.Session.BeginTouch.AbsoluteY
+                        : touch.AbsoluteX - touch.Session.BeginTouch.AbsoluteX;
+                    newIndent = BeginIndent + (forward ? -indentDelta : indentDelta);
                 }
                 else
-                    newIndent = BeginIndent + (vertical
-                        ? touch.Session.BeginTouch.AbsoluteY - touch.AbsoluteY
-                        : touch.Session.BeginTouch.AbsoluteX - touch.AbsoluteX);
+                {
+                    indentDelta = vertical
+                        ? touch.AbsoluteY - touch.Session.PreviousTouch.AbsoluteY
+                        : touch.AbsoluteX - touch.Session.PreviousTouch.AbsoluteX;
+                    newIndent = indent + (forward ? -indentDelta : indentDelta);
+                }
                 if (newIndent != indent || touch.State == TouchState.End)
                 {
                     VisualObject first = layout.Objects.FirstOrDefault();
@@ -84,6 +86,24 @@ namespace TUI.Widgets
                 }
             }
             return true;
+        }
+
+        #endregion
+        #region PulseThisNative
+
+        protected override void PulseThisNative(PulseType type)
+        {
+            base.PulseThisNative(type);
+            if (type == PulseType.Reset)
+            {
+                if (Parent.Style.Layout.LayoutIndent != 0)
+                {
+                    Parent.LayoutIndent(0);
+                    Action<ScrollBackground, int> callback = ScrollBackgroundCallback;
+                    if (callback != null)
+                        callback.Invoke(this, 0);
+                }
+            }
         }
 
         #endregion

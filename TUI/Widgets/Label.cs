@@ -78,7 +78,7 @@ namespace TUI.Widgets
             base.ApplyThisNative();
 
             LabelStyle style = Style as LabelStyle;
-            string text = GetText();
+            string text = Get();
             if (string.IsNullOrWhiteSpace(text))
                 return;
             int lineH = 2 + (int)style.TextUnderline;
@@ -185,18 +185,21 @@ namespace TUI.Widgets
         }
 
         #endregion
-        #region SetText
+        #region Set
 
-        public void SetText(string text)
+        /// <summary>
+        /// Set text. Doesn't call update/apply/draw.
+        /// </summary>
+        /// <param name="text"></param>
+        public virtual void Set(string text)
         {
             RawText = text;
-            UpdateThis();
         }
 
         #endregion
-        #region GetText
+        #region Get
 
-        public string GetText() => RawText;
+        public string Get() => RawText;
 
         #endregion
 

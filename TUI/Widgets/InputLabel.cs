@@ -17,6 +17,7 @@ namespace TUI.Widgets
 
     public class InputLabelStyle : LabelStyle
     {
+        public string Default { get; set; } = "000";
         public InputLabelType Type { get; set; } = InputLabelType.All;
 
         public InputLabelStyle() : base() { }
@@ -46,8 +47,8 @@ namespace TUI.Widgets
 
         #region Constructor
 
-        public InputLabel(int x, int y, string text, InputLabelStyle style = null, Action<InputLabel, string> callback = null)
-            : base(x, y, text.Length * 2, style?.TextUnderline == LabelUnderline.Underline ? 3 : 2, text,
+        public InputLabel(int x, int y, InputLabelStyle style = null, Action<InputLabel, string> callback = null)
+            : base(x, y, style.Default.Length * 2, style?.TextUnderline == LabelUnderline.Underline ? 3 : 2, style.Default,
                   new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true }, style ?? new InputLabelStyle())
         {
             InputLabelStyle ilstyle = InputLabelStyle;
@@ -60,7 +61,7 @@ namespace TUI.Widgets
         #region Copy
 
         public InputLabel(InputLabel ilabel)
-            : this(ilabel.X, ilabel.Y, ilabel.RawText, ilabel.InputLabelStyle)
+            : this(ilabel.X, ilabel.Y, ilabel.InputLabelStyle)
         {
         }
 
@@ -70,7 +71,7 @@ namespace TUI.Widgets
         public override bool Invoke(Touch touch)
         {
             if (touch.State == TouchState.Begin)
-                BeginValue = GetText();
+                BeginValue = Get();
             if (touch.State == TouchState.End || touch.State == TouchState.Moving)
             {
                 List<char> charShift = InputLabelStyle.Type == InputLabelType.Digits
@@ -83,14 +84,31 @@ namespace TUI.Widgets
                     int charIndex = charShift.IndexOf(RawText[charPosition]);
                     char newChar = charShift[((charIndex + delta) % charShift.Count + charShift.Count) % charShift.Count];
                     string newText = $"{RawText.Substring(0, charPosition)}{newChar}{RawText.Substring(charPosition + 1, (RawText.Length - charPosition - 1))}";
-                    SetText(newText);
-                    ApplyThis().Draw();
+                    Set(newText);
+                    UpdateThis().ApplyThis().Draw();
                 }
-                string value = GetText();
+                string value = Get();
                 if (touch.State == TouchState.End && value != BeginValue)
                     InputLabelCallback?.Invoke(this, value);
             }
             return true;
+        }
+
+        #endregion
+        #region PulseThisNative
+
+        protected override void PulseThisNative(PulseType type)
+        {
+            base.PulseThisNative(type);
+            if (type == PulseType.Reset)
+            {
+                string defualt = InputLabelStyle.Default;
+                if (Get() != defualt)
+                {
+                    Set(defualt);
+                    InputLabelCallback?.Invoke(this, defualt);
+                }
+            }
         }
 
         #endregion

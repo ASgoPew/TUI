@@ -8,6 +8,7 @@ namespace TUI.Widgets
 
     public class CheckboxStyle : UIStyle
     {
+        public bool Default { get; set; } = false;
         public byte CheckedColor { get; set; } = 13;
 
         public CheckboxStyle() : base() { }
@@ -28,8 +29,6 @@ namespace TUI.Widgets
         private Action<Checkbox, bool> CheckboxCallback;
         private byte? OldWallColor;
 
-        public bool DefaultValue { get; set; }
-
         public CheckboxStyle CheckboxStyle => Style as CheckboxStyle;
 
         public bool Value { get; private set; }
@@ -38,15 +37,14 @@ namespace TUI.Widgets
 
         #region Constructor
 
-        public Checkbox(int x, int y, int size, CheckboxStyle style = null, Action<Checkbox, bool> callback = null, bool defaultValue = false, int lockDelay = 300)
+        public Checkbox(int x, int y, int size, CheckboxStyle style = null, Action<Checkbox, bool> callback = null, int lockDelay = 300)
             : base(x, y, size, size, new UIConfiguration(), style ?? new CheckboxStyle())
         {
             Configuration.Lock = new Lock(LockLevel.Self, false, lockDelay, false, false);
 
             CheckboxCallback = callback;
             OldWallColor = Style.WallColor;
-            DefaultValue = defaultValue;
-            Value = defaultValue;
+            Value = CheckboxStyle.Default;
         }
 
         #endregion
@@ -62,6 +60,11 @@ namespace TUI.Widgets
         #endregion
         #region Set
 
+        /// <summary>
+        /// Change value and call callback without drawing.
+        /// </summary>
+        /// <param name="value">New value.</param>
+        /// <returns>this</returns>
         public Checkbox Set(bool value)
         {
             if (value != Value)
@@ -86,7 +89,7 @@ namespace TUI.Widgets
         {
             base.PulseThisNative(type);
             if (type == PulseType.Reset)
-                Set(DefaultValue);
+                Set(CheckboxStyle.Default);
         }
 
         #endregion

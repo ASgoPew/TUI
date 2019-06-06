@@ -38,6 +38,7 @@ namespace TUI.Widgets
         public ScrollBar(Direction side = Direction.Right, int width = 1, ScrollBarStyle style = null)
             : base(0, 0, 0, 0, new UIConfiguration(), style ?? new ScrollBarStyle())
         {
+
             Vertical = side == Direction.Left || side == Direction.Right;
             _Width = width;
             if (Vertical)
@@ -94,6 +95,25 @@ namespace TUI.Widgets
             else
                 Slider.SetWH(Math.Min(Math.Max(Width - limit, 1), Width), _Width);
             ForceSection = Parent.ForceSection;
+            switch (Parent.Style.Layout.Direction)
+            {
+                case Direction.Left:
+                    Style.Layout.Alignment = Alignment.Right;
+                    Style.Layout.Direction = Direction.Right;
+                    break;
+                case Direction.Up:
+                    Style.Layout.Alignment = Alignment.Down;
+                    Style.Layout.Direction = Direction.Down;
+                    break;
+                case Direction.Right:
+                    Style.Layout.Alignment = Alignment.Left;
+                    Style.Layout.Direction = Direction.Left;
+                    break;
+                case Direction.Down:
+                    Style.Layout.Alignment = Alignment.Up;
+                    Style.Layout.Direction = Direction.Up;
+                    break;
+            }
 
             base.UpdateThisNative();
 
@@ -105,21 +125,32 @@ namespace TUI.Widgets
 
         public override bool Invoke(Touch touch)
         {
+            int forward = Parent.Style.Layout.Direction == Direction.Right || Parent.Style.Layout.Direction == Direction.Down ? 1 : -1;
             if (Vertical)
             {
                 if (touch.Y > Slider.Y)
-                    ScrollAction(Slider, Style.Layout.LayoutIndent + touch.Y - (Slider.Y + Slider.Height) + 1);
+                    ScrollAction(Slider, Style.Layout.LayoutIndent + (touch.Y - (Slider.Y + Slider.Height) + 1) * forward);
                 else
-                    ScrollAction(Slider, Style.Layout.LayoutIndent - (Slider.Y - touch.Y));
+                    ScrollAction(Slider, Style.Layout.LayoutIndent - (Slider.Y - touch.Y) * forward);
             }
             else
             {
                 if (touch.X > Slider.X)
-                    ScrollAction(Slider, Style.Layout.LayoutIndent + touch.X - (Slider.X + Slider.Width) + 1);
+                    ScrollAction(Slider, Style.Layout.LayoutIndent + (touch.X - (Slider.X + Slider.Width) + 1) * forward);
                 else
-                    ScrollAction(Slider, Style.Layout.LayoutIndent - (Slider.X - touch.X));
+                    ScrollAction(Slider, Style.Layout.LayoutIndent - (Slider.X - touch.X) * forward);
             }
             return true;
+        }
+
+        #endregion
+        #region PulseThisNative
+
+        protected override void PulseThisNative(PulseType type)
+        {
+            base.PulseThisNative(type);
+            if (type == PulseType.Reset)
+                Parent.LayoutIndent(0);
         }
 
         #endregion

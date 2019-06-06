@@ -57,11 +57,107 @@ namespace TUI.Widgets
         }
 
         #endregion
+        #region DisposeThisNative
+
+        protected override void DisposeThisNative()
+        {
+            base.DisposeThisNative();
+            RemoveSign();
+        }
+
+        #endregion
         #region Copy
 
         public ItemRack(ItemRack rack)
             : this(rack.X, rack.Y, rack.ItemRackStyle, rack.Callback)
         {
+        }
+
+        #endregion
+
+        #region Set
+
+        // Use this only after adding ItemRack to parent.
+        public void Set(string text)
+        {
+            Text = text;
+        }
+
+        #endregion
+        #region CreateSign
+
+        protected void CreateSign()
+        {
+            if (Text == null)
+                throw new NullReferenceException("CreateSign: Text is null");
+            (int x, int y) = AbsoluteXY();
+            CreateSignArgs args = new CreateSignArgs(x, y, this);
+            TUI.Hooks.CreateSign.Invoke(args);
+            if (args.Sign == null)
+            {
+                TUI.Hooks.Log.Invoke(new LogArgs("Can't create new sign.", LogType.Error));
+                return;
+            }
+            Sign = args.Sign;
+            Sign.text = Text;
+        }
+
+        #endregion
+        #region RemoveSign
+
+        protected void RemoveSign()
+        {
+            if (Sign == null)
+                return;
+            TUI.Hooks.RemoveSign.Invoke(new RemoveSignArgs(this, Sign));
+            Sign = null;
+        }
+
+        #endregion
+        #region UpdateSign
+
+        protected void UpdateSign()
+        {
+            if (Text != null && Sign != null)
+            {
+                (int x, int y) = AbsoluteXY();
+                dynamic tile = Tile(0, 0);
+                if (tile != null)
+                {
+                    tile.type = 55;
+                    tile.frameX = 0;
+                    tile.frameY = 0;
+                    Sign.x = x;
+                    Sign.y = y;
+                    Sign.text = Text;
+                }
+                else
+                    Sign.text = "";
+            }
+        }
+
+        #endregion
+
+        #region PulseThisNative
+
+        protected override void PulseThisNative(PulseType type)
+        {
+            base.PulseThisNative(type);
+            if (type == PulseType.PositionChanged && Text != null)
+                UpdateSign();
+        }
+
+        #endregion
+        #region UpdateThisNative
+
+        protected override void UpdateThisNative()
+        {
+            base.UpdateThisNative();
+
+            if (Text != null && Sign == null)
+                CreateSign();
+            else
+                UpdateSign();
         }
 
         #endregion
@@ -95,74 +191,6 @@ namespace TUI.Widgets
                         tile.frameX = (short)(fx + x * 18);
                     tile.frameY = (short)(sign && y == 0 ? 0 : y * 18);
                 }
-        }
-
-        #endregion
-        #region SetText
-
-        // Use this only after adding ItemRack to parent.
-        public void SetText(string text)
-        {
-            Text = text;
-        }
-
-        #endregion
-        #region CreateSign
-
-        public void CreateSign()
-        {
-            if (Text == null)
-                throw new NullReferenceException("CreateSign: Text is null");
-            (int x, int y) = AbsoluteXY();
-            CreateSignArgs args = new CreateSignArgs(x, y, this);
-            TUI.Hooks.CreateSign.Invoke(args);
-            if (args.Sign == null)
-            {
-                TUI.Hooks.Log.Invoke(new LogArgs("Can't create new sign.", LogType.Error));
-                return;
-            }
-            Sign = args.Sign;
-            Sign.text = Text;
-        }
-
-        #endregion
-        #region RemoveSign
-
-        public void RemoveSign()
-        {
-            if (Sign == null)
-                return;
-            TUI.Hooks.RemoveSign.Invoke(new RemoveSignArgs(this, Sign));
-            Sign = null;
-        }
-
-        #endregion
-        #region PulseThisNative
-
-        protected override void PulseThisNative(PulseType type)
-        {
-            base.PulseThisNative(type);
-            if (type == PulseType.PreSetXYWH)
-                RemoveSign();
-            else if (type == PulseType.PostSetXYWH && Text != null)
-                CreateSign();
-            else if (type == PulseType.Dispose)
-                RemoveSign();
-        }
-
-        #endregion
-        #region UpdateThisNative
-
-        protected override void UpdateThisNative()
-        {
-            base.UpdateThisNative();
-
-            (int x, int y) = AbsoluteXY();
-            if (Text != null && (Sign == null || Sign.text != Text || Sign.x != x || Sign.y != y))
-            {
-                RemoveSign();
-                CreateSign();
-            }
         }
 
         #endregion

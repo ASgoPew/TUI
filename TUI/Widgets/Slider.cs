@@ -8,6 +8,7 @@ namespace TUI.Widgets
 
     public class SliderStyle : UIStyle
     {
+        public int Default { get; set; } = 0;
         public bool TriggerOnDrag { get; set; } = false;
         public byte UsedColor { get; set; } = UIDefault.SliderUsedColor;
         public byte SeparatorColor { get; set; } = UIDefault.SliderSeparatorColor;
@@ -30,7 +31,6 @@ namespace TUI.Widgets
         private Action<Slider, int> SliderCallback;
         private int OldValue;
 
-        public int DefaultValue { get; set; }
         public int Value { get; set; }
 
         public SliderStyle SliderStyle => Style as SliderStyle;
@@ -40,14 +40,13 @@ namespace TUI.Widgets
 
         #region Constructor
 
-        public Slider(int x, int y, int width, int height, SliderStyle style = null, Action<Slider, int> callback = null, int defaultValue = 0, int lockDelay = 300)
+        public Slider(int x, int y, int width, int height, SliderStyle style = null, Action<Slider, int> callback = null, int lockDelay = 300)
             : base(x, y, width, height, new UIConfiguration() { UseMoving = true, UseEnd = true, UseOutsideTouches = true }, style)
         {
             Configuration.Lock = new Lock(LockLevel.Self, false, lockDelay, true, true);
 
             SliderCallback = callback;
-            DefaultValue = defaultValue;
-            Value = defaultValue;
+            Value = SliderStyle.Default;
         }
 
         #endregion
@@ -122,7 +121,7 @@ namespace TUI.Widgets
         {
             base.PulseThisNative(type);
             if (type == PulseType.Reset)
-                Set(DefaultValue);
+                Set(SliderStyle.Default);
         }
 
         #endregion

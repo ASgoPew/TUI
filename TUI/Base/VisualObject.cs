@@ -104,28 +104,36 @@ namespace TUI.Base
             : base(x, y, width, height, configuration, callback)
         {
             Style = style ?? new UIStyle();
-
-            if (Style.Grid != null)
-                SetupGrid(Style.Grid);
         }
 
         public VisualObject()
             : this(0, 0, 0, 0, new UIConfiguration() { UseBegin = false })
         {
-            Style.FullSize = FullSize.Both;
         }
 
         public VisualObject(UIConfiguration configuration)
             : this(0, 0, 0, 0, configuration)
         {
-            Style.FullSize = FullSize.Both;
         }
 
         public VisualObject(UIStyle style)
             : this(0, 0, 0, 0, new UIConfiguration() { UseBegin = false }, style)
         {
-            Style.FullSize = FullSize.Both;
         }
+
+        #endregion
+        #region Dispose
+
+        public virtual void Dispose()
+        {
+            DisposeThisNative();
+
+            lock (Child)
+                foreach (VisualObject child in ChildrenFromTop)
+                    child.Dispose();
+        }
+
+        protected virtual void DisposeThisNative() { }
 
         #endregion
         #region operator[,]
@@ -187,9 +195,8 @@ namespace TUI.Base
             int oldX = X, oldY = Y, oldWidth = Width, oldHeight = Height;
             if (oldX != x || oldY != y || oldWidth != width || oldHeight != height)
             {
-                Pulse(PulseType.PreSetXYWH);
                 base.SetXYWH(x, y, width, height);
-                Pulse(PulseType.PostSetXYWH);
+                Pulse(PulseType.PositionChanged);
             }
             return this;
         }
@@ -322,7 +329,7 @@ namespace TUI.Base
 
         #region Pulse
 
-        public virtual VisualObject Pulse(PulseType type)
+            public virtual VisualObject Pulse(PulseType type)
             {
                 // Pulse event handling related to this node
                 PulseThis(type);
@@ -345,7 +352,17 @@ namespace TUI.Base
             #endregion
             #region PulseThisNative
 
-            protected virtual void PulseThisNative(PulseType type) { }
+            protected virtual void PulseThisNative(PulseType type)
+            {
+                switch (type)
+                {
+                    case PulseType.PositionChanged:
+                        // Update position relative to Provider
+                        if (Root != null)
+                            (ProviderX, ProviderY) = ProviderXY();
+                        break;
+                }
+            }
 
             #endregion
             #region CustomPulse
@@ -430,9 +447,11 @@ namespace TUI.Base
 
             protected void UpdateBounds()
             {
-                if (Style.InLayout || Style.Alignment != null)
+                bool layoutBounds = Style.InLayout && Parent.Style.Layout.BoundsIsOffset;
+                bool alignmentBounds = Style.Alignment != null && Style.Alignment.BoundsIsOffset;
+                if (layoutBounds || alignmentBounds)
                 {
-                    ExternalOffset parentOffset = Style.InLayout ? Parent.Style.Layout.Offset : Style.Alignment.Offset;
+                    ExternalOffset parentOffset = layoutBounds ? Parent.Style.Layout.Offset : Style.Alignment.Offset;
                     Bounds = new ExternalOffset()
                     {
                         Left = Math.Max(0, parentOffset.Left - X),
@@ -630,8 +649,11 @@ namespace TUI.Base
                     //Console.WriteLine($"{Width}, {Height}: {resultX}, {resultY}, {resultX + child.Width - 1}, {resultY + child.Height - 1}");
                     //child.Visible = LayoutContains(resultX, resultY, offset)
                     //    && LayoutContains(resultX + child.Width - 1, resultY + child.Height - 1, offset);
-                    child.Visible = Intersecting(resultX, resultY, child.Width, child.Height, offset.Left, offset.Up,
-                        Width - offset.Right - offset.Left, Height - offset.Down - offset.Up);
+                    if (Style.Layout.BoundsIsOffset)
+                        child.Visible = Intersecting(resultX, resultY, child.Width, child.Height, offset.Left, offset.Up,
+                            Width - offset.Right - offset.Left, Height - offset.Down - offset.Up);
+                    else
+                        child.Visible = Intersecting(resultX, resultY, child.Width, child.Height, 0, 0, Width, Height);
 
                     child.SetXY(resultX, resultY);
                     //Console.WriteLine($"Layout: {child.FullName}, {child.XYWH()}");
@@ -851,11 +873,15 @@ namespace TUI.Base
             #endregion
             #region UpdateChild
 
+            /// <summary>
+            /// Updates all Enabled child objects.
+            /// </summary>
+            /// <returns></returns>
             public virtual VisualObject UpdateChild()
             {
                 lock (Child)
                     foreach (VisualObject child in ChildrenFromTop)
-                        if (child.Active)
+                        if (child.Enabled)
                             child.Update();
                 return this;
             }

@@ -57,7 +57,7 @@ namespace TUI
             lock (Child)
             {
                 foreach (RootVisualObject child in Child)
-                    child.Pulse(PulseType.Dispose);
+                    child.Dispose();
                 Child.Clear();
             }
             Timer.Stop();

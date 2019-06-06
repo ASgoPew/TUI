@@ -3,6 +3,8 @@ using System.Linq;
 
 namespace TUI.Base.Style
 {
+    #region AlignmentStyle
+
     public class AlignmentStyle
     {
         /// <summary>
@@ -13,16 +15,24 @@ namespace TUI.Base.Style
         /// Offset for <see cref="Alignment"/> inside parent.
         /// </summary>
         public ExternalOffset Offset { get; set; }
+        /// <summary>
+        /// Restrict drawing outside of offset or not.
+        /// </summary>
+        public bool BoundsIsOffset { get; set; }
 
-        public AlignmentStyle(Alignment alignment, ExternalOffset offset = null)
+        public AlignmentStyle(Alignment alignment, ExternalOffset offset = null, bool boundsIsOffset = true)
         {
             Alignment = alignment;
             Offset = offset ?? new ExternalOffset(UIDefault.ExternalOffset);
+            BoundsIsOffset = boundsIsOffset;
         }
 
         public AlignmentStyle(AlignmentStyle alignmentStyle)
             : this(alignmentStyle.Alignment, alignmentStyle.Offset) { }
     }
+
+    #endregion
+    #region LayoutStyle
 
     public class LayoutStyle
     {
@@ -60,19 +70,27 @@ namespace TUI.Base.Style
         /// Distance between objects in child layout.
         /// </summary>
         public int ChildIndent { get; set; }
+        /// <summary>
+        /// Restrict drawing outside of offset or not.
+        /// </summary>
+        public bool BoundsIsOffset { get; set; }
 
-        public LayoutStyle(Alignment alignment = Style.Alignment.Center, Direction direction = Style.Direction.Down, Side side = Style.Side.Center, ExternalOffset offset = null, int childIndent = 1)
+        public LayoutStyle(Alignment alignment = Style.Alignment.Center, Direction direction = Style.Direction.Down, Side side = Style.Side.Center, ExternalOffset offset = null, int childIndent = 1, bool boundsIsOffset = true)
         {
             Alignment = alignment;
             Direction = direction;
             Side = side;
             Offset = offset ?? new ExternalOffset(UIDefault.ExternalOffset);
             ChildIndent = childIndent;
+            BoundsIsOffset = boundsIsOffset;
         }
 
         public LayoutStyle(LayoutStyle layoutStyle)
             : this(layoutStyle.Alignment, layoutStyle.Direction, layoutStyle.Side, layoutStyle.Offset, layoutStyle.ChildIndent) { }
     }
+
+    #endregion
+    #region GridStyle
 
     public class GridStyle
     {
@@ -96,6 +114,8 @@ namespace TUI.Base.Style
         {
         }
     }
+
+    #endregion
 
     public class UIStyle
     {
