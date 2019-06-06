@@ -9,6 +9,7 @@ namespace TUI.Widgets.Media
     {
         #region Data
 
+        public const int BrokenImageSize = 5;
         public ImageData Data { get; protected set; }
         public string Path { get; protected set; }
 
@@ -18,16 +19,24 @@ namespace TUI.Widgets.Media
 
         public Image(int x, int y, string path, UIConfiguration configuration = null,
                 UIStyle style = null, Func<VisualObject, Touch, bool> callback = null)
-            : base(x, y, 0, 0, configuration, style, callback)
+            : base(x, y, BrokenImageSize, BrokenImageSize, configuration, style, callback)
         {
             Path = path;
         }
 
         public Image(int x, int y, ImageData data, UIConfiguration configuration = null,
                 UIStyle style = null, Func<VisualObject, Touch, bool> callback = null)
-            : base(x, y, 0, 0, configuration, style, callback)
+            : base(x, y, BrokenImageSize, BrokenImageSize, configuration, style, callback)
         {
             Data = data;
+        }
+
+        #endregion
+        #region Copy
+
+        public Image(Image image)
+            : this(image.X, image.Y, new ImageData(image.Data), new UIConfiguration(image.Configuration), new UIStyle(image.Style), (Func<VisualObject, Touch, bool>)image.Callback.Clone())
+        {
         }
 
         #endregion
@@ -52,7 +61,6 @@ namespace TUI.Widgets.Media
                 {
                     TUI.Hooks.Log.Invoke(new LogArgs("File not found or path is a folder: " + Path, LogType.Error));
                     Path = null;
-                    SetWH(3, 3);
                     return false;
                 }
                 Data = images[0];
@@ -170,7 +178,7 @@ namespace TUI.Widgets.Media
                     if (tile == null)
                         continue;
                     tile.wall = 155;
-                    tile.wallColor((x + y) % 2 == 0 ? 26 : 13);
+                    tile.wallColor((byte)((x + y) % 2 == 0 ? 29 : 24));
                 }
         }
 

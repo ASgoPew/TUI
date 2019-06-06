@@ -8,16 +8,32 @@ namespace TUI.Widgets.Media
     {
         #region Data
 
-        public List<SignData> Signs = new List<SignData>();
-
-        public dynamic Tiles;
-        public int Width, Height;
-
         public static Dictionary<string, Action<string, ImageData>> Readers =
             new Dictionary<string, Action<string, ImageData>>();
 
+        public int Width, Height;
+        public dynamic Tiles;
+        public List<SignData> Signs = new List<SignData>();
+
         #endregion
 
+        #region Constructor
+
+        public ImageData(string path)
+        {
+            if (Readers.TryGetValue(Path.GetExtension(path), out Action<string, ImageData> reader))
+                reader.Invoke(path, this);
+        }
+
+        #endregion
+        #region Copy
+
+        public ImageData(ImageData imageData)
+        {
+            throw new NotImplementedException("Cloning images not supported yet.");
+        }
+
+        #endregion
         #region Load
 
         public static ImageData[] Load(string path)
@@ -25,32 +41,18 @@ namespace TUI.Widgets.Media
             List<ImageData> images = new List<ImageData>();
             if (Path.HasExtension(path))
             {
-                ImageData image = LoadImage(path);
-                if (image != null)
+                ImageData image = new ImageData(path);
+                if (image.Tiles != null)
                     images.Add(image);
             }
             else
                 foreach (string f in Directory.EnumerateFiles(path))
                 {
-                    ImageData image = LoadImage(f);
-                    if (image != null)
+                    ImageData image = new ImageData(f);
+                    if (image.Tiles != null)
                         images.Add(image);
                 }
             return images.ToArray();
-        }
-
-        #endregion
-        #region LoadImage
-
-        private static ImageData LoadImage(string path)
-        {
-            if (!Readers.TryGetValue(Path.GetExtension(path),
-                    out Action<string, ImageData> reader))
-                return null;
-            
-            ImageData image = new ImageData();
-            reader.Invoke(path, image);
-            return image;
         }
 
         #endregion

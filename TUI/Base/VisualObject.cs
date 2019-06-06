@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using TUI.Base.Style;
+using TUI.Widgets.Media;
 
 namespace TUI.Base
 {

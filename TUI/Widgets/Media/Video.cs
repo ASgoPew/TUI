@@ -14,6 +14,17 @@ namespace TUI.Widgets.Media
     {
         #region Data
 
+        public static readonly int[,] BrokenVideo = new int[7, 5]
+        {
+            { 1, 2, 3, 4, 5 },
+            { 1, 2, 3, 4, 5 },
+            { 1, 2, 3, 4, 5 },
+            { 1, 2, 3, 4, 5 },
+            { 1, 2, 3, 4, 5 },
+            { 1, 2, 3, 4, 5 },
+            { 1, 2, 3, 4, 5 }
+        };
+
         public string Path { get; protected set; }
         public int Delay { get; }
         protected List<Image> Images = new List<Image>();
@@ -26,7 +37,7 @@ namespace TUI.Widgets.Media
 
         public Video(int x, int y, string path, int delay = 500, UIConfiguration configuration = null,
                 UIStyle style = null, Func<VisualObject, Touch, bool> callback = null)
-            : base(x, y, 0, 0, configuration, style, callback)
+            : base(x, y, 7, 5, configuration, style, callback)
         {
             Path = path;
             Delay = delay;
@@ -35,7 +46,34 @@ namespace TUI.Widgets.Media
         }
 
         #endregion
+        #region DisposeThisNative
 
+        public override void Dispose()
+        {
+            base.Dispose();
+            Stop();
+        }
+
+        #endregion
+
+        #region Start
+
+        public Video Start()
+        {
+            Timer.Start();
+            return this;
+        }
+
+        #endregion
+        #region Stop
+
+        public Video Stop()
+        {
+            Timer.Stop();
+            return this;
+        }
+
+        #endregion
         #region Load
 
         public bool Load()
@@ -51,21 +89,15 @@ namespace TUI.Widgets.Media
             
             foreach (ImageData data in images)
             {
-                Image image = new Image(0, 0, data, null, Style);
-                Images.Add(Add(image) as Image);
+                Image image = new Image(0, 0, data);
+                Add(image);
+                Images.Add(image);
                 image.Load();
             }
             return true;
         }
 
         #endregion
-        #region Start, Stop
-
-        public void Start() => Timer.Start();
-        public void Stop() => Timer.Stop();
-
-        #endregion
-
         #region UpdateThisNative
 
         protected override void UpdateThisNative()
@@ -87,17 +119,11 @@ namespace TUI.Widgets.Media
 
         protected virtual void Next(object sender, ElapsedEventArgs args)
         {
-            if (Root == null || Root.Players.Count == 0)
+            if (Root == null || Root.Players.Count == 0 || !Visible)
                 return;
 
-            int index = ++CurrentImage;
-            if (CurrentImage >= Images.Count)
-            {
-                CurrentImage = -1;
-                index = 0;
-            }
-
-            Select(Images[index]).Update().Apply().Draw();
+            CurrentImage = (CurrentImage + 1) % Images.Count;
+            Select(Images[CurrentImage]).Update().Apply().Draw();
         }
 
         #endregion
