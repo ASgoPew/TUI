@@ -89,6 +89,7 @@
     <Compile Include="Widgets\Media\Image.cs" />
     <Compile Include="Widgets\Media\ImageData.cs" />
     <Compile Include="Widgets\Media\SignData.cs" />
+    <Compile Include="Widgets\Media\Video.cs" />
     <Compile Include="Widgets\Panel.cs" />
     <Compile Include="Widgets\ScrollBackground.cs" />
     <Compile Include="Widgets\ScrollBar.cs" />

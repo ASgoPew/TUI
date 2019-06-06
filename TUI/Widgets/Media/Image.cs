@@ -23,6 +23,13 @@ namespace TUI.Widgets.Media
             Path = path;
         }
 
+        public Image(int x, int y, ImageData data, UIConfiguration configuration = null,
+                UIStyle style = null, Func<VisualObject, Touch, bool> callback = null)
+            : base(x, y, 0, 0, configuration, style, callback)
+        {
+            Data = data;
+        }
+
         #endregion
         #region DisposeThisNative
 
@@ -38,15 +45,19 @@ namespace TUI.Widgets.Media
 
         public bool Load()
         {
-            ImageData[] images = ImageData.Load(Path);
-            if (images.Length != 1)
+            if (Data == null)
             {
-                TUI.Hooks.Log.Invoke(new LogArgs("File not found or path is a folder: " + Path, LogType.Error));
-                Path = null;
-                SetWH(3, 3);
-                return false;
+                ImageData[] images = ImageData.Load(Path);
+                if (images.Length != 1)
+                {
+                    TUI.Hooks.Log.Invoke(new LogArgs("File not found or path is a folder: " + Path, LogType.Error));
+                    Path = null;
+                    SetWH(3, 3);
+                    return false;
+                }
+                Data = images[0];
             }
-            Data = images[0];
+
             SetWH(Data.Width, Data.Height);
             (int x, int y) = AbsoluteXY();
             foreach (SignData sign in Data.Signs)

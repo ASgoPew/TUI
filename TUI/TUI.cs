@@ -135,6 +135,10 @@ namespace TUI
                 TUI.Touched(userIndex, simulatedEndTouch);
             }
 
+            lock (Child)
+                foreach (RootVisualObject child in Child)
+                    child.Players.Remove(userIndex);
+
             Session[userIndex] = null;
         }
 
