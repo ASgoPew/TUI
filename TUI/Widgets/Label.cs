@@ -83,12 +83,12 @@ namespace TUI.Widgets
                 return;
             int lineH = 2 + (int)style.TextUnderline;
             ForceSection = false;
-            Offset indentation = style.TextOffset;
+            Offset offset = style.TextOffset;
             Alignment alignment = style.TextAlignment;
             Side side = style.TextSide;
 
-            int spaceW = Width - indentation.Left - indentation.Right;
-            int spaceH = Height - indentation.Up - indentation.Down;
+            int spaceW = Width - offset.Left - offset.Right;
+            int spaceH = Height - offset.Up - offset.Down;
 		    int textW = TextW;
 		    int textH = TextH;
 
@@ -97,19 +97,19 @@ namespace TUI.Widgets
 
             int charX = 0;
             if (alignment == Alignment.Center || alignment == Alignment.Up || alignment == Alignment.Down)
-                charX = indentation.Left + (int)Math.Floor((spaceW - textW) / 2d);
+                charX = offset.Left + (int)Math.Floor((spaceW - textW) / 2d);
             else if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
-                charX = indentation.Left;
+                charX = offset.Left;
             else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
-                charX = indentation.Left + spaceW - textW;
+                charX = offset.Left + spaceW - textW;
 
             int charY = 0;
             if (alignment == Alignment.Center || alignment == Alignment.Left || alignment == Alignment.Right)
-                charY = indentation.Up + (int)Math.Floor((spaceH - textH) / 2d);
+                charY = offset.Up + (int)Math.Floor((spaceH - textH) / 2d);
             else if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
-                charY = indentation.Up;
+                charY = offset.Up;
             else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
-                charY = indentation.Up + spaceH - textH;
+                charY = offset.Up + spaceH - textH;
 
             int defaultCharX = charX;
 
@@ -152,15 +152,15 @@ namespace TUI.Widgets
                     }
 				    else
                     {
-                        for (int x = 0; x < indentation.Horizontal; x++)
+                        for (int x = 0; x < offset.Horizontal; x++)
                             for (int statueY = 0; statueY <= Math.Min(lineH - 1, 3); statueY++)
                                 Tile(charX + x, charY + statueY)?.active(false);
-					    charX += indentation.Horizontal;
+					    charX += offset.Horizontal;
                     }
                 }
-                if (charY + 2 * lineH + indentation.Vertical + indentation.Down > Height)
+                if (charY + 2 * lineH + offset.Vertical + offset.Down > Height)
                     break;
-                charY = charY + lineH + indentation.Vertical;
+                charY = charY + lineH + offset.Vertical;
             }
         }
 
@@ -172,16 +172,16 @@ namespace TUI.Widgets
             base.UpdateThisNative();
 
             LabelStyle style = Style as LabelStyle;
-            Offset indentation = style.TextOffset;
-            int spaceW = Width - indentation.Left - indentation.Right;
-            int spaceH = Height - indentation.Up - indentation.Down;
+            Offset offset = style.TextOffset;
+            int spaceW = Width - offset.Left - offset.Right;
+            int spaceH = Height - offset.Up - offset.Down;
             int lineH = 2 + (int)style.TextUnderline;
 
             //Dividing text into lines
-            (List<(string, int)> lines, int maxLineW) = LimitStatueText(RawText, spaceW, spaceH, indentation.Horizontal, indentation.Vertical, lineH);
+            (List<(string, int)> lines, int maxLineW) = LimitStatueText(RawText, spaceW, spaceH, offset.Horizontal, offset.Vertical, lineH);
             Lines = lines;
             TextW = maxLineW;
-            TextH = lines.Count * (lineH + indentation.Vertical) - indentation.Vertical;
+            TextH = lines.Count * (lineH + offset.Vertical) - offset.Vertical;
         }
 
         #endregion

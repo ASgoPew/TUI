@@ -4,17 +4,17 @@ using TUI.Base.Style;
 
 namespace TUI.Widgets
 {
-    public class VisualList : VisualObject
+    public class RadioList : VisualObject
     {
-        public VisualList(int x, int y, int width, int height, UIStyle style = null, IEnumerable<VisualObject> elements = null)
-            : base(x, y, width, height, new UIConfiguration(), style)
+        public RadioList(int x, int y, int width, int height, Direction direction, UIStyle button1, UIStyle button2, int selectedColor, IEnumerable<string> texts, UIStyle style = null)
+            : base(x, y, width, height, null, style)
         {
 
             foreach (VisualObject element in elements)
                 AddToLayout(element);
         }
 
-        public VisualList(VisualList visualObject) : base(visualObject)
+        public RadioList(RadioList visualObject) : base(visualObject)
         {
         }
 
