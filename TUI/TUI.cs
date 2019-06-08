@@ -22,7 +22,7 @@ namespace TUI
         public const short FakeSignSTileHeader = 29728;
         private static List<RootVisualObject> Child = new List<RootVisualObject>();
         private static Timer Timer;
-        public static bool UpdateAllowed = false;
+        public static bool Active { get; set; } = false;
 
         public static IEnumerable<RootVisualObject> Roots
         {
@@ -49,15 +49,15 @@ namespace TUI
         }
 
         #endregion
-        #region Deinitialize
+        #region Dispose
 
-        public static void Deinitialize()
+        public static void Dispose()
         {
             Hooks.Deinitialize.Invoke(new EventArgs());
             lock (Child)
             {
                 foreach (RootVisualObject child in Child)
-                    child.Dispose();
+                    child.DisposeInternal();
                 Child.Clear();
             }
             Timer.Stop();
@@ -320,7 +320,7 @@ namespace TUI
         {
             lock (Child)
                 foreach (RootVisualObject child in Child)
-                    if (child.Active)
+                    if (child.Enabled)
                         child.Update();
         }
 

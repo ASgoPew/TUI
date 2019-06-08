@@ -65,7 +65,7 @@ namespace TUI.Widgets
                 {
                     VisualObject first = layout.Objects.FirstOrDefault();
                     VisualObject last = layout.Objects.LastOrDefault();
-                    if (first == null || last == null)
+                    if (first == null)
                         return true;
                     if (touch.State == TouchState.End || !AllowToPull)
                     {

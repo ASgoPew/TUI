@@ -57,20 +57,31 @@ namespace TUI.Widgets
         }
 
         #endregion
-        #region DisposeThisNative
-
-        protected override void DisposeThisNative()
-        {
-            base.DisposeThisNative();
-            RemoveSign();
-        }
-
-        #endregion
         #region Copy
 
         public ItemRack(ItemRack rack)
             : this(rack.X, rack.Y, rack.ItemRackStyle, rack.Callback)
         {
+        }
+
+        #endregion
+        #region Initialize
+
+        protected override void Initialize()
+        {
+            base.Initialize();
+
+            if (Text != null)
+                CreateSign();
+        }
+
+        #endregion
+        #region Dispose
+
+        protected override void Dispose()
+        {
+            base.Dispose();
+            RemoveSign();
         }
 
         #endregion
@@ -124,9 +135,12 @@ namespace TUI.Widgets
                 dynamic tile = Tile(0, 0);
                 if (tile != null)
                 {
-                    tile.type = 55;
-                    tile.frameX = 0;
-                    tile.frameY = 0;
+                    if (UsesDefaultMainProvider)
+                    {
+                        tile.type = 55;
+                        tile.frameX = 0;
+                        tile.frameY = 0;
+                    }
                     Sign.x = x;
                     Sign.y = y;
                     Sign.text = Text;
@@ -143,7 +157,8 @@ namespace TUI.Widgets
         protected override void PulseThisNative(PulseType type)
         {
             base.PulseThisNative(type);
-            if (type == PulseType.PositionChanged && Text != null)
+
+            if (type == PulseType.PositionChanged)
                 UpdateSign();
         }
 
@@ -154,10 +169,7 @@ namespace TUI.Widgets
         {
             base.UpdateThisNative();
 
-            if (Text != null && Sign == null)
-                CreateSign();
-            else
-                UpdateSign();
+            UpdateSign();
         }
 
         #endregion

@@ -13,10 +13,10 @@ namespace TUI.Base
         public UIStyle Style { get; set; }
         public VisualObject[,] Grid { get; set; }
         public GridCell Cell { get; private set; }
-        public bool ForceSection { get; protected internal set; } = false;
+        public bool ForceSection { get; set; } = false;
         public int ProviderX { get; protected set; }
         public int ProviderY { get; protected set; }
-        public ExternalOffset Bounds { get; protected set; }
+        public ExternalOffset Bounds { get; protected set; } = new ExternalOffset();
 
         public override bool Orderable => !Style.InLayout;
         public virtual string Name => GetType().Name;
@@ -123,20 +123,6 @@ namespace TUI.Base
         }
 
         #endregion
-        #region Dispose
-
-        public virtual void Dispose()
-        {
-            DisposeThisNative();
-
-            lock (Child)
-                foreach (VisualObject child in ChildrenFromTop)
-                    child.Dispose();
-        }
-
-        protected virtual void DisposeThisNative() { }
-
-        #endregion
         #region operator[,]
 
         /// <summary>
@@ -180,7 +166,7 @@ namespace TUI.Base
             ExternalOffset bounds = Bounds;
             if (x < bounds.Left || x >= Width - bounds.Right || y < bounds.Up || y >= Height - bounds.Down)
                 return null;
-            return Provider[ProviderX + x, ProviderY + y];
+            return Provider?[ProviderX + x, ProviderY + y];
         }
 
         #endregion
@@ -390,12 +376,19 @@ namespace TUI.Base
         #endregion
         #region Update
 
-            public virtual VisualObject Update()
+            public VisualObject Update()
             {
                 // Updates related to this node
                 UpdateThis();
 
-                // Recursive Update call
+                // Initialize child objects
+                if (TUI.Active)
+                    InitializeChild();
+
+                // Updates related to child positioning
+                UpdateChildPositioning();
+
+                // Recursive Update() call
                 UpdateChild();
 
                 return this;
@@ -405,8 +398,12 @@ namespace TUI.Base
 
             public VisualObject UpdateThis()
             {
+                // Overridable update method
                 UpdateThisNative();
-                CustomUpdate();
+
+                // Custom update callback
+                Configuration.CustomUpdate?.Invoke(this);
+
                 return this;
             }
 
@@ -425,28 +422,12 @@ namespace TUI.Base
                 (ProviderX, ProviderY) = ProviderXY();
                 // Update apply tile bounds
                 UpdateBounds();
-
-                /////////////////////////// Child size updates ///////////////////////////
-
-                // Update child objects with Style.FullSize
-                UpdateFullSize();
-
-                ///////////////////////// Child position updates /////////////////////////
-
-                // Update child objects with alignment
-                UpdateAlignment();
-                // Update child objects in layout
-                if (Style.Layout != null)
-                    UpdateLayout();
-                // Update child objects in grid
-                if (Style.Grid != null)
-                    UpdateGrid();
             }
 
             #endregion
             #region UpdateBounds
 
-            protected void UpdateBounds()
+            private void UpdateBounds()
             {
                 bool layoutBounds = Style.InLayout && Parent.Style.Layout.BoundsIsOffset;
                 bool alignmentBounds = Style.Alignment != null && Style.Alignment.BoundsIsOffset;
@@ -481,39 +462,62 @@ namespace TUI.Base
             }
 
             #endregion
-            #region UpdateFullSize
 
-            protected void UpdateFullSize()
+            #region UpdateChildPositioning
+
+            public void UpdateChildPositioning()
             {
-                ExternalOffset offset = Style.Layout?.Offset;
+                /////////////////////////// Child size updates ///////////////////////////
                 lock (Child)
                     foreach (VisualObject child in ChildrenFromTop)
                     {
-                        FullSize fullSize = child.Style.FullSize;
-                        if (fullSize == FullSize.None)
-                            continue;
-
-                        // If InLayout is set then FullSize should match parent size minus layout offset.
-                        // If Alignment is set then FullSize should match parent size minus alignment offset.
-                        int x = 0, y = 0, width = Width, height = Height;
-                        if (child.Style.InLayout || child.Style.Alignment != null)
-                        {
-                            if (child.Style.Alignment != null)
-                                offset = child.Style.Alignment.Offset;
-                            x = offset.Left;
-                            y = offset.Up;
-                            width = Width - x - offset.Right;
-                            height = Height - y - offset.Down;
-                        }
-
-                        if (fullSize == FullSize.Both)
-                            child.SetXYWH(x, y, width, height);
-                        else if (fullSize == FullSize.Horizontal)
-                            child.SetXYWH(x, child.Y, width, child.Height);
-                        else if (fullSize == FullSize.Vertical)
-                            child.SetXYWH(child.X, y, child.Width, height);
-                        //Console.WriteLine($"FullSize: {child.FullName}, {child.XYWH()}");
+                        if (TUI.Active && !child.Initialized)
+                            child.Initialize();
+                        child.SetWH(child.UpdateSizeNative());
+                        child.UpdateFullSize();
                     }
+
+                ///////////////////////// Child position updates /////////////////////////
+                // Update child objects with alignment
+                UpdateAlignment();
+                // Update child objects in layout
+                if (Style.Layout != null)
+                    UpdateLayout();
+                // Update child objects in grid
+                if (Style.Grid != null)
+                    UpdateGrid();
+            }
+
+            #endregion
+            #region UpdateSizeNative
+
+            protected virtual (int, int) UpdateSizeNative() => (Width, Height);
+
+            #endregion
+            #region UpdateFullSize
+
+            private void UpdateFullSize()
+            {
+                FullSize fullSize = Style.FullSize;
+                // If child is in layout then FullSize should match parent size minus layout offset.
+                // If Alignment is set then FullSize should match parent size minus alignment offset.
+                ExternalOffset offset = Style.InLayout
+                    ? Parent.Style.Layout.Offset
+                    : Style.Alignment != null
+                        ? Style.Alignment.Offset
+                        : UIDefault.ExternalOffset;
+
+                int newX = offset.Left;
+                int newY = offset.Up;
+                int newWidth = Parent.Width - newX - offset.Right;
+                int newHeight = Parent.Height - newY - offset.Down;
+
+                if (fullSize == FullSize.Both)
+                    SetXYWH(newX, newY, newWidth, newHeight);
+                else if (fullSize == FullSize.Horizontal)
+                    SetXYWH(newX, Y, newWidth, Height);
+                else if (fullSize == FullSize.Vertical)
+                    SetXYWH(X, newY, Width, newHeight);
             }
 
             #endregion
@@ -864,21 +868,14 @@ namespace TUI.Base
             }
 
             #endregion
-            #region CustomUpdate
 
-            protected virtual void CustomUpdate()
-            {
-                Configuration.CustomUpdate?.Invoke(this);
-            }
-
-            #endregion
             #region UpdateChild
 
             /// <summary>
             /// Updates all Enabled child objects.
             /// </summary>
             /// <returns></returns>
-            public virtual VisualObject UpdateChild()
+            public VisualObject UpdateChild()
             {
                 lock (Child)
                     foreach (VisualObject child in ChildrenFromTop)

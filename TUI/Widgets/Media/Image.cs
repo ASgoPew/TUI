@@ -40,11 +40,23 @@ namespace TUI.Widgets.Media
         }
 
         #endregion
-        #region DisposeThisNative
+        #region Initialize
 
-        protected override void DisposeThisNative()
+        protected override void Initialize()
         {
-            base.DisposeThisNative();
+            base.Initialize();
+
+            if (Path != null && Data == null)
+                if (Load())
+                    SetWH(Data.Width, Data.Height);
+        }
+
+        #endregion
+        #region Dispose
+
+        protected override void Dispose()
+        {
+            base.Dispose();
             RemoveSigns();
         }
 
@@ -66,7 +78,6 @@ namespace TUI.Widgets.Media
                 Data = images[0];
             }
 
-            SetWH(Data.Width, Data.Height);
             (int x, int y) = AbsoluteXY();
             foreach (SignData sign in Data.Signs)
             {
@@ -105,6 +116,7 @@ namespace TUI.Widgets.Media
             if (Data?.Signs != null)
             {
                 (int x, int y) = AbsoluteXY();
+                bool notFake = UsesDefaultMainProvider;
                 foreach (SignData sign in Data.Signs)
                 {
                     if (sign.Sign != null)
@@ -112,9 +124,12 @@ namespace TUI.Widgets.Media
                         dynamic tile = Tile(sign.X, sign.Y);
                         if (tile != null)
                         {
-                            tile.type = 55;
-                            tile.frameX = 0;
-                            tile.frameY = 0;
+                            if (notFake)
+                            {
+                                tile.type = 55;
+                                tile.frameX = 0;
+                                tile.frameY = 0;
+                            }
                             sign.Sign.x = x + sign.X;
                             sign.Sign.y = y + sign.Y;
                             sign.Sign.text = sign.Text;
@@ -148,14 +163,6 @@ namespace TUI.Widgets.Media
         protected override void UpdateThisNative()
         {
             base.UpdateThisNative();
-
-            if (Path != null && Data == null)
-                if (Load())
-                {
-                    Parent.UpdateThis();
-                    Update();
-                    return;
-                }
 
             UpdateSigns();
         }

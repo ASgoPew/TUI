@@ -79,7 +79,7 @@ namespace TUIPlugin
         {
             if (disposing)
             {
-                TUI.TUI.Deinitialize();
+                TUI.TUI.Dispose();
 
                 ServerApi.Hooks.ServerConnect.Deregister(this, OnServerConnect);
                 ServerApi.Hooks.ServerLeave.Deregister(this, OnServerLeave);
@@ -103,6 +103,7 @@ namespace TUIPlugin
 
         private void OnGamePostInitialize(EventArgs args)
         {
+            TUI.TUI.Active = true;
             TUI.TUI.Update();
             TUI.TUI.Apply();
             TUI.TUI.Draw();

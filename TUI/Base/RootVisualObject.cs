@@ -30,7 +30,7 @@ namespace TUI.Base
 
         internal RootVisualObject(string name, int x, int y, int width, int height,
                 UIConfiguration configuration = null, UIStyle style = null, object provider = null)
-            : base(x, y, width, height, configuration ?? new UIConfiguration() { UseBegin = false }, style)
+            : base(x, y, width, height, configuration ?? new UIConfiguration() { UseBegin=true, UseMoving=true, UseEnd=true }, style)
         {
             Configuration.UseOutsideTouches = false;
             Name = name;
@@ -91,6 +91,18 @@ namespace TUI.Base
         }
 
         #endregion
+        #region UpdateThisNative
+
+        protected override void UpdateThisNative()
+        {
+            Provider.Update();
+            if (!Initialized)
+                Initialize();
+            UpdateSizeNative();
+            base.UpdateThisNative();
+        }
+
+        #endregion
         #region ApplyThisNative
 
         protected override void ApplyThisNative()
@@ -105,15 +117,6 @@ namespace TUI.Base
             Console.WriteLine($"Apply ({Name}): {sw.ElapsedMilliseconds}");
             sw.Stop();
 #endif
-        }
-
-        #endregion
-        #region UpdateThisNative
-
-        protected override void UpdateThisNative()
-        {
-            base.UpdateThisNative();
-            Provider.Update();
         }
 
         #endregion

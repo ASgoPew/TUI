@@ -27,8 +27,9 @@ namespace TUI.Widgets
         #region Constructor
 
         internal protected Panel(string name, int x, int y, int width, int height, PanelDrag drag, PanelResize resize,
-            UIConfiguration configuration = null, UIStyle style = null, object provider = null)
-            : base(name, x, y, width, height, configuration ?? new UIConfiguration() { UseBegin = false }, style, provider)
+                UIConfiguration configuration = null, UIStyle style = null, object provider = null)
+            : base(name, x, y, width, height, configuration ?? new UIConfiguration() { UseBegin = true,
+                UseMoving = true, UseEnd = true }, style, provider)
         {
             if (drag != null)
                 DragObject = Add(drag, 1000000) as PanelDrag;
@@ -37,7 +38,7 @@ namespace TUI.Widgets
         }
 
         internal protected Panel(string name, int x, int y, int width, int height, UIConfiguration configuration = null,
-            UIStyle style = null, object provider = null)
+                UIStyle style = null, object provider = null)
             : this(name, x, y, width, height, new DefaultPanelDrag(), new DefaultPanelResize(), configuration, style, provider)
         { }
 

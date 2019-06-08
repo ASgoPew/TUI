@@ -24,14 +24,13 @@ namespace TUI.Base
             public int Width { get; set; }
             public int Height { get; set; }
 
-            public IEnumerable<(int, int)> Points => GetPoints();
-
             #endregion
 
         public int IndexInParent => Parent.Child.IndexOf(this as VisualObject);
         public RootVisualObject Root { get; set; }
-        public virtual dynamic Provider => Root.Provider;
+        public virtual dynamic Provider => Root?.Provider;
         public bool UsesDefaultMainProvider => Provider is MainTileProvider;
+        public bool Initialized { get; private set; } = false;
         public bool Enabled { get; set; } = true;
         public bool Visible { get; protected internal set; } = true;
         public virtual int Layer { get; set; } = 0;
@@ -43,10 +42,6 @@ namespace TUI.Base
         public virtual VisualObject GetChild(int index) => Child[index];
         public virtual bool Active => Enabled && Visible;
         public virtual bool Orderable => true;
-        public IEnumerable<VisualObject> ChildrenFromTop => GetChildrenFromTop();
-        public IEnumerable<VisualObject> ChildrenFromBottom => GetChildrenFromBottom();
-        public IEnumerable<(int X, int Y)> AbsolutePoints => GetAbsolutePoints();
-        public IEnumerable<(int X, int Y)> ProviderPoints => GetProviderPoints();
         public (int X, int Y) AbsoluteXY(int dx = 0, int dy = 0) =>
             RelativeXY(dx, dy, null);
         public (int X, int Y) ProviderXY(int dx = 0, int dy = 0) =>
@@ -99,7 +94,7 @@ namespace TUI.Base
             /// <summary>
             /// Removes child object. Calls Dispose() on removed object.
             /// </summary>
-            /// <param name="child">Child object.</param>
+            /// <param name="child">Child object to remove.</param>
             /// <returns>this</returns>
             public virtual VisualObject Remove(VisualObject child)
             {
@@ -313,8 +308,12 @@ namespace TUI.Base
                 SetXYWH(data.x, data.y, data.width, data.height);
             public VisualObject SetXY(int x, int y) =>
                 SetXYWH(x, y, Width, Height);
+            public VisualObject SetXY((int x, int y) pair) =>
+                SetXYWH(pair.x, pair.y, Width, Height);
             public VisualObject SetWH(int width, int height) =>
                 SetXYWH(X, Y, width, height);
+            public VisualObject SetWH((int width, int height) pair) =>
+                SetXYWH(X, Y, pair.width, pair.height);
 
             #endregion
             #region Move
@@ -340,16 +339,6 @@ namespace TUI.Base
             public virtual bool Intersecting(VisualObject o) => Intersecting(o.X, o.Y, o.Width, o.Height);
 
             #endregion
-            #region Points
-
-            private IEnumerable<(int, int)> GetPoints()
-            {
-                for (int x = 0; x < Width; x++)
-                    for (int y = 0; y < Height; y++)
-                        yield return (x, y);
-            }
-
-            #endregion
 
         #endregion
 
@@ -361,6 +350,29 @@ namespace TUI.Base
             InitializeVisual(x, y, width, height);
 
             Configuration = configuration ?? new UIConfiguration();
+        }
+
+        #endregion
+        #region Initialize
+
+        protected virtual void Initialize()
+        {
+            Initialized = true;
+        }
+
+        #endregion
+        #region Dispose
+
+        internal void DisposeInternal() => Dispose();
+
+        protected virtual void Dispose()
+        {
+            lock (Child)
+                foreach (VisualObject child in ChildrenFromTop)
+                    child.Dispose();
+
+            // Uninitializing object will give an ability to reinitialize on Update
+            //Initialized = false;
         }
 
         #endregion
@@ -432,46 +444,71 @@ namespace TUI.Base
         }
 
         #endregion
-        #region GetChildrenFromTop
+        #region ChildrenFromTop
 
-        private IEnumerable<VisualObject> GetChildrenFromTop()
+        public IEnumerable<VisualObject> ChildrenFromTop
         {
-            int index = Child.Count - 1;
-            while (index >= 0)
-                yield return Child[index--];
+            get
+            {
+                int index = Child.Count - 1;
+                while (index >= 0)
+                    yield return Child[index--];
+            }
         }
 
         #endregion
-        #region GetChildrenFromBottom
+        #region ChildrenFromBottom
 
-        private IEnumerable<VisualObject> GetChildrenFromBottom()
+        public IEnumerable<VisualObject> ChildrenFromBottom
         {
-            int count = Child.Count;
-            int index = 0;
-            while (index < count)
-                yield return Child[index++];
+            get
+            {
+                int count = Child.Count;
+                int index = 0;
+                while (index < count)
+                    yield return Child[index++];
+            }
         }
 
         #endregion
-        #region GetAbsolutePoints
+        #region Points
 
-        private IEnumerable<(int, int)> GetAbsolutePoints()
+        public IEnumerable<(int, int)> Points
         {
-            (int x, int y) = AbsoluteXY();
-            for (int _x = x; _x < x + Width; _x++)
-                for (int _y = y; _y < y + Height; _y++)
-                    yield return (_x, _y);
+            get
+            {
+                for (int x = 0; x < Width; x++)
+                    for (int y = 0; y < Height; y++)
+                        yield return (x, y);
+            }
         }
 
         #endregion
-        #region GetProviderPoints
+        #region AbsolutePoints
 
-        private IEnumerable<(int, int)> GetProviderPoints()
+        public IEnumerable<(int, int)> AbsolutePoints
         {
-            (int x, int y) = ProviderXY();
-            for (int _x = x; _x < x + Width; _x++)
-                for (int _y = y; _y < y + Height; _y++)
-                    yield return (_x, _y);
+            get
+            {
+                (int x, int y) = AbsoluteXY();
+                for (int _x = x; _x < x + Width; _x++)
+                    for (int _y = y; _y < y + Height; _y++)
+                        yield return (_x, _y);
+            }
+        }
+
+        #endregion
+        #region ProviderPoints
+
+        public IEnumerable<(int, int)> ProviderPoints
+        {
+            get
+            {
+                (int x, int y) = ProviderXY();
+                for (int _x = x; _x < x + Width; _x++)
+                    for (int _y = y; _y < y + Height; _y++)
+                        yield return (_x, _y);
+            }
         }
 
         #endregion

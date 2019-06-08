@@ -4,14 +4,14 @@ using TUI.Base.Style;
 
 namespace TUI.Widgets
 {
-    public class RadioList : VisualObject
+    /*public class RadioList : VisualObject
     {
-        public RadioList(int x, int y, int width, int height, Direction direction, UIStyle button1, UIStyle button2, int selectedColor, IEnumerable<string> texts, UIStyle style = null)
+        public RadioList(int x, int y, int width, int height, IEnumerable<string> texts, Direction direction, UIStyle button1, UIStyle button2, int selectedColor, UIStyle style = null)
             : base(x, y, width, height, null, style)
         {
-
-            foreach (VisualObject element in elements)
-                AddToLayout(element);
+            SetupLayout(new LayoutStyle(Alignment.Center, direction));
+            foreach (string text in texts)
+                AddToLayout(new Label(0, 0, );
         }
 
         public RadioList(RadioList visualObject) : base(visualObject)
@@ -26,5 +26,5 @@ namespace TUI.Widgets
             foreach (VisualObject element in elements)
                 AddElement(element);
         }
-    }
+    }*/
 }

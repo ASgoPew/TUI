@@ -67,12 +67,24 @@ namespace TUI.Widgets.Media
         }
 
         #endregion
-        #region DisposeThisNative
+        #region Initialize
 
-        public override void Dispose()
+        protected override void Initialize()
         {
-            base.Dispose();
+            base.Initialize();
+
+            if (VideoStyle.Path != null && Images.Count == 0)
+                if (Load())
+                    SetWH(Images.Max(i => i.Width), Images.Max(i => i.Height));
+        }
+
+        #endregion
+        #region Dispose
+
+        protected override void Dispose()
+        {
             Stop();
+            base.Dispose();
         }
 
         #endregion
@@ -113,7 +125,8 @@ namespace TUI.Widgets.Media
                 Image image = new Image(0, 0, data, new UIConfiguration() { UseBegin=false }, new UIStyle(Style));
                 Add(image.Disable());
                 Images.Add(image);
-                image.Load();
+                if (image.Load())
+                    image.SetWH(image.Data.Width, image.Data.Height);
             }
             Images[0].Enable();
 
@@ -121,23 +134,7 @@ namespace TUI.Widgets.Media
         }
 
         #endregion
-        #region UpdateThisNative
 
-        protected override void UpdateThisNative()
-        {
-            base.UpdateThisNative();
-
-            if (VideoStyle.Path != null && Images.Count == 0)
-                if (Load())
-                {
-                    SetWH(Images.Max(i => i.Width), Images.Max(i => i.Height));
-                    Parent.UpdateThis();
-                    Update();
-                    return;
-                }
-        }
-
-        #endregion
         #region ApplyThisNative
 
         protected override void ApplyThisNative()
@@ -160,7 +157,7 @@ namespace TUI.Widgets.Media
 
         protected virtual void Next(object sender, ElapsedEventArgs args)
         {
-            if (Root == null || Root.Players.Count == 0 || !Visible)
+            if (Root == null || Root.Players.Count == 0 || !Active)
                 return;
 
             CurrentImage = (CurrentImage + 1) % Images.Count;

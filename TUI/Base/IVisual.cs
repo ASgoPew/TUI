@@ -17,6 +17,5 @@ namespace TUI.Base
         bool ContainsRelative(int x, int y);
         bool Intersecting(int x, int y, int width, int height);
         bool Intersecting(T o);
-        IEnumerable<(int, int)> Points { get; }
     }
 }

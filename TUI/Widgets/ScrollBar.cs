@@ -28,6 +28,7 @@ namespace TUI.Widgets
         protected int _Width { get; set; }
         protected bool Vertical { get; set; }
         public ScrollBackground Slider { get; internal set; }
+        public Separator Empty { get; private set; }
 
         public ScrollBarStyle ScrollBarStyle => Style as ScrollBarStyle;
 
@@ -49,7 +50,7 @@ namespace TUI.Widgets
                     SetAlignmentInParent(new AlignmentStyle(Alignment.Left));
                 else
                     SetAlignmentInParent(new AlignmentStyle(Alignment.Right));
-                SetupLayout(new LayoutStyle(Alignment.Up, Direction.Up));
+                SetupLayout(new LayoutStyle(Alignment.Up, Direction.Up, Side.Center, null, 0));
             }
             else
             {
@@ -59,8 +60,9 @@ namespace TUI.Widgets
                     SetAlignmentInParent(new AlignmentStyle(Alignment.Up));
                 else
                     SetAlignmentInParent(new AlignmentStyle(Alignment.Down));
-                SetupLayout(new LayoutStyle(Alignment.Left, Direction.Left));
+                SetupLayout(new LayoutStyle(Alignment.Left, Direction.Left, Side.Center, null, 0));
             }
+            Empty = AddToLayout(new Separator(0)) as Separator;
             Slider = AddToLayout(new ScrollBackground(false, true, true, ScrollAction)) as ScrollBackground;
             Slider.SetFullSize(FullSize.None);
             Slider.Style.WallColor = ScrollBarStyle.SliderColor;
@@ -73,6 +75,7 @@ namespace TUI.Widgets
 
         public static void ScrollAction(ScrollBackground @this, int value)
         {
+            //Console.WriteLine(value);
             //int newIndent = (int)Math.Round((value / (float)@this.Limit) * @this.Parent.Style.Layout.IndentLimit);
             //Console.WriteLine(newIndent);
             @this.Parent.Parent
@@ -87,13 +90,21 @@ namespace TUI.Widgets
 
         protected override void UpdateThisNative()
         {
+            base.UpdateThisNative();
+
             Style.Layout.LayoutIndent = Parent.Style.Layout.LayoutIndent;
             int limit = Parent.Style.Layout.IndentLimit;
             Slider.Style.WallColor = ScrollBarStyle.SliderColor;
             if (Vertical)
+            {
                 Slider.SetWH(_Width, Math.Min(Math.Max(Height - limit, 1), Height));
+                Empty.SetWH(_Width, Height + limit - Slider.Height);
+            }
             else
+            {
                 Slider.SetWH(Math.Min(Math.Max(Width - limit, 1), Width), _Width);
+                Empty.SetWH(Width + limit - Slider.Width, _Width);
+            }
             ForceSection = Parent.ForceSection;
             switch (Parent.Style.Layout.Direction)
             {
@@ -114,10 +125,6 @@ namespace TUI.Widgets
                     Style.Layout.Direction = Direction.Up;
                     break;
             }
-
-            base.UpdateThisNative();
-
-            Style.Layout.IndentLimit = limit;
         }
 
         #endregion

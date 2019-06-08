@@ -21,8 +21,6 @@ namespace TUI.Base
             public int Width { get; set; }
             public int Height { get; set; }
 
-            public IEnumerable<(int, int)> Points { get { throw new InvalidOperationException(); } }
-
             #endregion
 
         public int AbsoluteX { get; private set; }
