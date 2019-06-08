@@ -67,9 +67,9 @@ namespace TUI.Widgets
         #endregion
         #region Initialize
 
-        protected override void Initialize()
+        protected override void LoadThisNative()
         {
-            base.Initialize();
+            base.LoadThisNative();
 
             if (Text != null)
                 CreateSign();
@@ -78,9 +78,9 @@ namespace TUI.Widgets
         #endregion
         #region Dispose
 
-        protected override void Dispose()
+        protected override void DisposeThisNative()
         {
-            base.Dispose();
+            base.DisposeThisNative();
             RemoveSign();
         }
 

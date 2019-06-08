@@ -67,24 +67,37 @@ namespace TUI.Widgets.Media
         }
 
         #endregion
-        #region Initialize
+        #region LoadThisNative
 
-        protected override void Initialize()
+        protected override void LoadThisNative()
         {
-            base.Initialize();
+            base.LoadThisNative();
 
-            if (VideoStyle.Path != null && Images.Count == 0)
-                if (Load())
-                    SetWH(Images.Max(i => i.Width), Images.Max(i => i.Height));
+            ImageData[] images = ImageData.Load(VideoStyle.Path);
+            if (images.Length == 0)
+            {
+                TUI.Hooks.Log.Invoke(new LogArgs("Invalid video folder: " + VideoStyle.Path, LogType.Error));
+                VideoStyle.Path = null;
+                return;
+            }
+            
+            foreach (ImageData data in images)
+            {
+                Image image = new Image(0, 0, data, new UIConfiguration() { UseBegin=false }, new UIStyle(Style));
+                Add(image.Disable());
+                Images.Add(image);
+            }
+            Images[0].Enable();
+            return;
         }
 
         #endregion
-        #region Dispose
+        #region DisposeThisNative
 
-        protected override void Dispose()
+        protected override void DisposeThisNative()
         {
+            base.DisposeThisNative();
             Stop();
-            base.Dispose();
         }
 
         #endregion
@@ -108,30 +121,14 @@ namespace TUI.Widgets.Media
         }
 
         #endregion
-        #region Load
 
-        public bool Load()
-        {
-            ImageData[] images = ImageData.Load(VideoStyle.Path);
-            if (images.Length == 0)
-            {
-                TUI.Hooks.Log.Invoke(new LogArgs("Invalid video folder: " + VideoStyle.Path, LogType.Error));
-                VideoStyle.Path = null;
-                return false;
-            }
-            
-            foreach (ImageData data in images)
-            {
-                Image image = new Image(0, 0, data, new UIConfiguration() { UseBegin=false }, new UIStyle(Style));
-                Add(image.Disable());
-                Images.Add(image);
-                if (image.Load())
-                    image.SetWH(image.Data.Width, image.Data.Height);
-            }
-            Images[0].Enable();
+        #region UpdateSizeNative
 
-            return true;
-        }
+        protected override (int, int) UpdateSizeNative() =>
+            Images?.Count > 0
+            //? (Images.Max(i => i.Width), Images.Max(i => i.Height))
+            ? (Images[CurrentImage].Width, Images[CurrentImage].Height)
+            : (8, 5);
 
         #endregion
 

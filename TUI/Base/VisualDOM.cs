@@ -30,13 +30,14 @@ namespace TUI.Base
         public RootVisualObject Root { get; set; }
         public virtual dynamic Provider => Root?.Provider;
         public bool UsesDefaultMainProvider => Provider is MainTileProvider;
-        public bool Initialized { get; private set; } = false;
+        public bool Loaded { get; private set; } = false;
+        public bool Disposed { get; private set; } = false;
         public bool Enabled { get; set; } = true;
         public bool Visible { get; protected internal set; } = true;
         public virtual int Layer { get; set; } = 0;
         public UIConfiguration Configuration { get; set; }
         private Dictionary<string, object> Shortcuts { get; set; }
-        protected object ApplyLocker { get; set; } = new object();
+        protected object Locker { get; set; } = new object();
         //protected object UpdateLocker { get; set; } = new object();
 
         public virtual VisualObject GetChild(int index) => Child[index];
@@ -68,23 +69,22 @@ namespace TUI.Base
             /// <returns>Added object</returns>
             public virtual VisualObject Add(VisualObject child, int layer = 0)
             {
+                VisualObject @this = this as VisualObject;
                 lock (Child)
                 {
                     if (Child.Contains(child))
-                    {
-                        if (child.Layer != layer)
-                            Remove(child);
-                        else
-                            return child;
-                    }
+                        throw new InvalidOperationException("You can't add an object that is already a child: " + child.FullName);
 
                     int index = 0;
                     while (index < Child.Count && Child[index].Layer <= layer)
                         index++;
                     Child.Insert(index, child);
                 }
-                child.Parent = this as VisualObject;
+                child.Parent = @this;
                 child.Layer = layer;
+
+                TUI.TryToLoadChild(@this, child);
+
                 return child;
             }
 
@@ -92,26 +92,28 @@ namespace TUI.Base
             #region Remove
 
             /// <summary>
-            /// Removes child object. Calls Dispose() on removed object.
+            /// Removes child object. Calls Dispose() on removed object so you can't use
+            /// this object anymore.
             /// </summary>
             /// <param name="child">Child object to remove.</param>
             /// <returns>this</returns>
             public virtual VisualObject Remove(VisualObject child)
             {
-                bool removed;
                 lock (Child)
-                    removed = Child.Remove(child);
-                if (removed)
-                {
-                    child.Parent = null;
-                    child.Root = null;
-                    if (Shortcuts != null)
-                        foreach (var pair in Shortcuts.Where(o => o.Value == child))
-                            Shortcuts.Remove(pair.Key);
-                    child.Dispose();
-                    return child;
-                }
-                return null;
+                    if (!Child.Remove(child))
+                        throw new InvalidOperationException("You can't remove object that isn't a child.");
+
+                // Should probably update these fields in all sub-tree.
+                // Currently removed object = disposed object. You can't use it anymore.
+                //child.Parent = null;
+                //child.Root = null;
+                if (Shortcuts != null)
+                    foreach (var pair in Shortcuts.Where(o => o.Value == child))
+                        Shortcuts.Remove(pair.Key);
+
+                child.Dispose();
+
+                return this as VisualObject;
             }
 
             #endregion
@@ -353,29 +355,77 @@ namespace TUI.Base
         }
 
         #endregion
-        #region Initialize
+        #region Load
 
-        protected virtual void Initialize()
+        /// <summary>
+        /// Called on every object in TUI.Child on TUI.Load() (GamePostInitialize) and on Add() function.
+        /// </summary>
+        internal void Load()
         {
-            Initialized = true;
+            lock (Locker)
+            {
+                if (Loaded)
+                    return;
+                Loaded = true;
+            }
+
+            lock (Child)
+                foreach (VisualObject child in ChildrenFromTop)
+                    child.Load();
+
+            LoadThisNative();
         }
+
+        #endregion
+        #region LoadThisNative
+
+        /// <summary>
+        /// Overridable function that runs only once for loading resources purposes.
+        /// <para></para>
+        /// Guaranteed that the call will happen only once and that it would be at
+        /// a moment when game would be already initialized (on/after GamePostInitialize).
+        /// <para></para>
+        /// All child objects would be already loaded at the moment of calling this function.
+        /// </summary>
+        protected virtual void LoadThisNative() { }
 
         #endregion
         #region Dispose
 
-        internal void DisposeInternal() => Dispose();
-
-        protected virtual void Dispose()
+        /// <summary>
+        /// Called on every object in TUI.Child on TUI.Dispose() (plugin disposing) and on Remove() function.
+        /// </summary>
+        internal void Dispose()
         {
+            lock (Locker)
+            {
+                if (Disposed || !Loaded)
+                    return;
+                Disposed = true;
+            }
+
             lock (Child)
                 foreach (VisualObject child in ChildrenFromTop)
                     child.Dispose();
 
-            // Uninitializing object will give an ability to reinitialize on Update
-            //Initialized = false;
+            DisposeThisNative();
         }
 
         #endregion
+        #region DisposeThisNative
+
+        /// <summary>
+        /// Overridable function that runs only once for releasing resources purposes.
+        /// <para></para>
+        /// Guaranteed that the call would happen only once and that it would only happen
+        /// in case object was already loaded with Load().
+        /// <para></para>
+        /// All child objects would be already disposed at the moment of calling this function.
+        /// </summary>
+        protected virtual void DisposeThisNative() { }
+
+        #endregion
+
         #region operator[]
 
         public object this[string key]

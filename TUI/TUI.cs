@@ -22,16 +22,9 @@ namespace TUI
         public const short FakeSignSTileHeader = 29728;
         private static List<RootVisualObject> Child = new List<RootVisualObject>();
         private static Timer Timer;
+        //private static object Locker = new object();
+        //internal static List<VisualObject> ObjectsToLoad = new List<VisualObject>();
         public static bool Active { get; set; } = false;
-
-        public static IEnumerable<RootVisualObject> Roots
-        {
-            get
-            {
-                foreach (RootVisualObject child in Child)
-                    yield return child;
-            }
-        }
 
         #endregion
 
@@ -43,9 +36,25 @@ namespace TUI
             Session = new UserSession[MaxUsers];
             Timer = new Timer(5000) { AutoReset = true };
             Timer.Elapsed += OnTimerElapsed;
+        }
+
+        #endregion
+        #region Load
+
+        public static void Load()
+        {
             Timer.Start();
 
-            Hooks.Initialize.Invoke(new InitializeArgs(maxUsers));
+            // Locking for Child and Active
+            lock (Child)
+            {
+                Active = true;
+
+                foreach (VisualObject Child in Child)
+                    Child.Load();
+            }
+
+            Hooks.Load.Invoke(new LoadArgs(MaxUsers));
         }
 
         #endregion
@@ -53,14 +62,33 @@ namespace TUI
 
         public static void Dispose()
         {
-            Hooks.Deinitialize.Invoke(new EventArgs());
+            Hooks.Dispose.Invoke(new EventArgs());
+
+            // Locking for Child and Active
             lock (Child)
             {
+                Active = false;
+
                 foreach (RootVisualObject child in Child)
-                    child.DisposeInternal();
+                    child.Dispose();
                 Child.Clear();
             }
+
             Timer.Stop();
+        }
+
+        #endregion
+        #region TryToLoadChild
+
+        internal static void TryToLoadChild(VisualObject node, VisualObject child)
+        {
+            // Locking for Child and Active
+            lock (Child)
+            {
+                Console.WriteLine($"TRY TO LOAD CHILD: {node.FullName}: {node.Root}, {Child.Contains(node.Root)}, {Active}");
+                if (Child.Contains(node.Root) && Active)
+                    child.Load();
+            }
         }
 
         #endregion
@@ -87,8 +115,14 @@ namespace TUI
 
         internal static RootVisualObject Create(RootVisualObject root)
         {
+            // Locking for Child and Active
             lock (Child)
+            {
                 Child.Add(root);
+
+                if (Active)
+                    root.Load();
+            }
             return root;
         }
 
@@ -140,6 +174,18 @@ namespace TUI
                     child.Players.Remove(userIndex);
 
             Session[userIndex] = null;
+        }
+
+        #endregion
+        #region GetRoots
+
+        public static List<RootVisualObject> GetRoots()
+        {
+            List<RootVisualObject> result = new List<RootVisualObject>();
+            lock (Child)
+                foreach (RootVisualObject child in Child)
+                    result.Add(child);
+            return result;
         }
 
         #endregion

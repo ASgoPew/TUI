@@ -2,11 +2,11 @@
 
 namespace TUI.Hooks.Args
 {
-    public class InitializeArgs : EventArgs
+    public class LoadArgs : EventArgs
     {
         public int MaxUsers { get; private set; }
 
-        public InitializeArgs(int maxUsers)
+        public LoadArgs(int maxUsers)
         {
             MaxUsers = maxUsers;
         }

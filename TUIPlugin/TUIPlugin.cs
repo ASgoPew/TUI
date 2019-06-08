@@ -103,7 +103,7 @@ namespace TUIPlugin
 
         private void OnGamePostInitialize(EventArgs args)
         {
-            TUI.TUI.Active = true;
+            TUI.TUI.Load();
             TUI.TUI.Update();
             TUI.TUI.Apply();
             TUI.TUI.Draw();
@@ -363,7 +363,7 @@ namespace TUIPlugin
 
         private void OnRegionTimer(object sender, ElapsedEventArgs e)
         {
-            foreach (RootVisualObject root in TUI.TUI.Roots)
+            foreach (RootVisualObject root in TUI.TUI.GetRoots())
             {
                 (int x, int y) = root.AbsoluteXY();
                 int sx = x - RegionAreaX;

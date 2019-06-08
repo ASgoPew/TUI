@@ -40,43 +40,20 @@ namespace TUI.Widgets.Media
         }
 
         #endregion
-        #region Initialize
+        #region LoadThisNative
 
-        protected override void Initialize()
+        protected override void LoadThisNative()
         {
-            base.Initialize();
+            base.LoadThisNative();
 
-            if (Path != null && Data == null)
-                if (Load())
-                    SetWH(Data.Width, Data.Height);
-        }
-
-        #endregion
-        #region Dispose
-
-        protected override void Dispose()
-        {
-            base.Dispose();
-            RemoveSigns();
-        }
-
-        #endregion
-
-        #region Load
-
-        public bool Load()
-        {
-            if (Data == null)
+            ImageData[] images = ImageData.Load(Path);
+            if (images.Length != 1)
             {
-                ImageData[] images = ImageData.Load(Path);
-                if (images.Length != 1)
-                {
-                    TUI.Hooks.Log.Invoke(new LogArgs("File not found or path is a folder: " + Path, LogType.Error));
-                    Path = null;
-                    return false;
-                }
-                Data = images[0];
+                TUI.Hooks.Log.Invoke(new LogArgs("File not found or path is a folder: " + Path, LogType.Error));
+                Path = null;
+                return;
             }
+            Data = images[0];
 
             (int x, int y) = AbsoluteXY();
             foreach (SignData sign in Data.Signs)
@@ -94,10 +71,21 @@ namespace TUI.Widgets.Media
                     sign.Sign.text = sign.Text;
                 }
             }
-            return true;
+            Console.WriteLine($"IMAGE {FullName}: {Data.Width}, {Data.Height}");
+            SetWH(Data.Width, Data.Height);
         }
 
         #endregion
+        #region DisposeThisNative
+
+        protected override void DisposeThisNative()
+        {
+            base.DisposeThisNative();
+            RemoveSigns();
+        }
+
+        #endregion
+
         #region RemoveSigns
 
         protected virtual void RemoveSigns()

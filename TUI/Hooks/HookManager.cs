@@ -5,8 +5,8 @@ namespace TUI.Hooks
 {
     public class HookManager
     {
-        public Hook<InitializeArgs> Initialize = new Hook<InitializeArgs>();
-        public Hook<EventArgs> Deinitialize = new Hook<EventArgs>();
+        public Hook<LoadArgs> Load = new Hook<LoadArgs>();
+        public Hook<EventArgs> Dispose = new Hook<EventArgs>();
         public Hook<DrawArgs> Draw = new Hook<DrawArgs>();
         public Hook<SetXYWHArgs> SetXYWH = new Hook<SetXYWHArgs>();
         public Hook<SetTopArgs> SetTop = new Hook<SetTopArgs>();

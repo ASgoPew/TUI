@@ -381,10 +381,6 @@ namespace TUI.Base
                 // Updates related to this node
                 UpdateThis();
 
-                // Initialize child objects
-                if (TUI.Active)
-                    InitializeChild();
-
                 // Updates related to child positioning
                 UpdateChildPositioning();
 
@@ -396,6 +392,10 @@ namespace TUI.Base
 
             #region UpdateThis
 
+            /// <summary>
+            /// Updates related to this node only.
+            /// </summary>
+            /// <returns></returns>
             public VisualObject UpdateThis()
             {
                 // Overridable update method
@@ -465,17 +465,13 @@ namespace TUI.Base
 
             #region UpdateChildPositioning
 
+            /// <summary>
+            /// First updates child sizes, then calculates child positions based on sizes.
+            /// </summary>
             public void UpdateChildPositioning()
             {
                 /////////////////////////// Child size updates ///////////////////////////
-                lock (Child)
-                    foreach (VisualObject child in ChildrenFromTop)
-                    {
-                        if (TUI.Active && !child.Initialized)
-                            child.Initialize();
-                        child.SetWH(child.UpdateSizeNative());
-                        child.UpdateFullSize();
-                    }
+                UpdateChildSize();
 
                 ///////////////////////// Child position updates /////////////////////////
                 // Update child objects with alignment
@@ -486,6 +482,19 @@ namespace TUI.Base
                 // Update child objects in grid
                 if (Style.Grid != null)
                     UpdateGrid();
+            }
+
+            #endregion
+            #region UpdateChildSize
+
+            protected void UpdateChildSize()
+            {
+                lock (Child)
+                    foreach (VisualObject child in ChildrenFromTop)
+                    {
+                        child.SetWH(child.UpdateSizeNative());
+                        child.UpdateFullSize();
+                    }
             }
 
             #endregion
@@ -900,7 +909,7 @@ namespace TUI.Base
                     throw new InvalidOperationException("Trying to call Apply() an not active object.");
 #endif
 
-                lock (ApplyLocker)
+                lock (Locker)
                 {
                     // Applying related to this node
                     ApplyThis();
@@ -920,7 +929,7 @@ namespace TUI.Base
             /// <returns></returns>
             public VisualObject ApplyThis()
             {
-                lock (ApplyLocker)
+                lock (Locker)
                 {
                     ApplyThisNative();
                     CustomApply();
@@ -948,7 +957,7 @@ namespace TUI.Base
 
             public VisualObject ApplyTiles()
             {
-                lock (ApplyLocker)
+                lock (Locker)
                 {
                     if (Style.Active == null && Style.InActive == null && Style.Tile == null && Style.TileColor == null
                             && Style.Wall == null && Style.WallColor == null)
@@ -993,7 +1002,7 @@ namespace TUI.Base
 
             public void ShowGrid()
             {
-                lock (ApplyLocker)
+                lock (Locker)
                 {
                     for (int i = 0; i < Style.Grid.Columns.Length; i++)
                         for (int j = 0; j < Style.Grid.Lines.Length; j++)
@@ -1018,7 +1027,7 @@ namespace TUI.Base
 
             public virtual VisualObject CustomApply()
             {
-                lock (ApplyLocker)
+                lock (Locker)
                     Configuration.CustomApply?.Invoke(this);
                 return this;
             }
@@ -1028,7 +1037,7 @@ namespace TUI.Base
 
             public virtual VisualObject ApplyChild()
             {
-                lock (ApplyLocker)
+                lock (Locker)
                 {
                     bool forceSection = ForceSection;
                     lock (Child)

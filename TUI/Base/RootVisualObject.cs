@@ -96,8 +96,8 @@ namespace TUI.Base
         protected override void UpdateThisNative()
         {
             Provider.Update();
-            if (!Initialized)
-                Initialize();
+            if (!Loaded)
+                LoadThisNative();
             UpdateSizeNative();
             base.UpdateThisNative();
         }
