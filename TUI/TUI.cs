@@ -85,8 +85,7 @@ namespace TUI
             // Locking for Child and Active
             lock (Child)
             {
-                Console.WriteLine($"TRY TO LOAD CHILD: {node.FullName}: {node.Root}, {Child.Contains(node.Root)}, {Active}");
-                if (Child.Contains(node.Root) && Active)
+                if (Child.Contains(node.GetRoot() as RootVisualObject) && Active)
                     child.Load();
             }
         }

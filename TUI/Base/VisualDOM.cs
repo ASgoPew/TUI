@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -36,7 +37,7 @@ namespace TUI.Base
         public bool Visible { get; protected internal set; } = true;
         public virtual int Layer { get; set; } = 0;
         public UIConfiguration Configuration { get; set; }
-        private Dictionary<string, object> Shortcuts { get; set; }
+        private ConcurrentDictionary<string, object> Shortcuts { get; set; }
         protected object Locker { get; set; } = new object();
         //protected object UpdateLocker { get; set; } = new object();
 
@@ -73,7 +74,8 @@ namespace TUI.Base
                 lock (Child)
                 {
                     if (Child.Contains(child))
-                        throw new InvalidOperationException("You can't add an object that is already a child: " + child.FullName);
+                        return child;
+                        //throw new InvalidOperationException("You can't add an object that is already a child: " + child.FullName);
 
                     int index = 0;
                     while (index < Child.Count && Child[index].Layer <= layer)
@@ -109,7 +111,7 @@ namespace TUI.Base
                 //child.Root = null;
                 if (Shortcuts != null)
                     foreach (var pair in Shortcuts.Where(o => o.Value == child))
-                        Shortcuts.Remove(pair.Key);
+                        Shortcuts.TryRemove(pair.Key, out object _);
 
                 child.Dispose();
 
@@ -428,6 +430,11 @@ namespace TUI.Base
 
         #region operator[]
 
+        /// <summary>
+        /// Dictionary for storing node related data.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns>this</returns>
         public object this[string key]
         {
             get
@@ -439,7 +446,7 @@ namespace TUI.Base
             set
             {
                 if (Shortcuts == null)
-                    Shortcuts = new Dictionary<string, object>();
+                    Shortcuts = new ConcurrentDictionary<string, object>();
                 Shortcuts[key] = value;
             }
         }

@@ -122,6 +122,16 @@ namespace TUI.Widgets.Media
 
         #endregion
 
+        #region PulseThisNative
+
+        protected override void PulseThisNative(PulseType type)
+        {
+            base.PulseThisNative(type);
+            if (type == PulseType.Reset)
+                CurrentImage = 0;
+        }
+
+        #endregion
         #region UpdateSizeNative
 
         protected override (int, int) UpdateSizeNative() =>

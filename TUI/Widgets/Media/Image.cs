@@ -46,6 +46,13 @@ namespace TUI.Widgets.Media
         {
             base.LoadThisNative();
 
+            if (Path == null)
+            {
+                if (Data != null)
+                    SetWH(Data.Width, Data.Height);
+                return;
+            }
+
             ImageData[] images = ImageData.Load(Path);
             if (images.Length != 1)
             {

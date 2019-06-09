@@ -31,29 +31,6 @@ namespace TUI.Base
 
         #region IDOM
 
-            #region AddToLayout
-
-            /// <summary>
-            /// Add object as a child in layout. Removes child alignment and grid positioning.
-            /// </summary>
-            /// <param name="child">Object to add as a child.</param>
-            /// <param name="layer">Layer where to add the object.</param>
-            /// <returns></returns>
-            public virtual VisualObject AddToLayout(VisualObject child, int layer = 0)
-            {
-                child.Style.Alignment = null;
-                if (child.Cell != null)
-                {
-                    Grid[child.Cell.Column, child.Cell.Line] = null;
-                    child.Cell = null;
-                }
-
-                Add(child, layer);
-                child.Style.InLayout = true;
-                return child;
-            }
-
-            #endregion
             #region Remove
 
             public override VisualObject Remove(VisualObject child)
@@ -159,6 +136,12 @@ namespace TUI.Base
         #endregion
         #region Tile
 
+        /// <summary>
+        /// Returns tile relative to this node point (x=0, y=0 is a top left point of this node)
+        /// </summary>
+        /// <param name="x">x coordinate counting from left node border</param>
+        /// <param name="y">y coordinate counting from top node border</param>
+        /// <returns>ITile</returns>
         public virtual dynamic Tile(int x, int y)
         {
             if (x < 0 || y < 0 || x >= Width || y >= Height)
@@ -170,13 +153,39 @@ namespace TUI.Base
         }
 
         #endregion
-        #region ToString
+        #region AddToLayout
 
-        public override string ToString() => FullName;
+        /// <summary>
+        /// Add object as a child in layout. Removes child alignment and grid positioning.
+        /// </summary>
+        /// <param name="child">Object to add as a child.</param>
+        /// <param name="layer">Layer where to add the object.</param>
+        /// <returns></returns>
+        public virtual VisualObject AddToLayout(VisualObject child, int layer = 0)
+        {
+            child.Style.Alignment = null;
+            if (child.Cell != null)
+            {
+                Grid[child.Cell.Column, child.Cell.Line] = null;
+                child.Cell = null;
+            }
+
+            Add(child, layer);
+            child.Style.InLayout = true;
+            return child;
+        }
 
         #endregion
         #region SetXYWH
 
+        /// <summary>
+        /// Use this method to change object position or/and size.
+        /// </summary>
+        /// <param name="x">New x coordinate</param>
+        /// <param name="y">New y coordinate</param>
+        /// <param name="width">New width</param>
+        /// <param name="height">New height</param>
+        /// <returns>this</returns>
         public override VisualObject SetXYWH(int x, int y, int width, int height)
         {
             int oldX = X, oldY = Y, oldWidth = Width, oldHeight = Height;
@@ -191,6 +200,11 @@ namespace TUI.Base
         #endregion
         #region SetupLayout
 
+        /// <summary>
+        /// Setup layout for child positioning.
+        /// </summary>
+        /// <param name="layout">Layout configuration</param>
+        /// <returns>this</returns>
         public VisualObject SetupLayout(LayoutStyle layout)
         {
             Style.Layout = layout;
@@ -200,6 +214,12 @@ namespace TUI.Base
         #endregion
         #region SetupGrid
 
+        /// <summary>
+        /// Setup grid for child positioning.
+        /// </summary>
+        /// <param name="gridStyle">Grid configuration</param>
+        /// <param name="fillWithEmptyObjects">Fills all grid cells with basic VisualObjects if true</param>
+        /// <returns>this</returns>
         public VisualObject SetupGrid(GridStyle gridStyle = null, bool fillWithEmptyObjects = true)
         {
             Style.Grid = gridStyle ?? new GridStyle();
@@ -228,8 +248,8 @@ namespace TUI.Base
         /// <summary>
         /// Setup alignment positioning inside parent. Removes layout and grid positioning.
         /// </summary>
-        /// <param name="alignmentStyle"></param>
-        /// <returns></returns>
+        /// <param name="alignmentStyle">Alignment configuration</param>
+        /// <returns>this</returns>
         public VisualObject SetAlignmentInParent(AlignmentStyle alignmentStyle)
         {
             if (Cell != null)
@@ -249,36 +269,26 @@ namespace TUI.Base
         /// <summary>
         /// Set automatic stretching to parent size. Removes grid positioning.
         /// </summary>
-        /// <param name="horizontal"></param>
-        /// <param name="vertical"></param>
-        /// <returns></returns>
-        public VisualObject SetFullSize(bool horizontal = true, bool vertical = true)
-        {
-            if (Cell != null)
-            {
-                Parent.Grid[Cell.Column, Cell.Line] = null;
-                Cell = null;
-            }
-
-            if (horizontal && vertical)
-                Style.FullSize = FullSize.Both;
-            else if (horizontal)
-                Style.FullSize = FullSize.Horizontal;
-            else if (vertical)
-                Style.FullSize = FullSize.Vertical;
-            else
-                Style.FullSize = FullSize.None;
-            return this;
-        }
+        /// <param name="horizontal">Horizontal stretching</param>
+        /// <param name="vertical">Vertical stretching</param>
+        /// <returns>this</returns>
+        public VisualObject SetFullSize(bool horizontal = true, bool vertical = true) =>
+            SetFullSize(horizontal && vertical
+                ? FullSize.Both
+                : horizontal
+                    ? FullSize.Horizontal
+                    : vertical
+                        ? FullSize.Vertical
+                        : FullSize.None);
 
         /// <summary>
         /// Set automatic stretching to parent size. Removes grid positioning.
         /// </summary>
-        /// <param name="fullSize"></param>
-        /// <returns></returns>
+        /// <param name="fullSize">Horizontal and/or vertical (or None)</param>
+        /// <returns>this</returns>
         public VisualObject SetFullSize(FullSize fullSize)
         {
-            if (Cell != null)
+            if (Cell != null && fullSize != FullSize.None)
             {
                 Parent.Grid[Cell.Column, Cell.Line] = null;
                 Cell = null;
@@ -303,6 +313,11 @@ namespace TUI.Base
         #endregion
         #region LayoutIndent
 
+        /// <summary>
+        /// Scrolling indent of layout.
+        /// </summary>
+        /// <param name="value">Indent value</param>
+        /// <returns>this</returns>
         public VisualObject LayoutIndent(int value)
         {
             if (Style.Layout == null)
@@ -311,6 +326,11 @@ namespace TUI.Base
             Style.Layout.LayoutIndent = value;
             return this;
         }
+
+        #endregion
+        #region ToString
+
+        public override string ToString() => FullName;
 
         #endregion
 

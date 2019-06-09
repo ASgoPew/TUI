@@ -28,7 +28,8 @@ namespace TUI.Widgets
         protected int _Width { get; set; }
         protected bool Vertical { get; set; }
         public ScrollBackground Slider { get; internal set; }
-        public Separator Empty { get; private set; }
+        public Separator Empty1 { get; private set; }
+        public Separator Empty2 { get; private set; }
 
         public ScrollBarStyle ScrollBarStyle => Style as ScrollBarStyle;
 
@@ -62,8 +63,9 @@ namespace TUI.Widgets
                     SetAlignmentInParent(new AlignmentStyle(Alignment.Down));
                 SetupLayout(new LayoutStyle(Alignment.Left, Direction.Left, Side.Center, null, 0));
             }
-            Empty = AddToLayout(new Separator(0)) as Separator;
+            Empty1 = AddToLayout(new Separator(0)) as Separator;
             Slider = AddToLayout(new ScrollBackground(false, true, true, ScrollAction)) as ScrollBackground;
+            Empty2 = AddToLayout(new Separator(0)) as Separator;
             Slider.SetFullSize(FullSize.None);
             Slider.Style.WallColor = ScrollBarStyle.SliderColor;
             if (Style.WallColor == null)
@@ -98,12 +100,14 @@ namespace TUI.Widgets
             if (Vertical)
             {
                 Slider.SetWH(_Width, Math.Min(Math.Max(Height - limit, 1), Height));
-                Empty.SetWH(_Width, Height + limit - Slider.Height);
+                Empty1.SetWH(_Width, Height - Slider.Height);
+                Empty2.SetWH(_Width, limit);
             }
             else
             {
                 Slider.SetWH(Math.Min(Math.Max(Width - limit, 1), Width), _Width);
-                Empty.SetWH(Width + limit - Slider.Width, _Width);
+                Empty1.SetWH(Width - Slider.Width, _Width);
+                Empty2.SetWH(limit, _Width);
             }
             ForceSection = Parent.ForceSection;
             switch (Parent.Style.Layout.Direction)
