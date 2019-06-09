@@ -96,8 +96,8 @@ namespace TUI.Base.Style
     {
         internal (int Position, int Size)[] ResultingColumns;
         internal (int Position, int Size)[] ResultingLines;
-        internal int MinWidth = 1;
-        internal int MinHeight = 1;
+        public int MinWidth = 1;
+        public int MinHeight = 1;
 
         /// <summary>
         /// Grid column sizes
@@ -150,7 +150,7 @@ namespace TUI.Base.Style
         /// <para></para>
         /// Use <see cref="VisualObject.SetupGrid(GridStyle, bool)"/> to initialize grid.
         /// </summary>
-        public GridStyle Grid { get; internal set; }
+        public GridStyle Grid { get; internal set; } = null;
 
         /// <summary>
         /// If set to true and object has a parent then X and Y would be ignored, instead object

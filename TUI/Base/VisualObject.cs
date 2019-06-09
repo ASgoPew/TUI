@@ -494,6 +494,9 @@ namespace TUI.Base
                 // Recursive Update() call
                 UpdateChild();
 
+                // Updates related to this node and dependant on child updates
+                PostUpdateThis();
+
                 return this;
             }
 
@@ -912,9 +915,9 @@ namespace TUI.Base
                         notZeroSizes++;
                 }
                 if (absoluteSum > absoluteSize)
-                    throw new ArgumentException($"{FullName} (UpdateGrid): absolute {sizeName} is more that object {sizeName}");
+                    throw new ArgumentException($"{FullName} (UpdateGrid): absolute {sizeName} is more than object {sizeName}: {FullName}");
                 if (relativeSum > 100)
-                    throw new ArgumentException($"{FullName} (UpdateGrid): relative {sizeName} is more than 100");
+                    throw new ArgumentException($"{FullName} (UpdateGrid): relative {sizeName} is more than 100: {FullName}");
 
                 // Now calculating actual column/line sizes
                 int relativeSize = absoluteSize - absoluteSum - middleOffset * (notZeroSizes - 1) - startOffset - endOffset;
@@ -1003,16 +1006,46 @@ namespace TUI.Base
                 return this;
             }
 
+        #endregion
+
+            #region PostUpdateThis
+
+            /// <summary>
+            /// Updates related to this node and dependant on child updates. Executes after calling Update() and each child.
+            /// </summary>
+            /// <returns></returns>
+            public VisualObject PostUpdateThis()
+            {
+                PostUpdateThisNative();
+                return this;
+            }
+
+            #endregion
+            #region PostUpdateThisNative
+
+            /// <summary>
+            /// Overridable method for updates related to this node and dependant on child updates.
+            /// </summary>
+            protected virtual void PostUpdateThisNative()
+            {
+                if (Style.Grid != null)
+                    lock (Child)
+                    {
+                        Style.Grid.MinWidth = Math.Max(Style.Grid.MinWidth, Child.Max(o => o.Style.Grid?.MinWidth) ?? 1);
+                        Style.Grid.MinHeight = Math.Max(Style.Grid.MinHeight, Child.Max(o => o.Style.Grid?.MinHeight) ?? 1);
+                    }
+            }
+
             #endregion
 
         #endregion
         #region Apply
 
-            /// <summary>
-            /// Draws everything related to this VisualObject incluing all child sub-tree (directly changes tiles on tile provider).
-            /// </summary>
-            /// <returns>this</returns>
-            public VisualObject Apply()
+        /// <summary>
+        /// Draws everything related to this VisualObject incluing all child sub-tree (directly changes tiles on tile provider).
+        /// </summary>
+        /// <returns>this</returns>
+        public VisualObject Apply()
             {
 #if DEBUG
                 if (!CalculateActive())

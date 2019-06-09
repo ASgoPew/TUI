@@ -65,7 +65,7 @@ namespace TUI.Widgets
         {
             GridStyle grid = Style.Grid;
             int minWidth = grid?.MinWidth ?? 1;
-            int minHeight = grid?.MinWidth ?? 1;
+            int minHeight = grid?.MinHeight ?? 1;
             if (width < minWidth)
                 width = minWidth;
             if (height < minHeight)

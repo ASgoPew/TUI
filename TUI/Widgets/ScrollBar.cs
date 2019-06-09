@@ -20,7 +20,6 @@ namespace TUI.Widgets
 
     #endregion
 
-
     public class ScrollBar : VisualObject
     {
         #region Data
@@ -64,8 +63,10 @@ namespace TUI.Widgets
                 SetupLayout(Alignment.Left, Direction.Left, Side.Center, null, 0);
             }
             Empty1 = AddToLayout(new Separator(0)) as Separator;
+            Empty1.Configuration.UseBegin = false;
             Slider = AddToLayout(new ScrollBackground(false, true, true, ScrollAction)) as ScrollBackground;
             Empty2 = AddToLayout(new Separator(0)) as Separator;
+            Empty2.Configuration.UseBegin = false;
             Slider.SetFullSize(FullSize.None);
             Slider.Style.WallColor = ScrollBarStyle.SliderColor;
             if (Style.WallColor == null)
@@ -77,7 +78,6 @@ namespace TUI.Widgets
 
         public static void ScrollAction(ScrollBackground @this, int value)
         {
-            //Console.WriteLine(value);
             //int newIndent = (int)Math.Round((value / (float)@this.Limit) * @this.Parent.Style.Layout.IndentLimit);
             //Console.WriteLine(newIndent);
             @this.Parent.Parent
