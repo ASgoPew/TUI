@@ -6,6 +6,9 @@ using TUI.Widgets.Media;
 
 namespace TUI.Base
 {
+    /// <summary>
+    /// Basic TUI object. Every TUI object is VisualObject or is an object of class inherited from VisualObject.
+    /// </summary>
     public class VisualObject : Touchable
     {
         #region Data
@@ -33,6 +36,12 @@ namespace TUI.Base
 
             #region Remove
 
+            /// <summary>
+            /// Removes child object. Calls Dispose() on removed object so you can't use
+            /// this object anymore.
+            /// </summary>
+            /// <param name="child">Child object to remove.</param>
+            /// <returns>this</returns>
             public override VisualObject Remove(VisualObject child)
             {
                 child = base.Remove(child);
@@ -50,17 +59,23 @@ namespace TUI.Base
                 return child;
             }
 
-            #endregion
+        #endregion
 
         #endregion
         #region Touchable
 
             #region PostSetTop
 
-            public override void PostSetTop(VisualObject o)
+            /// <summary>
+            /// Overridable function that is called when child comes on top of the layer.
+            /// <para></para>
+            /// Does Apply() and Draw() if object is intersecting at least one other child object by default.
+            /// </summary>
+            /// <param name="child">Child object that came on top of the layer</param>
+            public override void PostSetTop(VisualObject child)
             {
-                if (ChildIntersectingOthers(o))
-                    o.Apply().Draw();
+                if (ChildIntersectingOthers(child))
+                    child.Apply().Draw();
             }
 
             private bool ChildIntersectingOthers(VisualObject o)
@@ -96,6 +111,15 @@ namespace TUI.Base
 
         public VisualObject(UIStyle style)
             : this(0, 0, 0, 0, new UIConfiguration() { UseBegin = false }, style)
+        {
+        }
+
+        #endregion
+        #region Copy
+
+        public VisualObject(VisualObject visualObject)
+            : this(visualObject.X, visualObject.Y, visualObject.Width, visualObject.Height, new UIConfiguration(visualObject.Configuration),
+                  new UIStyle(visualObject.Style), visualObject.Callback?.Clone() as Func<VisualObject, Touch, bool>)
         {
         }
 
@@ -1137,15 +1161,6 @@ namespace TUI.Base
         public virtual void UserDatabase()
         {
 
-        }
-
-        #endregion
-        #region Copy
-
-        public VisualObject(VisualObject visualObject)
-            : this(visualObject.X, visualObject.Y, visualObject.Width, visualObject.Height, new UIConfiguration(visualObject.Configuration),
-                  new UIStyle(visualObject.Style), visualObject.Callback?.Clone() as Func<VisualObject, Touch, bool>)
-        {
         }
 
         #endregion

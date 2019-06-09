@@ -35,7 +35,8 @@ namespace TUI.Widgets.Media
         #region Copy
 
         public Image(Image image)
-            : this(image.X, image.Y, new ImageData(image.Data), new UIConfiguration(image.Configuration), new UIStyle(image.Style), (Func<VisualObject, Touch, bool>)image.Callback.Clone())
+            : this(image.X, image.Y, new ImageData(image.Data), new UIConfiguration(image.Configuration),
+                new UIStyle(image.Style), image.Callback.Clone() as Func<VisualObject, Touch, bool>)
         {
         }
 

@@ -10,6 +10,9 @@ namespace TUI.Base
 
         internal Locked Locked { get; set; }
         internal ConcurrentDictionary<int, Locked> PersonalLocked { get; set; } = new ConcurrentDictionary<int, Locked>();
+        /// <summary>
+        /// Object touch callback.
+        /// </summary>
         public Func<VisualObject, Touch, bool> Callback { get; set; }
 
         public bool Contains(Touch touch) => Contains(touch.X, touch.Y);
@@ -27,7 +30,12 @@ namespace TUI.Base
         #endregion
         #region Touched
 
-        public virtual bool Touched(Touch touch)
+        /// <summary>
+        /// This function is called when touch falls into the coordinates of this node.
+        /// </summary>
+        /// <param name="touch"></param>
+        /// <returns></returns>
+        internal bool Touched(Touch touch)
         {
 #if DEBUG
             if (!CalculateActive())
@@ -49,14 +57,14 @@ namespace TUI.Base
         #endregion
         #region IsLocked
 
-        public virtual bool IsLocked(Touch touch)
+        private bool IsLocked(Touch touch)
         {
             // We must check both personal and common lock
             PersonalLocked.TryGetValue(touch.Session.UserIndex, out Locked personalLocked);
             return IsLocked(Locked, touch) || IsLocked(personalLocked, touch);
         }
 
-        public bool IsLocked(Locked locked, Touch touch)
+        private bool IsLocked(Locked locked, Touch touch)
         {
             if (locked == null)
                 return false;
@@ -97,6 +105,10 @@ namespace TUI.Base
         #endregion
         #region CanTouch
 
+        /// <summary>
+        /// Checks if specified touch can press this object or one of child objects in sub-tree.
+        /// </summary>
+        /// <param name="touch">Touch to check</param>
         public virtual bool CanTouch(Touch touch)
         {
             VisualObject @this = this as VisualObject;
@@ -108,7 +120,7 @@ namespace TUI.Base
         #endregion
         #region TouchedChild
 
-        public virtual bool TouchedChild(Touch touch)
+        private bool TouchedChild(Touch touch)
         {
             lock (Child)
                 foreach (VisualObject child in ChildrenFromTop)
@@ -132,11 +144,20 @@ namespace TUI.Base
         #endregion
         #region PostSetTop
 
+        /// <summary>
+        /// Overridable function that is called when object comes on top of the layer.
+        /// </summary>
+        /// <param name="o"></param>
         public virtual void PostSetTop(VisualObject o) { }
 
         #endregion
         #region CanTouchThis
 
+        /// <summary>
+        /// Checks if specified touch can press this object. Not to be confused with <see cref="CanTouch(Touch)"/>.
+        /// </summary>
+        /// <param name="touch"></param>
+        /// <returns></returns>
         public virtual bool CanTouchThis(Touch touch) =>
             (touch.State == TouchState.Begin && Configuration.UseBegin
                 || touch.State == TouchState.Moving && Configuration.UseMoving
@@ -146,7 +167,7 @@ namespace TUI.Base
         #endregion
         #region TouchedThis
 
-        public virtual bool TouchedThis(Touch touch)
+        private bool TouchedThis(Touch touch)
         {
             VisualObject @this = this as VisualObject;
             if (touch.State == TouchState.Begin)
@@ -167,6 +188,10 @@ namespace TUI.Base
         #endregion
         #region TrySetLock
 
+        /// <summary>
+        /// Tries to lock this node with specified touch object according to node locking configuration.
+        /// </summary>
+        /// <param name="touch"></param>
         public void TrySetLock(Touch touch)
         {
             VisualObject @this = this as VisualObject;
@@ -195,6 +220,11 @@ namespace TUI.Base
         #endregion
         #region Invoke
 
+        /// <summary>
+        /// Overridable function which is called when touch satisfies the conditions of pressing this object.
+        /// </summary>
+        /// <param name="touch"></param>
+        /// <returns></returns>
         public virtual bool Invoke(Touch touch) =>
             Callback?.Invoke(this as VisualObject, touch) ?? true;
 

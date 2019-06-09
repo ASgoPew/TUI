@@ -11,41 +11,119 @@ namespace TUI.Base
 
             #region IDOM
 
+            /// <summary>
+            /// List of child objects.
+            /// </summary>
             protected List<VisualObject> Child { get; private set; } = new List<VisualObject>();
+            /// <summary>
+            /// Parent object.
+            /// </summary>
             public VisualObject Parent { get; private set; } = null;
-
-            public IEnumerable<VisualObject> DescendantDFS => GetDescendantDFS();
-            public IEnumerable<VisualObject> DescendantBFS => GetDescendantBFS();
 
             #endregion
             #region IVisual
 
+            /// <summary>
+            /// X coordinate relative to Parent object.
+            /// </summary>
             public int X { get; set; }
+            /// <summary>
+            /// Y coordinate relative to Parent object.
+            /// </summary>
             public int Y { get; set; }
+            /// <summary>
+            /// Object width.
+            /// </summary>
             public int Width { get; set; }
+            /// <summary>
+            /// Object height.
+            /// </summary>
             public int Height { get; set; }
 
             #endregion
 
+        /// <summary>
+        /// Index in Parent's Child array.
+        /// </summary>
         public int IndexInParent => Parent.Child.IndexOf(this as VisualObject);
+        /// <summary>
+        /// Root of the interface tree. Null before first Update() call. Use GetRoot() to calculate manually.
+        /// </summary>
         public RootVisualObject Root { get; set; }
+        /// <summary>
+        /// Tile provider of current interface tree.
+        /// </summary>
         public virtual dynamic Provider => Root?.Provider;
+        /// <summary>
+        /// True if Provider links to Main.tile provider.
+        /// </summary>
         public bool UsesDefaultMainProvider => Provider is MainTileProvider;
+        /// <summary>
+        /// Whether the object was loaded. See <see cref="LoadThisNative"/>.
+        /// </summary>
         public bool Loaded { get; private set; } = false;
+        /// <summary>
+        /// Whether the object was disposed. See <see cref="DisposeThisNative"/>.
+        /// </summary>
         public bool Disposed { get; private set; } = false;
+        /// <summary>
+        /// Whether the object is enabled. Disabled objects are invisible, you can't touch them and they don't receive updates.
+        /// </summary>
         public bool Enabled { get; set; } = true;
+        /// <summary>
+        /// Whether the object is visible. Object becomes invisible when it is outside of bounds of layout.
+        /// </summary>
         public bool Visible { get; protected internal set; } = true;
+        /// <summary>
+        /// Layer in Parent's Child array. Objects with higher layer are always higher in this array.
+        /// </summary>
         public virtual int Layer { get; set; } = 0;
+        /// <summary>
+        /// Object configuration.
+        /// </summary>
         public UIConfiguration Configuration { get; set; }
-        private ConcurrentDictionary<string, object> Shortcuts { get; set; }
+        /// <summary>
+        /// Locker for node locking.
+        /// </summary>
         protected object Locker { get; set; } = new object();
-        //protected object UpdateLocker { get; set; } = new object();
+        /// <summary>
+        /// Storage for node related data.
+        /// </summary>
+        private ConcurrentDictionary<string, object> Shortcuts { get; set; }
 
+        /// <summary>
+        /// DEBUG function. Get child object by index in Child array.
+        /// </summary>
+        /// <param name="index">Index in Child array</param>
+        /// <returns>Child with specified index in Child array</returns>
         public virtual VisualObject GetChild(int index) => Child[index];
+        /// <summary>
+        /// DEBUG function. Get Child array size.
+        /// </summary>
+        /// <returns>Size of Child array</returns>
+        public int GetChildCount() => Child.Count;
+        /// <summary>
+        /// Object is Active when it is Enabled and Visible (see <see cref="Enabled"/>, <see cref="Visible"/>)
+        /// </summary>
         public virtual bool Active => Enabled && Visible;
+        /// <summary>
+        /// Overridable field for disabling ability to be ordered in Parent's Child array.
+        /// </summary>
         public virtual bool Orderable => true;
+        /// <summary>
+        /// Coordinates relative to world map.
+        /// </summary>
+        /// <param name="dx">X coordinate delta</param>
+        /// <param name="dy">Y coordinate delta</param>
+        /// <returns>Coordinates relative to world map</returns>
         public (int X, int Y) AbsoluteXY(int dx = 0, int dy = 0) =>
             RelativeXY(dx, dy, null);
+        /// <summary>
+        /// Coordinates relative to tile provider.
+        /// </summary>
+        /// <param name="dx">X coordinate delta</param>
+        /// <param name="dy">Y coordinate delta</param>
+        /// <returns>Coordinates relative to tile provider</returns>
         public (int X, int Y) ProviderXY(int dx = 0, int dy = 0) =>
             RelativeXY(dx, dy, UsesDefaultMainProvider ? null : Root);
 
@@ -143,7 +221,7 @@ namespace TUI.Base
             #region Selected
 
             /// <summary>
-            /// Object selected with <see cref="Select(VisualObject)"/>. Searches for first Enabled child.
+            /// Searches for first Enabled child. See <see cref="Select(VisualObject)"/>.
             /// </summary>
             /// <returns>Selected child object</returns>
             public virtual VisualObject Selected()
@@ -156,7 +234,7 @@ namespace TUI.Base
             #region Deselect
 
             /// <summary>
-            /// Enables all child objects.
+            /// Enables all child objects. See <see cref="Select(VisualObject)"/>
             /// </summary>
             /// <returns>this</returns>
             public virtual VisualObject Deselect()
@@ -208,7 +286,8 @@ namespace TUI.Base
             #region SetTop
 
             /// <summary>
-            /// Places child object on top of layer.
+            /// Places child object on top of layer. This function will be called automatically on child touch
+            /// if object is orderable. See <see cref="UIConfiguration.Ordered"/>.
             /// </summary>
             /// <param name="child">Child object to place on top of layer.</param>
             /// <returns>True if child object position changed</returns>
@@ -258,25 +337,37 @@ namespace TUI.Base
                 }
             }
 
-            private IEnumerable<VisualObject> GetDescendantDFS()
+            /// <summary>
+            /// Deep Fast Search method of iterating objects in sub-tree including this node.
+            /// </summary>
+            public IEnumerable<VisualObject> DescendantDFS
             {
-                List<VisualObject> list = new List<VisualObject>();
-                DFS(list);
+                get
+                {
+                    List<VisualObject> list = new List<VisualObject>();
+                    DFS(list);
 
-                foreach (VisualObject o in list)
-                    yield return o;
+                    foreach (VisualObject o in list)
+                        yield return o;
+                }
             }
 
-            private IEnumerable<VisualObject> GetDescendantBFS()
+            /// <summary>
+            /// Broad Fast Search method of iterating objects in sub-tree including this node.
+            /// </summary>
+            public IEnumerable<VisualObject> DescendantBFS
             {
-                List<VisualObject> list = new List<VisualObject>();
-                BFS(list);
+                get
+                {
+                    List<VisualObject> list = new List<VisualObject>();
+                    BFS(list);
 
-                foreach (VisualObject o in list)
-                    yield return o;
+                    foreach (VisualObject o in list)
+                        yield return o;
+                }
             }
 
-        #endregion
+            #endregion
 
         #endregion
         #region IVisual
@@ -294,11 +385,25 @@ namespace TUI.Base
             #endregion
             #region XYWH, SetXYWH
 
+            /// <summary>
+            /// Get object position and size.
+            /// </summary>
+            /// <param name="dx">X coordinate delta</param>
+            /// <param name="dy">Y coordinate delta</param>
+            /// <returns>Tuple of values (x, y, width, height)</returns>
             public virtual (int X, int Y, int Width, int Height) XYWH(int dx = 0, int dy = 0)
             {
                 return (X + dx, Y + dy, Width, Height);
             }
 
+            /// <summary>
+            /// Sets object position and size.
+            /// </summary>
+            /// <param name="x">New x coordinate</param>
+            /// <param name="y">New y coordinate</param>
+            /// <param name="width">New width</param>
+            /// <param name="height">New height</param>
+            /// <returns>this</returns>
             public virtual VisualObject SetXYWH(int x, int y, int width, int height)
             {
                 X = x;
@@ -322,21 +427,50 @@ namespace TUI.Base
             #endregion
             #region Move
 
+            /// <summary>
+            /// Move object by delta x and delta y.
+            /// </summary>
+            /// <param name="dx">X coordinate delta</param>
+            /// <param name="dy">Y coordinate delta</param>
+            /// <returns>this</returns>
             public virtual VisualObject Move(int dx, int dy) =>
                 SetXYWH(X + dx, Y + dy, Width, Height);
 
+            /// <summary>
+            /// Inverse function for <see cref="Move(int, int)"/>.
+            /// </summary>
+            /// <param name="dx">X coordinate delta</param>
+            /// <param name="dy">Y coordinate delta</param>
+            /// <returns>this</returns>
             public virtual VisualObject MoveBack(int dx, int dy) =>
                 SetXYWH(X - dx, Y - dy, Width, Height);
 
             #endregion
             #region Contains, Intersecting
 
+            /// <summary>
+            /// Checks if point (x, y) relative to Parent object is inside current object.
+            /// </summary>
+            /// <param name="x">X point coordinate</param>
+            /// <param name="y">Y point coordinate</param>
             public virtual bool Contains(int x, int y) =>
                 x >= X && y >= Y && x < X + Width && y < Y + Height;
 
+            /// <summary>
+            /// Checks if point (x, y) relative to this object is inside this object.
+            /// </summary>
+            /// <param name="x">X point coordinate</param>
+            /// <param name="y">Y point coordinate</param>
             public virtual bool ContainsRelative(int x, int y) =>
                 x >= 0 && y >= 0 && x < Width && y < Height;
 
+            /// <summary>
+            /// Checks if rectangle (x, y, width, height) relative to Parent object is intersecting current object.
+            /// </summary>
+            /// <param name="x">X rectangle coordinate</param>
+            /// <param name="y">Y rectangle coordinate</param>
+            /// <param name="width">Rectangle width</param>
+            /// <param name="height">Rectangle height</param>
             public virtual bool Intersecting(int x, int y, int width, int height) =>
                 x < X + Width && X < x + width && y < Y + Height && Y < y + height;
 
@@ -375,7 +509,14 @@ namespace TUI.Base
                 foreach (VisualObject child in ChildrenFromTop)
                     child.Load();
 
-            LoadThisNative();
+            try
+            {
+                LoadThisNative();
+            }
+            catch (Exception e)
+            {
+                TUI.Hooks.Log.Invoke(new Hooks.Args.LogArgs("TUI Load Exception: " + e.ToString(), Hooks.Args.LogType.Error));
+            }
         }
 
         #endregion
@@ -410,7 +551,14 @@ namespace TUI.Base
                 foreach (VisualObject child in ChildrenFromTop)
                     child.Dispose();
 
-            DisposeThisNative();
+            try
+            {
+                DisposeThisNative();
+            }
+            catch (Exception e)
+            {
+                TUI.Hooks.Log.Invoke(new Hooks.Args.LogArgs("TUI Dispose Exception: " + e.ToString(), Hooks.Args.LogType.Error));
+            }
         }
 
         #endregion
@@ -454,6 +602,10 @@ namespace TUI.Base
         #endregion
         #region Enable
 
+        /// <summary>
+        /// Enables object. See <see cref="Enabled"/>.
+        /// </summary>
+        /// <returns>this</returns>
         public virtual VisualObject Enable()
         {
             Enabled = true;
@@ -463,6 +615,10 @@ namespace TUI.Base
         #endregion
         #region Disable
 
+        /// <summary>
+        /// Disables object. See <see cref="Enabled"/>.
+        /// </summary>
+        /// <returns>this</returns>
         public virtual VisualObject Disable()
         {
             Enabled = false;
@@ -472,6 +628,10 @@ namespace TUI.Base
         #endregion
         #region CalculateActive
 
+        /// <summary>
+        /// Finds out if every object including this node and up to the Root is Active. Root must be
+        /// a RootVisualObject. See <see cref="Active"/>.
+        /// </summary>
         public bool CalculateActive()
         {
             VisualDOM node = this;
@@ -488,6 +648,12 @@ namespace TUI.Base
         #endregion
         #region RelativeXY
 
+        /// <summary>
+        /// Calculates coordinates relative to specified object.
+        /// </summary>
+        /// <param name="x">X coordinate delta</param>
+        /// <param name="y">Y coordinate delta</param>
+        /// <param name="parent">Object which calculation is relative to</param>
         public (int X, int Y) RelativeXY(int x = 0, int y = 0, VisualDOM parent = null)
         {
             VisualDOM node = this;
@@ -503,7 +669,10 @@ namespace TUI.Base
         #endregion
         #region ChildrenFromTop
 
-        public IEnumerable<VisualObject> ChildrenFromTop
+        /// <summary>
+        /// Iterates over Child array starting with objects on top.
+        /// </summary>
+        protected IEnumerable<VisualObject> ChildrenFromTop
         {
             get
             {
@@ -516,7 +685,10 @@ namespace TUI.Base
         #endregion
         #region ChildrenFromBottom
 
-        public IEnumerable<VisualObject> ChildrenFromBottom
+        /// <summary>
+        /// Iterates over Child array starting with objects at bottom.
+        /// </summary>
+        protected IEnumerable<VisualObject> ChildrenFromBottom
         {
             get
             {
@@ -530,6 +702,9 @@ namespace TUI.Base
         #endregion
         #region Points
 
+        /// <summary>
+        /// Iterates over object points relative to this node.
+        /// </summary>
         public IEnumerable<(int, int)> Points
         {
             get
@@ -543,6 +718,9 @@ namespace TUI.Base
         #endregion
         #region AbsolutePoints
 
+        /// <summary>
+        /// Iterates over object points relative to world map.
+        /// </summary>
         public IEnumerable<(int, int)> AbsolutePoints
         {
             get
@@ -557,6 +735,9 @@ namespace TUI.Base
         #endregion
         #region ProviderPoints
 
+        /// <summary>
+        /// Iterates over object points relative to tile provider.
+        /// </summary>
         public IEnumerable<(int, int)> ProviderPoints
         {
             get
