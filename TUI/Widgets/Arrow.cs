@@ -43,7 +43,7 @@ namespace TUI.Widgets
 
         #region Constructor
 
-        public Arrow(int x, int y, ArrowStyle style = null, Func<VisualObject, Touch, bool> callback = null)
+        public Arrow(int x, int y, ArrowStyle style = null, Action<VisualObject, Touch> callback = null)
             : base(x, y, 2, 2, null, style, callback)
         {
             Style.Active = true;
@@ -55,7 +55,8 @@ namespace TUI.Widgets
         #region Copy
 
         public Arrow(Arrow arrow)
-            : this(arrow.X, arrow.Y, new ArrowStyle(arrow.ArrowStyle), arrow.Callback?.Clone() as Func<VisualObject, Touch, bool>)
+            : this(arrow.X, arrow.Y, new ArrowStyle(arrow.ArrowStyle),
+                  arrow.Callback?.Clone() as Action<VisualObject, Touch>)
         {
         }
 

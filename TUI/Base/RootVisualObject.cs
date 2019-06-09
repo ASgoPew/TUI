@@ -137,7 +137,6 @@ namespace TUI.Base
                         cancel.Invoke(this);
                     else
                         HidePopUp();
-                    return true;
                 });
                 Add(PopUpBackground, Int32.MaxValue);
             }

@@ -56,7 +56,7 @@ namespace TUI.Widgets
         #region Constructor
 
         public Button(int x, int y, int width, int height, string text, UIConfiguration configuration = null,
-                ButtonStyle style = null, Func<VisualObject, Touch, bool> callback = null)
+                ButtonStyle style = null, Action<VisualObject, Touch> callback = null)
             : base(x, y, width, height, text, configuration, style ?? new ButtonStyle(), callback)
         {
             if (Configuration.Lock == null)
@@ -86,14 +86,15 @@ namespace TUI.Widgets
         #region Copy
 
         public Button(Button button)
-            : this(button.X, button.Y, button.Width, button.Height, button.Get(), new UIConfiguration(button.Configuration), new ButtonStyle(button.ButtonStyle), button.Callback)
+            : this(button.X, button.Y, button.Width, button.Height, button.Get(), new UIConfiguration(
+                button.Configuration), new ButtonStyle(button.ButtonStyle), button.Callback)
         {
         }
 
         #endregion
         #region Invoke
 
-        public override bool Invoke(Touch touch)
+        public override void Invoke(Touch touch)
         {
             if (touch.State == TouchState.Begin)
             {
@@ -126,7 +127,6 @@ namespace TUI.Widgets
                     TryEndBlink(ButtonStyle.BlinkStyle, 1);
                 }
             }
-            return true;
         }
 
         #endregion

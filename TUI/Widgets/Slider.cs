@@ -52,7 +52,7 @@ namespace TUI.Widgets
         #endregion
         #region Invoke
 
-        public override bool Invoke(Touch touch)
+        public override void Invoke(Touch touch)
         {
             int oldValue;
             if (touch.State == TouchState.Begin)
@@ -71,7 +71,6 @@ namespace TUI.Widgets
             if (touch.State == TouchState.End && Value != OldValue && (!SliderStyle.TriggerOnDrag || oldValue != value)
                     || SliderStyle.TriggerOnDrag && oldValue != value)
                 SliderCallback?.Invoke(this, Value);
-            return true;
         }
 
         #endregion

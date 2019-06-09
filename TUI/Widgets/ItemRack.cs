@@ -49,8 +49,7 @@ namespace TUI.Widgets
 
         #region Constructor
 
-        public ItemRack(int x, int y, ItemRackStyle style = null,
-                Func<VisualObject, Touch, bool> callback = null)
+        public ItemRack(int x, int y, ItemRackStyle style = null, Action<VisualObject, Touch> callback = null)
             : base(x, y, 3, 3, new UIConfiguration(), style ?? new ItemRackStyle(), callback)
         {
             ForceSection = true;

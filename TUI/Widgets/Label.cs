@@ -55,7 +55,8 @@ namespace TUI.Widgets
 
         #region Constructor
 
-        public Label(int x, int y, int width, int height, string text, UIConfiguration configuration = null, LabelStyle style = null, Func<VisualObject, Touch, bool> callback = null)
+        public Label(int x, int y, int width, int height, string text, UIConfiguration configuration = null,
+                LabelStyle style = null, Action<VisualObject, Touch> callback = null)
             : base(x, y, width, height, configuration, style ?? new LabelStyle(), callback)
         {
             RawText = text.ToLower();
@@ -66,7 +67,7 @@ namespace TUI.Widgets
 
         public Label(Label label)
             : this(label.X, label.Y, label.Width, label.Height, string.Copy(label.RawText),new UIConfiguration(label.Configuration),
-                  new LabelStyle(label.Style as LabelStyle), label.Callback?.Clone() as Func<VisualObject, Touch, bool>)
+                  new LabelStyle(label.Style as LabelStyle), label.Callback?.Clone() as Action<VisualObject, Touch>)
         {
         }
 

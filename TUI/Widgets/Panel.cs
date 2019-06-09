@@ -88,7 +88,8 @@ namespace TUI.Widgets
 
     public class PanelDrag : VisualObject
     {
-        public PanelDrag(int x, int y, int width, int height, UIConfiguration configuration = null, UIStyle style = null, Func<VisualObject, Touch, bool> callback = null)
+        public PanelDrag(int x, int y, int width, int height, UIConfiguration configuration = null,
+                UIStyle style = null, Action<VisualObject, Touch> callback = null)
             : base(x, y, width, height, configuration, style, callback)
         {
             Configuration.UseEnd = true;
@@ -96,7 +97,7 @@ namespace TUI.Widgets
                 Callback = CustomCallback;
         }
 
-        private static bool CustomCallback(VisualObject @this, Touch touch)
+        private static void CustomCallback(VisualObject @this, Touch touch)
         {
             if (touch.State == TouchState.Begin)
             {
@@ -104,7 +105,6 @@ namespace TUI.Widgets
                 panel.DragX = panel.X;
                 panel.DragY = panel.Y;
                 touch.Session[@this] = PanelState.Moving;
-                return true;
             }
             else if (touch.Session[@this] is PanelState state && state == PanelState.Moving)
             {
@@ -117,10 +117,8 @@ namespace TUI.Widgets
                     panel.Drag(panel.DragX + dx, panel.DragY + dy);
                     if (ending)
                         touch.Session[@this] = null;
-                    return true;
                 }
             }
-            return false;
         }
     }
 
@@ -129,7 +127,8 @@ namespace TUI.Widgets
 
     public class PanelResize : VisualObject
     {
-        public PanelResize(int x, int y, int width, int height, UIConfiguration configuration = null, UIStyle style = null, Func<VisualObject, Touch, bool> callback = null)
+        public PanelResize(int x, int y, int width, int height, UIConfiguration configuration = null,
+                UIStyle style = null, Action<VisualObject, Touch> callback = null)
             : base(x, y, width, height, configuration, style, callback)
         {
             Configuration.UseEnd = true;
@@ -137,7 +136,7 @@ namespace TUI.Widgets
                 Callback = CustomCallback;
         }
 
-        private static bool CustomCallback(VisualObject @this, Touch touch)
+        private static void CustomCallback(VisualObject @this, Touch touch)
         {
             if (touch.State == TouchState.Begin)
             {
@@ -145,7 +144,6 @@ namespace TUI.Widgets
                 panel.ResizeW = panel.Width;
                 panel.ResizeH = panel.Height;
                 touch.Session[@this] = PanelState.Resizing;
-                return true;
             }
             else if (touch.Session[@this] is PanelState state && state == PanelState.Resizing)
             {
@@ -158,10 +156,8 @@ namespace TUI.Widgets
                     panel.Resize(panel.ResizeW + dw, panel.ResizeH + dh);
                     if (ending)
                         touch.Session[@this] = null;
-                    return true;
                 }
             }
-            return false;
         }
     }
 

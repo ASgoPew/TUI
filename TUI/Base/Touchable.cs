@@ -13,7 +13,7 @@ namespace TUI.Base
         /// <summary>
         /// Object touch callback.
         /// </summary>
-        public Func<VisualObject, Touch, bool> Callback { get; set; }
+        public Action<VisualObject, Touch> Callback { get; set; }
 
         public bool Contains(Touch touch) => Contains(touch.X, touch.Y);
 
@@ -21,7 +21,8 @@ namespace TUI.Base
 
         #region Constructor
 
-        public Touchable(int x, int y, int width, int height, UIConfiguration configuration = null, Func<VisualObject, Touch, bool> callback = null)
+        public Touchable(int x, int y, int width, int height, UIConfiguration configuration = null,
+                Action<VisualObject, Touch> callback = null)
             : base(x, y, width, height, configuration)
         {
             Callback = callback;
@@ -49,7 +50,10 @@ namespace TUI.Base
 
             bool used = TouchedChild(touch);
             if (!used && CanTouchThis(touch))
-                used = TouchedThis(touch);
+            {
+                TouchedThis(touch);
+                used = true;
+            }
 
             return used;
         }
@@ -167,7 +171,7 @@ namespace TUI.Base
         #endregion
         #region TouchedThis
 
-        private bool TouchedThis(Touch touch)
+        private void TouchedThis(Touch touch)
         {
             VisualObject @this = this as VisualObject;
             if (touch.State == TouchState.Begin)
@@ -177,12 +181,10 @@ namespace TUI.Base
 
             TrySetLock(touch);
 
-            bool used = Invoke(touch);
+            Invoke(touch);
 
-            if (Configuration.SessionAcquire && used)
+            if (Configuration.SessionAcquire)
                 touch.Session.Acquired = @this;
-
-            return used;
         }
 
         #endregion
@@ -225,8 +227,8 @@ namespace TUI.Base
         /// </summary>
         /// <param name="touch"></param>
         /// <returns></returns>
-        public virtual bool Invoke(Touch touch) =>
-            Callback?.Invoke(this as VisualObject, touch) ?? true;
+        public virtual void Invoke(Touch touch) =>
+            Callback?.Invoke(this as VisualObject, touch);
 
         #endregion
     }

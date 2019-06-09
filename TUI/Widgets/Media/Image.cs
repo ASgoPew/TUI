@@ -18,14 +18,14 @@ namespace TUI.Widgets.Media
         #region Constructor
 
         public Image(int x, int y, string path, UIConfiguration configuration = null,
-                UIStyle style = null, Func<VisualObject, Touch, bool> callback = null)
+                UIStyle style = null, Action<VisualObject, Touch> callback = null)
             : base(x, y, BrokenImageSize, BrokenImageSize, configuration, style, callback)
         {
             Path = path;
         }
 
         public Image(int x, int y, ImageData data, UIConfiguration configuration = null,
-                UIStyle style = null, Func<VisualObject, Touch, bool> callback = null)
+                UIStyle style = null, Action<VisualObject, Touch> callback = null)
             : base(x, y, BrokenImageSize, BrokenImageSize, configuration, style, callback)
         {
             Data = data;
@@ -36,7 +36,7 @@ namespace TUI.Widgets.Media
 
         public Image(Image image)
             : this(image.X, image.Y, new ImageData(image.Data), new UIConfiguration(image.Configuration),
-                new UIStyle(image.Style), image.Callback.Clone() as Func<VisualObject, Touch, bool>)
+                new UIStyle(image.Style), image.Callback.Clone() as Action<VisualObject, Touch>)
         {
         }
 

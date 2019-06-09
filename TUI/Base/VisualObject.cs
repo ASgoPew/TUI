@@ -129,7 +129,8 @@ namespace TUI.Base
 
         #region Constructor
 
-        public VisualObject(int x, int y, int width, int height, UIConfiguration configuration = null, UIStyle style = null, Func<VisualObject, Touch, bool> callback = null)
+        public VisualObject(int x, int y, int width, int height, UIConfiguration configuration = null,
+                UIStyle style = null, Action<VisualObject, Touch> callback = null)
             : base(x, y, width, height, configuration, callback)
         {
             Style = style ?? new UIStyle();
@@ -155,7 +156,7 @@ namespace TUI.Base
 
         public VisualObject(VisualObject visualObject)
             : this(visualObject.X, visualObject.Y, visualObject.Width, visualObject.Height, new UIConfiguration(visualObject.Configuration),
-                  new UIStyle(visualObject.Style), visualObject.Callback?.Clone() as Func<VisualObject, Touch, bool>)
+                  new UIStyle(visualObject.Style), visualObject.Callback?.Clone() as Action<VisualObject, Touch>)
         {
         }
 

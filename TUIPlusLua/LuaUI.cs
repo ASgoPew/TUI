@@ -51,6 +51,6 @@ namespace TUIPlusLua
 
         public static VisualObject CreateVisualObject(this LuaEnvironment luaEnv, int x, int y, int width, int height, LuaTable configuration = null, LuaTable style = null, LuaFunction f = null) =>
             new VisualObject(x, y, width, height, ConfigurationFromTable(configuration), StyleFromTable(style),
-                (self, touch) => (bool)(luaEnv.CallFunction(f, self, touch)?.FirstOrDefault() ?? true));
+                (self, touch) => luaEnv.CallFunction(f, self, touch));
     }
 }

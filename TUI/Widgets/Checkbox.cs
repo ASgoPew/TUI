@@ -50,11 +50,10 @@ namespace TUI.Widgets
         #endregion
         #region Invoke
 
-        public override bool Invoke(Touch touch)
+        public override void Invoke(Touch touch)
         {
             Set(!Value);
             Apply().Draw();
-            return true;
         }
 
         #endregion

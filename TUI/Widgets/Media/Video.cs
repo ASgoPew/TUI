@@ -59,7 +59,7 @@ namespace TUI.Widgets.Media
         #region Constructor
 
         public Video(int x, int y, UIConfiguration configuration = null, UIStyle style = null,
-                Func<VisualObject, Touch, bool> callback = null)
+                Action<VisualObject, Touch> callback = null)
             : base(x, y, 8, 5, configuration, style, callback)
         {
             Timer.Interval = VideoStyle.Delay;

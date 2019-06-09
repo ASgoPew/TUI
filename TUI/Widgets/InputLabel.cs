@@ -68,7 +68,7 @@ namespace TUI.Widgets
         #endregion
         #region Invoke
 
-        public override bool Invoke(Touch touch)
+        public override void Invoke(Touch touch)
         {
             if (touch.State == TouchState.Begin)
                 BeginValue = Get();
@@ -91,7 +91,6 @@ namespace TUI.Widgets
                 if (touch.State == TouchState.End && value != BeginValue)
                     InputLabelCallback?.Invoke(this, value);
             }
-            return true;
         }
 
         #endregion

@@ -134,7 +134,7 @@ namespace TUI.Widgets
         #endregion
         #region Invoke
 
-        public override bool Invoke(Touch touch)
+        public override void Invoke(Touch touch)
         {
             int forward = Parent.Style.Layout.Direction == Direction.Right || Parent.Style.Layout.Direction == Direction.Down ? 1 : -1;
             if (Vertical)
@@ -151,7 +151,6 @@ namespace TUI.Widgets
                 else
                     ScrollAction(Slider, Style.Layout.LayoutIndent - (Slider.X - touch.X) * forward);
             }
-            return true;
         }
 
         #endregion

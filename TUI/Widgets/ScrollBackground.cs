@@ -32,7 +32,7 @@ namespace TUI.Widgets
         #endregion
         #region Invoke
 
-        public override bool Invoke(Touch touch)
+        public override void Invoke(Touch touch)
         {
             if (Parent?.Style?.Layout == null)
                 throw new Exception("Scroll has no parent or parent doesn't have layout.");
@@ -66,7 +66,7 @@ namespace TUI.Widgets
                     VisualObject first = layout.Objects.FirstOrDefault();
                     VisualObject last = layout.Objects.LastOrDefault();
                     if (first == null)
-                        return true;
+                        return;
                     if (touch.State == TouchState.End || !AllowToPull)
                     {
                         if (newIndent < 0)
@@ -85,7 +85,6 @@ namespace TUI.Widgets
                     }
                 }
             }
-            return true;
         }
 
         #endregion
