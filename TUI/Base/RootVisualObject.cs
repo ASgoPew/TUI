@@ -12,7 +12,7 @@ namespace TUI.Base
 
         public HashSet<int> Players = new HashSet<int>();
 
-        public override string Name { get; }
+        public override string Name { get; set; }
         public override dynamic Provider { get; }
         public override int Layer
         {

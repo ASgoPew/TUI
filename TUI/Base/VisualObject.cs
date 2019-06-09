@@ -13,16 +13,52 @@ namespace TUI.Base
     {
         #region Data
 
+        /// <summary>
+        /// Object style.
+        /// </summary>
         public UIStyle Style { get; set; }
-        public VisualObject[,] Grid { get; set; }
+        /// <summary>
+        /// Child grid. Use operator[,] to get or set grid elements.
+        /// </summary>
+        protected VisualObject[,] Grid { get; set; }
+        /// <summary>
+        /// Cell of Parent's grid in which this object is. Null if not in Parent's grid.
+        /// </summary>
         public GridCell Cell { get; private set; }
+        /// <summary>
+        /// Objects draw with SentTileSquare by default. Set this field to force drawing this object with SendSection.
+        /// </summary>
         public bool ForceSection { get; set; } = false;
+        /// <summary>
+        /// X coordinate relative to tile provider. Sets in Update().
+        /// </summary>
         public int ProviderX { get; protected set; }
+        /// <summary>
+        /// Y coordinate relative to tile provider. Sets in Update().
+        /// </summary>
         public int ProviderY { get; protected set; }
+        /// <summary>
+        /// Bounds in which this object is allowed to draw.
+        /// </summary>
         public ExternalOffset Bounds { get; protected set; } = new ExternalOffset();
 
+        /// <summary>
+        /// Overridable field for disabling ability to be ordered in Parent's Child array.
+        /// </summary>
         public override bool Orderable => !Style.InLayout;
-        public virtual string Name => GetType().Name;
+
+        private string _Name;
+        /// <summary>
+        /// Object name. Class type name by default.
+        /// </summary>
+        public virtual string Name
+        {
+            get => _Name ?? GetType().Name;
+            set => _Name = value;
+        }
+        /// <summary>
+        /// Object full name (names of all objects up to the Root).
+        /// </summary>
         public string FullName =>
             Parent != null
                 ? (Cell != null
@@ -360,6 +396,11 @@ namespace TUI.Base
 
         #region Pulse
 
+            /// <summary>
+            /// Send a signal to all sub-tree including this node.
+            /// </summary>
+            /// <param name="type">Type of signal</param>
+            /// <returns>this</returns>
             public virtual VisualObject Pulse(PulseType type)
             {
                 // Pulse event handling related to this node
@@ -373,16 +414,28 @@ namespace TUI.Base
 
             #region PulseThis
 
+            /// <summary>
+            /// Send signal only to this node.
+            /// </summary>
+            /// <param name="type">Type of signal</param>
+            /// <returns>this</returns>
             public VisualObject PulseThis(PulseType type)
             {
+                // Overridable pulse handling method
                 PulseThisNative(type);
-                CustomPulse(type);
+
+                // Custom pulse handler
+                Configuration.CustomPulse?.Invoke(this, type);
                 return this;
             }
 
             #endregion
             #region PulseThisNative
 
+            /// <summary>
+            /// Overridable function to handle pulse signal.
+            /// </summary>
+            /// <param name="type"></param>
             protected virtual void PulseThisNative(PulseType type)
             {
                 switch (type)
@@ -396,18 +449,14 @@ namespace TUI.Base
             }
 
             #endregion
-            #region CustomPulse
-
-            public virtual VisualObject CustomPulse(PulseType type)
-            {
-                Configuration.CustomPulse?.Invoke(this, type);
-                return this;
-            }
-
-            #endregion
             #region PulseChild
 
-            public virtual VisualObject PulseChild(PulseType type)
+            /// <summary>
+            /// Send signal to sub-tree without this node.
+            /// </summary>
+            /// <param name="type">Type of signal</param>
+            /// <returns>this</returns>
+            public VisualObject PulseChild(PulseType type)
             {
                 lock (Child)
                     foreach (VisualObject child in ChildrenFromTop)
@@ -420,6 +469,10 @@ namespace TUI.Base
         #endregion
         #region Update
 
+            /// <summary>
+            /// Updates the node and the child sub-tree.
+            /// </summary>
+            /// <returns>this</returns>
             public VisualObject Update()
             {
                 // Updates related to this node
@@ -439,7 +492,7 @@ namespace TUI.Base
             /// <summary>
             /// Updates related to this node only.
             /// </summary>
-            /// <returns></returns>
+            /// <returns>this</returns>
             public VisualObject UpdateThis()
             {
                 // Overridable update method
@@ -455,7 +508,7 @@ namespace TUI.Base
             #region UpdateThisNative
 
             /// <summary>
-            /// Updates related to this node. At the moment of calling this method node position must be set up completely.
+            /// Overridable method for updates related to this node. Don't change position/size in in this method.
             /// </summary>
             protected virtual void UpdateThisNative()
             {
@@ -512,7 +565,8 @@ namespace TUI.Base
             /// <summary>
             /// First updates child sizes, then calculates child positions based on sizes.
             /// </summary>
-            public void UpdateChildPositioning()
+            /// <returns>this</returns>
+            public VisualObject UpdateChildPositioning()
             {
                 /////////////////////////// Child size updates ///////////////////////////
                 UpdateChildSize();
@@ -526,6 +580,8 @@ namespace TUI.Base
                 // Update child objects in grid
                 if (Style.Grid != null)
                     UpdateGrid();
+
+                return this;
             }
 
             #endregion
@@ -925,9 +981,9 @@ namespace TUI.Base
             #region UpdateChild
 
             /// <summary>
-            /// Updates all Enabled child objects.
+            /// Updates all Enabled child objects (sub-tree without this node).
             /// </summary>
-            /// <returns></returns>
+            /// <returns>this</returns>
             public VisualObject UpdateChild()
             {
                 lock (Child)
@@ -943,10 +999,10 @@ namespace TUI.Base
         #region Apply
 
             /// <summary>
-            /// Draws everything related to this VisualObject incluing all child objects (directly changes tiles on tile provider).
+            /// Draws everything related to this VisualObject incluing all child sub-tree (directly changes tiles on tile provider).
             /// </summary>
-            /// <returns></returns>
-            public virtual VisualObject Apply()
+            /// <returns>this</returns>
+            public VisualObject Apply()
             {
 #if DEBUG
                 if (!CalculateActive())
@@ -970,13 +1026,16 @@ namespace TUI.Base
             /// <summary>
             /// Draws everything related to this particular VisualObject. Doesn't include drawing child objects.
             /// </summary>
-            /// <returns></returns>
+            /// <returns>this</returns>
             public VisualObject ApplyThis()
             {
                 lock (Locker)
                 {
+                    // Overridable apply function
                     ApplyThisNative();
-                    CustomApply();
+
+                    // Custom apply callback
+                    Configuration.CustomApply?.Invoke(this);
                 }
                 return this;
             }
@@ -985,20 +1044,22 @@ namespace TUI.Base
             #region ApplyThisNative
 
             /// <summary>
-            /// By default draws tiles/walls and grid if UI.ShowGrid is true. Overwrite this method for own widgets drawing.
-            /// Don't call this method directly, call ApplyThis() instead.
+            /// Overridable method for apply related to this node. By default draws tiles/walls and grid if UI.ShowGrid is true.
             /// </summary>
             protected virtual void ApplyThisNative()
             {
-                //ForceSection = false;
                 ApplyTiles();
                 if (TUI.ShowGrid && Style.Grid != null)
-                    ShowGrid();
+                    ApplyGridTemplate();
             }
 
             #endregion
             #region ApplyTiles
 
+            /// <summary>
+            /// Apply tiles and walls for this node.
+            /// </summary>
+            /// <returns>this</returns>
             public VisualObject ApplyTiles()
             {
                 lock (Locker)
@@ -1008,12 +1069,7 @@ namespace TUI.Base
                         return this;
 
                     foreach ((int x, int y) in Points)
-                    {
-                        dynamic tile = Tile(x, y);
-                        if (tile == null)
-                            continue;
-                        ApplyTile(x, y, tile);
-                    }
+                        ApplyTile(x, y);
                 }
                 return this;
             }
@@ -1021,8 +1077,16 @@ namespace TUI.Base
             #endregion
             #region ApplyTile
 
-            protected virtual void ApplyTile(int x, int y, dynamic tile)
+            /// <summary>
+            /// Overridable method for applying particular tile in <see cref="ApplyTiles"/>.
+            /// </summary>
+            /// <param name="x">X coordinate related to this node</param>
+            /// <param name="y">Y coordinate related to this node</param>
+            protected virtual void ApplyTile(int x, int y)
             {
+                dynamic tile = Tile(x, y);
+                if (tile == null)
+                    return;
                 if (Style.Active != null)
                     tile.active(Style.Active.Value);
                 else if (Style.Tile != null)
@@ -1044,7 +1108,10 @@ namespace TUI.Base
             #endregion
             #region ShowGrid
 
-            public void ShowGrid()
+            /// <summary>
+            /// DEBUG function for showing grid bounds.
+            /// </summary>
+            public void ApplyGridTemplate()
             {
                 lock (Locker)
                 {
@@ -1067,19 +1134,13 @@ namespace TUI.Base
             }
 
             #endregion
-            #region CustomApply
-
-            public virtual VisualObject CustomApply()
-            {
-                lock (Locker)
-                    Configuration.CustomApply?.Invoke(this);
-                return this;
-            }
-
-            #endregion
             #region ApplyChild
 
-            public virtual VisualObject ApplyChild()
+            /// <summary>
+            /// Apply sub-tree without applying this node.
+            /// </summary>
+            /// <returns>this</returns>
+            public VisualObject ApplyChild()
             {
                 lock (Locker)
                 {
@@ -1101,6 +1162,18 @@ namespace TUI.Base
         #endregion
         #region Draw
 
+        /// <summary>
+        /// Sends SendTileSquare/SendSection packet to clients.
+        /// </summary>
+        /// <param name="dx">X coordinate delta</param>
+        /// <param name="dy">Y coordinate delta</param>
+        /// <param name="width">Drawing rectangle width, -1 for object.Width</param>
+        /// <param name="height">Drawing rectangle height, -1 for object.Height</param>
+        /// <param name="userIndex">Index of user to send to, -1 for all users</param>
+        /// <param name="exceptUserIndex">Index of user to ignore on sending</param>
+        /// <param name="forceSection">Whether to send with SendTileSquare or with SendSection, SendTileSquare (false) by default</param>
+        /// <param name="frame">Whether to send SectionFrame if sending with SendSection</param>
+        /// <returns>this</returns>
         public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1, int userIndex = -1, int exceptUserIndex = -1, bool? forceSection = null, bool frame = true)
         {
             bool realForceSection = forceSection ?? ForceSection;
@@ -1115,6 +1188,14 @@ namespace TUI.Base
         #endregion
         #region DrawPoints
 
+        /// <summary>
+        /// Draw list of points related to this node.
+        /// </summary>
+        /// <param name="points">List of points</param>
+        /// <param name="userIndex">Index of user to send to, -1 for all users</param>
+        /// <param name="exceptUserIndex">Index of user to ignore on sending</param>
+        /// <param name="forceSection">Whether to send with SendTileSquare or with SendSection, SendTileSquare (false) by default</param>
+        /// <returns>this</returns>
         public virtual VisualObject DrawPoints(IEnumerable<(int, int)> points, int userIndex = -1, int exceptUserIndex = -1, bool? forceSection = null)
         {
             List<(int, int)> list = points.ToList();
@@ -1142,7 +1223,11 @@ namespace TUI.Base
         #endregion
         #region Clear
 
-        public virtual VisualObject Clear()
+        /// <summary>
+        /// Clear all tiles with ITile.ClearEverything()
+        /// </summary>
+        /// <returns>this</returns>
+        public VisualObject Clear()
         {
             foreach ((int x, int y) in Points)
                 Tile(x, y)?.ClearEverything();

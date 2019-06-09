@@ -77,8 +77,11 @@ namespace TUI.Widgets
         #endregion
         #region ApplyTile
 
-        protected override void ApplyTile(int x, int y, dynamic tile)
+        protected override void ApplyTile(int x, int y)
         {
+            dynamic tile = Tile(x, y);
+            if (tile == null)
+                return;
             if (Style.Active != null)
                 tile.active(Style.Active.Value);
             else if (Style.Tile != null)
