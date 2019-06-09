@@ -20,7 +20,7 @@ namespace TUI.Base.Style
         /// </summary>
         public bool BoundsIsOffset { get; set; }
 
-        public AlignmentStyle(Alignment alignment, ExternalOffset offset = null, bool boundsIsOffset = true)
+        internal AlignmentStyle(Alignment alignment, ExternalOffset offset = null, bool boundsIsOffset = true)
         {
             Alignment = alignment;
             Offset = offset ?? new ExternalOffset(UIDefault.ExternalOffset);
@@ -99,25 +99,37 @@ namespace TUI.Base.Style
         internal int MinWidth = 1;
         internal int MinHeight = 1;
 
+        /// <summary>
+        /// Grid column sizes
+        /// </summary>
         public ISize[] Columns { get; internal set; }
+        /// <summary>
+        /// Grid line sizes
+        /// </summary>
         public ISize[] Lines { get; internal set; }
+        /// <summary>
+        /// Grid offset
+        /// </summary>
         public Offset Offset { get; set; }
 
-        public GridStyle(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null, Offset offset = null)
+        internal GridStyle(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null, Offset offset = null)
         {
             Columns = columns?.ToArray() ?? new ISize[] { new Relative(100) };
             Lines = lines?.ToArray() ?? new ISize[] { new Relative(100) };
             Offset = offset ?? new Offset(UIDefault.Offset);
         }
 
-        public GridStyle(GridStyle style)
-            : this((ISize[]) style.Columns.Clone(), (ISize[]) style.Lines.Clone())
+        internal GridStyle(GridStyle style)
+            : this((ISize[]) style.Columns.Clone(), (ISize[]) style.Lines.Clone(), new Offset(style.Offset))
         {
         }
     }
 
     #endregion
 
+    /// <summary>
+    /// Object drawing style class.
+    /// </summary>
     public class UIStyle
     {
         /// <summary>
@@ -154,11 +166,32 @@ namespace TUI.Base.Style
         /// </summary>
         public FullSize FullSize { get; set; } = FullSize.None;
 
+        /// <summary>
+        /// Sets tile.active(Style.Active) for every tile.
+        /// <para></para>
+        /// If not specified sets to true in case Style.Tile is specified,
+        /// otherwise to false in case Style.Wall is specified.
+        /// </summary>
         public bool? Active { get; set; }
+        /// <summary>
+        /// Sets tile.type = Style.Tile for every tile.
+        /// </summary>
         public ushort? Tile { get; set; }
+        /// <summary>
+        /// Sets tile.color(Style.TileColor) for every tile.
+        /// </summary>
         public byte? TileColor { get; set; }
+        /// <summary>
+        /// Sets tile.wall = Style.Wall for every tile.
+        /// </summary>
         public byte? Wall { get; set; }
+        /// <summary>
+        /// Sets tile.wallColor(Style.WallColor) for every tile.
+        /// </summary>
         public byte? WallColor { get; set; }
+        /// <summary>
+        /// Sets tile.inActive(Style.InActive) for every tile.
+        /// </summary>
         public bool? InActive { get; set; }
 
         public UIStyle() { }
