@@ -79,7 +79,6 @@ namespace TUI.Widgets.Media
                     sign.Sign.text = sign.Text;
                 }
             }
-            Console.WriteLine($"IMAGE {FullName}: {Data.Width}, {Data.Height}");
             SetWH(Data.Width, Data.Height);
         }
 

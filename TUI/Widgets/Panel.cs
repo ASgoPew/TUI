@@ -180,7 +180,7 @@ namespace TUI.Widgets
         public DefaultPanelResize()
             : base(0, 0, 1, 1, new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true, Permission="TUI.Control" })
         {
-            SetAlignmentInParent(new AlignmentStyle(Alignment.DownRight));
+            SetAlignmentInParent(Alignment.DownRight);
         }
     }
 

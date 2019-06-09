@@ -11,7 +11,7 @@ namespace TUI.Widgets
             : base(x, y, width, height, text, new UIConfiguration() { UseBegin = false }, style)
         {
             Input = Add(input);
-            Input.SetAlignmentInParent(new AlignmentStyle(Alignment.Right));
+            Input.SetAlignmentInParent(Alignment.Right);
         }
     }
 }

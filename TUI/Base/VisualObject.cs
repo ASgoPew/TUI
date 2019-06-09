@@ -264,11 +264,16 @@ namespace TUI.Base
         /// <summary>
         /// Setup layout for child positioning.
         /// </summary>
-        /// <param name="layout">Layout configuration</param>
+        /// <param name="alignment">Where to place all layout objects row/line</param>
+        /// <param name="direction">Direction of placing objects</param>
+        /// <param name="side">Side to which objects adjoin, relative to direction</param>
+        /// <param name="offset">Layout offset</param>
+        /// <param name="childIndent">Distance between objects in layout</param>
+        /// <param name="boundsIsOffset">Whether to draw objects/ object tiles that are outside of bounds of offset or not</param>
         /// <returns>this</returns>
-        public VisualObject SetupLayout(LayoutStyle layout)
+        public VisualObject SetupLayout(Alignment alignment = Alignment.Center, Direction direction = Direction.Down, Side side = Side.Center, ExternalOffset offset = null, int childIndent = 1, bool boundsIsOffset = true)
         {
-            Style.Layout = layout;
+            Style.Layout = new LayoutStyle(alignment, direction, side, offset, childIndent, boundsIsOffset);
             return this;
         }
 
@@ -276,14 +281,16 @@ namespace TUI.Base
         #region SetupGrid
 
         /// <summary>
-        /// Setup grid for child positioning.
+        /// Setup grid for child positioning. Use Absolute and Relative classes for specifying sizes.
         /// </summary>
-        /// <param name="gridStyle">Grid configuration</param>
-        /// <param name="fillWithEmptyObjects">Fills all grid cells with basic VisualObjects if true</param>
+        /// <param name="columns">Column sizes</param>
+        /// <param name="lines">Line sizes</param>
+        /// <param name="offset">Grid offset</param>
+        /// <param name="fillWithEmptyObjects">Whether to fills all grid cells with basic VisualObjects</param>
         /// <returns>this</returns>
-        public VisualObject SetupGrid(GridStyle gridStyle = null, bool fillWithEmptyObjects = true)
+        public VisualObject SetupGrid(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null, Offset offset = null, bool fillWithEmptyObjects = true)
         {
-            Style.Grid = gridStyle ?? new GridStyle();
+            GridStyle gridStyle = Style.Grid = new GridStyle(columns, lines);
 
             VisualObject[,] oldGrid = Grid;
 
@@ -309,9 +316,11 @@ namespace TUI.Base
         /// <summary>
         /// Setup alignment positioning inside parent. Removes layout and grid positioning.
         /// </summary>
-        /// <param name="alignmentStyle">Alignment configuration</param>
+        /// <param name="alignment">Where to place this object in parent</param>
+        /// <param name="offset">Alignment offset from Parent's borders</param>
+        /// <param name="boundsIsOffset">Whether to draw tiles of this object that are outside of bounds of offset or not</param>
         /// <returns>this</returns>
-        public VisualObject SetAlignmentInParent(AlignmentStyle alignmentStyle)
+        public VisualObject SetAlignmentInParent(Alignment alignment, ExternalOffset offset = null, bool boundsIsOffset = true)
         {
             if (Cell != null)
             {
@@ -320,7 +329,7 @@ namespace TUI.Base
             }
             Style.InLayout = false;
 
-            Style.Alignment = alignmentStyle;
+            Style.Alignment = new AlignmentStyle(alignment, offset, boundsIsOffset);
             return this;
         }
 

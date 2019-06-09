@@ -90,6 +90,33 @@ Button button = root.Add(new Button(5, 5, 10, 4, "lol", null, new ButtonStyle() 
 1. **FullSize** (полноразмерность)
 
 
+### Layout
+Этот метод позвоялет автоатически распологать детей, добавленных с помощью метода AddToLayout,
+в определенном порядке друг за другом в указанном направлении:
+```VisualObject SetupLayout(Alignment alignment, Direction direction, Side side, ExternalOffset offset, int childIndent, bool boundsIsOffset)```
+* alignment - сторона/угол/центр, где будут распологаться объекты layout. Например, правый верхний угол - Alignment.TopRight
+* direction - направление, по которому будут добавляться объекты. Например, вниз - Direction.Down
+* side - сторона, к которой будут прилегать объекты. Например, по центру - Side.Center
+* offset - отступ layout. Например, отступ сверху на 3 и слева на 2: new ExternalOffset() { Up=3, Left=2 }
+* childIndent - расстояние между объектами в layout.
+* boundsIsOffset - если установлено true, то блоки объектов, выходящие за границы layout, не будут рисоваться
+
+Пример использования:
+```cs
+node.SetupLayout(Alignment.Center, Direction.Left, Side.Center, ExternalOffset() { Left=5, Up=5, Right=5, Down=5 }, 3, false);
+node.AddToLayout(InputLabel(0, 0, InputLabelStyle(Default="12345", Type=InputLabelType.All, TextUnderline=LabelUnderline.None)));
+node.AddToLayout(ItemRack(0, 0, ItemRackStyle(Type=200, Left=True), uif(lambda o, t: puts(t.X, t.Y))));
+ItemRack irack = node.AddToLayout(ItemRack(0, 0, ItemRackStyle(Type=201, Left=True)));
+irack.Set("lololo\nkekeke");
+node.AddToLayout(Slider(0, 0, 10, 2, SliderStyle(Default=3, Wall=157, WallColor=26)));
+```
+Результат:
+![](LayoutExample.png)
+
+### Grid
+Этот метод позволяет представить объект в виде решетки с абсолютными или относительными размерами колонок и линий:
+
+
 
 Некоторые тайлы ломаются при определенных условиях при отправке с помощью SendTileSquare (например, это статуя без блоков под ней).
 Для того, чтобы заставить объект рисоваться с помощью отправок секций, достаточно установить у него поле ForceSection в значение true.

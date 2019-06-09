@@ -48,20 +48,20 @@ namespace TUI.Widgets
                 Width = width;
                 SetFullSize(FullSize.Vertical);
                 if (side == Direction.Left)
-                    SetAlignmentInParent(new AlignmentStyle(Alignment.Left));
+                    SetAlignmentInParent(Alignment.Left);
                 else
-                    SetAlignmentInParent(new AlignmentStyle(Alignment.Right));
-                SetupLayout(new LayoutStyle(Alignment.Up, Direction.Up, Side.Center, null, 0));
+                    SetAlignmentInParent(Alignment.Right);
+                SetupLayout(Alignment.Up, Direction.Up, Side.Center, null, 0);
             }
             else
             {
                 Height = width;
                 SetFullSize(FullSize.Horizontal);
                 if (side == Direction.Up)
-                    SetAlignmentInParent(new AlignmentStyle(Alignment.Up));
+                    SetAlignmentInParent(Alignment.Up);
                 else
-                    SetAlignmentInParent(new AlignmentStyle(Alignment.Down));
-                SetupLayout(new LayoutStyle(Alignment.Left, Direction.Left, Side.Center, null, 0));
+                    SetAlignmentInParent(Alignment.Down);
+                SetupLayout(Alignment.Left, Direction.Left, Side.Center, null, 0);
             }
             Empty1 = AddToLayout(new Separator(0)) as Separator;
             Slider = AddToLayout(new ScrollBackground(false, true, true, ScrollAction)) as ScrollBackground;

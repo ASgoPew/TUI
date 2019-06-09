@@ -75,7 +75,7 @@ namespace TUI.Base.Style
         /// </summary>
         public bool BoundsIsOffset { get; set; }
 
-        public LayoutStyle(Alignment alignment = Style.Alignment.Center, Direction direction = Style.Direction.Down, Side side = Style.Side.Center, ExternalOffset offset = null, int childIndent = 1, bool boundsIsOffset = true)
+        internal LayoutStyle(Alignment alignment = Style.Alignment.Center, Direction direction = Style.Direction.Down, Side side = Style.Side.Center, ExternalOffset offset = null, int childIndent = 1, bool boundsIsOffset = true)
         {
             Alignment = alignment;
             Direction = direction;
@@ -85,7 +85,7 @@ namespace TUI.Base.Style
             BoundsIsOffset = boundsIsOffset;
         }
 
-        public LayoutStyle(LayoutStyle layoutStyle)
+        internal LayoutStyle(LayoutStyle layoutStyle)
             : this(layoutStyle.Alignment, layoutStyle.Direction, layoutStyle.Side, layoutStyle.Offset, layoutStyle.ChildIndent) { }
     }
 
@@ -103,10 +103,11 @@ namespace TUI.Base.Style
         public ISize[] Lines { get; internal set; }
         public Offset Offset { get; set; }
 
-        public GridStyle(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null)
+        public GridStyle(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null, Offset offset = null)
         {
             Columns = columns?.ToArray() ?? new ISize[] { new Relative(100) };
             Lines = lines?.ToArray() ?? new ISize[] { new Relative(100) };
+            Offset = offset ?? new Offset(UIDefault.Offset);
         }
 
         public GridStyle(GridStyle style)
