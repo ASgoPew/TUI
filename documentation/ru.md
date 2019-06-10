@@ -78,7 +78,8 @@ UI.Draw();
 Panel root = TUI.CreatePanel("TestPanel", 100, 100, 50, 40, null, new UIStyle() { Wall=155 });
 Label label = root.Add(new Label(1, 1, 15, 2, "some text"));
 Button button = root.Add(new Button(5, 5, 10, 4, "lol", null, new ButtonStyle() { WallColor=25 },
-	(self, touch) => touch.Player().SendInfoMessage("You pressed lol button!")));```
+	(self, touch) => touch.Player().SendInfoMessage("You pressed lol button!")));
+```
 
 # Способы автоматического регулирования позиции и размеров объектов
 
