@@ -286,7 +286,7 @@ namespace TUI.Base
         /// <param name="columns">Column sizes</param>
         /// <param name="lines">Line sizes</param>
         /// <param name="offset">Grid offset</param>
-        /// <param name="fillWithEmptyObjects">Whether to fills all grid cells with basic VisualObjects</param>
+        /// <param name="fillWithEmptyObjects">Whether to fills all grid cells with empty VisualObjects</param>
         /// <returns>this</returns>
         public VisualObject SetupGrid(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null, Offset offset = null, bool fillWithEmptyObjects = true)
         {

@@ -9,7 +9,7 @@
 
 ![](minesweeper.png)
 
-Эти и некоторые другие примеры игр вы можете посмотреть в измерении games на серврере terraria-servers.ru:7777.
+Эти и некоторые другие примеры игр вы можете посмотреть в измерении games на сервере terraria-servers.ru:7777.
 
 ## Основы интерфейса
 
@@ -18,18 +18,22 @@
 от VisualObject. А кнопка - это класс Button, наследующийся от класса Label, который тоже в свою очередь
 наследуется от VisualObject. Любой виджет, работающий в этой библиотеке обязан наследоваться от VisualObject.
 Весь интерфейс сам по себе представляет из себя набор деревьев, каждая вершина которого - VisualObject
-или объект класса, наследующегося от VisualObject. При это корень дерева - это всегда объект класса
-RootVisualObject или класса, наследующегося от RootVisualObject (например Panel)
+или объект класса, наследующегося от VisualObject. Таким образом, игра сапер представляет из себя одно из
+таких деревьев. При этом корень дерева - это всегда объект класса RootVisualObject или класса,
+наследующегося от RootVisualObject (например Panel). Для разработчика приложений на интерфейсе объект
+класса RootVisualObject не особо отличается от обычного VisualObject, потому как RootVisualObject наследуется
+от VisualObject и лишь добавляет некоторые поля и функционал (например, функция всплывающего окна).
 
 ![](VisualObjectTree.png)
 
 Дочерние элементы объекта VisualObject находятся в поле закрытом поле Child (List<VisualObject>).
+Обычно не требуется обращение к этому списку напрямую, но в целях отладки это возможно: GetChild(int index)
 Родительсткая вершина хранится в поле Parent (VisualObject).
 Корень дерева доступен по геттеру Root (RootVisualObject). Учтите, что получить доступ к этому полю
 можно только после того, как будет вызван Update всего дерева. Чтобы получить корень дерева
 до вызова Update(), воспользуйтесь методом GetRoot().
 Добавить дочерний элемент можно несколькими способами, например - вызвав функцию Add:
-**VisualObject *Add*(VisualObject newChild)**
+```VisualObject *Add*(VisualObject newChild)```
 
 ## Базовые операции над VisualObject
 
@@ -74,10 +78,9 @@ UI.Draw();
 Panel root = TUI.CreatePanel("TestPanel", 100, 100, 50, 40, null, new UIStyle() { Wall=155 });
 Label label = root.Add(new Label(1, 1, 15, 2, "some text"));
 Button button = root.Add(new Button(5, 5, 10, 4, "lol", null, new ButtonStyle() { WallColor=25 },
-	(self, touch) => touch.Player().SendInfoMessage("You pressed lol button!")));
-```
+	(self, touch) => touch.Player().SendInfoMessage("You pressed lol button!")));```
 
-## Способы автоматического регулирования позиции и размеров объектов
+# Способы автоматического регулирования позиции и размеров объектов
 
 Позиционирование дочерних объектов внутри текущей вершины:
 1. **Layout** (разметка)
@@ -101,7 +104,7 @@ Button button = root.Add(new Button(5, 5, 10, 4, "lol", null, new ButtonStyle() 
 * childIndent - расстояние между объектами в layout.
 * boundsIsOffset - если установлено true, то блоки объектов, выходящие за границы layout, не будут рисоваться
 
-Пример использования:
+Пример:
 ```cs
 node.SetupLayout(Alignment.Center, Direction.Left, Side.Center, ExternalOffset() { Left=5, Up=5, Right=5, Down=5 }, 3, false);
 node.AddToLayout(InputLabel(0, 0, InputLabelStyle(Default="12345", Type=InputLabelType.All, TextUnderline=LabelUnderline.None)));
@@ -116,7 +119,74 @@ node.AddToLayout(Slider(0, 0, 10, 2, SliderStyle(Default=3, Wall=157, WallColor=
 ### Grid
 Этот метод позволяет представить объект в виде решетки с абсолютными или относительными размерами колонок и линий:
 
+```VisualObject SetupGrid(IEnumerable<ISize> columns, IEnumerable<ISize> lines, Offset offset, bool fillWithEmptyObjects)```
+* columns - размеры колонок. Например, левая колонка размером 10 блоков, а правая - все оставшееся место: new ISize[] { Absolute(10), Relative(100) }
+* lines - размеры линий.
+* offset - отступ сетки, включая внутренние отступы ячеек между собой и внешние отступы от границы объекта.
+* fillWithEmptyObjects - заполнить ли все ячейки пустыми VisualObject или нет.
 
+Пример:
+```cs
+node.SetupGrid([Relative(100), Absolute(16)], [Relative(100)], null, true);
+node[0, 0] = new VisualObject(new UIStyle() { WallColor=26 });
+node[1, 0].Style.WallColor = 25;
+```
+Результат:
+![](GridExample.png)
+
+Вы можете установить TUI.ShowGrid в значение true, чтобы видеть решетки объектов:
+```cs
+TUI.ShowGrid = true;
+node.SetupGrid([Absolute(10), Relative(50), Absolute(16), Relative(50)], [Relative(20), Absolute(5), Relative(80)]);
+```
+Результат:
+![](ShowGridExample.png)
+
+### Alignment
+Этот метод позволяет автоматически распологать объект в относительной позиции в родителе:
+```VisualObject SetAlignmentInParent(Alignment alignment, ExternalOffset offset, bool boundsIsOffset)```
+* alignment - место расположения объекта в родителе.
+* offset - отступы от границ родителя.
+* boundsIsOffset - рисовать ли тайлы, которые вылезают за границы offset.
+
+Пример (метод Add возвращает только что добавленный дочерний объект):
+```cs
+node.Add(Label(0, 0, 10, 4, "test")).SetAlignmentInParent(Alignment.DownLeft, new ExternalOffset(Left=1, Down=1));
+```
+Результат:
+![](AlignmentExample.png)
+
+### FullSize
+Этот метод позволяет автоматически устанавливать размеры объекта (как по ширине, так и по высоте) относительно
+размеров родителя, а именно - расширять в точности до размеров родителя:
+```VisualObject SetFullSize(bool horizontal, bool vertical)```
+* horizontal - устанавливать ширину объекта равной ширине родителя.
+* vertical - устанавливать высоту объекта равной высоте родителя.
+или
+```VisualObject SetFullSize(FullSize fullSize)```
+* fullSize - одно из значений: FullSize.None, FullSize.Horizontal, FullSize.Vertical, FullSize.Both.
+
+Пример:
+```cs
+node.Add(VisualObject(new UIStyle() { WallColor=15 })).SetFullSize(true, false);
+```
+Результат:
+![](FullSizeExample.png)
+
+# Виджеты
+
+## Label
+## Button
+## Slider
+## Checkbox
+## Switch
+## Separator
+## InputLabel
+## ItemRack
+## Image
+## Video
+## ScrollBar
+## ScrollBackground
 
 Некоторые тайлы ломаются при определенных условиях при отправке с помощью SendTileSquare (например, это статуя без блоков под ней).
 Для того, чтобы заставить объект рисоваться с помощью отправок секций, достаточно установить у него поле ForceSection в значение true.
