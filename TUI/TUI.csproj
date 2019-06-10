@@ -97,6 +97,7 @@
     <Compile Include="Widgets\Separator.cs" />
     <Compile Include="Widgets\Slider.cs" />
     <Compile Include="Widgets\Switch.cs" />
+    <Compile Include="Widgets\VisualSign.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
