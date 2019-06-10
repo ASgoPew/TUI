@@ -191,16 +191,16 @@ namespace TUI.Widgets
         /// <summary>
         /// Set text. Doesn't call update/apply/draw.
         /// </summary>
-        /// <param name="text"></param>
-        public virtual void Set(string text)
+        /// <param name="value"></param>
+        public virtual void Set(string value)
         {
-            RawText = text;
+            RawText = value;
         }
 
         #endregion
         #region Get
 
-        public string Get() => RawText;
+        public virtual string Get() => RawText;
 
         #endregion
 

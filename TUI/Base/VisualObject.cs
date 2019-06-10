@@ -1041,11 +1041,11 @@ namespace TUI.Base
         #endregion
         #region Apply
 
-        /// <summary>
-        /// Draws everything related to this VisualObject incluing all child sub-tree (directly changes tiles on tile provider).
-        /// </summary>
-        /// <returns>this</returns>
-        public VisualObject Apply()
+            /// <summary>
+            /// Draws everything related to this VisualObject incluing all child sub-tree (directly changes tiles on tile provider).
+            /// </summary>
+            /// <returns>this</returns>
+            public VisualObject Apply()
             {
 #if DEBUG
                 if (!CalculateActive())
