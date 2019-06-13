@@ -52,7 +52,7 @@ namespace TUI.Widgets
                   new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true }, style ?? new InputLabelStyle())
         {
             InputLabelStyle ilstyle = InputLabelStyle;
-            ilstyle.TextOffset = new Offset() { Left = 0, Up = 0, Right = 0, Down = 0, Horizontal = 2, Vertical = 0 };
+            ilstyle.TextOffset = new Offset() { Left = 0, Up = 0, Right = 0, Down = 0, Horizontal = 2, Vertical = 2 };
             ilstyle.TextAlignment = Alignment.UpLeft;
             InputLabelCallback = callback;
         }

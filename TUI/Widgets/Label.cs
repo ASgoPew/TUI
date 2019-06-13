@@ -236,7 +236,7 @@ namespace TUI.Widgets
                     line = reader.ReadLine();
                     if (line != null)
                     {
-                        int x = LimitStatueLine(line.Trim(), width, emptyIndentation, result, maxLines - result.Count);
+                        int x = LimitStatueLine(line, width, emptyIndentation, result, maxLines - result.Count);
                         if (x > maxX)
                             maxX = x;
                         if (result.Count == maxLines)
