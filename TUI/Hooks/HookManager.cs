@@ -16,5 +16,6 @@ namespace TUI.Hooks
         public Hook<CreateSignArgs> CreateSign = new Hook<CreateSignArgs>();
         public Hook<RemoveSignArgs> RemoveSign = new Hook<RemoveSignArgs>();
         public Hook<LogArgs> Log = new Hook<LogArgs>();
+        public Hook<DatabaseArgs> Database = new Hook<DatabaseArgs>();
     }
 }

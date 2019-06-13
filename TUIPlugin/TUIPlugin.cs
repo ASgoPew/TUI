@@ -61,6 +61,7 @@ namespace TUIPlugin
             TUI.TUI.Hooks.CreateSign.Event += OnCreateSign;
             TUI.TUI.Hooks.RemoveSign.Event += OnRemoveSign;
             TUI.TUI.Hooks.Log.Event += OnLog;
+            TUI.TUI.Hooks.Database.Event += OnDatabase;
             RegionTimer.Elapsed += OnRegionTimer;
             RegionTimer.Start();
 
@@ -68,6 +69,8 @@ namespace TUIPlugin
                 ImageData.Readers.Add(".dat", ReadWorldEdit);
             if (!ImageData.Readers.ContainsKey(".TEditSch"))
                 ImageData.Readers.Add(".TEditSch", ReadTEdit);
+
+            Database.ConnectDB();
 
             TUI.TUI.Initialize(255);
         }
@@ -91,6 +94,7 @@ namespace TUIPlugin
                 TUI.TUI.Hooks.CreateSign.Event -= OnCreateSign;
                 TUI.TUI.Hooks.RemoveSign.Event -= OnRemoveSign;
                 TUI.TUI.Hooks.Log.Event -= OnLog;
+                TUI.TUI.Hooks.Database.Event -= OnDatabase;
                 RegionTimer.Elapsed -= OnRegionTimer;
                 RegionTimer.Stop();
             }
@@ -325,6 +329,25 @@ namespace TUIPlugin
                 TShock.Log.ConsoleError(args.Text);
             else if (args.Type == LogType.Error)
                 TShock.Log.ConsoleError(args.Text);
+        }
+
+        #endregion
+        #region OnDatabase
+
+        private static void OnDatabase(DatabaseArgs args)
+        {
+            switch (args.Type)
+            {
+                case DatabaseActionType.Get:
+                    args.Value = Database.GetValue(args.Key);
+                    break;
+                case DatabaseActionType.Set:
+                    Database.SetValue(args.Key, args.Value);
+                    break;
+                case DatabaseActionType.Remove:
+                    Database.RemoveKey(args.Key);
+                    break;
+            }
         }
 
         #endregion

@@ -422,5 +422,27 @@ namespace TUI
         }
 
         #endregion
+        #region DBGet
+
+        public static string DBGet(string key)
+        {
+            DatabaseArgs args = new DatabaseArgs(DatabaseActionType.Get, key);
+            Hooks.Database.Invoke(args);
+            return args.Value;
+        }
+
+        #endregion
+        #region DBSet
+
+        public static void DBSet(string key, string value) =>
+            Hooks.Database.Invoke(new DatabaseArgs(DatabaseActionType.Set, key, value));
+
+        #endregion
+        #region DBRemove
+
+        public static void DBRemove(string key) =>
+            Hooks.Database.Invoke(new DatabaseArgs(DatabaseActionType.Remove, key));
+
+        #endregion
     }
 }
