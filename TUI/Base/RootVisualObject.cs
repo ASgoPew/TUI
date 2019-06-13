@@ -6,7 +6,7 @@ using TUI.Hooks.Args;
 
 namespace TUI.Base
 {
-    public class RootVisualObject : VisualObject
+    public class RootVisualObject : VisualContainer
     {
         #region Data
 
@@ -20,7 +20,7 @@ namespace TUI.Base
             set => throw new Exception("You can't set a layer for RootVisualObject");
         }
 
-        public VisualObject PopUpBackground { get; protected set; }
+        public VisualContainer PopUpBackground { get; protected set; }
         protected Dictionary<VisualObject, Action<VisualObject>> PopUpCancelCallbacks =
             new Dictionary<VisualObject, Action<VisualObject>>();
         
@@ -29,7 +29,7 @@ namespace TUI.Base
         #region Constructor
 
         internal RootVisualObject(string name, int x, int y, int width, int height,
-                UIConfiguration configuration = null, UIStyle style = null, object provider = null)
+                UIConfiguration configuration = null, ContainerStyle style = null, object provider = null)
             : base(x, y, width, height, configuration ?? new UIConfiguration() { UseBegin=true, UseMoving=true, UseEnd=true }, style)
         {
             Configuration.UseOutsideTouches = false;
@@ -107,8 +107,6 @@ namespace TUI.Base
 
         protected override void ApplyThisNative()
         {
-            Clear();
-
 #if DEBUG
             Stopwatch sw = Stopwatch.StartNew();
 #endif
@@ -125,12 +123,14 @@ namespace TUI.Base
         /// <summary>
         /// Draws popup object.
         /// </summary>
-        /// <returns>this</returns>
-        public virtual VisualObject ShowPopUp(VisualObject popup, UIStyle background = null, Action<VisualObject> cancelCallback = null)
+        /// <returns>PopUpBackground</returns>
+        public virtual VisualObject ShowPopUp(VisualObject popup, ContainerStyle style = null, Action<VisualObject> cancelCallback = null)
         {
+            style.Transparent = true;
             if (PopUpBackground == null)
             {
-                PopUpBackground = new VisualObject(0, 0, 0, 0, new UIConfiguration() { SessionAcquire=true }, null, (self, touch) =>
+                PopUpBackground = new VisualContainer(0, 0, 0, 0, new UIConfiguration()
+                    { SessionAcquire=true }, style, (self, touch) =>
                 {
                     VisualObject selected = self.Selected();
                     if (selected != null && PopUpCancelCallbacks.TryGetValue(selected, out Action<VisualObject> cancel))
@@ -140,16 +140,17 @@ namespace TUI.Base
                 });
                 Add(PopUpBackground, Int32.MaxValue);
             }
-            if (background != null)
-                PopUpBackground.Style = background;
+            if (style != null)
+                PopUpBackground.Style = style;
             PopUpBackground.SetFullSize();
             PopUpBackground.Add(popup);
             if (cancelCallback != null)
                 PopUpCancelCallbacks[popup] = cancelCallback;
             PopUpBackground.ForceSection = ForceSection;
+            PopUpBackground.Select(popup).Enable();
             Update();
-            PopUpBackground.Select(popup).Enable().Apply().Draw();
-            return this;
+            PopUpBackground.Apply().Draw();
+            return PopUpBackground;
         }
 
         #endregion

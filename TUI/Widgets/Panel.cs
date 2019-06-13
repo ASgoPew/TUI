@@ -27,7 +27,7 @@ namespace TUI.Widgets
         #region Constructor
 
         internal protected Panel(string name, int x, int y, int width, int height, PanelDrag drag, PanelResize resize,
-                UIConfiguration configuration = null, UIStyle style = null, object provider = null)
+                UIConfiguration configuration = null, ContainerStyle style = null, object provider = null)
             : base(name, x, y, width, height, configuration ?? new UIConfiguration() { UseBegin = true,
                 UseMoving = true, UseEnd = true }, style, provider)
         {
@@ -38,7 +38,7 @@ namespace TUI.Widgets
         }
 
         internal protected Panel(string name, int x, int y, int width, int height, UIConfiguration configuration = null,
-                UIStyle style = null, object provider = null)
+                ContainerStyle style = null, object provider = null)
             : this(name, x, y, width, height, new DefaultPanelDrag(), new DefaultPanelResize(), configuration, style, provider)
         { }
 
@@ -63,7 +63,7 @@ namespace TUI.Widgets
 
         public void Resize(int width, int height)
         {
-            GridStyle grid = Style.Grid;
+            GridConfiguration grid = Configuration.Grid;
             int minWidth = grid?.MinWidth ?? 1;
             int minHeight = grid?.MinHeight ?? 1;
             if (width < minWidth)

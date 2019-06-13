@@ -8,6 +8,8 @@ namespace TUI.Base
         internal dynamic Tile;
         internal int X = 0;
         internal int Y = 0;
+        internal int Width = 0;
+        internal int Height = 0;
         internal bool Enabled = true;
 
         private FieldInfo TileField;

@@ -34,9 +34,9 @@ namespace TUI.Widgets
 
         public override void Invoke(Touch touch)
         {
-            if (Parent?.Style?.Layout == null)
+            if (Parent?.Configuration?.Layout == null)
                 throw new Exception("Scroll has no parent or parent doesn't have layout.");
-            LayoutStyle layout = Parent.Style.Layout;
+            LayoutConfiguration layout = Parent.Configuration.Layout;
             int indent = layout.LayoutIndent;
             Limit = layout.IndentLimit;
             bool vertical = layout.Direction == Direction.Up || layout.Direction == Direction.Down;
@@ -74,7 +74,7 @@ namespace TUI.Widgets
                         else if (newIndent > Limit)
                             newIndent = Limit;
                     }
-                    if (Parent.Style.Layout.LayoutIndent != newIndent)
+                    if (Parent.Configuration.Layout.LayoutIndent != newIndent)
                     {
                         Parent.LayoutIndent(newIndent);
                         Action<ScrollBackground, int> callback = ScrollBackgroundCallback;
@@ -95,7 +95,7 @@ namespace TUI.Widgets
             base.PulseThisNative(type);
             if (type == PulseType.Reset)
             {
-                if (Parent.Style.Layout.LayoutIndent != 0)
+                if (Parent.Configuration.Layout.LayoutIndent != 0)
                 {
                     Parent.LayoutIndent(0);
                     Action<ScrollBackground, int> callback = ScrollBackgroundCallback;

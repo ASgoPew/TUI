@@ -78,7 +78,7 @@ namespace TUI.Widgets
 
         public static void ScrollAction(ScrollBackground @this, int value)
         {
-            //int newIndent = (int)Math.Round((value / (float)@this.Limit) * @this.Parent.Style.Layout.IndentLimit);
+            //int newIndent = (int)Math.Round((value / (float)@this.Limit) * @this.Parent.Configuration.Layout.IndentLimit);
             //Console.WriteLine(newIndent);
             @this.Parent.Parent
                 .LayoutIndent(value)
@@ -94,39 +94,63 @@ namespace TUI.Widgets
         {
             base.UpdateThisNative();
 
-            Style.Layout.LayoutIndent = Parent.Style.Layout.LayoutIndent;
-            int limit = Parent.Style.Layout.IndentLimit;
+            Configuration.Layout.LayoutIndent = Parent.Configuration.Layout.LayoutIndent;
+            int limit = Parent.Configuration.Layout.IndentLimit;
             Slider.Style.WallColor = ScrollBarStyle.SliderColor;
             if (Vertical)
             {
-                Slider.SetWH(_Width, Math.Min(Math.Max(Height - limit, 1), Height));
+                int size = Math.Max(Height - limit, 1);
+                if (size >= Height)
+                {
+                    Slider.Disable();
+                    Configuration.UseBegin = false;
+                    return;
+                }
+                else
+                {
+                    Slider.Enable();
+                    Configuration.UseBegin = true;
+                }
+                Slider.SetWH(_Width, size);
                 Empty1.SetWH(_Width, Height - Slider.Height);
                 Empty2.SetWH(_Width, limit);
             }
             else
             {
-                Slider.SetWH(Math.Min(Math.Max(Width - limit, 1), Width), _Width);
+                int size = Math.Max(Width - limit, 1);
+                if (size >= Width)
+                {
+                    Slider.Disable();
+                    Configuration.UseBegin = false;
+                    return;
+                }
+                else
+                {
+                    Slider.Enable();
+                    Configuration.UseBegin = true;
+                }
+                Slider.SetWH(size, _Width);
                 Empty1.SetWH(Width - Slider.Width, _Width);
                 Empty2.SetWH(limit, _Width);
             }
             ForceSection = Parent.ForceSection;
-            switch (Parent.Style.Layout.Direction)
+            switch (Parent.Configuration.Layout.Direction)
             {
                 case Direction.Left:
-                    Style.Layout.Alignment = Alignment.Right;
-                    Style.Layout.Direction = Direction.Right;
+                    Configuration.Layout.Alignment = Alignment.Right;
+                    Configuration.Layout.Direction = Direction.Right;
                     break;
                 case Direction.Up:
-                    Style.Layout.Alignment = Alignment.Down;
-                    Style.Layout.Direction = Direction.Down;
+                    Configuration.Layout.Alignment = Alignment.Down;
+                    Configuration.Layout.Direction = Direction.Down;
                     break;
                 case Direction.Right:
-                    Style.Layout.Alignment = Alignment.Left;
-                    Style.Layout.Direction = Direction.Left;
+                    Configuration.Layout.Alignment = Alignment.Left;
+                    Configuration.Layout.Direction = Direction.Left;
                     break;
                 case Direction.Down:
-                    Style.Layout.Alignment = Alignment.Up;
-                    Style.Layout.Direction = Direction.Up;
+                    Configuration.Layout.Alignment = Alignment.Up;
+                    Configuration.Layout.Direction = Direction.Up;
                     break;
             }
         }
@@ -136,20 +160,20 @@ namespace TUI.Widgets
 
         public override void Invoke(Touch touch)
         {
-            int forward = Parent.Style.Layout.Direction == Direction.Right || Parent.Style.Layout.Direction == Direction.Down ? 1 : -1;
+            int forward = Parent.Configuration.Layout.Direction == Direction.Right || Parent.Configuration.Layout.Direction == Direction.Down ? 1 : -1;
             if (Vertical)
             {
                 if (touch.Y > Slider.Y)
-                    ScrollAction(Slider, Style.Layout.LayoutIndent + (touch.Y - (Slider.Y + Slider.Height) + 1) * forward);
+                    ScrollAction(Slider, Configuration.Layout.LayoutIndent + (touch.Y - (Slider.Y + Slider.Height) + 1) * forward);
                 else
-                    ScrollAction(Slider, Style.Layout.LayoutIndent - (Slider.Y - touch.Y) * forward);
+                    ScrollAction(Slider, Configuration.Layout.LayoutIndent - (Slider.Y - touch.Y) * forward);
             }
             else
             {
                 if (touch.X > Slider.X)
-                    ScrollAction(Slider, Style.Layout.LayoutIndent + (touch.X - (Slider.X + Slider.Width) + 1) * forward);
+                    ScrollAction(Slider, Configuration.Layout.LayoutIndent + (touch.X - (Slider.X + Slider.Width) + 1) * forward);
                 else
-                    ScrollAction(Slider, Style.Layout.LayoutIndent - (Slider.X - touch.X) * forward);
+                    ScrollAction(Slider, Configuration.Layout.LayoutIndent - (Slider.X - touch.X) * forward);
             }
         }
 

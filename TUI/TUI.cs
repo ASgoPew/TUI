@@ -114,6 +114,10 @@ namespace TUI
 
         internal static RootVisualObject Create(RootVisualObject root)
         {
+            if (!(root.Provider is MainTileProvider)
+                    && (root.Width > root.Provider.Width || root.Height > root.Provider.Height))
+                throw new ArgumentException("Provider size is less than RootVisualObject size: " + root.FullName);
+
             // Locking for Child and Active
             lock (Child)
             {
@@ -126,15 +130,15 @@ namespace TUI
         }
 
         public static RootVisualObject CreateRoot(string name, int x, int y, int width, int height,
-                UIConfiguration configuration = null, UIStyle style = null, object provider = null) =>
+                UIConfiguration configuration = null, ContainerStyle style = null, object provider = null) =>
             Create(new RootVisualObject(name, x, y, width, height, configuration, style, provider));
 
         public static Panel CreatePanel(string name, int x, int y, int width, int height, PanelDrag drag, PanelResize resize,
-                UIConfiguration configuration = null, UIStyle style = null, object provider = null) =>
+                UIConfiguration configuration = null, ContainerStyle style = null, object provider = null) =>
             Create(new Panel(name, x, y, width, height, drag, resize, configuration, style, provider)) as Panel;
 
         public static Panel CreatePanel(string name, int x, int y, int width, int height,
-                UIConfiguration configuration = null, UIStyle style = null, object provider = null) =>
+                UIConfiguration configuration = null, ContainerStyle style = null, object provider = null) =>
             Create(new Panel(name, x, y, width, height, configuration, style, provider)) as Panel;
 
         #endregion

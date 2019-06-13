@@ -40,9 +40,9 @@ namespace TUI.Widgets
         #endregion
         #region Copy
 
-        public VisualSign(VisualSign visualSign)
+        /*public VisualSign(VisualSign visualSign)
             : this(visualSign.X, visualSign.Y, visualSign.Width, visualSign.Height, )
-        { }
+        { }*/
 
         #endregion
         #region LoadThisNative

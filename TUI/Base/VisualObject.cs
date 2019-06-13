@@ -45,7 +45,7 @@ namespace TUI.Base
         /// <summary>
         /// Overridable field for disabling ability to be ordered in Parent's Child array.
         /// </summary>
-        public override bool Orderable => !Style.InLayout;
+        public override bool Orderable => !Configuration.InLayout;
 
         private string _Name;
         /// <summary>
@@ -89,8 +89,8 @@ namespace TUI.Base
                         Grid[cell.Column, cell.Line] = null;
                         child.Cell = null;
                     }
-                    if (child.Style.InLayout)
-                        Style.Layout.Objects.Remove(child);
+                    if (child.Configuration.InLayout)
+                        Configuration.Layout.Objects.Remove(child);
                 }
                 return child;
             }
@@ -136,21 +136,6 @@ namespace TUI.Base
             Style = style ?? new UIStyle();
         }
 
-        public VisualObject()
-            : this(0, 0, 0, 0, new UIConfiguration() { UseBegin = false })
-        {
-        }
-
-        public VisualObject(UIConfiguration configuration)
-            : this(0, 0, 0, 0, configuration)
-        {
-        }
-
-        public VisualObject(UIStyle style)
-            : this(0, 0, 0, 0, new UIConfiguration() { UseBegin = false }, style)
-        {
-        }
-
         #endregion
         #region Copy
 
@@ -178,8 +163,8 @@ namespace TUI.Base
             {
                 if (value != null)
                 {
-                    value.Style.InLayout = false;
-                    value.Style.Alignment = null;
+                    value.Configuration.InLayout = false;
+                    value.Configuration.Alignment = null;
 
                     if (Grid[column, line] != null)
                         Remove(Grid[column, line]);
@@ -224,7 +209,7 @@ namespace TUI.Base
         /// <returns></returns>
         public virtual VisualObject AddToLayout(VisualObject child, int layer = 0)
         {
-            child.Style.Alignment = null;
+            child.Configuration.Alignment = null;
             if (child.Cell != null)
             {
                 Grid[child.Cell.Column, child.Cell.Line] = null;
@@ -232,7 +217,7 @@ namespace TUI.Base
             }
 
             Add(child, layer);
-            child.Style.InLayout = true;
+            child.Configuration.InLayout = true;
             return child;
         }
 
@@ -273,7 +258,7 @@ namespace TUI.Base
         /// <returns>this</returns>
         public VisualObject SetupLayout(Alignment alignment = Alignment.Center, Direction direction = Direction.Down, Side side = Side.Center, ExternalOffset offset = null, int childIndent = 1, bool boundsIsOffset = true)
         {
-            Style.Layout = new LayoutStyle(alignment, direction, side, offset, childIndent, boundsIsOffset);
+            Configuration.Layout = new LayoutConfiguration(alignment, direction, side, offset, childIndent, boundsIsOffset);
             return this;
         }
 
@@ -290,7 +275,7 @@ namespace TUI.Base
         /// <returns>this</returns>
         public VisualObject SetupGrid(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null, Offset offset = null, bool fillWithEmptyObjects = true)
         {
-            GridStyle gridStyle = Style.Grid = new GridStyle(columns, lines);
+            GridConfiguration gridStyle = Configuration.Grid = new GridConfiguration(columns, lines);
 
             VisualObject[,] oldGrid = Grid;
 
@@ -305,7 +290,7 @@ namespace TUI.Base
                         if (i < oldGrid?.GetLength(0) && j < oldGrid?.GetLength(1) && oldGrid[i, j] != null)
                             this[i, j] = Remove(oldGrid[i, j]);
                         else
-                            this[i, j] = new VisualObject();
+                            this[i, j] = new VisualContainer();
 
             return this as VisualObject;
         }
@@ -327,9 +312,9 @@ namespace TUI.Base
                 Parent.Grid[Cell.Column, Cell.Line] = null;
                 Cell = null;
             }
-            Style.InLayout = false;
+            Configuration.InLayout = false;
 
-            Style.Alignment = new AlignmentStyle(alignment, offset, boundsIsOffset);
+            Configuration.Alignment = new AlignmentConfiguration(alignment, offset, boundsIsOffset);
             return this;
         }
 
@@ -364,7 +349,7 @@ namespace TUI.Base
                 Cell = null;
             }
 
-            Style.FullSize = fullSize;
+            Configuration.FullSize = fullSize;
             return this;
         }
 
@@ -373,10 +358,10 @@ namespace TUI.Base
 
         public VisualObject LayoutSkip(ushort value)
         {
-            if (Style.Layout == null)
+            if (Configuration.Layout == null)
                 throw new Exception("Layout is not set for this object: " + FullName);
 
-            Style.Layout.Index = value;
+            Configuration.Layout.Index = value;
             return this;
         }
 
@@ -390,10 +375,10 @@ namespace TUI.Base
         /// <returns>this</returns>
         public VisualObject LayoutIndent(int value)
         {
-            if (Style.Layout == null)
+            if (Configuration.Layout == null)
                 throw new Exception("Layout is not set for this object: " + FullName);
 
-            Style.Layout.LayoutIndent = value;
+            Configuration.Layout.LayoutIndent = value;
             return this;
         }
 
@@ -537,13 +522,13 @@ namespace TUI.Base
             #endregion
             #region UpdateBounds
 
-            private void UpdateBounds()
+            protected void UpdateBounds()
             {
-                bool layoutBounds = Style.InLayout && Parent.Style.Layout.BoundsIsOffset;
-                bool alignmentBounds = Style.Alignment != null && Style.Alignment.BoundsIsOffset;
+                bool layoutBounds = Configuration.InLayout && Parent.Configuration.Layout.BoundsIsOffset;
+                bool alignmentBounds = Configuration.Alignment != null && Configuration.Alignment.BoundsIsOffset;
                 if (layoutBounds || alignmentBounds)
                 {
-                    ExternalOffset parentOffset = layoutBounds ? Parent.Style.Layout.Offset : Style.Alignment.Offset;
+                    ExternalOffset parentOffset = layoutBounds ? Parent.Configuration.Layout.Offset : Configuration.Alignment.Offset;
                     Bounds = new ExternalOffset()
                     {
                         Left = Math.Max(0, parentOffset.Left - X),
@@ -588,10 +573,10 @@ namespace TUI.Base
                 // Update child objects with alignment
                 UpdateAlignment();
                 // Update child objects in layout
-                if (Style.Layout != null)
+                if (Configuration.Layout != null)
                     UpdateLayout();
                 // Update child objects in grid
-                if (Style.Grid != null)
+                if (Configuration.Grid != null)
                     UpdateGrid();
 
                 return this;
@@ -618,15 +603,15 @@ namespace TUI.Base
             #endregion
             #region UpdateFullSize
 
-            private void UpdateFullSize()
+            protected void UpdateFullSize()
             {
-                FullSize fullSize = Style.FullSize;
+                FullSize fullSize = Configuration.FullSize;
                 // If child is in layout then FullSize should match parent size minus layout offset.
                 // If Alignment is set then FullSize should match parent size minus alignment offset.
-                ExternalOffset offset = Style.InLayout
-                    ? Parent.Style.Layout.Offset
-                    : Style.Alignment != null
-                        ? Style.Alignment.Offset
+                ExternalOffset offset = Configuration.InLayout
+                    ? Parent.Configuration.Layout.Offset
+                    : Configuration.Alignment != null
+                        ? Configuration.Alignment.Offset
                         : UIDefault.ExternalOffset;
 
                 int newX = offset.Left;
@@ -650,7 +635,7 @@ namespace TUI.Base
                 lock (Child)
                     foreach (VisualObject child in ChildrenFromTop)
                     {
-                        AlignmentStyle positioning = child.Style.Alignment;
+                        AlignmentConfiguration positioning = child.Configuration.Alignment;
                         if (positioning  == null)
                             continue;
 
@@ -680,20 +665,20 @@ namespace TUI.Base
 
             protected void UpdateLayout()
             {
-                ExternalOffset offset = Style.Layout.Offset;
-                Alignment alignment = Style.Layout.Alignment;
-                Direction direction = Style.Layout.Direction;
-                Side side = Style.Layout.Side;
-                int indent = Style.Layout.ChildIndent;
-                int layoutIndent = Style.Layout.LayoutIndent;
+                ExternalOffset offset = Configuration.Layout.Offset;
+                Alignment alignment = Configuration.Layout.Alignment;
+                Direction direction = Configuration.Layout.Direction;
+                Side side = Configuration.Layout.Side;
+                int indent = Configuration.Layout.ChildIndent;
+                int layoutIndent = Configuration.Layout.LayoutIndent;
 
                 (int abstractLayoutW, int abstractLayoutH, List<VisualObject> layoutChild) = CalculateLayoutSize(direction, indent);
-                Style.Layout.Objects = layoutChild;
-                for (int i = 0; i < Style.Layout.Index; i++)
+                Configuration.Layout.Objects = layoutChild;
+                for (int i = 0; i < Configuration.Layout.Index; i++)
                     layoutChild[i].Visible = false;
-                if (layoutChild.Count - Style.Layout.Index <= 0)
+                if (layoutChild.Count - Configuration.Layout.Index <= 0)
                     return;
-                layoutChild = layoutChild.Skip(Style.Layout.Index).ToList();
+                layoutChild = layoutChild.Skip(Configuration.Layout.Index).ToList();
 
                 // Calculating layout box position
                 int layoutX, layoutY, layoutW, layoutH;
@@ -776,7 +761,7 @@ namespace TUI.Base
                     //Console.WriteLine($"{Width}, {Height}: {resultX}, {resultY}, {resultX + child.Width - 1}, {resultY + child.Height - 1}");
                     //child.Visible = LayoutContains(resultX, resultY, offset)
                     //    && LayoutContains(resultX + child.Width - 1, resultY + child.Height - 1, offset);
-                    if (Style.Layout.BoundsIsOffset)
+                    if (Configuration.Layout.BoundsIsOffset)
                         child.Visible = Intersecting(resultX, resultY, child.Width, child.Height, offset.Left, offset.Up,
                             Width - offset.Right - offset.Left, Height - offset.Down - offset.Up);
                     else
@@ -799,9 +784,9 @@ namespace TUI.Base
                 }
 
                 if (direction == Direction.Left || direction == Direction.Right)
-                    Style.Layout.IndentLimit = abstractLayoutW - layoutW;
+                    Configuration.Layout.IndentLimit = abstractLayoutW - layoutW;
                 else if (direction == Direction.Up || direction == Direction.Down)
-                    Style.Layout.IndentLimit = abstractLayoutH - layoutH;
+                    Configuration.Layout.IndentLimit = abstractLayoutH - layoutH;
             }
 
             #endregion
@@ -816,8 +801,8 @@ namespace TUI.Base
                 lock (Child)
                     foreach (VisualObject child in ChildrenFromBottom)
                     {
-                        FullSize fullSize = child.Style.FullSize;
-                        if (!child.Enabled || !child.Style.InLayout || fullSize == FullSize.Both)
+                        FullSize fullSize = child.Configuration.FullSize;
+                        if (!child.Enabled || !child.Configuration.InLayout || fullSize == FullSize.Both)
                                 //|| (fullSize == FullSize.Horizontal && (direction == Direction.Left || direction == Direction.Right))
                                 //|| (fullSize == FullSize.Vertical && (direction == Direction.Up || direction == Direction.Down)))
                             continue;
@@ -861,15 +846,15 @@ namespace TUI.Base
                 CalculateGridSizes();
 
                 // Main cell loop
-                ISize[] columnSizes = Style.Grid.Columns;
-                ISize[] lineSizes = Style.Grid.Lines;
+                ISize[] columnSizes = Configuration.Grid.Columns;
+                ISize[] lineSizes = Configuration.Grid.Lines;
                 
                 for (int i = 0; i < columnSizes.Length; i++)
                 {
-                    (int columnX, int columnSize) = Style.Grid.ResultingColumns[i];
+                    (int columnX, int columnSize) = Configuration.Grid.ResultingColumns[i];
                     for (int j = 0; j < lineSizes.Length; j++)
                     {
-                        (int lineX, int lineSize) = Style.Grid.ResultingLines[j];
+                        (int lineX, int lineSize) = Configuration.Grid.ResultingLines[j];
                         Grid[i, j]?.SetXYWH(columnX, lineX, columnSize, lineSize);
                         //Console.WriteLine($"Grid: {cell.FullName}, {cell.XYWH()}");
                     }
@@ -881,11 +866,11 @@ namespace TUI.Base
 
             public void CalculateGridSizes()
             {
-                Offset offset = Style.Grid.Offset ?? UIDefault.Offset;
-                CalculateSizes(Style.Grid.Columns, Width, offset.Left, offset.Horizontal, offset.Right,
-                    ref Style.Grid.ResultingColumns, ref Style.Grid.MinWidth, "width");
-                CalculateSizes(Style.Grid.Lines, Height, offset.Up, offset.Vertical, offset.Down,
-                    ref Style.Grid.ResultingLines, ref Style.Grid.MinHeight, "height");
+                Offset offset = Configuration.Grid.Offset ?? UIDefault.Offset;
+                CalculateSizes(Configuration.Grid.Columns, Width, offset.Left, offset.Horizontal, offset.Right,
+                    ref Configuration.Grid.ResultingColumns, ref Configuration.Grid.MinWidth, "width");
+                CalculateSizes(Configuration.Grid.Lines, Height, offset.Up, offset.Vertical, offset.Down,
+                    ref Configuration.Grid.ResultingLines, ref Configuration.Grid.MinHeight, "height");
             }
 
             #endregion
@@ -1028,11 +1013,11 @@ namespace TUI.Base
             /// </summary>
             protected virtual void PostUpdateThisNative()
             {
-                if (Style.Grid != null)
+                if (Configuration.Grid != null)
                     lock (Child)
                     {
-                        Style.Grid.MinWidth = Math.Max(Style.Grid.MinWidth, Child.Max(o => o.Style.Grid?.MinWidth) ?? 1);
-                        Style.Grid.MinHeight = Math.Max(Style.Grid.MinHeight, Child.Max(o => o.Style.Grid?.MinHeight) ?? 1);
+                        Configuration.Grid.MinWidth = Math.Max(Configuration.Grid.MinWidth, Child.Max(o => o.Configuration.Grid?.MinWidth) ?? 1);
+                        Configuration.Grid.MinHeight = Math.Max(Configuration.Grid.MinHeight, Child.Max(o => o.Configuration.Grid?.MinHeight) ?? 1);
                     }
             }
 
@@ -1092,7 +1077,7 @@ namespace TUI.Base
             protected virtual void ApplyThisNative()
             {
                 ApplyTiles();
-                if (TUI.ShowGrid && Style.Grid != null)
+                if (TUI.ShowGrid && Configuration.Grid != null)
                     ApplyGridTemplate();
             }
 
@@ -1158,11 +1143,11 @@ namespace TUI.Base
             {
                 lock (Locker)
                 {
-                    for (int i = 0; i < Style.Grid.Columns.Length; i++)
-                        for (int j = 0; j < Style.Grid.Lines.Length; j++)
+                    for (int i = 0; i < Configuration.Grid.Columns.Length; i++)
+                        for (int j = 0; j < Configuration.Grid.Lines.Length; j++)
                         {
-                            (int columnX, int columnSize) = Style.Grid.ResultingColumns[i];
-                            (int lineY, int lineSize) = Style.Grid.ResultingLines[j];
+                            (int columnX, int columnSize) = Configuration.Grid.ResultingColumns[i];
+                            (int lineY, int lineSize) = Configuration.Grid.ResultingLines[j];
                             for (int x = columnX; x < columnX + columnSize; x++)
                                 for (int y = lineY; y < lineY + lineSize; y++)
                                 {
