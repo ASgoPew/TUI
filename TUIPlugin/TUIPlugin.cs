@@ -363,7 +363,7 @@ namespace TUIPlugin
             };
             try
             {
-                args.Node.GetRoot().Provider.AddSign(sign);
+                args.Node.GetRoot().Provider.AddSign(sign, false);
                 args.Sign = sign;
             }
             catch (Exception e)

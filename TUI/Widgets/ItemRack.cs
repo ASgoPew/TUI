@@ -43,7 +43,7 @@ namespace TUI.Widgets
         public dynamic Sign { get; set; } = null;
 
         public ItemRackStyle ItemRackStyle => Style as ItemRackStyle;
-        public string Text { get; protected set; } = null;
+        protected string RawText { get; set; } = null;
 
         #endregion
 
@@ -64,13 +64,13 @@ namespace TUI.Widgets
         }
 
         #endregion
-        #region Initialize
+        #region LoadThisNative
 
         protected override void LoadThisNative()
         {
             base.LoadThisNative();
 
-            if (Text != null)
+            if (RawText != null)
                 CreateSign();
         }
 
@@ -90,15 +90,20 @@ namespace TUI.Widgets
         // Use this only after adding ItemRack to parent.
         public void Set(string text)
         {
-            Text = text;
+            RawText = text;
         }
+
+        #endregion
+        #region Get
+
+        public string Get() => RawText;
 
         #endregion
         #region CreateSign
 
         protected void CreateSign()
         {
-            if (Text == null)
+            if (RawText == null)
                 throw new NullReferenceException("CreateSign: Text is null");
             (int x, int y) = AbsoluteXY();
             CreateSignArgs args = new CreateSignArgs(x, y, this);
@@ -109,7 +114,7 @@ namespace TUI.Widgets
                 return;
             }
             Sign = args.Sign;
-            Sign.text = Text;
+            Sign.text = RawText;
         }
 
         #endregion
@@ -128,13 +133,13 @@ namespace TUI.Widgets
 
         protected void UpdateSign()
         {
-            if (Text != null && Sign != null)
+            if (RawText != null && Sign != null)
             {
                 (int x, int y) = AbsoluteXY();
                 dynamic tile = Tile(0, 0);
                 if (tile != null)
                 {
-                    if (UsesDefaultMainProvider)
+                    if (UsesDefaultMainProvider && tile.type != 55)
                     {
                         tile.type = 55;
                         tile.frameX = 0;
@@ -142,7 +147,7 @@ namespace TUI.Widgets
                     }
                     Sign.x = x;
                     Sign.y = y;
-                    Sign.text = Text;
+                    Sign.text = RawText;
                 }
                 else
                     Sign.text = "";

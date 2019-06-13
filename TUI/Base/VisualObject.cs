@@ -435,6 +435,10 @@ namespace TUI.Base
             {
                 switch (type)
                 {
+                    case PulseType.Reset:
+                        if (Configuration.Layout != null)
+                            LayoutIndent(0);
+                        break;
                     case PulseType.PositionChanged:
                         // Update position relative to Provider
                         if (Root != null)

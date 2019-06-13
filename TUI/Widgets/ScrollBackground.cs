@@ -88,23 +88,5 @@ namespace TUI.Widgets
         }
 
         #endregion
-        #region PulseThisNative
-
-        protected override void PulseThisNative(PulseType type)
-        {
-            base.PulseThisNative(type);
-            if (type == PulseType.Reset)
-            {
-                if (Parent.Configuration.Layout.LayoutIndent != 0)
-                {
-                    Parent.LayoutIndent(0);
-                    Action<ScrollBackground, int> callback = ScrollBackgroundCallback;
-                    if (callback != null)
-                        callback.Invoke(this, 0);
-                }
-            }
-        }
-
-        #endregion
     }
 }

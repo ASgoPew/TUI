@@ -223,7 +223,7 @@ namespace TUI.Widgets
         private static (List<(string, int)>, int MaxLineWidth) LimitStatueText(string text, int width, int height, int emptyIndentation, int linesIndentation, int lineH)
         {
             if (width < 2)
-                return (null, 0);
+                return (new List<(string, int)>(), 0);
             List<(string, int)> result = new List<(string, int)>();
             int maxX = 0;
             // #result * (lineH + linesIndentation) - linesIndentation <= h

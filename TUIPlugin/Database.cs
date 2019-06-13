@@ -1,13 +1,8 @@
 ﻿using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TShockAPI;
 using TShockAPI.DB;
 
@@ -27,7 +22,7 @@ namespace TUIPlugin
         {
             if (TShock.Config.StorageType.ToLower() == "sqlite")
                 db = new SqliteConnection(string.Format("uri=file://{0},Version=3",
-                    Path.Combine(TShock.SavePath, "PvPModifier.sqlite")));
+                    Path.Combine(TShock.SavePath, "TUIKeyValue.sqlite")));
             else if (TShock.Config.StorageType.ToLower() == "mysql")
             {
                 try

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TUI.Base;
 using TUI.Base.Style;
+using TUI.Hooks.Args;
 
 namespace TUI.Widgets
 {
@@ -13,7 +14,7 @@ namespace TUI.Widgets
         #region Data
 
         protected string RawText { get; set; }
-        protected dynamic Sign { get; set; }
+        public dynamic Sign { get; set; }
 
         #endregion
 
@@ -40,9 +41,10 @@ namespace TUI.Widgets
         #endregion
         #region Copy
 
-        /*public VisualSign(VisualSign visualSign)
-            : this(visualSign.X, visualSign.Y, visualSign.Width, visualSign.Height, )
-        { }*/
+        public VisualSign(VisualSign visualSign)
+            : this(visualSign.X, visualSign.Y, visualSign.Width, visualSign.Height, visualSign.RawText,
+                  new UIConfiguration(visualSign.Configuration), new UIStyle(visualSign.Style), visualSign.Callback.Clone() as Action<VisualObject, Touch>)
+        { }
 
         #endregion
         #region LoadThisNative
@@ -74,14 +76,25 @@ namespace TUI.Widgets
         #endregion
         #region Get
 
-        public virtual string Get() => RawText;
+        public string Get() => RawText;
 
         #endregion
         #region CreateSign
 
         protected void CreateSign()
         {
-            
+            if (RawText == null)
+                throw new NullReferenceException("CreateSign: Text is null");
+            (int x, int y) = AbsoluteXY();
+            CreateSignArgs args = new CreateSignArgs(x, y, this);
+            TUI.Hooks.CreateSign.Invoke(args);
+            if (args.Sign == null)
+            {
+                TUI.Hooks.Log.Invoke(new LogArgs("Can't create new sign.", LogType.Error));
+                return;
+            }
+            Sign = args.Sign;
+            Sign.text = RawText;
         }
 
         #endregion
@@ -89,7 +102,10 @@ namespace TUI.Widgets
 
         protected void RemoveSign()
         {
-
+            if (Sign == null)
+                return;
+            TUI.Hooks.RemoveSign.Invoke(new RemoveSignArgs(this, Sign));
+            Sign = null;
         }
 
         #endregion
@@ -97,11 +113,50 @@ namespace TUI.Widgets
 
         protected void UpdateSign()
         {
-
+            if (RawText != null && Sign != null)
+            {
+                (int x, int y) = AbsoluteXY();
+                dynamic tile = Tile(0, 0);
+                if (tile != null)
+                {
+                    if (UsesDefaultMainProvider && tile.type != 55)
+                    {
+                        tile.type = 55;
+                        tile.frameX = 0;
+                        tile.frameY = 0;
+                    }
+                    Sign.x = x;
+                    Sign.y = y;
+                    Sign.text = RawText;
+                }
+                else
+                    Sign.text = "";
+            }
         }
 
         #endregion
 
+        #region PulseThisNative
+
+        protected override void PulseThisNative(PulseType type)
+        {
+            base.PulseThisNative(type);
+
+            if (type == PulseType.PositionChanged)
+                UpdateSign();
+        }
+
+        #endregion
+        #region UpdateThisNative
+
+        protected override void UpdateThisNative()
+        {
+            base.UpdateThisNative();
+
+            UpdateSign();
+        }
+
+        #endregion
         #region ApplyThisNative
 
         protected override void ApplyThisNative()

@@ -80,8 +80,7 @@ namespace TUI.Widgets
         {
             //int newIndent = (int)Math.Round((value / (float)@this.Limit) * @this.Parent.Configuration.Layout.IndentLimit);
             //Console.WriteLine(newIndent);
-            @this.Parent.Parent
-                .LayoutIndent(value)
+            @this.Parent.Parent.LayoutIndent(value)
                 .Update()
                 .Apply()
                 .Draw();
@@ -175,16 +174,6 @@ namespace TUI.Widgets
                 else
                     ScrollAction(Slider, Configuration.Layout.LayoutIndent - (Slider.X - touch.X) * forward);
             }
-        }
-
-        #endregion
-        #region PulseThisNative
-
-        protected override void PulseThisNative(PulseType type)
-        {
-            base.PulseThisNative(type);
-            if (type == PulseType.Reset)
-                Parent.LayoutIndent(0);
         }
 
         #endregion
