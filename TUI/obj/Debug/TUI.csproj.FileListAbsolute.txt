@@ -30,3 +30,12 @@ E:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.csproj.CopyComplete
 E:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.dll
 E:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.pdb
 E:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.csprojAssemblyReference.cache
+F:\YandexDisk\Repos\TUI\TUI\bin\Debug\TUI.xml
+F:\YandexDisk\Repos\TUI\TUI\bin\Debug\TUI.dll
+F:\YandexDisk\Repos\TUI\TUI\bin\Debug\TUI.pdb
+F:\YandexDisk\Repos\TUI\TUI\bin\Debug\System.ValueTuple.dll
+F:\YandexDisk\Repos\TUI\TUI\bin\Debug\System.ValueTuple.xml
+F:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.csproj.CoreCompileInputs.cache
+F:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.csproj.CopyComplete
+F:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.dll
+F:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.pdb

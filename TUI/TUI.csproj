@@ -101,6 +101,7 @@
     <Compile Include="Widgets\Slider.cs" />
     <Compile Include="Widgets\Switch.cs" />
     <Compile Include="Widgets\VisualSign.cs" />
+    <Compile Include="где-то.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
