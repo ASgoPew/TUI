@@ -97,14 +97,24 @@ namespace TUIPlugin
 
         public static object GetData(string key, Type type)
         {
-            using (QueryResult result = QueryReader("SELECT Value FROM {0} WHERE Key='{1}'".SFormat(TableName, key)))
+            string query = "SELECT Value FROM {0} WHERE Key='{1}'".SFormat(TableName, key);
+#if DEBUG
+            Console.WriteLine(query);
+#endif
+            using (QueryResult result = QueryReader(query))
                 if (result.Read())
                     return JsonConvert.DeserializeObject(result.Get<string>("Value"), type);
             return null;
         }
 
-        public static void SetData(string key, object data) =>
-            Query("INSERT INTO {0} (Key, Value) VALUES ({1})".SFormat(TableName, $"'{key}', '{JsonConvert.SerializeObject(data)}'"));
+        public static void SetData(string key, object data)
+        {
+            string query = "REPLACE INTO {0} (Key, Value) VALUES ({1})".SFormat(TableName, $"'{key}', '{JsonConvert.SerializeObject(data)}'");
+#if DEBUG
+            Console.WriteLine(query);
+#endif
+            Query(query);
+        }
 
         public static void RemoveKey(string key) =>
             Query("DELETE FROM {0} WHERE Key='{1}'".SFormat(TableName, key));

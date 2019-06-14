@@ -356,7 +356,9 @@ namespace TUI
                 if (child != o && child.Active && o.Intersecting(child))
                 {
                     intersects = true;
-                    if (o.Provider.Tile == child.Provider.Tile)
+                    dynamic provider1 = o.Provider.Tile;
+                    dynamic provider2 = child.Provider.Tile;
+                    if (provider1.GetType() == provider2.GetType() && provider1 == provider2)
                         return (true, true);
                 }
             return (intersects, false);

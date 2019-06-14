@@ -1286,15 +1286,18 @@ namespace TUI.Base
             TUI.DBSet(FullName, Data);
         }
 
-        public void GetData()
+        public bool GetData()
         {
             if (DataType == null)
                 throw new NullReferenceException("Data type not specified. Use Database(Type) for initializing it.");
             Data = TUI.DBGet(FullName, DataType);
+            return Data != null;
         }
 
         public void Database(Type dataType)
         {
+            if (DataType != null)
+                throw new Exception("Database already initialized for this VisualObject: " + FullName);
             DataType = dataType;
         }
 

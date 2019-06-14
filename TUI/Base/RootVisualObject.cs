@@ -53,7 +53,7 @@ namespace TUI.Base
         #endregion
         #region SetXYWH
 
-        public override VisualObject SetXYWH(int x, int y, int width = -1, int height = -1)
+        public override VisualObject SetXYWH(int x, int y, int width, int height)
         {
             base.SetXYWH(x, y, width, height);
             // MainTileProvider ignores this SetXYWH
