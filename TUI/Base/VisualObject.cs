@@ -41,6 +41,14 @@ namespace TUI.Base
         /// Bounds in which this object is allowed to draw.
         /// </summary>
         public ExternalOffset Bounds { get; protected set; } = new ExternalOffset();
+        /// <summary>
+        /// Database storing data.
+        /// </summary>
+        public object Data { get; private set; }
+        /// <summary>
+        /// Database storing data type.
+        /// </summary>
+        private Type DataType { get; set; }
 
         /// <summary>
         /// Overridable field for disabling ability to be ordered in Parent's Child array.
@@ -1270,12 +1278,27 @@ namespace TUI.Base
 
         #region Database
 
-        public virtual void Database()
+        public void SetData(object data)
         {
-
+            if (data.GetType() != DataType)
+                throw new ArgumentException("Invalid data type for storing in VisualObject.Data.");
+            Data = data;
+            TUI.DBSet(FullName, Data);
         }
 
-        public virtual void UserDatabase()
+        public void GetData()
+        {
+            if (DataType == null)
+                throw new NullReferenceException("Data type not specified. Use Database(Type) for initializing it.");
+            Data = TUI.DBGet(FullName, DataType);
+        }
+
+        public void Database(Type dataType)
+        {
+            DataType = dataType;
+        }
+
+        public void UserDatabase()
         {
 
         }

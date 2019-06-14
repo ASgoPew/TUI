@@ -43,6 +43,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>_References\MySql.Data.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>_References\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="OTAPI, Version=1.3.5.3, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>_References\OTAPI.dll</HintPath>
@@ -68,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Database.cs" />
+    <Compile Include="Formatter.cs" />
     <Compile Include="TouchExtensions.cs" />
     <Compile Include="TUIPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

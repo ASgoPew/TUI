@@ -1,5 +1,6 @@
 ﻿using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 using System;
 using System.Data;
 using System.IO;
@@ -94,16 +95,16 @@ namespace TUIPlugin
             return success;
         }
 
-        public static string GetValue(string key)
+        public static object GetData(string key, Type type)
         {
             using (QueryResult result = QueryReader("SELECT Value FROM {0} WHERE Key='{1}'".SFormat(TableName, key)))
                 if (result.Read())
-                    return result.Get<string>("Value");
+                    return JsonConvert.DeserializeObject(result.Get<string>("Value"), type);
             return null;
         }
 
-        public static void SetValue(string key, string value) =>
-            Query("INSERT INTO {0} (Key, Value) VALUES ({1})".SFormat(TableName, $"'{key}', '{value}'"));
+        public static void SetData(string key, object data) =>
+            Query("INSERT INTO {0} (Key, Value) VALUES ({1})".SFormat(TableName, $"'{key}', '{JsonConvert.SerializeObject(data)}'"));
 
         public static void RemoveKey(string key) =>
             Query("DELETE FROM {0} WHERE Key='{1}'".SFormat(TableName, key));

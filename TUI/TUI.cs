@@ -424,9 +424,9 @@ namespace TUI
         #endregion
         #region DBGet
 
-        public static string DBGet(string key)
+        public static object DBGet(string key, Type dataType)
         {
-            DatabaseArgs args = new DatabaseArgs(DatabaseActionType.Get, key);
+            DatabaseArgs args = new DatabaseArgs(DatabaseActionType.Get, key, null, dataType);
             Hooks.Database.Invoke(args);
             return args.Value;
         }
@@ -434,7 +434,7 @@ namespace TUI
         #endregion
         #region DBSet
 
-        public static void DBSet(string key, string value) =>
+        public static void DBSet(string key, object value) =>
             Hooks.Database.Invoke(new DatabaseArgs(DatabaseActionType.Set, key, value));
 
         #endregion

@@ -17,13 +17,15 @@ namespace TUI.Hooks.Args
     {
         public DatabaseActionType Type { get; set; }
         public string Key { get; set; }
-        public string Value { get; set; }
+        public object Value { get; set; }
+        public Type DataType { get; set; }
 
-        public DatabaseArgs(DatabaseActionType type, string key, string value = null)
+        public DatabaseArgs(DatabaseActionType type, string key, object value = null, Type dataType = null)
         {
             Type = type;
             Key = key;
             Value = value;
+            DataType = dataType;
         }
     }
 }

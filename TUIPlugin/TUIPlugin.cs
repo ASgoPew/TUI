@@ -339,10 +339,10 @@ namespace TUIPlugin
             switch (args.Type)
             {
                 case DatabaseActionType.Get:
-                    args.Value = Database.GetValue(args.Key);
+                    args.Value = Database.GetData(args.Key, args.DataType);
                     break;
                 case DatabaseActionType.Set:
-                    Database.SetValue(args.Key, args.Value);
+                    Database.SetData(args.Key, args.Value);
                     break;
                 case DatabaseActionType.Remove:
                     Database.RemoveKey(args.Key);
