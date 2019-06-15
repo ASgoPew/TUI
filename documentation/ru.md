@@ -67,15 +67,18 @@ UI.Apply();
 UI.Draw();
 
 Чтобы создать новый интерфейс, необходимо вызвать один из методов класса UI:
-1. ```cs
+1.
+```cs
 RootVisualObject **CreateRoot**(string *name*, int *x*, int *y*, int *width*, int *height*,
 	UIConfiguration *configuration* = null, UIStyle *style* = null, object *provider* = null)
 ```
-2. ```cs
+2.
+```cs
 Panel **CreatePanel**(string *name*, int *x*, int *y*, int *width*, int *height*, PanelDrag *drag*, PanelResize *resize*,
 	UIConfiguration *configuration* = null, UIStyle *style* = null, object *provider* = null)
 ```
-3. ```cs
+3.
+```cs
 Panel **CreatePanel**(string *name*, int *x*, int *y*, int *width*, int *height*,
 	UIConfiguration *configuration* = null, UIStyle *style* = null, object *provider* = null)
 ```
@@ -180,7 +183,7 @@ node[0, 1] = new VisualContainer(new ContainerStyle() { WallColor = PaintID.Whit
 
 Для тестов вы можете вызвать функцию ShowGrid(), чтобы увидеть решетку даже без объектов:
 ```cs
-// Устанавливаем решетку
+// Устанавливаем большую и сложную решетку
 node.SetupGrid(new ISize[] { new Absolute(3), new Relative(50), new Absolute(6), new Relative(50) },
 	new ISize[] { new Relative(20), new Absolute(5), new Relative(80) });
 // Через 10 секунд отрисовываем сетку
