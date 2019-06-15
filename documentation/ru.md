@@ -67,20 +67,17 @@ UI.Apply();
 UI.Draw();
 
 Чтобы создать новый интерфейс, необходимо вызвать один из методов класса UI:
-1.
 ```cs
-RootVisualObject **CreateRoot**(string *name*, int *x*, int *y*, int *width*, int *height*,
-	UIConfiguration *configuration* = null, UIStyle *style* = null, object *provider* = null)
+RootVisualObject CreateRoot(string name, int x, int y, int width, int height,
+	UIConfiguration configuration = null, UIStyle style = null, object provider = null)
 ```
-2.
 ```cs
-Panel **CreatePanel**(string *name*, int *x*, int *y*, int *width*, int *height*, PanelDrag *drag*, PanelResize *resize*,
-	UIConfiguration *configuration* = null, UIStyle *style* = null, object *provider* = null)
+Panel CreatePanel(string name, int x, int y, int width, int height, PanelDrag drag, PanelResize resize,
+	UIConfiguration configuration = null, UIStyle style = null, object provider = null)
 ```
-3.
 ```cs
-Panel **CreatePanel**(string *name*, int *x*, int *y*, int *width*, int *height*,
-	UIConfiguration *configuration* = null, UIStyle *style* = null, object *provider* = null)
+Panel CreatePanel(string name, int x, int y, int width, int height,
+	UIConfiguration configuration = null, UIStyle style = null, object provider = null)
 ```
 
 Обычно вам нужен последний. Этот метод CreatePanel создает объект Panel, наследующийся от RootVisualObject
