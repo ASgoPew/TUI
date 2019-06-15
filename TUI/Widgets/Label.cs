@@ -62,6 +62,11 @@ namespace TUI.Widgets
             RawText = text.ToLower();
         }
 
+        public Label(int x, int y, int width, int height, string text, LabelStyle style)
+            : this(x, y, width, height, text, null, style)
+        {
+        }
+
         #endregion
         #region Copy
 

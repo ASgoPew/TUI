@@ -69,17 +69,26 @@ UI.Draw();
 1. RootVisualObject **CreateRoot**(string *name*, int *x*, int *y*, int *width*, int *height*, UIConfiguration *configuration* = null, UIStyle *style* = null, object *provider* = null)
 2. Panel **CreatePanel**(string *name*, int *x*, int *y*, int *width*, int *height*, PanelDrag *drag*, PanelResize *resize*, UIConfiguration *configuration* = null, UIStyle *style* = null, object *provider* = null)
 3. Panel **CreatePanel**(string *name*, int *x*, int *y*, int *width*, int *height*, UIConfiguration *configuration* = null, UIStyle *style* = null, object *provider* = null)
+
 Обычно вам нужен последний. Этот метод CreatePanel создает объект Panel, наследующийся от RootVisualObject
 (а RootVisualObject, в свою очередь, наследуется от VisualObject), затем добавляет его в список корней TUI.
 Таким образом, система теперь при обработке нажатий *увидит* этот объект и проверит, не на него ли нажал игрок.
 Все элементы этого интерфейса необходимо теперь добавлять уже к этой панели, вот пример создания
 панели и добавления нескольких виджетов на нее:
 ```cs
+// Создаем панель
 Panel root = TUI.CreatePanel("TestPanel", 100, 100, 50, 40, null, new UIStyle() { Wall=155 });
+// Создаем виджет Label (отображение текста) и добавляем к нашей панели
 Label label = root.Add(new Label(1, 1, 15, 2, "some text"));
-Button button = root.Add(new Button(5, 5, 10, 4, "lol", null, new ButtonStyle() { WallColor=25 },
+// Создаем контейнер, занимающий правую половину нашей панели, закрашенный черной краской
+VisualContainer node = root.Add(new VisualContainer(25, 0, 25, 40, None,
+  new ContainerStyle() { WallColor=25 }))
+// В этот контейнер добавим кнопку, которая по нажатию будет отправлять нажавшему текст в чат.
+Button button = node.Add(new Button(5, 5, 10, 4, "lol", null, new ButtonStyle() { WallColor=17 },
 	(self, touch) => touch.Player().SendInfoMessage("You pressed lol button!")));
 ```
+Результат:
+![](PanelExample.png)
 
 # Способы автоматического регулирования позиции и размеров объектов
 
@@ -88,15 +97,17 @@ Button button = root.Add(new Button(5, 5, 10, 4, "lol", null, new ButtonStyle() 
 2. **Grid** (решетка)
 
 Позиционирование текущей вершины внутри родительской:
-1. **Alignment** (отсутп)
+1. **Alignment** (отступ)
 
 Регулирование размеров объекта относительно родителя:
 1. **FullSize** (полноразмерность)
 
 
-### Layout
+## Layout
+
 Этот метод позвоялет автоатически распологать детей, добавленных с помощью метода AddToLayout,
 в определенном порядке друг за другом в указанном направлении:
+
 ```VisualObject SetupLayout(Alignment alignment, Direction direction, Side side, ExternalOffset offset, int childIndent, bool boundsIsOffset)```
 * alignment - сторона/угол/центр, где будут распологаться объекты layout. Например, правый верхний угол - Alignment.TopRight
 * direction - направление, по которому будут добавляться объекты. Например, вниз - Direction.Down
@@ -107,44 +118,59 @@ Button button = root.Add(new Button(5, 5, 10, 4, "lol", null, new ButtonStyle() 
 
 Пример:
 ```cs
-node.SetupLayout(Alignment.Center, Direction.Left, Side.Center, ExternalOffset() { Left=5, Up=5, Right=5, Down=5 }, 3, false);
-node.AddToLayout(InputLabel(0, 0, InputLabelStyle(Default="12345", Type=InputLabelType.All, TextUnderline=LabelUnderline.None)));
-node.AddToLayout(ItemRack(0, 0, ItemRackStyle(Type=200, Left=True), uif(lambda o, t: puts(t.X, t.Y))));
-ItemRack irack = node.AddToLayout(ItemRack(0, 0, ItemRackStyle(Type=201, Left=True)));
+// Настраиваем конфигурацию layout
+node.SetupLayout(Alignment.Center, Direction.Left, Side.Center, ExternalOffset()
+  { Left=5, Up=5, Right=5, Down=5 }, 3, false);
+// Добавляем в layout виджет InputLabel, позволяющий вводить текст
+node.AddToLayout(new InputLabel(0, 0, InputLabelStyle(Default="12345",
+  Type=InputLabelType.All, TextUnderline=LabelUnderline.None)));
+// Добавляем в layout еще один виджет ItemRack, который соответствует Weapon rack:
+// отображение предмета на стойке размером 3х3. По нажатию выводит координаты этого нажатия.
+node.AddToLayout(new ItemRack(0, 0, ItemRackStyle(Type=200, Left=True), uif(lambda o, t: puts(t.X, t.Y))));
+ItemRack irack = node.AddToLayout(new ItemRack(0, 0, ItemRackStyle(Type=201, Left=True)));
+// ItemRack позволяет сверху добавть текст с помощью таблички:
 irack.Set("lololo\nkekeke");
-node.AddToLayout(Slider(0, 0, 10, 2, SliderStyle(Default=3, Wall=157, WallColor=26)));
+// Наконец, добавляем слайдер в layout
+node.AddToLayout(new Slider(0, 0, 10, 2, SliderStyle(Default=3, Wall=157, WallColor=26)));
 ```
 Результат:
 ![](LayoutExample.png)
 
-### Grid
+## Grid
+
 Этот метод позволяет представить объект в виде решетки с абсолютными или относительными размерами колонок и линий:
 
 ```VisualObject SetupGrid(IEnumerable<ISize> columns, IEnumerable<ISize> lines, Offset offset, bool fillWithEmptyObjects)```
 * columns - размеры колонок. Например, левая колонка размером 10 блоков, а правая - все оставшееся место: new ISize[] { Absolute(10), Relative(100) }
-* lines - размеры линий.
+* lines - размеры линий. Например, центральная линия занимает 20 блоков, а верхняя и нижняя поровну делят оставшееся место: new ISize[] { Relative(50), Absolute(20), Relative(50) }
 * offset - отступ сетки, включая внутренние отступы ячеек между собой и внешние отступы от границы объекта.
-* fillWithEmptyObjects - заполнить ли все ячейки пустыми VisualObject или нет.
+* fillWithEmptyObjects - заполнить ли автоматически все ячейки пустыми VisualContainer или нет.
 
 Пример:
 ```cs
+// Настраиваем конфигуарцию сетки grid. Указываем, что нужно все ячейки заполнить автоматически.
 node.SetupGrid([Relative(100), Absolute(16)], [Relative(100)], null, true);
-node[0, 0] = new VisualObject(new UIStyle() { WallColor=26 });
-node[1, 0].Style.WallColor = 25;
+// В первой ячейке (на пересечении первой колонки и первой линии) установим черный цвет фона
+node[0, 0].Style.WallColor = 25;
+// А ячейке второй колонки первой линии назначим новый объект с белым цветом фона
+node[1, 0] = new VisualObject(new UIStyle() { WallColor=26 });
 ```
 Результат:
 ![](GridExample.png)
 
-Вы можете установить TUI.ShowGrid в значение true, чтобы видеть решетки объектов:
+Для тестов вы можете установить TUI.ShowGrid в значение true, чтобы видеть решетку даже без объектов:
 ```cs
 TUI.ShowGrid = true;
-node.SetupGrid([Absolute(10), Relative(50), Absolute(16), Relative(50)], [Relative(20), Absolute(5), Relative(80)]);
+node.SetupGrid([Absolute(10), Relative(50), Absolute(16), Relative(50)],
+  [Relative(20), Absolute(5), Relative(80)]);
 ```
 Результат:
 ![](ShowGridExample.png)
 
-### Alignment
+## Alignment
+
 Этот метод позволяет автоматически распологать объект в относительной позиции в родителе:
+
 ```VisualObject SetAlignmentInParent(Alignment alignment, ExternalOffset offset, bool boundsIsOffset)```
 * alignment - место расположения объекта в родителе.
 * offset - отступы от границ родителя.
@@ -152,14 +178,17 @@ node.SetupGrid([Absolute(10), Relative(50), Absolute(16), Relative(50)], [Relati
 
 Пример (метод Add возвращает только что добавленный дочерний объект):
 ```cs
-node.Add(Label(0, 0, 10, 4, "test")).SetAlignmentInParent(Alignment.DownLeft, new ExternalOffset(Left=1, Down=1));
+node.Add(new Label(0, 0, 10, 4, "test"))
+  .SetAlignmentInParent(Alignment.DownLeft, new ExternalOffset(Left=1, Down=1));
 ```
 Результат:
 ![](AlignmentExample.png)
 
-### FullSize
-Этот метод позволяет автоматически устанавливать размеры объекта (как по ширине, так и по высоте) относительно
-размеров родителя, а именно - расширять в точности до размеров родителя:
+## FullSize
+
+Этот метод позволяет автоматически устанавливать размеры объекта (как по ширине, так и по высоте)
+относительно размеров родителя, а именно - расширять в точности до размеров родителя:
+
 ```VisualObject SetFullSize(bool horizontal, bool vertical)```
 * horizontal - устанавливать ширину объекта равной ширине родителя.
 * vertical - устанавливать высоту объекта равной высоте родителя.
@@ -169,7 +198,8 @@ node.Add(Label(0, 0, 10, 4, "test")).SetAlignmentInParent(Alignment.DownLeft, ne
 
 Пример:
 ```cs
-node.Add(VisualObject(new UIStyle() { WallColor=15 })).SetFullSize(true, false);
+node.Add(new VisualObject(new UIStyle() { WallColor=15 }))
+  .SetFullSize(true, false);
 ```
 Результат:
 ![](FullSizeExample.png)
@@ -177,6 +207,13 @@ node.Add(VisualObject(new UIStyle() { WallColor=15 })).SetFullSize(true, false);
 # Виджеты
 
 ## Label
+Виджет отображения текста с помощью статуй символов и цифр.
+```Label(int x, int y, int width, int height, string text, LabelStyle style)```
+Пример использования:
+```cs
+node.Add(new Label())
+```
+
 ## Button
 ## Slider
 ## Checkbox
