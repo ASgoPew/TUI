@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using TUI.Base.Style;
 using TUI.Hooks.Args;
+using TUI.Widgets;
 
 namespace TUI.Base
 {
@@ -123,8 +125,9 @@ namespace TUI.Base
         /// Draws popup object.
         /// </summary>
         /// <returns>PopUpBackground</returns>
-        public virtual VisualObject ShowPopUp(VisualObject popup, ContainerStyle style = null, Action<VisualObject> cancelCallback = null)
+        public virtual VisualContainer ShowPopUp(VisualObject popup, ContainerStyle style = null, Action<VisualObject> cancelCallback = null)
         {
+            style = style ?? new ContainerStyle();
             style.Transparent = true;
             if (PopUpBackground == null)
             {
@@ -159,13 +162,32 @@ namespace TUI.Base
         /// Hides popup.
         /// </summary>
         /// <returns>this</returns>
-        public virtual VisualObject HidePopUp()
+        public virtual RootVisualObject HidePopUp()
         {
             if (PopUpBackground != null)
             {
                 PopUpBackground.Disable();
-                return Apply().Draw();
+                Apply().Draw();
             }
+            return this;
+        }
+
+        #endregion
+        #region Alert
+
+        public virtual RootVisualObject Alert(string text, UIStyle style = null, ButtonStyle buttonStyle = null)
+        {
+            ShowPopUp(new AlertWindow(text, style, buttonStyle));
+            return this;
+        }
+
+        #endregion
+        #region Confirm
+
+        public virtual RootVisualObject Confirm(string text, Action<bool> callback, ContainerStyle style = null,
+                ButtonStyle yesButtonStyle = null, ButtonStyle noButtonStyle = null)
+        {
+            ShowPopUp(new ConfirmWindow(text, callback, style, yesButtonStyle, noButtonStyle));
             return this;
         }
 

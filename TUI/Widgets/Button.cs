@@ -182,6 +182,9 @@ namespace TUI.Widgets
 
         protected virtual void Blink(ButtonBlinkStyle blinkStyle, byte blinkColor)
         {
+            if (!CalculateActive())
+                return;
+
             if (blinkStyle == ButtonBlinkStyle.Full)
                 Apply().Draw();
             else if (blinkStyle == ButtonBlinkStyle.Left)

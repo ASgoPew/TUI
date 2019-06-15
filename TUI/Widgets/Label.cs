@@ -59,7 +59,7 @@ namespace TUI.Widgets
                 LabelStyle style = null, Action<VisualObject, Touch> callback = null)
             : base(x, y, width, height, configuration, style ?? new LabelStyle(), callback)
         {
-            RawText = text.ToLower();
+            RawText = text ?? throw new ArgumentNullException(nameof(text));
         }
 
         public Label(int x, int y, int width, int height, string text, LabelStyle style)
@@ -199,7 +199,7 @@ namespace TUI.Widgets
         /// <param name="value"></param>
         public virtual void Set(string value)
         {
-            RawText = value;
+            RawText = value ?? throw new ArgumentNullException(nameof(value));
         }
 
         #endregion

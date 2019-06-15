@@ -119,8 +119,7 @@ namespace TUI.Base
             CanTouchArgs args = new CanTouchArgs(@this, touch);
             TUI.Hooks.CanTouch.Invoke(args);
             lock (Locker)
-                args.CanTouch &= Loaded && !Disposed;
-            return args.CanTouch && Configuration.CustomCanTouch?.Invoke(@this, touch) != false;
+                return Loaded && !Disposed && args.CanTouch && Configuration.CustomCanTouch?.Invoke(@this, touch) != false;
         }
 
         #endregion
