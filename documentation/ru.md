@@ -67,9 +67,18 @@ UI.Apply();
 UI.Draw();
 
 Чтобы создать новый интерфейс, необходимо вызвать один из методов класса UI:
-1. ```RootVisualObject **CreateRoot**(string *name*, int *x*, int *y*, int *width*, int *height*, UIConfiguration *configuration* = null, UIStyle *style* = null, object *provider* = null)```
-2. ```Panel **CreatePanel**(string *name*, int *x*, int *y*, int *width*, int *height*, PanelDrag *drag*, PanelResize *resize*, UIConfiguration *configuration* = null, UIStyle *style* = null, object *provider* = null)```
-3. ```Panel **CreatePanel**(string *name*, int *x*, int *y*, int *width*, int *height*, UIConfiguration *configuration* = null, UIStyle *style* = null, object *provider* = null)```
+1. ```cs
+RootVisualObject **CreateRoot**(string *name*, int *x*, int *y*, int *width*, int *height*,
+	UIConfiguration *configuration* = null, UIStyle *style* = null, object *provider* = null)
+```
+2. ```cs
+Panel **CreatePanel**(string *name*, int *x*, int *y*, int *width*, int *height*, PanelDrag *drag*, PanelResize *resize*,
+	UIConfiguration *configuration* = null, UIStyle *style* = null, object *provider* = null)
+```
+3. ```cs
+Panel **CreatePanel**(string *name*, int *x*, int *y*, int *width*, int *height*,
+	UIConfiguration *configuration* = null, UIStyle *style* = null, object *provider* = null)
+```
 
 Обычно вам нужен последний. Этот метод CreatePanel создает объект Panel, наследующийся от RootVisualObject
 (а RootVisualObject, в свою очередь, наследуется от VisualObject), затем добавляет его в список корней TUI.
@@ -80,13 +89,17 @@ UI.Draw();
 // Создаем панель
 Panel root = TUI.TUI.CreatePanel("TestPanel", 100, 100, 50, 40, null,
 	new ContainerStyle() { Wall = WallID.DiamondGemspark });
-// Создаем виджет Label (отображение текста) и добавляем к нашей панели
-// Функция Add возвращает только что добавленный объект в типе VisualObject, так что приводим к Label
-Label label = root.Add(new Label(1, 1, 17, 2, "some text")) as Label;
+// Создаем виджет Label (отображение текста)
+Label label = new Label(1, 1, 17, 2, "some text");
+// Добавляем к панели
+root.Add(label);
 
 // Создаем контейнер, занимающий правую половину нашей панели, закрашенный черной краской
-VisualContainer node = root.Add(new VisualContainer(25, 0, 25, 40, null,
-  new ContainerStyle() { WallColor = PaintID.Black })) as VisualContainer;
+// Функция Add возвращает только что добавленный объект в типе VisualObject,
+// так что добавление элемента можно реализовать следующим образом:
+VisualContainer node = root.Add(
+	new VisualContainer(25, 0, 25, 40, null, new ContainerStyle() { WallColor = PaintID.Black })
+) as VisualContainer;
 // В этот контейнер добавим кнопку, которая по нажатию будет отправлять нажавшему текст в чат.
 Button button = node.Add(new Button(0, 7, 12, 4, "lol", null, new ButtonStyle()
 	{ WallColor = PaintID.DeepGreen }, (self, touch) =>
@@ -96,15 +109,15 @@ Button button = node.Add(new Button(0, 7, 12, 4, "lol", null, new ButtonStyle()
 
 # 4 независимых способа автоматического регулирования позиций и/или размеров объектов
 
-Позиционирование дочерних объектов внутри текущей вершины:
-1. **Layout** (разметка)
-2. **Grid** (решетка)
+### Позиционирование дочерних объектов внутри текущей вершины:
+* **Layout** (разметка)
+* **Grid** (решетка)
 
-Позиционирование текущей вершины внутри родительской:
-1. **Alignment** (отступ)
+### Позиционирование текущей вершины внутри родительской:
+* **Alignment** (отступ)
 
-Регулирование размеров объекта относительно родителя:
-1. **FullSize** (полноразмерность)
+### Регулирование размеров объекта относительно родителя:
+* **FullSize** (полноразмерность)
 
 
 ## Layout
@@ -165,11 +178,13 @@ node[0, 1] = new VisualContainer(new ContainerStyle() { WallColor = PaintID.Whit
 ```
 ![](GridExample.png)
 
-Для тестов вы можете установить TUI.ShowGrid в значение true, чтобы видеть решетку даже без объектов:
+Для тестов вы можете вызвать функцию ShowGrid(), чтобы увидеть решетку даже без объектов:
 ```cs
-TUI.ShowGrid = true;
-node.SetupGrid([Absolute(10), Relative(50), Absolute(16), Relative(50)],
-	[Relative(20), Absolute(5), Relative(80)]);
+// Устанавливаем решетку
+node.SetupGrid(new ISize[] { new Absolute(3), new Relative(50), new Absolute(6), new Relative(50) },
+	new ISize[] { new Relative(20), new Absolute(5), new Relative(80) });
+// Через 10 секунд отрисовываем сетку
+Task.Delay(10000).ContinueWith(_ => node.ShowGrid());
 ```
 ![](ShowGridExample.png)
 
@@ -218,12 +233,13 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 ## Label
 Виджет отображения текста с помощью статуй символов и цифр.
 ```Label(int x, int y, int width, int height, string text, LabelStyle style)```
-Пример использования:
+Пример:
 ```cs
 Label label = node.Add(new Label(1, 1, 15, 2, "some text", new LabelStyle() { TextColor=13 })) as Label;
 ```
 
 ## Button
+
 ## Slider
 ## Checkbox
 ## Switch

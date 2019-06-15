@@ -1085,12 +1085,7 @@ namespace TUI.Base
             /// <summary>
             /// Overridable method for apply related to this node. By default draws tiles/walls and grid if UI.ShowGrid is true.
             /// </summary>
-            protected virtual void ApplyThisNative()
-            {
-                ApplyTiles();
-                if (TUI.ShowGrid && Configuration.Grid != null)
-                    ApplyGridTemplate();
-            }
+            protected virtual void ApplyThisNative() => ApplyTiles();
 
             #endregion
             #region ApplyTiles
@@ -1142,34 +1137,6 @@ namespace TUI.Base
                     tile.wall = Style.Wall.Value;
                 if (Style.WallColor != null)
                     tile.wallColor(Style.WallColor.Value);
-            }
-
-            #endregion
-            #region ShowGrid
-
-            /// <summary>
-            /// DEBUG function for showing grid bounds.
-            /// </summary>
-            public void ApplyGridTemplate()
-            {
-                lock (Locker)
-                {
-                    for (int i = 0; i < Configuration.Grid.Columns.Length; i++)
-                        for (int j = 0; j < Configuration.Grid.Lines.Length; j++)
-                        {
-                            (int columnX, int columnSize) = Configuration.Grid.ResultingColumns[i];
-                            (int lineY, int lineSize) = Configuration.Grid.ResultingLines[j];
-                            for (int x = columnX; x < columnX + columnSize; x++)
-                                for (int y = lineY; y < lineY + lineSize; y++)
-                                {
-                                    dynamic tile = Tile(x, y);
-                                    if (tile == null)
-                                        continue;
-                                    tile.wall = (byte)155;
-                                    tile.wallColor((byte)(25 + (i + j) % 2));
-                                }
-                        }
-                }
             }
 
             #endregion
@@ -1271,6 +1238,39 @@ namespace TUI.Base
             foreach ((int x, int y) in Points)
                 Tile(x, y)?.ClearEverything();
             return this;
+        }
+
+        #endregion
+        #region ShowGrid
+
+        /// <summary>
+        /// DEBUG function for showing grid bounds.
+        /// </summary>
+        public void ShowGrid()
+        {
+            if (Configuration.Grid == null)
+                throw new Exception("Grid not setup for this object.");
+
+            lock (Locker)
+            {
+                for (int i = 0; i < Configuration.Grid.Columns.Length; i++)
+                    for (int j = 0; j < Configuration.Grid.Lines.Length; j++)
+                    {
+                        (int columnX, int columnSize) = Configuration.Grid.ResultingColumns[i];
+                        (int lineY, int lineSize) = Configuration.Grid.ResultingLines[j];
+                        for (int x = columnX; x < columnX + columnSize; x++)
+                            for (int y = lineY; y < lineY + lineSize; y++)
+                            {
+                                dynamic tile = Tile(x, y);
+                                if (tile == null)
+                                    continue;
+                                tile.wall = (byte)155;
+                                tile.wallColor((byte)(25 + (i + j) % 2));
+                            }
+                    }
+            }
+
+            Draw();
         }
 
         #endregion

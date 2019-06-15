@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Threading.Tasks;
 using Terraria;
 using Terraria.ID;
 using TerrariaApi.Server;
@@ -25,13 +26,17 @@ namespace TUIExample
             // Создаем панель
             Panel root = TUI.TUI.CreatePanel("TestPanel", 100, 100, 50, 40, null,
                 new ContainerStyle() { Wall = WallID.DiamondGemspark });
-            // Создаем виджет Label (отображение текста) и добавляем к нашей панели
-            // Функция Add возвращает только что добавленный объект в типе VisualObject, так что приводим к Label
-            Label label = root.Add(new Label(1, 1, 17, 2, "some text")) as Label;
+            // Создаем виджет Label (отображение текста)
+            Label label = new Label(1, 1, 17, 2, "some text");
+            // Добавляем к панели
+            root.Add(label);
 
             // Создаем контейнер, занимающий правую половину нашей панели, закрашенный черной краской
-            VisualContainer node = root.Add(new VisualContainer(25, 0, 25, 40, null,
-              new ContainerStyle() { WallColor = PaintID.Black })) as VisualContainer;
+            // Функция Add возвращает только что добавленный объект в типе VisualObject,
+            // так что добавление элемента можно реализовать следующим образом:
+            VisualContainer node = root.Add(
+                new VisualContainer(25, 0, 25, 40, null, new ContainerStyle() { WallColor = PaintID.Black })
+            ) as VisualContainer;
             // В этот контейнер добавим кнопку, которая по нажатию будет отправлять нажавшему текст в чат.
             Button button = node.Add(new Button(0, 7, 12, 4, "lol", null, new ButtonStyle()
                 { WallColor = PaintID.DeepGreen }, (self, touch) =>
@@ -58,6 +63,7 @@ namespace TUIExample
                 Wall = WallID.AmberGemsparkOff, WallColor = PaintID.White }));
             */
 
+            /*
             // Настраиваем конфигуарцию сетки grid. Указываем, что нужно все ячейки заполнить автоматически.
             // Одна колонка размером с все доступное место и две линии: нижняя размером 16, остальное - верхняя.
             node.SetupGrid(new ISize[] { new Relative(100) }, new ISize[] { new Relative(100), new Absolute(16) }, null, true);
@@ -66,6 +72,13 @@ namespace TUIExample
             // А ячейке второй линии первой колонки назначим новый объект с белым цветом фона
             node[0, 1] = new VisualContainer(new ContainerStyle() { WallColor = PaintID.White });
             // Заметьте, что кнопка button не будет видна, потому что ее заслоняет объект первой линии сетки
+            */
+
+            // Устанавливаем большую и сложную решетку
+            node.SetupGrid(new ISize[] { new Absolute(3), new Relative(50), new Absolute(6), new Relative(50) },
+                new ISize[] { new Relative(20), new Absolute(5), new Relative(80) });
+            // Через 10 секунд отрисовываем сетку
+            Task.Delay(10000).ContinueWith(_ => node.ShowGrid());
 
             // Добавляем label и сразу устанавливаем Alignment с отступом 1 слева и снизу
             node.Add(new Label(0, 0, 8, 2, "test"))

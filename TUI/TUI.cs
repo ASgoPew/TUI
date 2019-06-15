@@ -14,7 +14,6 @@ namespace TUI
         #region Data
 
         public static int MaxUsers;
-        public static bool ShowGrid = false;
         public static HookManager Hooks = new HookManager();
         public static UserSession[] Session = new UserSession[MaxUsers];
         public static int MaxHoldTouchMilliseconds = 30000;
