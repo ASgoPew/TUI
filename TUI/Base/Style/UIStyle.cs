@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace TUI.Base.Style
+﻿namespace TUI.Base.Style
 {
     /// <summary>
     /// Object drawing style class.

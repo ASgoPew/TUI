@@ -43,6 +43,7 @@ namespace TUIPlugin
         public TUIPlugin(Main game)
             : base(game)
         {
+            Order = Int32.MinValue;
         }
 
         #endregion

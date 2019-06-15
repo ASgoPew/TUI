@@ -37,7 +37,6 @@ namespace TUI.Widgets
             if (resize != null)
                 ResizeObject = Add(resize, 1000000) as PanelResize;
             Database(typeof(int[]));
-
             if (GetData())
             {
                 int[] data = Data as int[];
@@ -151,7 +150,8 @@ namespace TUI.Widgets
                     if (ending)
                     {
                         touch.Session[@this] = null;
-                        if (panel.Data is int[] data && (data[0] != panel.X || data[1] != panel.Y))
+                        if (panel.Data == null || (panel.Data is int[] data
+                                && (data[0] != panel.X || data[1] != panel.Y)))
                             panel.SavePosition();
                     }
                 }
@@ -195,7 +195,8 @@ namespace TUI.Widgets
                     if (ending)
                     {
                         touch.Session[@this] = null;
-                        if (panel.Data is int[] data && (data[2] != panel.Width || data[3] != panel.Height))
+                        if (panel.Data == null || (panel.Data is int[] data
+                                && (data[2] != panel.Width || data[3] != panel.Height)))
                             panel.SavePosition();
                     }
                 }

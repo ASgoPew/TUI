@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Timers;
 using TUI.Base;
-using TUI.Base.Style;
 using TUI.Hooks;
 using TUI.Hooks.Args;
 using TUI.Widgets;
@@ -133,13 +132,13 @@ namespace TUI
                 UIConfiguration configuration = null, ContainerStyle style = null, object provider = null) =>
             Create(new RootVisualObject(name, x, y, width, height, configuration, style, provider));
 
-        public static Panel CreatePanel(string name, int x, int y, int width, int height, PanelDrag drag, PanelResize resize,
-                UIConfiguration configuration = null, ContainerStyle style = null, object provider = null) =>
-            Create(new Panel(name, x, y, width, height, drag, resize, configuration, style, provider)) as Panel;
-
         public static Panel CreatePanel(string name, int x, int y, int width, int height,
                 UIConfiguration configuration = null, ContainerStyle style = null, object provider = null) =>
             Create(new Panel(name, x, y, width, height, configuration, style, provider)) as Panel;
+
+        public static Panel CreatePanel(string name, int x, int y, int width, int height, UIConfiguration configuration,
+                ContainerStyle style, PanelDrag drag, PanelResize resize, object provider = null) =>
+            Create(new Panel(name, x, y, width, height, drag, resize, configuration, style, provider)) as Panel;
 
         #endregion
         #region Destroy

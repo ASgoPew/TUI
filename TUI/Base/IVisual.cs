@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace TUI.Base
+﻿namespace TUI.Base
 {
     public interface IVisual<T>
     {

@@ -45,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Base\InputVisualObject.cs" />
+    <Compile Include="Base\Style\PaintID.cs" />
     <Compile Include="Base\PulseType.cs" />
     <Compile Include="Base\Style\Alignment.cs" />
     <Compile Include="Base\Style\Direction.cs" />

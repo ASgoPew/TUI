@@ -98,12 +98,17 @@ namespace TUIPlugin
         public static object GetData(string key, Type type)
         {
             string query = "SELECT Value FROM {0} WHERE Key='{1}'".SFormat(TableName, key);
-#if DEBUG
-            Console.WriteLine(query);
-#endif
             using (QueryResult result = QueryReader(query))
                 if (result.Read())
+                {
+#if DEBUG
+                    Console.WriteLine(query + ": " + result.Get<string>("Value"));
+#endif
                     return JsonConvert.DeserializeObject(result.Get<string>("Value"), type);
+                }
+#if DEBUG
+            Console.WriteLine(query + ": nothing");
+#endif
             return null;
         }
 
