@@ -72,15 +72,15 @@ RootVisualObject CreateRoot(string name, int x, int y, int width, int height,
 	UIConfiguration configuration = null, UIStyle style = null, object provider = null)
 ```
 ```cs
-Panel CreatePanel(string name, int x, int y, int width, int height, PanelDrag drag, PanelResize resize,
-	UIConfiguration configuration = null, UIStyle style = null, object provider = null)
-```
-```cs
 Panel CreatePanel(string name, int x, int y, int width, int height,
 	UIConfiguration configuration = null, UIStyle style = null, object provider = null)
 ```
+```cs
+Panel CreatePanel(string name, int x, int y, int width, int height, UIConfiguration configuration,
+	UIStyle style, PanelDrag drag, PanelResize resize, object provider = null)
+```
 
-Обычно вам нужен последний. Этот метод CreatePanel создает объект Panel, наследующийся от RootVisualObject
+Обычно вам нужен второй из них. Этот метод CreatePanel создает объект Panel, наследующийся от RootVisualObject
 (а RootVisualObject, в свою очередь, наследуется от VisualObject), затем добавляет его в список корней TUI.
 Таким образом, система теперь при обработке нажатий *увидит* этот объект и проверит, не на него ли нажал игрок.
 Все элементы этого интерфейса необходимо теперь добавлять уже к этой панели, вот пример создания
@@ -239,7 +239,6 @@ Label label = node.Add(new Label(1, 1, 15, 2, "some text", new LabelStyle() { Te
 ```
 
 ## Button
-
 ## Slider
 ## Checkbox
 ## Switch
@@ -250,6 +249,8 @@ Label label = node.Add(new Label(1, 1, 15, 2, "some text", new LabelStyle() { Te
 ## Video
 ## ScrollBar
 ## ScrollBackground
+## RootVisualObject
+## Panel
 
 Некоторые тайлы ломаются при определенных условиях при отправке с помощью SendTileSquare (например, это статуя без блоков под ней).
 Для того, чтобы заставить объект рисоваться с помощью отправок секций, достаточно установить у него поле ForceSection в значение true.
