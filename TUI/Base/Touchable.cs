@@ -118,6 +118,8 @@ namespace TUI.Base
             VisualObject @this = this as VisualObject;
             CanTouchArgs args = new CanTouchArgs(@this, touch);
             TUI.Hooks.CanTouch.Invoke(args);
+            lock (Locker)
+                args.CanTouch &= Loaded && !Disposed;
             return args.CanTouch && Configuration.CustomCanTouch?.Invoke(@this, touch) != false;
         }
 
