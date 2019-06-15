@@ -38,10 +38,8 @@ namespace TUI.Base
         /// <returns></returns>
         internal bool Touched(Touch touch)
         {
-#if DEBUG
             if (!CalculateActive())
-                throw new InvalidOperationException("Trying to call Touched on object that is not active");
-#endif
+                return false;
 
             if (IsLocked(touch))
                 return true;
