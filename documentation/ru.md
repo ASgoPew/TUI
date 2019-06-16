@@ -271,9 +271,8 @@ node.Add(new VisualObject(0, 0, 8, 4, null, new UIStyle() { WallColor = 15 },
 ```
 ![]()
 
-<details><summary>
 ### Подробнее о полях и методах...
-</summary>
+<details><summary> Нажмите сюда, чтобы развернуть </summary>
 <p>
 
 ### Публичные поля и свойства VisualObject
