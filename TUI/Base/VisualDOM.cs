@@ -16,7 +16,7 @@ namespace TUI.Base
             /// </summary>
             protected List<VisualObject> Child { get; private set; } = new List<VisualObject>();
             /// <summary>
-            /// Parent object.
+            /// Parent object. Null for <see cref="RootVisualObject"/>.
             /// </summary>
             public VisualObject Parent { get; private set; } = null;
 
@@ -31,19 +31,13 @@ namespace TUI.Base
             /// Y coordinate relative to Parent object.
             /// </summary>
             public int Y { get; set; }
-            /// <summary>
-            /// Object width.
-            /// </summary>
             public int Width { get; set; }
-            /// <summary>
-            /// Object height.
-            /// </summary>
             public int Height { get; set; }
 
             #endregion
 
         /// <summary>
-        /// Root of the interface tree. Null before first Update() call. Use GetRoot() to calculate manually.
+        /// Root of the interface tree. Null before first <see cref="VisualObject.Update"/> call. Use <see cref="GetRoot"/> to calculate manually.
         /// </summary>
         public RootVisualObject Root { get; set; }
         /// <summary>
@@ -67,7 +61,7 @@ namespace TUI.Base
         /// </summary>
         public virtual int Layer { get; private set; } = 0;
         /// <summary>
-        /// Object configuration.
+        /// Object touching and drawing settings.
         /// </summary>
         public UIConfiguration Configuration { get; set; }
         /// <summary>

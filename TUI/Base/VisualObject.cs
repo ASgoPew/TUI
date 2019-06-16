@@ -14,7 +14,7 @@ namespace TUI.Base
         #region Data
 
         /// <summary>
-        /// Object style.
+        /// Object tile and wall style.
         /// </summary>
         public UIStyle Style { get; set; }
         /// <summary>
