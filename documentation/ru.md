@@ -252,14 +252,60 @@ BlinkColor, BlinkDelay, TriggerStyle, BlinkStyle.
 VisualObject(int x, int y, int width, int height, UIConfiguration configuration,
 	UIStyle style, Action<VisualObject, Touch> callback)
 ```
+* x - *относительная* координата по горизонтали от левой стороны родителя (или от левого края карты мира, если нет родителя)
+* y - *относительная* координата по вертикали от верхней стороны родителя (или от верхнего края карты мира, если нет родителя)
+* width - ширина объекта
+* height - высота объекта
+* [configuration] - конфигурация объекта (когда можно нажимать, кому можно нажимать, ...)
+* [style] - стиль отображения объекта (стены, краска стен, блоки, краска блоков, ...)
+* [callback] - функция, вызываемая по нажатию на этот объект. Принимает 2 параметра:
+VisualObject (это сам объект) и Touch - объект нажатия, хранящий информацию о координатах, состоянии нажатия,
+об нажимающем игроке (.Session.UserIndex), ...
+TSPlayer нажимающего игрока можно получить через функцию-расширения Touch.Player(),
+доступную в сборке TUIPlugin.dll.
+
 Пример:
 ```cs
 node.Add(new VisualObject(0, 0, 8, 4, null, new UIStyle() { WallColor = 15 },
 	(self, touch) => Console.WriteLine(touch.X + " " + touch.Y)));
 ```
 ![]()
-### Поля VisualObject
+### Публичные поля и свойства VisualObject
+* string Name
+* string FullName
+* int X
+* int Y
+* int Width
+* int Height
+* VisualObject Parent
+* RootVisualObject Root
+* UIConfiguration Configuration
+* UIStyle Style
+* Action<VisualObject, Touch> Callback
+* dynamic Provider
+* bool UsesDefaultMainProvider
+* int ChildCount
+* bool Active
+* bool Loaded
+* bool Disposed
+* bool Enabled
+* bool Visible
+* int Layer
+* bool Orderable
+* GridCell Cell
+* bool ForceSection
+* int ProviderX
+* int ProviderY
+* ExternalOffset Bounds
+* object Data
+### Защищенные (protected) поля VisualObject
+* object Locker
+* ConcurrentDictionary<string, object> Shortcuts
+* List<VisualObject> Child
+* VisualObject[,] Grid
+
 ### Методы VisualObject
+*
 
 ## VisualContainer
 Виджет-контейнер других виджетов. Рекомендуется использовать именно его, несмотря на то,
@@ -282,7 +328,17 @@ VisualContainer node = root.Add(
 
 ## RootVisualObject
 Виджет, являющийся корнем дерева и выполняющий соответствующие функции.
-Нельзя создать напрямую, только через TUI.CreateRoot()
+Нельзя создать напрямую, только через TUI.CreateRoot():
+```cs
+public static RootVisualObject CreateRoot(string name, int x, int y, int width, int height,
+	UIConfiguration configuration, ContainerStyle style, object provider)
+```
+* provider - объект провайдера тайлов (блоков), дефолтное значение - null (интерфейс будет
+отрисовываться на карте Main.tile). В случае дефолтного значения блоки карты, находящиеся
+внутри этого интерфейса, будут безвозвратно изменены.
+В качестве значения можно использовать FakeTileRectangle из [FakeManager](https://github.com/AnzhelikaO/FakeManager),
+тогда интерфейс будет отрисовываться на слое блоков поверх карты Main.tile.
+
 Обладает следующими особенными функциями:
 ```cs
 // Добавить объект в качестве всплывающего окна
@@ -450,8 +506,10 @@ FormField ffield = node.Add(new FormField(new VisualSign(0, 0, "test"),
 Поддерживает отображение табличек.
 Отображает битую картинку в случае неудачи загрузки картинки.
 ```cs
-Image(int x, int y, string path, UIConfiguration configuration, UIStyle style, Action<VisualObject, Touch> callback)
-Image(int x, int y, ImageData data, UIConfiguration configuration, UIStyle style, Action<VisualObject, Touch> callback)
+Image(int x, int y, string path, UIConfiguration configuration, UIStyle style,
+	Action<VisualObject, Touch> callback)
+Image(int x, int y, ImageData data, UIConfiguration configuration, UIStyle style,
+	Action<VisualObject, Touch> callback)
 ```
 Пример:
 ```cs
@@ -518,7 +576,8 @@ ScrollBackground(bool allowToPull, bool rememberTouchPosition, bool useMoving,
 * callback - 
 Пример:
 ```cs
-ScrollBackground scrollbg = node.Add(new ScrollBackground(true, true, true)) as ScrollBackground;
+// Указываем layer (слой) в значение Int32.MinValue, чтобы виджет был сзади всех прочих виджетов
+ScrollBackground scrollbg = node.Add(new ScrollBackground(true, true, true), Int32.MinValue) as ScrollBackground;
 ```
 ![]()
 

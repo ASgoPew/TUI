@@ -65,6 +65,7 @@ namespace TUI.Widgets
 
             foreach (SignData sign in Data.Signs)
                 Add(new VisualSign(sign.X, sign.Y, sign.Text));
+
             SetWH(Data.Width, Data.Height);
         }
 

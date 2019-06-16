@@ -43,21 +43,9 @@ namespace TUI.Base
             #endregion
 
         /// <summary>
-        /// Index in Parent's Child array.
-        /// </summary>
-        public int IndexInParent => Parent.Child.IndexOf(this as VisualObject);
-        /// <summary>
         /// Root of the interface tree. Null before first Update() call. Use GetRoot() to calculate manually.
         /// </summary>
         public RootVisualObject Root { get; set; }
-        /// <summary>
-        /// Tile provider of current interface tree.
-        /// </summary>
-        public virtual dynamic Provider => Root?.Provider;
-        /// <summary>
-        /// True if Provider links to Main.tile provider.
-        /// </summary>
-        public bool UsesDefaultMainProvider => Provider is MainTileProvider;
         /// <summary>
         /// Whether the object was loaded. See <see cref="LoadThisNative"/>.
         /// </summary>
@@ -77,7 +65,7 @@ namespace TUI.Base
         /// <summary>
         /// Layer in Parent's Child array. Objects with higher layer are always higher in this array.
         /// </summary>
-        public virtual int Layer { get; set; } = 0;
+        public virtual int Layer { get; private set; } = 0;
         /// <summary>
         /// Object configuration.
         /// </summary>
@@ -89,19 +77,25 @@ namespace TUI.Base
         /// <summary>
         /// Storage for node related data.
         /// </summary>
-        private ConcurrentDictionary<string, object> Shortcuts { get; set; }
+        protected ConcurrentDictionary<string, object> Shortcuts { get; set; }
 
         /// <summary>
-        /// DEBUG function. Get child object by index in Child array.
+        /// Tile provider of current interface tree.
         /// </summary>
-        /// <param name="index">Index in Child array</param>
-        /// <returns>Child with specified index in Child array</returns>
-        public virtual VisualObject GetChild(int index) => Child[index];
+        public virtual dynamic Provider => Root?.Provider;
+        /// <summary>
+        /// True if Provider links to Main.tile provider.
+        /// </summary>
+        public bool UsesDefaultMainProvider => Provider is MainTileProvider;
+        /// <summary>
+        /// Index in Parent's Child array.
+        /// </summary>
+        public int IndexInParent => Parent.Child.IndexOf(this as VisualObject);
         /// <summary>
         /// DEBUG function. Get Child array size.
         /// </summary>
         /// <returns>Size of Child array</returns>
-        public int GetChildCount() => Child.Count;
+        public int ChildCount => Child.Count;
         /// <summary>
         /// Object is Active when it is Enabled and Visible (see <see cref="Enabled"/>, <see cref="Visible"/>)
         /// </summary>
@@ -110,22 +104,6 @@ namespace TUI.Base
         /// Overridable field for disabling ability to be ordered in Parent's Child array.
         /// </summary>
         public virtual bool Orderable => true;
-        /// <summary>
-        /// Coordinates relative to world map.
-        /// </summary>
-        /// <param name="dx">X coordinate delta</param>
-        /// <param name="dy">Y coordinate delta</param>
-        /// <returns>Coordinates relative to world map</returns>
-        public (int X, int Y) AbsoluteXY(int dx = 0, int dy = 0) =>
-            RelativeXY(dx, dy, null);
-        /// <summary>
-        /// Coordinates relative to tile provider.
-        /// </summary>
-        /// <param name="dx">X coordinate delta</param>
-        /// <param name="dy">Y coordinate delta</param>
-        /// <returns>Coordinates relative to tile provider</returns>
-        public (int X, int Y) ProviderXY(int dx = 0, int dy = 0) =>
-            RelativeXY(dx, dy, UsesDefaultMainProvider ? null : Root);
 
         #endregion
 
@@ -209,9 +187,8 @@ namespace TUI.Base
                 if (!Child.Contains(o))
                     throw new InvalidOperationException("Trying to Select an object that isn't a child of current VisualDOM");
 
-                lock (Child)
-                    foreach (VisualObject child in ChildrenFromTop)
-                        child.Disable();
+                foreach (VisualObject child in ChildrenFromTop)
+                    child.Disable();
                 o.Enable();
 
                 return this as VisualObject;
@@ -239,9 +216,8 @@ namespace TUI.Base
             /// <returns>this</returns>
             public virtual VisualObject Deselect()
             {
-                lock (Child)
-                    foreach (VisualObject child in ChildrenFromTop)
-                        child.Enable();
+                foreach (VisualObject child in ChildrenFromTop)
+                    child.Enable();
 
                 return this as VisualObject;
             }
@@ -319,9 +295,8 @@ namespace TUI.Base
             private void DFS(List<VisualObject> list)
             {
                 list.Add(this as VisualObject);
-                lock (Child)
-                    foreach (VisualObject child in ChildrenFromTop)
-                        child.DFS(list);
+                foreach (VisualObject child in ChildrenFromTop)
+                    child.DFS(list);
             }
 
             private void BFS(List<VisualObject> list)
@@ -330,9 +305,8 @@ namespace TUI.Base
                 int index = 0;
                 while (index < list.Count)
                 {
-                    lock (list[index].Child)
-                        foreach (VisualObject o in list[index].ChildrenFromTop)
-                            list.Add(o);
+                    foreach (VisualObject o in list[index].ChildrenFromTop)
+                        list.Add(o);
                     index++;
                 }
             }
@@ -505,9 +479,8 @@ namespace TUI.Base
                 Loaded = true;
             }
 
-            lock (Child)
-                foreach (VisualObject child in ChildrenFromTop)
-                    child.Load();
+            foreach (VisualObject child in ChildrenFromTop)
+                child.Load();
 
             try
             {
@@ -547,9 +520,8 @@ namespace TUI.Base
                 Disposed = true;
             }
 
-            lock (Child)
-                foreach (VisualObject child in ChildrenFromTop)
-                    child.Dispose();
+            foreach (VisualObject child in ChildrenFromTop)
+                child.Dispose();
 
             try
             {
@@ -576,6 +548,16 @@ namespace TUI.Base
 
         #endregion
 
+        #region GetChild
+
+        /// <summary>
+        /// DEBUG function. Get child object by index in Child array.
+        /// </summary>
+        /// <param name="index">Index in Child array</param>
+        /// <returns>Child with specified index in Child array</returns>
+        public virtual VisualObject GetChild(int index) => Child[index];
+
+        #endregion
         #region operator[]
 
         /// <summary>
@@ -677,8 +659,9 @@ namespace TUI.Base
             get
             {
                 int index = Child.Count - 1;
-                while (index >= 0)
-                    yield return Child[index--];
+                lock (Child)
+                    while (index >= 0)
+                        yield return Child[index--];
             }
         }
 
@@ -694,8 +677,9 @@ namespace TUI.Base
             {
                 int count = Child.Count;
                 int index = 0;
-                while (index < count)
-                    yield return Child[index++];
+                lock (Child)
+                    while (index < count)
+                        yield return Child[index++];
             }
         }
 
@@ -714,6 +698,30 @@ namespace TUI.Base
                         yield return (x, y);
             }
         }
+
+        #endregion
+        #region AbsoluteXY
+
+        /// <summary>
+        /// Coordinates relative to world map.
+        /// </summary>
+        /// <param name="dx">X coordinate delta</param>
+        /// <param name="dy">Y coordinate delta</param>
+        /// <returns>Coordinates relative to world map</returns>
+        public (int X, int Y) AbsoluteXY(int dx = 0, int dy = 0) =>
+            RelativeXY(dx, dy, null);
+
+        #endregion
+        #region ProviderXY
+
+        /// <summary>
+        /// Coordinates relative to tile provider.
+        /// </summary>
+        /// <param name="dx">X coordinate delta</param>
+        /// <param name="dy">Y coordinate delta</param>
+        /// <returns>Coordinates relative to tile provider</returns>
+        public (int X, int Y) ProviderXY(int dx = 0, int dy = 0) =>
+            RelativeXY(dx, dy, UsesDefaultMainProvider ? null : Root);
 
         #endregion
         #region AbsolutePoints

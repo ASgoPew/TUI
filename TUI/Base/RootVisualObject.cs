@@ -15,11 +15,7 @@ namespace TUI.Base
 
         public override string Name { get; set; }
         public override dynamic Provider { get; }
-        public override int Layer
-        {
-            get => UsesDefaultMainProvider ? 0 : Provider.IsPersonal ? 2 : 1;
-            set => throw new Exception("You can't set a layer for RootVisualObject");
-        }
+        public override int Layer => UsesDefaultMainProvider ? 0 : Provider.IsPersonal ? 2 : 1;
 
         public VisualContainer PopUpBackground { get; protected set; }
         protected Dictionary<VisualObject, Action<VisualObject>> PopUpCancelCallbacks =

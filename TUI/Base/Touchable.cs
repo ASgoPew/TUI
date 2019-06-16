@@ -125,22 +125,21 @@ namespace TUI.Base
 
         private bool TouchedChild(Touch touch)
         {
-            lock (Child)
-                foreach (VisualObject child in ChildrenFromTop)
+            foreach (VisualObject child in ChildrenFromTop)
+            {
+                int saveX = child.X, saveY = child.Y;
+                if (child.Active && child.Contains(touch))
                 {
-                    int saveX = child.X, saveY = child.Y;
-                    if (child.Active && child.Contains(touch))
+                    touch.MoveBack(saveX, saveY);
+                    if (child.Touched(touch))
                     {
-                        touch.MoveBack(saveX, saveY);
-                        if (child.Touched(touch))
-                        {
-                            if (Configuration.Ordered && child.Orderable && SetTop(child))
-                                PostSetTop(child);
-                            return true;
-                        }
-                        touch.Move(saveX, saveY);
+                        if (Configuration.Ordered && child.Orderable && SetTop(child))
+                            PostSetTop(child);
+                        return true;
                     }
+                    touch.Move(saveX, saveY);
                 }
+            }
             return false;
         }
 

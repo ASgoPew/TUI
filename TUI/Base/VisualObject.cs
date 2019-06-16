@@ -123,10 +123,9 @@ namespace TUI.Base
 
             private bool ChildIntersectingOthers(VisualObject o)
             {
-                lock (Child)
-                    foreach (VisualObject child in ChildrenFromTop)
-                        if (child != o && child.Active && o.Intersecting(child))
-                            return true;
+                foreach (VisualObject child in ChildrenFromTop)
+                    if (child != o && child.Active && o.Intersecting(child))
+                        return true;
                 return false;
             }
 
@@ -464,9 +463,8 @@ namespace TUI.Base
             /// <returns>this</returns>
             public VisualObject PulseChild(PulseType type)
             {
-                lock (Child)
-                    foreach (VisualObject child in ChildrenFromTop)
-                        child.Pulse(type);
+                foreach (VisualObject child in ChildrenFromTop)
+                    child.Pulse(type);
                 return this;
             }
 
@@ -598,12 +596,11 @@ namespace TUI.Base
 
             protected void UpdateChildSize()
             {
-                lock (Child)
-                    foreach (VisualObject child in ChildrenFromTop)
-                    {
-                        child.SetWH(child.UpdateSizeNative());
-                        child.UpdateFullSize();
-                    }
+                foreach (VisualObject child in ChildrenFromTop)
+                {
+                    child.SetWH(child.UpdateSizeNative());
+                    child.UpdateFullSize();
+                }
             }
 
             #endregion
@@ -643,32 +640,31 @@ namespace TUI.Base
 
             protected void UpdateAlignment()
             {
-                lock (Child)
-                    foreach (VisualObject child in ChildrenFromTop)
-                    {
-                        AlignmentConfiguration positioning = child.Configuration.Alignment;
-                        if (positioning  == null)
-                            continue;
+                foreach (VisualObject child in ChildrenFromTop)
+                {
+                    AlignmentConfiguration positioning = child.Configuration.Alignment;
+                    if (positioning  == null)
+                        continue;
 
-                        ExternalOffset offset = positioning.Offset ?? UIDefault.ExternalOffset;
-                        Alignment alignment = positioning.Alignment;
-                        int x, y;
-                        if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
-                            x = offset.Left;
-                        else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
-                            x = Width - offset.Right - child.Width;
-                        else
-                            x = (int)Math.Floor((Width - child.Width) / 2f);
+                    ExternalOffset offset = positioning.Offset ?? UIDefault.ExternalOffset;
+                    Alignment alignment = positioning.Alignment;
+                    int x, y;
+                    if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
+                        x = offset.Left;
+                    else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
+                        x = Width - offset.Right - child.Width;
+                    else
+                        x = (int)Math.Floor((Width - child.Width) / 2f);
 
-                        if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
-                            y = offset.Up;
-                        else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
-                            y = Height - offset.Down - child.Height;
-                        else
-                            y = (int)Math.Floor((Height - child.Height) / 2f);
+                    if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
+                        y = offset.Up;
+                    else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
+                        y = Height - offset.Down - child.Height;
+                    else
+                        y = (int)Math.Floor((Height - child.Height) / 2f);
 
-                        child.SetXY(x, y);
-                    }
+                    child.SetXY(x, y);
+                }
             }
 
             #endregion
@@ -809,29 +805,28 @@ namespace TUI.Base
                 // Calculating total objects width and height
                 int totalW = 0, totalH = 0;
                 List<VisualObject> layoutChild = new List<VisualObject>();
-                lock (Child)
-                    foreach (VisualObject child in ChildrenFromBottom)
-                    {
-                        FullSize fullSize = child.Configuration.FullSize;
-                        if (!child.Enabled || !child.Configuration.InLayout || fullSize == FullSize.Both)
-                                //|| (fullSize == FullSize.Horizontal && (direction == Direction.Left || direction == Direction.Right))
-                                //|| (fullSize == FullSize.Vertical && (direction == Direction.Up || direction == Direction.Down)))
-                            continue;
+                foreach (VisualObject child in ChildrenFromBottom)
+                {
+                    FullSize fullSize = child.Configuration.FullSize;
+                    if (!child.Enabled || !child.Configuration.InLayout || fullSize == FullSize.Both)
+                            //|| (fullSize == FullSize.Horizontal && (direction == Direction.Left || direction == Direction.Right))
+                            //|| (fullSize == FullSize.Vertical && (direction == Direction.Up || direction == Direction.Down)))
+                        continue;
 
-                        layoutChild.Add(child);
-                        if (direction == Direction.Left || direction == Direction.Right)
-                        {
-                            if (child.Height > totalH)
-                                totalH = child.Height;
-                            totalW += child.Width + indent;
-                        }
-                        else if (direction == Direction.Up || direction == Direction.Down)
-                        {
-                            if (child.Width > totalW)
-                                totalW = child.Width;
-                            totalH += child.Height + indent;
-                        }
+                    layoutChild.Add(child);
+                    if (direction == Direction.Left || direction == Direction.Right)
+                    {
+                        if (child.Height > totalH)
+                            totalH = child.Height;
+                        totalW += child.Width + indent;
                     }
+                    else if (direction == Direction.Up || direction == Direction.Down)
+                    {
+                        if (child.Width > totalW)
+                            totalW = child.Width;
+                        totalH += child.Height + indent;
+                    }
+                }
                 if ((direction == Direction.Left || direction == Direction.Right) && totalW > 0)
                     totalW -= indent;
                 if ((direction == Direction.Up || direction == Direction.Down) && totalH > 0)
@@ -995,14 +990,13 @@ namespace TUI.Base
             /// <returns>this</returns>
             public VisualObject UpdateChild()
             {
-                lock (Child)
-                    foreach (VisualObject child in ChildrenFromTop)
-                        if (child.Enabled)
-                            child.Update();
+                foreach (VisualObject child in ChildrenFromTop)
+                    if (child.Enabled)
+                        child.Update();
                 return this;
             }
 
-        #endregion
+            #endregion
 
             #region PostUpdateThis
 
@@ -1151,13 +1145,12 @@ namespace TUI.Base
                 lock (Locker)
                 {
                     bool forceSection = ForceSection;
-                    lock (Child)
-                        foreach (VisualObject child in ChildrenFromBottom)
-                            if (child.Active)
-                            {
-                                child.Apply();
-                                forceSection = forceSection || child.ForceSection;
-                            }
+                    foreach (VisualObject child in ChildrenFromBottom)
+                        if (child.Active)
+                        {
+                            child.Apply();
+                            forceSection = forceSection || child.ForceSection;
+                        }
                     ForceSection = forceSection;
                 }
                 return this;
