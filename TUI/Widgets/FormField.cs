@@ -7,11 +7,11 @@ namespace TUI.Widgets
     {
         public VisualObject Input { get; protected set; }
 
-        public FormField(VisualObject input, int x, int y, int width, int height, string text, LabelStyle style = null)
+        public FormField(VisualObject input, int x, int y, int width, int height, string text, LabelStyle style = null, ExternalOffset inputOffset = null)
             : base(x, y, width, height, text, new UIConfiguration() { UseBegin = false }, style)
         {
             Input = Add(input);
-            Input.SetAlignmentInParent(Alignment.Right);
+            Input.SetAlignmentInParent(Alignment.Right, inputOffset);
         }
     }
 }

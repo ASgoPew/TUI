@@ -346,7 +346,7 @@ VisualObject obj = node.Add(new VisualObject(0, 0, 8, 4, null, new UIStyle() { W
 * VisualObject SetupGrid(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null,
 	Offset offset = null, bool fillWithEmptyObjects = true)
 * VisualObject SetAlignmentInParent(Alignment alignment, ExternalOffset offset = null, bool boundsIsOffset = true)
-* VisualObject SetFullSize(bool horizontal = true, bool vertical = true)
+* VisualObject SetFullSize(bool horizontal = false, bool vertical = false)
 * VisualObject LayoutIndent(int value)
 
 * VisualObject Pulse(PulseType type)
@@ -371,9 +371,8 @@ VisualObject obj = node.Add(new VisualObject(0, 0, 8, 4, null, new UIStyle() { W
 	int exceptUserIndex = -1, bool? forceSection = null)
 * void ShowGrid()
 
-* void Database(Type dataType)
-* void SetData(object data)
-* void SetData(object data)
+* bool DBRead()
+* void DBWrite()
 
 ### Защищенные методы VisualObject
 * virtual bool CanTouch(Touch touch)
@@ -392,6 +391,8 @@ VisualObject obj = node.Add(new VisualObject(0, 0, 8, 4, null, new UIStyle() { W
 * virtual void PostUpdateThisNative()
 * virtual void ApplyThisNative()
 * virtual void ApplyTile(int x, int y)
+* virtual void DBReadNative(BinaryReader br)
+* virtual void DBWriteNative(BinaryWriter bw)
 
 ### Операторы VisualObject
 * this[string key]
@@ -462,7 +463,9 @@ RootVisualObject Confirm(string text, Action<bool> callback, ContainerStyle styl
 
 ## Label
 Виджет отображения текста с помощью статуй символов и цифр.
-```Label(int x, int y, int width, int height, string text, LabelStyle style)```
+```cs
+Label(int x, int y, int width, int height, string text, LabelStyle style)
+```
 Пример:
 ```cs
 Label label = node.Add(new Label(1, 1, 15, 2, "some text", new LabelStyle() { TextColor=13 })) as Label;
@@ -583,7 +586,8 @@ VisualSign vsign = node.Add(new VisualSign(0, 0, "lmfao sosi")) as VisualSign;
 Checkbox, Button, InputLabel, Slider, ...
 Наследуется от Label
 ```cs
-FormField(VisualObject input, int x, int y, int width, int height, string text, LabelStyle style)
+FormField(VisualObject input, int x, int y, int width, int height, string text,
+	LabelStyle style, ExternalOffset inputOffset)
 ```
 Пример:
 ```cs

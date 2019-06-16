@@ -1,4 +1,5 @@
-﻿using OTAPI.Tile;
+﻿using Newtonsoft.Json;
+using OTAPI.Tile;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -344,10 +345,12 @@ namespace TUIPlugin
             switch (args.Type)
             {
                 case DatabaseActionType.Get:
-                    args.Value = Database.GetData(args.Key, args.DataType);
+                    //args.Value = JsonConvert.DeserializeObject(Database.GetData(args.Key), args.DataType);
+                    args.Data = Database.GetData(args.Key);
                     break;
                 case DatabaseActionType.Set:
-                    Database.SetData(args.Key, args.Value);
+                    //Database.SetData(args.Key, JsonConvert.SerializeObject(args.Value));
+                    Database.SetData(args.Key, args.Data);
                     break;
                 case DatabaseActionType.Remove:
                     Database.RemoveKey(args.Key);

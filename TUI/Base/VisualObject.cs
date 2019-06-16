@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using TUI.Base.Style;
 
@@ -43,11 +44,7 @@ namespace TUI.Base
         /// <summary>
         /// Database storing data.
         /// </summary>
-        public object Data { get; private set; }
-        /// <summary>
-        /// Database storing data type.
-        /// </summary>
-        private Type DataType { get; set; }
+        private byte[] Data { get; set; }
 
         /// <summary>
         /// Overridable field for disabling ability to be ordered in Parent's Child array.
@@ -335,7 +332,7 @@ namespace TUI.Base
         /// <param name="horizontal">Horizontal stretching</param>
         /// <param name="vertical">Vertical stretching</param>
         /// <returns>this</returns>
-        public VisualObject SetFullSize(bool horizontal = true, bool vertical = true) =>
+        public VisualObject SetFullSize(bool horizontal = false, bool vertical = false) =>
             SetFullSize(horizontal && vertical
                 ? FullSize.Both
                 : horizontal
@@ -1272,7 +1269,7 @@ namespace TUI.Base
 
         #region Database
 
-        public void SetData(object data)
+        /*public void SetData(object data)
         {
             if (data.GetType() != DataType)
                 throw new ArgumentException("Invalid data type for storing in VisualObject.Data.");
@@ -1293,12 +1290,50 @@ namespace TUI.Base
             if (DataType != null)
                 throw new Exception("Database already initialized for this VisualObject: " + FullName);
             DataType = dataType;
+        }*/
+
+        /// <summary>
+        /// Read data from database using overridable DBReadNative method
+        /// </summary>
+        /// <returns>true if read is successful</returns>
+        protected bool DBRead()
+        {
+            Data = TUI.DBGet(FullName);
+            if (Data != null)
+            {
+                using (MemoryStream ms = new MemoryStream(Data))
+                using (BinaryReader br = new BinaryReader(ms))
+                    DBReadNative(br);
+                return true;
+            }
+            return false;
         }
 
-        /*public void UserDatabase()
+        /// <summary>
+        /// Write data to database using overridable DBWriteNative method
+        /// </summary>
+        protected void DBWrite()
         {
+            using (MemoryStream ms = new MemoryStream())
+            using (BinaryWriter bw = new BinaryWriter(ms))
+            {
+                DBWriteNative(bw);
+                Data = ms.ToArray();
+                TUI.DBSet(FullName, Data);
+            }
+        }
 
-        }*/
+        /// <summary>
+        /// Overridable method for reading from BinaryReader based on data from database
+        /// </summary>
+        /// <param name="br"></param>
+        protected virtual void DBReadNative(BinaryReader br) { }
+
+        /// <summary>
+        /// Overridable method for writing to BinaryWriter for data to be stored in database
+        /// </summary>
+        /// <param name="bw"></param>
+        protected virtual void DBWriteNative(BinaryWriter bw) { }
 
         #endregion
     }

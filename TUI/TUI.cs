@@ -434,18 +434,18 @@ namespace TUI
 
         #region DBGet
 
-        public static object DBGet(string key, Type dataType)
+        public static byte[] DBGet(string key)
         {
-            DatabaseArgs args = new DatabaseArgs(DatabaseActionType.Get, key, null, dataType);
+            DatabaseArgs args = new DatabaseArgs(DatabaseActionType.Get, key);
             Hooks.Database.Invoke(args);
-            return args.Value;
+            return args.Data;
         }
 
         #endregion
         #region DBSet
 
-        public static void DBSet(string key, object value) =>
-            Hooks.Database.Invoke(new DatabaseArgs(DatabaseActionType.Set, key, value));
+        public static void DBSet(string key, byte[] data) =>
+            Hooks.Database.Invoke(new DatabaseArgs(DatabaseActionType.Set, key, data));
 
         #endregion
         #region DBRemove

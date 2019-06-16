@@ -2,8 +2,10 @@
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Text;
 using TShockAPI;
 using TShockAPI.DB;
 
@@ -53,9 +55,18 @@ namespace TUIPlugin
                     ? (IQueryBuilder)new MysqlQueryCreator()
                     : new SqliteQueryCreator());
 
-            sqlCreator.EnsureTableStructure(new SqlTable("TUIKeyValue",
-                new SqlColumn("Key", MySqlDbType.TinyText) { Primary=true, Unique=true },
-                new SqlColumn("Value", MySqlDbType.Text)));
+            //sqlCreator.EnsureTableStructure(new SqlTable("TUIKeyValue",
+            //    new SqlColumn("Key", MySqlDbType.TinyText) { Primary=true, Unique=true },
+            //    new SqlColumn("Value", MySqlDbType.Text)));
+
+            //sqlCreator.EnsureTableStructure(new SqlTable("TUIKeyValue",
+                //new SqlColumn("Key", MySqlDbType.TinyText) { Primary = true, Unique = true },
+                //new SqlColumn("Value", MySqlDbType.Binary)));
+
+            Query($@"CREATE TABLE IF NOT EXISTS TUIKeyValue(
+                      `Key` TEXT UNIQUE NOT NULL,
+                      `Value` BINARY NOT NULL)");
+
             /*sqlCreator.EnsureTableStructure(new SqlTable("TUIUserKeyValue",
                 new SqlColumn("Key", MySqlDbType.TinyText) { Primary = true },
                 new SqlColumn("Key", MySqlDbType.TinyText) { Primary = true },
@@ -64,14 +75,6 @@ namespace TUIPlugin
 
         public static QueryResult QueryReader(string query) => db.QueryReader(query);
 
-        /// <summary>
-        /// Performs an SQL query
-        /// </summary>
-        /// <param name="query">The SQL statement to be ran.</param>
-        /// <returns>
-        /// Returns true if the statement was successful.
-        /// Returns false if the statement failed.
-        /// </returns>
         public static bool Query(string query)
         {
             bool success = true;
@@ -90,35 +93,65 @@ namespace TUIPlugin
                     TUI.Hooks.Args.LogType.Error));
                 success = false;
             }
+            finally
+            {
+                db.Close();
+            }
 
-            db.Close();
             return success;
         }
 
-        public static object GetData(string key, Type type)
+        public static byte[] GetData(string key)
         {
-            string query = "SELECT Value FROM {0} WHERE Key='{1}'".SFormat(TableName, key);
-            using (QueryResult result = QueryReader(query))
-                if (result.Read())
+            db.Open();
+            try
+            {
+                using (IDbCommand cmd = db.CreateCommand())
                 {
-#if DEBUG
-                    Console.WriteLine(query + ": " + result.Get<string>("Value"));
-#endif
-                    return JsonConvert.DeserializeObject(result.Get<string>("Value"), type);
+                    cmd.CommandText = "SELECT Value FROM {0} WHERE Key='{1}'".SFormat(TableName, key);
+                    using (IDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                            return (byte[])reader["Value"];
+                        return null;
+                    }
                 }
-#if DEBUG
-            Console.WriteLine(query + ": nothing");
-#endif
+            }
+            catch (Exception e)
+            {
+                TUI.TUI.Hooks.Log.Invoke(new TUI.Hooks.Args.LogArgs(e.ToString(),
+                    TUI.Hooks.Args.LogType.Error));
+            }
+            finally
+            {
+                db.Close();
+            }
+
             return null;
         }
 
-        public static void SetData(string key, object data)
+        public static void SetData(string key, byte[] data)
         {
-            string query = "REPLACE INTO {0} (Key, Value) VALUES ({1})".SFormat(TableName, $"'{key}', '{JsonConvert.SerializeObject(data)}'");
-#if DEBUG
-            Console.WriteLine(query);
-#endif
-            Query(query);
+            db.Open();
+            try
+            {
+                using (var conn = db.CreateCommand())
+                {
+                    conn.CommandText = "REPLACE INTO {0} (Key, Value) VALUES ({1})".SFormat(TableName, $"'{key}', @data");
+                    conn.AddParameter("@data", data);
+                    conn.ExecuteNonQuery();
+                }
+            }
+            catch (Exception e)
+            {
+                TUI.TUI.Hooks.Log.Invoke(new TUI.Hooks.Args.LogArgs(e.ToString(),
+                    TUI.Hooks.Args.LogType.Error));
+            }
+            finally
+            {
+                db.Close();
+            }
+
         }
 
         public static void RemoveKey(string key) =>

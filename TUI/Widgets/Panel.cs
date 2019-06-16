@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using TUI.Base;
 using TUI.Base.Style;
 
@@ -36,12 +37,8 @@ namespace TUI.Widgets
                 DragObject = Add(drag, 1000000) as PanelDrag;
             if (resize != null)
                 ResizeObject = Add(resize, 1000000) as PanelResize;
-            Database(typeof(int[]));
-            if (GetData())
-            {
-                int[] data = Data as int[];
-                SetXYWH(data[0], data[1], data[2], data[3]);
-            }
+
+            DBRead();
         }
 
         internal protected Panel(string name, int x, int y, int width, int height, UIConfiguration configuration = null,
@@ -67,11 +64,34 @@ namespace TUI.Widgets
         }
 
         #endregion
+        #region ReadDataNative
+        protected override void DBReadNative(BinaryReader br)
+        {
+            int x = br.ReadInt32();
+            int y = br.ReadInt32();
+            int width = br.ReadInt32();
+            int height = br.ReadInt32();
+            Console.WriteLine($"READ FROM DB: {x}, {y}, {width}, {height}");
+            SetXYWH(x, y, width, height);
+        }
+
+        #endregion
+        #region WriteDataNative
+
+        protected override void DBWriteNative(BinaryWriter bw)
+        {
+            bw.Write((int)X);
+            bw.Write((int)Y);
+            bw.Write((int)Width);
+            bw.Write((int)Height);
+        }
+
+        #endregion
 
         #region SavePosition
-        
+
         public void SavePosition() =>
-            SetData(new int[] { X, Y, Width, Height });
+            DBWrite();
 
         #endregion
         #region Drag
@@ -150,9 +170,7 @@ namespace TUI.Widgets
                     if (ending)
                     {
                         touch.Session[@this] = null;
-                        if (panel.Data == null || (panel.Data is int[] data
-                                && (data[0] != panel.X || data[1] != panel.Y)))
-                            panel.SavePosition();
+                        panel.SavePosition();
                     }
                 }
             }
@@ -195,9 +213,7 @@ namespace TUI.Widgets
                     if (ending)
                     {
                         touch.Session[@this] = null;
-                        if (panel.Data == null || (panel.Data is int[] data
-                                && (data[2] != panel.Width || data[3] != panel.Height)))
-                            panel.SavePosition();
+                        panel.SavePosition();
                     }
                 }
             }
