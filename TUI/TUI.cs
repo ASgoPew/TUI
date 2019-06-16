@@ -149,6 +149,18 @@ namespace TUI
         }
 
         #endregion
+        #region GetRoots
+
+        public static List<RootVisualObject> GetRoots()
+        {
+            List<RootVisualObject> result = new List<RootVisualObject>();
+            lock (Child)
+                foreach (RootVisualObject child in Child)
+                    result.Add(child);
+            return result;
+        }
+
+        #endregion
         #region InitializeUser
 
         public static void InitializeUser(int userIndex)
@@ -178,18 +190,7 @@ namespace TUI
         }
 
         #endregion
-        #region GetRoots
 
-        public static List<RootVisualObject> GetRoots()
-        {
-            List<RootVisualObject> result = new List<RootVisualObject>();
-            lock (Child)
-                foreach (RootVisualObject child in Child)
-                    result.Add(child);
-            return result;
-        }
-
-        #endregion
         #region Touched
 
         public static bool Touched(int userIndex, Touch touch)
@@ -363,6 +364,13 @@ namespace TUI
         }
 
         #endregion
+        #region TrySetLockForObject
+
+        public static void TrySetLockForObject(VisualObject node, Touch touch) =>
+            node.TrySetLock(touch);
+
+        #endregion
+
         #region Update
 
         public static void Update()
@@ -404,6 +412,7 @@ namespace TUI
         }
 
         #endregion
+
         #region SaveTime
 
         public static void SaveTime<T>(T o, string name, string key = null)
@@ -422,6 +431,7 @@ namespace TUI
         }
 
         #endregion
+
         #region DBGet
 
         public static object DBGet(string key, Type dataType)

@@ -115,7 +115,7 @@ namespace TUI.Base
             /// Does Apply() and Draw() if object is intersecting at least one other child object by default.
             /// </summary>
             /// <param name="child">Child object that came on top of the layer</param>
-            public override void PostSetTop(VisualObject child)
+            protected override void PostSetTop(VisualObject child)
             {
                 if (ChildIntersectingOthers(child))
                     child.Apply().Draw();
@@ -262,7 +262,8 @@ namespace TUI.Base
         /// <param name="childIndent">Distance between objects in layout</param>
         /// <param name="boundsIsOffset">Whether to draw objects/ object tiles that are outside of bounds of offset or not</param>
         /// <returns>this</returns>
-        public VisualObject SetupLayout(Alignment alignment = Alignment.Center, Direction direction = Direction.Down, Side side = Side.Center, ExternalOffset offset = null, int childIndent = 1, bool boundsIsOffset = true)
+        public VisualObject SetupLayout(Alignment alignment = Alignment.Center, Direction direction = Direction.Down,
+            Side side = Side.Center, ExternalOffset offset = null, int childIndent = 1, bool boundsIsOffset = true)
         {
             Configuration.Layout = new LayoutConfiguration(alignment, direction, side, offset, childIndent, boundsIsOffset);
             return this;
@@ -279,7 +280,8 @@ namespace TUI.Base
         /// <param name="offset">Grid offset</param>
         /// <param name="fillWithEmptyObjects">Whether to fills all grid cells with empty VisualObjects</param>
         /// <returns>this</returns>
-        public VisualObject SetupGrid(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null, Offset offset = null, bool fillWithEmptyObjects = true)
+        public VisualObject SetupGrid(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null,
+            Offset offset = null, bool fillWithEmptyObjects = true)
         {
             GridConfiguration gridStyle = Configuration.Grid = new GridConfiguration(columns, lines);
 
@@ -1293,10 +1295,10 @@ namespace TUI.Base
             DataType = dataType;
         }
 
-        public void UserDatabase()
+        /*public void UserDatabase()
         {
 
-        }
+        }*/
 
         #endregion
     }

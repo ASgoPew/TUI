@@ -150,7 +150,7 @@ namespace TUI.Base
         /// Overridable function that is called when object comes on top of the layer.
         /// </summary>
         /// <param name="o"></param>
-        public virtual void PostSetTop(VisualObject o) { }
+        protected virtual void PostSetTop(VisualObject o) { }
 
         #endregion
         #region CanTouchThis
@@ -192,7 +192,7 @@ namespace TUI.Base
         /// Tries to lock this node with specified touch object according to node locking configuration.
         /// </summary>
         /// <param name="touch"></param>
-        public void TrySetLock(Touch touch)
+        internal void TrySetLock(Touch touch)
         {
             VisualObject @this = this as VisualObject;
             // You can't lock the same object twice per touch session

@@ -237,7 +237,7 @@ namespace TUIPlugin
                 if (args.Touch.State == TouchState.Begin && player != null && args.CanTouch == false)
                 {
                     args.Touch.Session.Enabled = false;
-                    args.Node.TrySetLock(args.Touch);
+                    TUI.TUI.TrySetLockForObject(args.Node, args.Touch);
                     player.SendErrorMessage("You do not have access to this interface.");
                 }
             }

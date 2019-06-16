@@ -298,14 +298,99 @@ node.Add(new VisualObject(0, 0, 8, 4, null, new UIStyle() { WallColor = 15 },
 * int ProviderY
 * ExternalOffset Bounds
 * object Data
+* IEnumerable<VisualObject> DescendantDFS
+* IEnumerable<VisualObject> DescendantBFS
+
 ### Защищенные (protected) поля VisualObject
 * object Locker
 * ConcurrentDictionary<string, object> Shortcuts
 * List<VisualObject> Child
 * VisualObject[,] Grid
+* IEnumerable<VisualObject> ChildrenFromTop
+* IEnumerable<VisualObject> ChildrenFromBottom
+* IEnumerable<(int, int)> Points
+* IEnumerable<(int, int)> AbsolutePoints
+* IEnumerable<(int, int)> ProviderPoints
 
-### Методы VisualObject
-*
+### Публичные методы VisualObject
+* VisualObject Add(VisualObject child, int layer = 0)
+* VisualObject Remove(VisualObject child)
+* VisualObject Select(VisualObject o)
+* VisualObject Selected()
+* VisualObject Deselect()
+* VisualObject GetRoot()
+* bool IsAncestorFor(VisualObject child)
+* bool SetTop(VisualObject child)
+* (int X, int Y, int Width, int Height) XYWH(int dx = 0, int dy = 0)
+* VisualObject SetXYWH(int x, int y, int width, int height)
+* VisualObject SetXY(int x, int y)
+* VisualObject SetWH(int width, int height)
+* VisualObject Move(int dx, int dy)
+* VisualObject MoveBack(int dx, int dy)
+* VisualObject GetChild(int index)
+* VisualObject Enable()
+* VisualObject Disable()
+* bool CalculateActive()
+* (int X, int Y) RelativeXY(int x = 0, int y = 0, VisualDOM parent = null)
+* (int X, int Y) AbsoluteXY(int dx = 0, int dy = 0)
+* (int X, int Y) ProviderXY(int dx = 0, int dy = 0)
+* dynamic Tile(int x, int y)
+* VisualObject AddToLayout(VisualObject child, int layer = 0)
+* SetupLayout(Alignment alignment = Alignment.Center, Direction direction = Direction.Down,
+	Side side = Side.Center, ExternalOffset offset = null, int childIndent = 1, bool boundsIsOffset = true)
+* VisualObject SetupGrid(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null,
+	Offset offset = null, bool fillWithEmptyObjects = true)
+* VisualObject SetAlignmentInParent(Alignment alignment, ExternalOffset offset = null, bool boundsIsOffset = true)
+* VisualObject SetFullSize(bool horizontal = true, bool vertical = true)
+* VisualObject LayoutIndent(int value)
+
+* VisualObject Pulse(PulseType type)
+* VisualObject PulseThis(PulseType type)
+* VisualObject PulseChild(PulseType type)
+
+* VisualObject Update()
+* VisualObject UpdateThis()
+* VisualObject UpdateChildPositioning()
+* VisualObject UpdateChild()
+* VisualObject PostUpdateThis()
+
+* VisualObject Apply()
+* VisualObject ApplyThis()
+* VisualObject ApplyTiles()
+* VisualObject ApplyChild()
+* VisualObject Clear()
+
+* VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1, int userIndex = -1,
+	int exceptUserIndex = -1, bool? forceSection = null, bool frame = true)
+* VisualObject DrawPoints(IEnumerable<(int, int)> points, int userIndex = -1,
+	int exceptUserIndex = -1, bool? forceSection = null)
+* void ShowGrid()
+
+* void Database(Type dataType)
+* void SetData(object data)
+* void SetData(object data)
+
+### Защищенные методы VisualObject
+* virtual bool CanTouch(Touch touch)
+* virtual void PostSetTop(VisualObject o)
+* virtual bool CanTouchThis(Touch touch)
+* virtual void Invoke(Touch touch)
+* virtual void PulseThisNative(PulseType type)
+* virtual void UpdateThisNative()
+* void UpdateBounds()
+* void UpdateChildSize()
+* virtual (int, int) UpdateSizeNative()
+* void UpdateFullSize()
+* void UpdateAlignment()
+* void UpdateLayout()
+* void UpdateGrid()
+* virtual void PostUpdateThisNative()
+* virtual void ApplyThisNative()
+* virtual void ApplyTile(int x, int y)
+
+### Операторы VisualObject
+* this[string key]
+* this[int column, int line]
 
 ## VisualContainer
 Виджет-контейнер других виджетов. Рекомендуется использовать именно его, несмотря на то,
