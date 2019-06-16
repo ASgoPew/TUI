@@ -454,5 +454,27 @@ namespace TUI
             Hooks.Database.Invoke(new DatabaseArgs(DatabaseActionType.Remove, key));
 
         #endregion
+        #region UDBGet
+
+        public static byte[] UDBGet(int user, string key)
+        {
+            DatabaseArgs args = new DatabaseArgs(DatabaseActionType.Get, key, null, user);
+            Hooks.Database.Invoke(args);
+            return args.Data;
+        }
+
+        #endregion
+        #region UDBSet
+
+        public static void UDBSet(int user, string key, byte[] data) =>
+            Hooks.Database.Invoke(new DatabaseArgs(DatabaseActionType.Set, key, data, user));
+
+        #endregion
+        #region UDBRemove
+
+        public static void UDBRemove(int user, string key) =>
+            Hooks.Database.Invoke(new DatabaseArgs(DatabaseActionType.Remove, key, null, user));
+
+        #endregion
     }
 }

@@ -14,12 +14,14 @@ namespace TUI.Hooks.Args
         public DatabaseActionType Type { get; set; }
         public string Key { get; set; }
         public byte[] Data { get; set; }
+        public int? User { get; set; }
 
-        public DatabaseArgs(DatabaseActionType type, string key, byte[] data = null)
+        public DatabaseArgs(DatabaseActionType type, string key, byte[] data = null, int? user = null)
         {
             Type = type;
             Key = key;
             Data = data;
+            User = user;
         }
     }
 }

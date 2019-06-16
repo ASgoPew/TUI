@@ -64,16 +64,19 @@ namespace TUIPlugin
                 //new SqlColumn("Value", MySqlDbType.Binary)));
 
             Query($@"CREATE TABLE IF NOT EXISTS TUIKeyValue(
-                      `Key` TEXT UNIQUE NOT NULL,
-                      `Value` BINARY NOT NULL)");
+                        `Key` TEXT UNIQUE NOT NULL,
+                        `Value` BINARY NOT NULL);
+                     CREATE TABLE IF NOT EXISTS TUIUserKeyValue(
+                        `User` INTEGER NOT NULL,
+                        `Key` TEXT NOT NULL,
+                        `Value` BINARY NOT NULL,
+                        UNIQUE{(IsMySql ? " KEY" : "")} (`User`, `Key`))");
 
             /*sqlCreator.EnsureTableStructure(new SqlTable("TUIUserKeyValue",
                 new SqlColumn("Key", MySqlDbType.TinyText) { Primary = true },
                 new SqlColumn("Key", MySqlDbType.TinyText) { Primary = true },
                 new SqlColumn("Value", MySqlDbType.Text)));*/
         }
-
-        public static QueryResult QueryReader(string query) => db.QueryReader(query);
 
         public static bool Query(string query)
         {
@@ -151,10 +154,64 @@ namespace TUIPlugin
             {
                 db.Close();
             }
-
         }
 
         public static void RemoveKey(string key) =>
             Query("DELETE FROM {0} WHERE Key='{1}'".SFormat(TableName, key));
+
+        public static byte[] GetData(int user, string key)
+        {
+            db.Open();
+            try
+            {
+                using (IDbCommand cmd = db.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT Value FROM {0} WHERE User={1} AND Key='{2}'".SFormat(TableName, user, key);
+                    using (IDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                            return (byte[])reader["Value"];
+                        return null;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                TUI.TUI.Hooks.Log.Invoke(new TUI.Hooks.Args.LogArgs(e.ToString(),
+                    TUI.Hooks.Args.LogType.Error));
+            }
+            finally
+            {
+                db.Close();
+            }
+
+            return null;
+        }
+
+        public static void SetData(int user, string key, byte[] data)
+        {
+            db.Open();
+            try
+            {
+                using (var conn = db.CreateCommand())
+                {
+                    conn.CommandText = "REPLACE INTO {0} (User, Key, Value) VALUES ({1})".SFormat(TableName, $"{user}, '{key}', @data");
+                    conn.AddParameter("@data", data);
+                    conn.ExecuteNonQuery();
+                }
+            }
+            catch (Exception e)
+            {
+                TUI.TUI.Hooks.Log.Invoke(new TUI.Hooks.Args.LogArgs(e.ToString(),
+                    TUI.Hooks.Args.LogType.Error));
+            }
+            finally
+            {
+                db.Close();
+            }
+        }
+
+        public static void RemoveKey(int user, string key) =>
+            Query("DELETE FROM {0} WHERE User={1} AND Key='{2}'".SFormat(TableName, user, key));
     }
 }

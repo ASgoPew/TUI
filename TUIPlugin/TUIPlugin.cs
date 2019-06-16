@@ -346,14 +346,23 @@ namespace TUIPlugin
             {
                 case DatabaseActionType.Get:
                     //args.Value = JsonConvert.DeserializeObject(Database.GetData(args.Key), args.DataType);
-                    args.Data = Database.GetData(args.Key);
+                    if (args.User.HasValue)
+                        args.Data = Database.GetData(args.User.Value, args.Key);
+                    else
+                        args.Data = Database.GetData(args.Key);
                     break;
                 case DatabaseActionType.Set:
                     //Database.SetData(args.Key, JsonConvert.SerializeObject(args.Value));
-                    Database.SetData(args.Key, args.Data);
+                    if (args.User.HasValue)
+                        Database.SetData(args.User.Value, args.Key, args.Data);
+                    else
+                        Database.SetData(args.Key, args.Data);
                     break;
                 case DatabaseActionType.Remove:
-                    Database.RemoveKey(args.Key);
+                    if (args.User.HasValue)
+                        Database.RemoveKey(args.User.Value, args.Key);
+                    else
+                        Database.RemoveKey(args.Key);
                     break;
             }
         }
