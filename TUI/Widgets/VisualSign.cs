@@ -10,7 +10,7 @@ namespace TUI.Widgets
         #region Data
 
         protected string RawText { get; set; }
-        public dynamic Sign { get; set; }
+        protected dynamic Sign { get; set; }
 
         #endregion
 

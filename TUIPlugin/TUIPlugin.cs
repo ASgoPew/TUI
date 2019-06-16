@@ -299,7 +299,11 @@ namespace TUIPlugin
                 Main.tile[args.X, args.Y] = tile;
                 int id = Sign.ReadSign(args.X, args.Y);
                 if (id >= 0)
+                {
+                    // Can lead to creating the same sign since ReadSign returns existing sign if there is one.
+                    // Console.WriteLine($"{args.Node.FullName} OnCreateSign: {id} ({args.X}, {args.Y})");
                     args.Sign = Main.sign[id];
+                }
             }
             else
                 CreateFakeSign(args);

@@ -42,7 +42,7 @@ namespace TUIExample
                 { WallColor = PaintID.DeepGreen }, (self, touch) =>
                     touch.Player().SendInfoMessage("You pressed lol button!")));*/
 
-            if (true)
+            if (false)
             {
                 // Настраиваем конфигурацию layout
                 node.SetupLayout(Alignment.Center, Direction.Down, Side.Center, new ExternalOffset()
@@ -84,38 +84,46 @@ namespace TUIExample
                 Task.Delay(10000).ContinueWith(_ => node.ShowGrid());
             }
 
-            // Добавляем label и сразу устанавливаем Alignment с отступом 1 слева и снизу
-            node.Add(new Label(0, 0, 8, 2, "test"))
-                .SetAlignmentInParent(Alignment.DownLeft, new ExternalOffset() { Left = 1, Down = 1 });
+            if (false)
+            {
+                // Добавляем label и сразу устанавливаем Alignment с отступом 1 слева и снизу
+                node.Add(new Label(0, 0, 8, 2, "test"))
+                    .SetAlignmentInParent(Alignment.DownLeft, new ExternalOffset() { Left = 1, Down = 1 });
+            }
 
-            // Добавляем желтый контейнер, устанавливаем его ширину на 3, а по высоте делаем FullSize,
-            // затем указываем, что он должен быть в правом углу родителя.
-            // Таким образом у нас получается желтая полоса справа с высотой node и шириной 3.
-            node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYellow }))
-                .SetWH(3, 0).SetFullSize(false, true).SetAlignmentInParent(Alignment.Right);
+            if (false)
+            {
+                // Добавляем желтый контейнер, устанавливаем его ширину на 3, а по высоте делаем FullSize,
+                // затем указываем, что он должен быть в правом углу родителя.
+                // Таким образом у нас получается желтая полоса справа с высотой node и шириной 3.
+                node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYellow }))
+                    .SetWH(3, 0).SetFullSize(false, true).SetAlignmentInParent(Alignment.Right);
+            }
 
 
+
+            node.SetupLayout(Alignment.Center, Direction.Down, Side.Center, null, 1, false);
 
             // VisualObject
-            node.Add(new VisualObject(0, 0, 8, 4, null, new UIStyle() { WallColor = 15 },
+            VisualObject obj = node.AddToLayout(new VisualObject(0, 0, 8, 4, null, new UIStyle() { WallColor = 15 },
                 (self, touch) => Console.WriteLine(touch.X + " " + touch.Y)));
 
             // VisualContainer
-            /*VisualContainer node = root.Add(
-                new VisualContainer(25, 0, 25, 40, null, new ContainerStyle() { WallColor = PaintID.Black })
-            ) as VisualContainer;*/
+            //VisualContainer node = root.Add(
+            //    new VisualContainer(25, 0, 25, 40, null, new ContainerStyle() { WallColor = PaintID.Black })
+            //) as VisualContainer;
 
             // Label
-            Label label = node.Add(new Label(1, 1, 15, 2, "some text", new LabelStyle() { TextColor = 13 })) as Label;
+            Label label = node.AddToLayout(new Label(1, 1, 15, 2, "some text", new LabelStyle() { TextColor = 13 })) as Label;
 
             // Button
-            Button button = node.Add(new Button(0, 7, 12, 4, "lol", null, new ButtonStyle()
+            Button button = node.AddToLayout(new Button(0, 7, 12, 4, "lol", null, new ButtonStyle()
             {
                 WallColor = PaintID.DeepGreen
             }, (self, touch) => touch.Player().SendInfoMessage("You pressed lol button!"))) as Button;
 
             // Slider
-            Slider slider = node.Add(new Slider(0, 0, 10, 2, new SliderStyle()
+            Slider slider = node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle()
             {
                 Default = 3,
                 Wall = 157,
@@ -123,21 +131,21 @@ namespace TUIExample
             }, (self, value) => Console.WriteLine("Slider: " + value))) as Slider;
 
             // Checkbox
-            Checkbox checkbox = node.Add(new Checkbox(0, 0, 2, new CheckboxStyle()
+            Checkbox checkbox = node.AddToLayout(new Checkbox(0, 0, 2, new CheckboxStyle()
             {
                 Wall = 156,
                 WallColor = PaintID.White
             }, (self, value) => Console.WriteLine("Checkbox: " + value))) as Checkbox;
 
             // Separator
-            Separator separator = node.Add(new Separator(6, new UIStyle()
+            Separator separator = node.AddToLayout(new Separator(6, new UIStyle()
             {
                 Wall = 156,
                 WallColor = PaintID.DeepRed
             })) as Separator;
 
             // InputLabel
-            InputLabel input = node.Add(new InputLabel(0, 0, new InputLabelStyle()
+            InputLabel input = node.AddToLayout(new InputLabel(0, 0, new InputLabelStyle()
             {
                 Default = "12345",
                 Type = InputLabelType.All,
@@ -145,28 +153,29 @@ namespace TUIExample
             })) as InputLabel;
 
             // ItemRack
-            ItemRack irack = node.Add(new ItemRack(0, 0, new ItemRackStyle()
+            ItemRack irack = node.AddToLayout(new ItemRack(0, 0, new ItemRackStyle()
             {
                 Type = 200,
                 Left = true
             }, (self, touch) => { })) as ItemRack;
 
             // VisualSign
-            VisualSign vsign = node.Add(new VisualSign(0, 0, "lmfao sosi")) as VisualSign;
+            VisualSign vsign = node.AddToLayout(new VisualSign(0, 0, "lmfao sosi")) as VisualSign;
 
             // FormField
-            FormField ffield = node.Add(new FormField(new VisualSign(0, 0, "test"),
-                0, 0, 2, 2, "VisualSign ->", new LabelStyle()
+            FormField ffield = node.AddToLayout(new FormField(new VisualSign(0, 0, "test"),
+                0, 0, 0, 2, "VSign", new LabelStyle()
             {
                 TextColor = 29,
                 TextAlignment = Alignment.Left
             })) as FormField;
+            ffield.SetFullSize(true);
 
             // Image
-            Image image = node.Add(new Image(2, 2, "Media\\Help.TEditSch")) as Image;
+            Image image = node.AddToLayout(new Image(2, 2, "Media\\Help.TEditSch")) as Image;
 
             // Video
-            Video video = node.Add(new Video(2, 2, null, new VideoStyle()
+            Video video = node.AddToLayout(new Video(2, 2, null, new VideoStyle()
             {
                 Path = "Media\\Animation-1",
                 Delay = 100,
@@ -187,7 +196,7 @@ namespace TUIExample
             ScrollBar scrollbar = node.Add(new ScrollBar(Direction.Right)) as ScrollBar;
 
             // Arrow
-            Arrow arrow = node.Add(new Arrow(0, 0, new ArrowStyle() { Direction = Direction.Left })) as Arrow;
+            Arrow arrow = node.AddToLayout(new Arrow(0, 0, new ArrowStyle() { Direction = Direction.Left })) as Arrow;
         }
     }
 }

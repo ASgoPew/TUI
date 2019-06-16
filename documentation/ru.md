@@ -266,7 +266,7 @@ TSPlayer нажимающего игрока можно получить чер�
 
 Пример:
 ```cs
-node.Add(new VisualObject(0, 0, 8, 4, null, new UIStyle() { WallColor = 15 },
+VisualObject obj = node.Add(new VisualObject(0, 0, 8, 4, null, new UIStyle() { WallColor = 15 },
 	(self, touch) => Console.WriteLine(touch.X + " " + touch.Y)));
 ```
 ![]()
@@ -399,6 +399,8 @@ node.Add(new VisualObject(0, 0, 8, 4, null, new UIStyle() { WallColor = 15 },
 
 </p>
 </details>
+
+***
 
 ## VisualContainer
 Виджет-контейнер других виджетов. Рекомендуется использовать именно его, несмотря на то,

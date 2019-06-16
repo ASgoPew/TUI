@@ -125,18 +125,21 @@ namespace TUI.Base
         {
             style = style ?? new ContainerStyle();
             style.Transparent = true;
-            if (PopUpBackground == null)
+            lock (Locker)
             {
-                PopUpBackground = new VisualContainer(0, 0, 0, 0, new UIConfiguration()
-                    { SessionAcquire=true }, style, (self, touch) =>
+                if (PopUpBackground == null)
                 {
-                    VisualObject selected = self.Selected();
-                    if (selected != null && PopUpCancelCallbacks.TryGetValue(selected, out Action<VisualObject> cancel))
-                        cancel.Invoke(this);
-                    else
-                        HidePopUp();
-                });
-                Add(PopUpBackground, Int32.MaxValue);
+                    PopUpBackground = new VisualContainer(0, 0, 0, 0, new UIConfiguration()
+                        { SessionAcquire=true }, style, (self, touch) =>
+                    {
+                        VisualObject selected = self.Selected();
+                        if (selected != null && PopUpCancelCallbacks.TryGetValue(selected, out Action<VisualObject> cancel))
+                            cancel.Invoke(this);
+                        else
+                            HidePopUp();
+                    });
+                    Add(PopUpBackground, Int32.MaxValue);
+                }
             }
             if (style != null)
                 PopUpBackground.Style = style;
