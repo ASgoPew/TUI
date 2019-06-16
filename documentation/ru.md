@@ -270,6 +270,12 @@ node.Add(new VisualObject(0, 0, 8, 4, null, new UIStyle() { WallColor = 15 },
 	(self, touch) => Console.WriteLine(touch.X + " " + touch.Y)));
 ```
 ![]()
+
+<details><summary>
+### Подробнее о полях и методах...
+</summary>
+<p>
+
 ### Публичные поля и свойства VisualObject
 * string Name
 * string FullName
@@ -391,6 +397,9 @@ node.Add(new VisualObject(0, 0, 8, 4, null, new UIStyle() { WallColor = 15 },
 ### Операторы VisualObject
 * this[string key]
 * this[int column, int line]
+
+</p>
+</details>
 
 ## VisualContainer
 Виджет-контейнер других виджетов. Рекомендуется использовать именно его, несмотря на то,
