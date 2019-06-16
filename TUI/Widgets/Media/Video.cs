@@ -4,8 +4,9 @@ using System.Timers;
 using TUI.Base;
 using TUI.Base.Style;
 using TUI.Hooks.Args;
+using TUI.Widgets.Media;
 
-namespace TUI.Widgets.Media
+namespace TUI.Widgets
 {
     #region VideoStyle
 
@@ -116,6 +117,11 @@ namespace TUI.Widgets.Media
             Timer.Stop();
             return this;
         }
+
+        #endregion
+        #region Toggle
+
+        public Video ToggleStart() => Playing ? Stop() : Start();
 
         #endregion
 

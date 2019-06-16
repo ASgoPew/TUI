@@ -16,6 +16,7 @@ namespace TUI.Widgets
         public CheckboxStyle(CheckboxStyle style)
             : base(style)
         {
+            Default = style.Default;
             CheckedColor = style.CheckedColor;
         }
     }
@@ -37,10 +38,10 @@ namespace TUI.Widgets
 
         #region Constructor
 
-        public Checkbox(int x, int y, int size, CheckboxStyle style = null, Action<Checkbox, bool> callback = null, int lockDelay = 300)
+        public Checkbox(int x, int y, int size, CheckboxStyle style = null, Action<Checkbox, bool> callback = null)
             : base(x, y, size, size, new UIConfiguration(), style ?? new CheckboxStyle())
         {
-            Configuration.Lock = new Lock(LockLevel.Self, false, lockDelay, false, false);
+            Configuration.Lock = new Lock(LockLevel.Self, false, UIDefault.LockDelay, false, false);
 
             CheckboxCallback = callback;
             OldWallColor = Style.WallColor;

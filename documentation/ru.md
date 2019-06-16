@@ -228,7 +228,86 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 ```
 ![](FullSizeExample.png)
 
+# Базовые классы UIConfiguration и UIStyle
+
+# База данных
+
 # Виджеты
+Большинство виджетов имеют параметр стиля в конструкторе, зачастую это не UIStyle,
+а класс, наследующийся от UIStyle. Например, ButtonStyle включает в себя как
+конфигурацию UIStyle, так и разные стили, связанные с морганием кнопки:
+BlinkColor, BlinkDelay, TriggerStyle, BlinkStyle.
+Если виджет имеет в конструкторе стиль с собственным типом (как ButtonStyle у Button),
+тогда этот виджет имеет поле с именем соответствующего типа стиля.
+Так, виджет кнопки Button имеет поле .ButtonStyle, которое содержит значение этого самого стиля.
+Обращение же к полю .Style будет возвращать тот же самый объект, но в типе UIStyle,
+это надо иметь в виду.
+
+## VisualObject
+Базовый объект интерфейса. Любой виджет наследуется от этого класса.
+Как и в большинстве других виджетов, параметры configuration, style и callback не обязательны.
+Структура конструктора VisualObject задает стиль конструкторов всех остальных виджетов:
+[Координаты] -> [размеры] -> [текст (в данном случае его нет)] -> [конфигурация] -> [стиль] -> [функция].
+```cs
+VisualObject(int x, int y, int width, int height, UIConfiguration configuration,
+	UIStyle style, Action<VisualObject, Touch> callback)
+```
+Пример:
+```cs
+node.Add(new VisualObject(0, 0, 8, 4, null, new UIStyle() { WallColor = 15 },
+	(self, touch) => Console.WriteLine(touch.X + " " + touch.Y)));
+```
+![]()
+### Поля VisualObject
+### Методы VisualObject
+
+## VisualContainer
+Виджет-контейнер других виджетов. Рекомендуется использовать именно его, несмотря на то,
+что можно использовать и обычный VisualObject для хранения других виджетов.
+Этот виджет гарантирует правильную работу виджетов ScrollBackground и ScrollBar внутри себя.
+```cs
+VisualContainer(int x, int y, int width, int height, UIConfiguration configuration,
+	ContainerStyle style, Action<VisualObject, Touch> callback)
+VisualContainer()
+VisualContainer(UIConfiguration configuration)
+VisualContainer(ContainerStyle style)
+```
+Пример:
+```cs
+VisualContainer node = root.Add(
+	new VisualContainer(25, 0, 25, 40, null, new ContainerStyle() { WallColor = PaintID.Black })
+) as VisualContainer;
+```
+![]()
+
+## RootVisualObject
+Виджет, являющийся корнем дерева и выполняющий соответствующие функции.
+Нельзя создать напрямую, только через TUI.CreateRoot()
+Обладает следующими особенными функциями:
+```cs
+// Добавить объект в качестве всплывающего окна
+VisualContainer ShowPopUp(VisualObject popup, ContainerStyle style = null,
+	Action<VisualObject> cancelCallback = null)
+// Скрыть всплывающее окно
+RootVisualObject HidePopUp()
+// Отобразить информирующее окно с текстом
+RootVisualObject Alert(string text, UIStyle style = null, ButtonStyle buttonStyle = null)
+// Отобразить запрашивающее подтверждение окно с текстом и вариантами ответа yes и no (да и нет)
+RootVisualObject Confirm(string text, Action<bool> callback, ContainerStyle style = null,
+	ButtonStyle yesButtonStyle = null, ButtonStyle noButtonStyle = null)
+```
+
+## Panel
+Подразновидность RootVisualObject, обладающая некоторыми особенностями:
+Панель можно перемещать и изменять ее размер прямо в процессе.
+Исходно панель имеет 2 кнопки:
+* Кнопка перемещения панели размером 1х1 в левом верхнем углу панели
+* Кнопка изменения размера панели размером 1х1 в правом нижнем углу
+
+Панель автоматически сохраняет свои позицию и размер в базу данных и загружает на старте.
+Сохранить позицию панели напрямую можно вызывав функцию SavePosition().
+Точно так же, как и RootVisualObject, нельзя создать напрямую, только через TUI.CreatePanel().
+![]()
 
 ## Label
 Виджет отображения текста с помощью статуй символов и цифр.
@@ -237,23 +316,234 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 ```cs
 Label label = node.Add(new Label(1, 1, 15, 2, "some text", new LabelStyle() { TextColor=13 })) as Label;
 ```
+![]()
 
 ## Button
-## Slider
-## Checkbox
-## Switch
-## Separator
-## InputLabel
-## ItemRack
-## Image
-## Video
-## ScrollBar
-## ScrollBackground
-## RootVisualObject
-## Panel
+Кнопка, выполняющая указанные действия по нажатию и моргающая тем или иным способом.
+Может отображать указанный текст, ибо наследуется от Label.
+```cs
+Button(int x, int y, int width, int height, string text, UIConfiguration configuration,
+	ButtonStyle style, Action<VisualObject, Touch> callback)
+```
+Пример:
+```cs
+Button button = node.Add(new Button(0, 7, 12, 4, "lol", null, new ButtonStyle()
+{
+	WallColor = PaintID.DeepGreen
+}, (self, touch) => touch.Player().SendInfoMessage("You pressed lol button!"))) as Button;
+```
+![]()
 
-Некоторые тайлы ломаются при определенных условиях при отправке с помощью SendTileSquare (например, это статуя без блоков под ней).
-Для того, чтобы заставить объект рисоваться с помощью отправок секций, достаточно установить у него поле ForceSection в значение true.
+## Slider
+Слайдер (ползунок для указания относительной величины)
+```cs
+Slider(int x, int y, int width, int height, SliderStyle style, Action<Slider, int> callback)
+```
+Пример:
+```cs
+Slider slider = node.Add(new Slider(0, 0, 10, 2, new SliderStyle()
+{
+	Default = 3,
+	Wall = 157,
+	WallColor = PaintID.White
+}, (self, value) => Console.WriteLine("Slider: " + value))) as Slider;
+```
+![]()
+
+## Checkbox
+Чекбокс: кнопка 2х2, имеющая 2 состояния (вкл/выкл)
+```cs
+Checkbox(int x, int y, int size, CheckboxStyle style, Action<Checkbox, bool> callback)
+```
+Пример:
+```cs
+Checkbox checkbox = node.Add(new Checkbox(0, 0, 2, new CheckboxStyle()
+{
+	Wall = 156,
+	WallColor = PaintID.White
+}, (self, value) => Console.WriteLine("Checkbox: " + value))) as Checkbox;
+```
+![]()
+
+## Separator
+Разделитель. Обычно пустой объект, необходимый для вставки с целью занятия пространства.
+```cs
+Separator(int size, UIStyle style)
+Separator(int width, int height, UIStyle style)
+```
+Пример:
+```cs
+Separator separator = node.Add(new Separator(6, new UIStyle()
+{
+	Wall = 156,
+	WallColor = PaintID.DeepRed
+})) as Separator;
+```
+![]()
+
+## InputLabel
+Виджет для ввода текста. Ввод происходит посимвольно, путем зажатия мыши на символе
+и таскании его вверх/вниз. Поддерживаются несколько наборов символов.
+Наследуется от Label
+```cs
+InputLabel(int x, int y, InputLabelStyle style, Action<InputLabel, string> callback)
+```
+Пример:
+```cs
+InputLabel input = node.Add(new InputLabel(0, 0, new InputLabelStyle()
+{
+	Default = "12345",
+	Type = InputLabelType.All,
+	TextUnderline = LabelUnderline.None
+})) as InputLabel;
+```
+![]()
+
+## ItemRack
+Виджет для отображения предмета. Рисуется в виде подставки для оружия (weapon rack),
+верхняя часть может быть заменена на таблички для отображения надписи.
+```cs
+ItemRack(int x, int y, ItemRackStyle style, Action<VisualObject, Touch> callback)
+```
+Пример:
+```cs
+ItemRack irack = node.Add(new ItemRack(0, 0, new ItemRackStyle()
+{
+	Type = 200,
+	Left = true
+}, (self, touch) => { })) as ItemRack;
+```
+![]()
+
+## VisualSign
+Виджет отображения таблички с надписью.
+```cs
+VisualSign(int x, int y, int width, int height, string text, UIConfiguration configuration,
+	UIStyle style, Action<VisualObject, Touch> callback)
+```
+Пример:
+```cs
+VisualSign vsign = node.Add(new VisualSign(0, 0, "lmfao sosi")) as VisualSign;
+```
+![]()
+
+## FormField
+Этот виджет нужен для добавления текста слева к другому виджету, например к
+Checkbox, Button, InputLabel, Slider, ...
+Наследуется от Label
+```cs
+FormField(VisualObject input, int x, int y, int width, int height, string text, LabelStyle style)
+```
+Пример:
+```cs
+FormField ffield = node.Add(new FormField(new VisualSign(0, 0, "test"),
+	0, 0, 2, 2, "VisualSign ->", new LabelStyle()
+{
+	TextColor = 29,
+	TextAlignment = Alignment.Left
+})) as FormField;
+```
+![]()
+
+## Image
+Виджет отображения картинки в формате WorldEdit (.dat) или TEdit (.TEditSch)
+Поддерживает отображение табличек.
+Отображает битую картинку в случае неудачи загрузки картинки.
+```cs
+Image(int x, int y, string path, UIConfiguration configuration, UIStyle style, Action<VisualObject, Touch> callback)
+Image(int x, int y, ImageData data, UIConfiguration configuration, UIStyle style, Action<VisualObject, Touch> callback)
+```
+Пример:
+```cs
+Image image = node.Add(new Image(2, 2, "Media\\Help.TEditSch")) as Image;
+```
+![]()
+
+## Video
+Виджет отображения видео, состоящего из картинок Image.
+Загружает в качестве path путь директории, в которой лежат все слайды в алфавитном порядке.
+Отображает битую картинку в случае неудачи загрузки слайдов.
+```cs
+Video(int x, int y, UIConfiguration configuration, UIStyle style, Action<VisualObject, Touch> callback)
+```
+Пример:
+```cs
+Video video = node.Add(new Video(2, 2, null, new VideoStyle()
+{
+	Path = "Media\\Animation-1",
+	Delay = 100,
+	TileColor = PaintID.DeepTeal
+}, (self, touch) => (self as Video).ToggleStart())) as Video;
+```
+![]()
+
+## AlertWindow
+Виджет всплывающего окна с информационным сообщением.
+Создается с помощью метода корневого объекта RootVisualObject:
+```cs
+RootVisualObject Alert(string text, UIStyle style, ButtonStyle buttonStyle)
+```
+Пример:
+```cs
+node.Root.Alert("Hello world")
+```
+![]()
+
+## ConfirmWindow
+Виджет всплывающего окна с подтверждением действия.
+Создается с помощью метода корневого объекта RootVisualObject:
+```cs
+RootVisualObject Confirm(string text, Action<bool> callback, ContainerStyle style,
+	ButtonStyle yesButtonStyle, ButtonStyle noButtonStyle)
+```
+Пример:
+```cs
+node.Root.Confirm("Hello world", value => Console.WriteLine(value))
+```
+![]()
+
+## ScrollBackground
+Виджет прокручивания layout своего Parent (родительского) объекта как на сенсорном экране:
+Потяни за задний фон вниз - layout поедет вниз. И наоборот.
+Виджет всегда находится сзади всех остальных дочерних объектов, потому позволяет
+прокручивать layout только в случае нажатия в пустую область (область, где нет
+конкурирующих за нажатие других детей).
+```cs
+ScrollBackground(bool allowToPull, bool rememberTouchPosition, bool useMoving,
+	Action<ScrollBackground, int> callback)
+```
+* allowToPull - 
+* rememberTouchPosition - 
+* useMoving - 
+* callback - 
+Пример:
+```cs
+ScrollBackground scrollbg = node.Add(new ScrollBackground(true, true, true)) as ScrollBackground;
+```
+![]()
+
+## ScrollBar
+Полоса прокручивания layout. Добавляется с одной из сторон (справа/слева/сверху/снизу).
+На данный момент не поддерживает относительный скроллинг (когда размер layout слишком большой)
+```cs
+ScrollBar(Direction side, int width, ScrollBarStyle style)
+```
+Пример:
+```cs
+ScrollBar scrollbar = node.Add(new ScrollBar(Direction.Right)) as ScrollBar;
+```
+![]()
+
+## Arrow
+Простой виджет отображения стрелки
+```cs
+Arrow(int x, int y, ArrowStyle style, Action<VisualObject, Touch> callback)
+```
+Пример:
+```cs
+Arrow arrow = node.Add(new Arrow(0, 0, new ArrowStyle() { Direction = Direction.Left })) as Arrow;
+```
+![]()
 
 
 
@@ -263,3 +553,5 @@ Label label = node.Add(new Label(1, 1, 15, 2, "some text", new LabelStyle() { Te
 2. В режимах освещения retro и trippy отрисовка интерфейса происходит быстрее и плавнее.
 3. Нажатием правой кнопки мыши во время использования плана можно отменить нажатие. Это действие особым
 	образом обрабатывается в некоторых виджетах (трактуется как отмена действия)
+4. Некоторые тайлы ломаются при определенных условиях при отправке с помощью SendTileSquare (например, это статуя без блоков под ней).
+Для того, чтобы заставить объект рисоваться с помощью отправок секций, достаточно установить у него поле ForceSection в значение true.

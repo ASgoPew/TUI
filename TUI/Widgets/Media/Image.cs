@@ -2,8 +2,9 @@
 using TUI.Base;
 using TUI.Base.Style;
 using TUI.Hooks.Args;
+using TUI.Widgets.Media;
 
-namespace TUI.Widgets.Media
+namespace TUI.Widgets
 {
     public class Image : VisualObject
     {
@@ -47,122 +48,28 @@ namespace TUI.Widgets.Media
         {
             base.LoadThisNative();
 
-            if (Path == null)
-            {
-                if (Data != null)
-                    SetWH(Data.Width, Data.Height);
+            if (Path == null && Data == null)
                 return;
-            }
 
-            ImageData[] images = ImageData.Load(Path);
-            if (images.Length != 1)
+            if (Path != null)
             {
-                TUI.Hooks.Log.Invoke(new LogArgs("File not found or path is a folder: " + Path, LogType.Error));
-                Path = null;
-                return;
-            }
-            Data = images[0];
-
-            (int x, int y) = AbsoluteXY();
-            foreach (SignData sign in Data.Signs)
-            {
-                if (sign.Sign == null)
+                ImageData[] images = ImageData.Load(Path);
+                if (images.Length != 1)
                 {
-                    CreateSignArgs args = new CreateSignArgs(x + sign.X, y + sign.Y, this);
-                    TUI.Hooks.CreateSign.Invoke(args);
-                    if (args.Sign == null)
-                    {
-                        TUI.Hooks.Log.Invoke(new LogArgs("Can't create new sign.", LogType.Error));
-                        break;
-                    }
-                    sign.Sign = args.Sign;
-                    sign.Sign.text = sign.Text;
+                    TUI.Hooks.Log.Invoke(new LogArgs("File not found or path is a folder: " + Path, LogType.Error));
+                    Path = null;
+                    return;
                 }
+                Data = images[0];
             }
+
+            foreach (SignData sign in Data.Signs)
+                Add(new VisualSign(sign.X, sign.Y, sign.Text));
             SetWH(Data.Width, Data.Height);
         }
 
         #endregion
-        #region DisposeThisNative
 
-        protected override void DisposeThisNative()
-        {
-            base.DisposeThisNative();
-            RemoveSigns();
-        }
-
-        #endregion
-
-        #region RemoveSigns
-
-        protected virtual void RemoveSigns()
-        {
-            if (Data?.Signs != null)
-                foreach (SignData sign in Data.Signs)
-                    if (sign.Sign != null)
-                        TUI.Hooks.RemoveSign.Invoke(new RemoveSignArgs(this, sign.Sign));
-        }
-
-        #endregion
-        #region UpdateSigns
-
-        protected virtual void UpdateSigns()
-        {
-            if (Data?.Signs != null)
-            {
-                (int x, int y) = AbsoluteXY();
-                bool notFake = UsesDefaultMainProvider;
-                foreach (SignData sign in Data.Signs)
-                {
-                    if (sign.Sign != null)
-                    {
-                        dynamic tile = Tile(sign.X, sign.Y);
-                        if (tile != null)
-                        {
-                            if (notFake)
-                            {
-                                tile.type = 55;
-                                tile.frameX = 0;
-                                tile.frameY = 0;
-                            }
-                            sign.Sign.x = x + sign.X;
-                            sign.Sign.y = y + sign.Y;
-                            sign.Sign.text = sign.Text;
-                        }
-                        else
-                            sign.Sign.text = "";
-                    }
-                    
-                }
-            }
-        }
-
-        #endregion
-
-        #region PulseThisNative
-
-        protected override void PulseThisNative(PulseType type)
-        {
-            base.PulseThisNative(type);
-            switch (type)
-            {
-                case PulseType.PositionChanged:
-                    UpdateSigns();
-                    break;
-            }
-        }
-
-        #endregion
-        #region UpdateThisNative
-
-        protected override void UpdateThisNative()
-        {
-            base.UpdateThisNative();
-
-            UpdateSigns();
-        }
-
-        #endregion
         #region ApplyThisNative
 
         protected override void ApplyThisNative()

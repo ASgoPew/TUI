@@ -134,6 +134,8 @@ namespace TUI.Base
         {
             this.AbsoluteX = touch.AbsoluteX;
             this.AbsoluteY = touch.AbsoluteY;
+            this.X = this.AbsoluteX;
+            this.Y = this.AbsoluteY;
             this.State = touch.State;
             this.Prefix = touch.Prefix;
             this.Session = touch.Session;

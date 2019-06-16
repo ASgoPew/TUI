@@ -21,5 +21,7 @@ namespace TUI.Base
         public static byte ButtonBlinkColor { get; set; } = 26;
         public static byte SliderSeparatorColor { get; set; } = 13;
         public static byte SliderUsedColor { get; set; } = 25;
+
+        public static int LockDelay { get; set; } = 300;
     }
 }

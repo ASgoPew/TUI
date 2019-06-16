@@ -40,10 +40,10 @@ namespace TUI.Widgets
 
         #region Constructor
 
-        public Slider(int x, int y, int width, int height, SliderStyle style = null, Action<Slider, int> callback = null, int lockDelay = 300)
+        public Slider(int x, int y, int width, int height, SliderStyle style = null, Action<Slider, int> callback = null)
             : base(x, y, width, height, new UIConfiguration() { UseMoving = true, UseEnd = true, UseOutsideTouches = true }, style)
         {
-            Configuration.Lock = new Lock(LockLevel.Self, false, lockDelay, true, true);
+            Configuration.Lock = new Lock(LockLevel.Self, false, UIDefault.LockDelay, true, true);
 
             SliderCallback = callback;
             Value = SliderStyle.Default;

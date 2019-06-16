@@ -5,6 +5,5 @@
         public int X;
         public int Y;
         public string Text;
-        public dynamic Sign;
     }
 }
