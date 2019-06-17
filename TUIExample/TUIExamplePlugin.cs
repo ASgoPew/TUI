@@ -128,7 +128,7 @@ namespace TUIExample
                 Default = 3,
                 Wall = 157,
                 WallColor = PaintID.White
-            }, (self, value) => Console.WriteLine("Slider: " + value))) as Slider;
+            }, new Input<int>(0, 0, (self, value) => Console.WriteLine("Slider: " + value)))) as Slider;
 
             // Checkbox
             Checkbox checkbox = node.AddToLayout(new Checkbox(0, 0, 2, new CheckboxStyle()

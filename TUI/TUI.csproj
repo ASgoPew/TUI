@@ -44,6 +44,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Base\IInput.cs" />
+    <Compile Include="Base\Input.cs" />
     <Compile Include="Base\InputVisualObject.cs" />
     <Compile Include="Base\Style\PaintID.cs" />
     <Compile Include="Base\PulseType.cs" />

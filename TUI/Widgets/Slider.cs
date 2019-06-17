@@ -24,29 +24,26 @@ namespace TUI.Widgets
 
     #endregion
 
-    public class Slider : VisualObject
+    public class Slider : VisualObject, IInput, IInput<int>
     {
         #region Data
 
-        private Action<Slider, int> SliderCallback;
-        private int OldValue;
-
-        public int Value { get; set; }
-
+        public Input<int> Input { get; protected set; }
+        public object Value => Input.Value;
         public SliderStyle SliderStyle => Style as SliderStyle;
-        public double RelativeValue => Value / (Width - 1d);
+
+        public double RelativeValue => Input.Value / (Width - 1d);
 
         #endregion
 
         #region Constructor
 
-        public Slider(int x, int y, int width, int height, SliderStyle style = null, Action<Slider, int> callback = null)
+        public Slider(int x, int y, int width, int height, SliderStyle style = null, Input<int> input = null)
             : base(x, y, width, height, new UIConfiguration() { UseMoving = true, UseEnd = true, UseOutsideTouches = true }, style)
         {
-            Configuration.Lock = new Lock(LockLevel.Self, false, UIDefault.LockDelay, true, true);
+            Input = input ?? new Input<int>(0, 0, null);
 
-            SliderCallback = callback;
-            Value = SliderStyle.Default;
+            Configuration.Lock = new Lock(LockLevel.Self, false, UIDefault.LockDelay, true, true);
         }
 
         #endregion
@@ -56,21 +53,22 @@ namespace TUI.Widgets
         {
             int oldValue;
             if (touch.State == TouchState.Begin)
-                OldValue = Value;
-            oldValue = Value;
-            int value = touch.Undo ? OldValue : touch.X;
-            if (value < 0)
-                value = 0;
-            if (value >= Width)
-                value = Width - 1;
-            if (Value != value)
+                Input.OldValue = Input.Value;
+            oldValue = Input.Value;
+            int newValue = touch.Undo ? Input.OldValue : touch.X;
+            if (newValue < 0)
+                newValue = 0;
+            if (newValue >= Width)
+                newValue = Width - 1;
+            if (Input.Value != newValue)
             {
-                Value = value;
-                ApplyTiles().Draw(Value < oldValue ? Value : oldValue, 0, Value > oldValue ? Value + 1 - oldValue : oldValue + 1 - value);
+                Input.Value = newValue;
+                ApplyTiles().Draw(newValue < oldValue ? newValue : oldValue, 0,
+                    newValue > oldValue ? newValue + 1 - oldValue : oldValue + 1 - newValue);
             }
-            if (touch.State == TouchState.End && Value != OldValue && (!SliderStyle.TriggerOnDrag || oldValue != value)
-                    || SliderStyle.TriggerOnDrag && oldValue != value)
-                SliderCallback?.Invoke(this, Value);
+            if (touch.State == TouchState.End && newValue != Input.OldValue && (!SliderStyle.TriggerOnDrag || oldValue != newValue)
+                    || SliderStyle.TriggerOnDrag && oldValue != newValue)
+                Input.Callback?.Invoke(this, newValue);
         }
 
         #endregion
@@ -96,24 +94,28 @@ namespace TUI.Widgets
             if (Style.Wall != null)
                 tile.wall = Style.Wall.Value;
             if (Style.WallColor != null)
-                tile.wallColor((x > Value) ? Style.WallColor.Value : (x == Value) ? SliderStyle.SeparatorColor : SliderStyle.UsedColor);
+                tile.wallColor((x > Input.Value) ? Style.WallColor.Value : (x == Input.Value) ? SliderStyle.SeparatorColor : SliderStyle.UsedColor);
         }
 
         #endregion
-        #region Set
+        #region GetValue
 
-        public Slider Set(int value)
+        public int GetValue() => Input.Value;
+
+        #endregion
+        #region SetValue
+
+        public void SetValue(int value)
         {
             if (value < 0)
                 value = 0;
             if (value >= Width)
                 value = Width - 1;
-            if (value != Value)
+            if (value != Input.Value)
             {
-                Value = value;
-                SliderCallback?.Invoke(this, Value);
+                Input.Value = value;
+                Input.Callback?.Invoke(this, Input.Value);
             }
-            return this;
         }
 
         #endregion
@@ -123,7 +125,7 @@ namespace TUI.Widgets
         {
             base.PulseThisNative(type);
             if (type == PulseType.Reset)
-                Set(SliderStyle.Default);
+                SetValue(Input.DefaultValue);
         }
 
         #endregion
