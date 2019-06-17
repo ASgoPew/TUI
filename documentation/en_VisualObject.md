@@ -1,25 +1,25 @@
 ### Public fields and properties of VisualObject
-* string Name
+* string **Name**
 	* Object name. Class type name by default.
-* string FullName
+* string **FullName**
 	* Object full name (names of all objects up to the Root).
-* int X
+* int **X**
 	* X coordinate relative to Parent object.
-* int Y
+* int **Y**
 	* Y coordinate relative to Parent object.
-* int Width
-* int Height
-* VisualObject Parent
+* int **Width**
+* int **Height**
+* VisualObject Parent**
 	* Parent object. Null for RootVisualObject.
-* RootVisualObject Root
+* RootVisualObject **Root**
 	* Root of the interface tree. Null before first Update() call. Use GetRoot() to calculate manually.
-* UIConfiguration Configuration
+* UIConfiguration **Configuration**
 	* Object touching and drawing settings.
-* UIStyle Style
+* UIStyle **Style**
 	* Object tile and wall style.
-* Action<VisualObject, Touch> Callback
+* Action<VisualObject, Touch> **Callback**
 	* Function to call on touching this object with the grand design.
-* virtual dynamic Provider
+* virtual dynamic **Provider**
 	* Tile provider of current interface tree.
 * bool UsesDefaultMainProvider
 	* True if Provider links to Main.tile provider.
