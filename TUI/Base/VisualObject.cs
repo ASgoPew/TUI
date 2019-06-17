@@ -41,10 +41,6 @@ namespace TUI.Base
         /// Bounds (relative to this object) in which this object is allowed to draw.
         /// </summary>
         public ExternalOffset Bounds { get; protected set; } = new ExternalOffset();
-        /// <summary>
-        /// Database storing stream data. See <see cref="DBWriteNative"/>
-        /// </summary>
-        private byte[] Data { get; set; }
 
         /// <summary>
         /// Overridable field for disabling ability to be ordered in Parent's Child array.
@@ -1292,41 +1288,18 @@ namespace TUI.Base
 
         #endregion
 
-        #region Database
-
-        /*public void SetData(object data)
-        {
-            if (data.GetType() != DataType)
-                throw new ArgumentException("Invalid data type for storing in VisualObject.Data.");
-            Data = data;
-            TUI.DBSet(FullName, Data);
-        }
-
-        public bool GetData()
-        {
-            if (DataType == null)
-                throw new NullReferenceException("Data type not specified. Use Database(Type) for initializing it.");
-            Data = TUI.DBGet(FullName, DataType);
-            return Data != null;
-        }
-
-        public void Database(Type dataType)
-        {
-            if (DataType != null)
-                throw new Exception("Database already initialized for this VisualObject: " + FullName);
-            DataType = dataType;
-        }*/
+        #region DBRead
 
         /// <summary>
         /// Read data from database using overridable DBReadNative method
         /// </summary>
         /// <returns>true if read is successful</returns>
-        protected bool DBRead()
+        public bool DBRead()
         {
-            Data = TUI.DBGet(FullName);
-            if (Data != null)
+            byte[] data = TUI.DBGet(FullName);
+            if (data != null)
             {
-                using (MemoryStream ms = new MemoryStream(Data))
+                using (MemoryStream ms = new MemoryStream(data))
                 using (BinaryReader br = new BinaryReader(ms))
                     DBReadNative(br);
                 return true;
@@ -1334,31 +1307,96 @@ namespace TUI.Base
             return false;
         }
 
-        /// <summary>
-        /// Write data to database using overridable DBWriteNative method
-        /// </summary>
-        protected void DBWrite()
-        {
-            using (MemoryStream ms = new MemoryStream())
-            using (BinaryWriter bw = new BinaryWriter(ms))
-            {
-                DBWriteNative(bw);
-                Data = ms.ToArray();
-                TUI.DBSet(FullName, Data);
-            }
-        }
+        #endregion
+        #region DBReadNative
 
         /// <summary>
         /// Overridable method for reading from BinaryReader based on data from database
         /// </summary>
         /// <param name="br"></param>
-        protected virtual void DBReadNative(BinaryReader br) { }
+        protected virtual void DBReadNative(BinaryReader br) => Configuration.CustomDBRead?.Invoke(br);
+
+        #endregion
+        #region DBWrite
+
+        /// <summary>
+        /// Write data to database using overridable DBWriteNative method
+        /// </summary>
+        public void DBWrite()
+        {
+            using (MemoryStream ms = new MemoryStream())
+            using (BinaryWriter bw = new BinaryWriter(ms))
+            {
+                DBWriteNative(bw);
+                byte[] data = ms.ToArray();
+                TUI.DBSet(FullName, data);
+            }
+        }
+
+        #endregion
+        #region DBWriteNative
 
         /// <summary>
         /// Overridable method for writing to BinaryWriter for data to be stored in database
         /// </summary>
         /// <param name="bw"></param>
-        protected virtual void DBWriteNative(BinaryWriter bw) { }
+        protected virtual void DBWriteNative(BinaryWriter bw) => Configuration.CustomDBWrite?.Invoke(bw);
+
+        #endregion
+        #region UDBRead
+
+        /// <summary>
+        /// Read user data from database using overridable DBReadNative method
+        /// </summary>
+        /// <returns>true if read is successful</returns>
+        public bool UDBRead(int user)
+        {
+            byte[] data = TUI.UDBGet(user, FullName);
+            if (data != null)
+            {
+                using (MemoryStream ms = new MemoryStream(data))
+                using (BinaryReader br = new BinaryReader(ms))
+                    UDBReadNative(br, user);
+                return true;
+            }
+            return false;
+        }
+
+        #endregion
+        #region UDBReadNative
+
+        /// <summary>
+        /// Overridable method for reading from BinaryReader based on user data from database
+        /// </summary>
+        /// <param name="br"></param>
+        protected virtual void UDBReadNative(BinaryReader br, int user) => Configuration.CustomUDBRead?.Invoke(br, user);
+
+        #endregion
+        #region UDBWrite
+
+        /// <summary>
+        /// Write user data to database using overridable DBWriteNative method
+        /// </summary>
+        public void UDBWrite(int user)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            using (BinaryWriter bw = new BinaryWriter(ms))
+            {
+                UDBWriteNative(bw, user);
+                byte[] data = ms.ToArray();
+                TUI.UDBSet(user, FullName, data);
+            }
+        }
+
+        #endregion
+        #region UDBWriteNative
+
+        /// <summary>
+        /// Overridable method for writing to BinaryWriter for user data to be stored in database
+        /// </summary>
+        /// <param name="bw"></param>
+        /// <param name="user"></param>
+        protected virtual void UDBWriteNative(BinaryWriter bw, int user) => Configuration.CustomUDBWrite?.Invoke(bw, user);
 
         #endregion
     }

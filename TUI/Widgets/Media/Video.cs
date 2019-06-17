@@ -47,8 +47,9 @@ namespace TUI.Widgets
 
         protected List<Image> Images = new List<Image>();
         protected Timer Timer = new Timer() { AutoReset = true };
-        protected int CurrentImage = 0;
 
+        public int Frame { get; set; } = 0;
+        public int FrameCount => Images.Count;
         public bool Playing => Timer.Enabled;
         public VideoStyle VideoStyle => Style as VideoStyle;
 
@@ -131,7 +132,7 @@ namespace TUI.Widgets
         {
             base.PulseThisNative(type);
             if (type == PulseType.Reset)
-                CurrentImage = 0;
+                Frame = 0;
         }
 
         #endregion
@@ -140,7 +141,7 @@ namespace TUI.Widgets
         protected override (int, int) UpdateSizeNative() =>
             Images?.Count > 0
             //? (Images.Max(i => i.Width), Images.Max(i => i.Height))
-            ? (Images[CurrentImage].Width, Images[CurrentImage].Height)
+            ? (Images[Frame].Width, Images[Frame].Height)
             : (8, 5);
 
         #endregion
@@ -170,10 +171,10 @@ namespace TUI.Widgets
             if (Root == null || Root.Players.Count == 0 || !Active)
                 return;
 
-            CurrentImage = (CurrentImage + 1) % Images.Count;
-            Select(Images[CurrentImage]).Update().Apply().Draw();
+            Frame = (Frame + 1) % Images.Count;
+            Select(Images[Frame]).Update().Apply().Draw();
 
-            if (CurrentImage == Images.Count - 1 && !VideoStyle.Repeat)
+            if (Frame == Images.Count - 1 && !VideoStyle.Repeat)
                 Stop();
         }
 

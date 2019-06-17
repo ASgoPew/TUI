@@ -356,6 +356,10 @@ Configuration класса UIConfiguration.
 * Func<VisualObject, Touch, bool> CustomCanTouch
 * Action<VisualObject> CustomApply
 * Action<VisualObject, PulseType> CustomPulse
+* Action<BinaryReader> CustomDBRead
+* Action<BinaryWriter> CustomDBWrite
+* Action<BinaryReader, int> CustomUDBRead
+* Action<BinaryWriter, int> CustomUDBWrite
 </p>
 </details>
 
@@ -406,7 +410,11 @@ Name обязательно задается при создании RootVisualO
 таблице формата ключ-значение. Потому, если вы хотите хранить у какого-то объекта VisualObject
 данные в базе данных, рекомендуется у него и всех его родителей установить уникальное свойство Name,
 чтобы изменение индекса в массиве не поменяло ключ и, соответственно, данные.
-Прочитать(записать) данные из(в) базы(у) данных можно с помощью функции DBRead(DBWrite).
+Прочитать(записать) данные из(в) базы(у) данных можно с помощью функции DBRead(DBWrite):
+```cs
+bool DBRead()
+void DBWrite()
+```
 Данные записываются и читаются в потоковом формате. Для определения поведения считывания
 и поведения записи потока данных существуют переопределяемые функции чтения и записи
 в BinaryReader и BinaryWriter:
@@ -431,6 +439,15 @@ protected override void DBWriteNative(BinaryWriter bw)
 	bw.Write((int)Width);
 	bw.Write((int)Height);
 }
+```
+Вышеописанное актуально для хранения данных, относящихся к объекту в целом, но не к конкретному
+пользователю. Для хранения данных, относящихся к этому объекту и пользователю в совокупности
+есть аналогичные методы:
+```cs
+bool UDBRead(int user)
+void UDBWrite(int user)
+virtual void UDBReadNative(BinaryReader br, int user)
+virtual void UDBWriteNative(BinaryWriter bw, int user)
 ```
 
 ## Виджеты

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using TUI.Base.Style;
 
@@ -180,21 +181,37 @@ namespace TUI.Base
         /// </summary>
         public object Permission { get; set; }
         /// <summary>
-        /// Delegate for applying custom actions on Update().
+        /// Callback for applying custom actions on Update().
         /// </summary>
         public Action<VisualObject> CustomUpdate { get; set; }
         /// <summary>
-        /// Delegate for custom checking if user can touch this node.
+        /// Callback for custom checking if user can touch this node.
         /// </summary>
         public Func<VisualObject, Touch, bool> CustomCanTouch { get; set; }
         /// <summary>
-        /// Delegate for applying custom actions on Apply().
+        /// Callback for applying custom actions on Apply().
         /// </summary>
         public Action<VisualObject> CustomApply { get; set; }
         /// <summary>
-        /// Delegate for custom pulse event handling.
+        /// Callback for custom pulse event handling.
         /// </summary>
         public Action<VisualObject, PulseType> CustomPulse { get; set; }
+        /// <summary>
+        /// Callback for custom database data read.
+        /// </summary>
+        public Action<BinaryReader> CustomDBRead { get; set; }
+        /// <summary>
+        /// Callback for custom database data write
+        /// </summary>
+        public Action<BinaryWriter> CustomDBWrite { get; set; }
+        /// <summary>
+        /// Callback for custom database user data read
+        /// </summary>
+        public Action<BinaryReader, int> CustomUDBRead { get; set; }
+        /// <summary>
+        /// Callback for custom database user data write
+        /// </summary>
+        public Action<BinaryWriter, int> CustomUDBWrite { get; set; }
         /// <summary>
         /// Once node is touched all future touches within the same session will pass to this node.
         /// </summary>

@@ -14,6 +14,7 @@ namespace TUIPlugin
     public static class Database
     {
         public static string TableName = "TUIKeyValue";
+        public static string UserTableName = "TUIUserKeyValue";
         public static bool IsMySql => db.GetSqlType() == SqlType.Mysql;
 
         public static IDbConnection db;
@@ -166,7 +167,7 @@ namespace TUIPlugin
             {
                 using (IDbCommand cmd = db.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT Value FROM {0} WHERE User={1} AND Key='{2}'".SFormat(TableName, user, key);
+                    cmd.CommandText = "SELECT Value FROM {0} WHERE User={1} AND Key='{2}'".SFormat(UserTableName, user, key);
                     using (IDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
@@ -195,7 +196,7 @@ namespace TUIPlugin
             {
                 using (var conn = db.CreateCommand())
                 {
-                    conn.CommandText = "REPLACE INTO {0} (User, Key, Value) VALUES ({1})".SFormat(TableName, $"{user}, '{key}', @data");
+                    conn.CommandText = "REPLACE INTO {0} (User, Key, Value) VALUES ({1})".SFormat(UserTableName, $"{user}, '{key}', @data");
                     conn.AddParameter("@data", data);
                     conn.ExecuteNonQuery();
                 }
@@ -212,6 +213,6 @@ namespace TUIPlugin
         }
 
         public static void RemoveKey(int user, string key) =>
-            Query("DELETE FROM {0} WHERE User={1} AND Key='{2}'".SFormat(TableName, user, key));
+            Query("DELETE FROM {0} WHERE User={1} AND Key='{2}'".SFormat(UserTableName, user, key));
     }
 }
