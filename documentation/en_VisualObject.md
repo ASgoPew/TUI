@@ -1,4 +1,4 @@
-### Public fields and properties of VisualObject
+## Public fields and properties of VisualObject
 * string **Name**
 	* Object name. Class type name by default.
 * string **FullName**
@@ -57,7 +57,7 @@
 * IEnumerable<VisualObject> **DescendantBFS**
 	* Broad Fast Search method of iterating objects in sub-tree including this node.
 
-### Protected fields and properties of VisualObject
+## Protected fields and properties of VisualObject
 * object **Locker**
 	* Locker for locking node related operations.
 * ConcurrentDictionary<string, object> **Shortcuts**
@@ -77,7 +77,7 @@
 * IEnumerable<(int, int)> **ProviderPoints**
 	* Iterates over object points relative to tile provider.
 
-### Public methods of VisualObject
+## Public methods of VisualObject
 * virtual VisualObject **Add**(VisualObject child, int layer = 0)
 	* Adds object as a child in specified layer (0 by default). Does nothing if object is already a child.
 * VisualObject **Remove**(VisualObject child)
@@ -199,7 +199,7 @@
 * void **DBWrite**()
 	* Write data to database using overridable DBWriteNative method
 
-### Protected methods of VisualObject
+## Protected methods of VisualObject
 * virtual bool **CanTouch**(Touch touch)
 	* Checks if specified touch can press this object or one of child objects in sub-tree.
 * virtual void **PostSetTop**(VisualObject o)
@@ -238,7 +238,7 @@
 * virtual void **DBWriteNative**(BinaryWriter bw)
 	* Overridable method for writing to BinaryWriter for data to be stored in database
 
-### VisualObject operators
+## VisualObject operators
 * **this**[string key]
 	* Get/set node related data in runtime storage.
 * **this**[int column, int line]

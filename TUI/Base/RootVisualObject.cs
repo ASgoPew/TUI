@@ -143,7 +143,7 @@ namespace TUI.Base
             }
             if (style != null)
                 PopUpBackground.Style = style;
-            PopUpBackground.SetFullSize();
+            PopUpBackground.SetFullSize(FullSize.Both);
             PopUpBackground.Add(popup);
             if (cancelCallback != null)
                 PopUpCancelCallbacks[popup] = cancelCallback;

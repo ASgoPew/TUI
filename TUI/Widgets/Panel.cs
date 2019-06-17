@@ -71,7 +71,6 @@ namespace TUI.Widgets
             int y = br.ReadInt32();
             int width = br.ReadInt32();
             int height = br.ReadInt32();
-            Console.WriteLine($"READ FROM DB: {x}, {y}, {width}, {height}");
             SetXYWH(x, y, width, height);
         }
 

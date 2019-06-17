@@ -19,7 +19,7 @@ namespace TUI.Base
         public bool AllowThisTouchSession { get; set; }
         public bool DuringTouchSession { get; set; }
 
-        public Lock(LockLevel level, bool personal = true, int delay = DefaultDelay, bool allowThisTouchSession = true, bool duringTouchSession = false)
+        public Lock(LockLevel level = LockLevel.Self, bool personal = true, int delay = DefaultDelay, bool allowThisTouchSession = true, bool duringTouchSession = false)
         {
             Level = level;
             Personal = personal;

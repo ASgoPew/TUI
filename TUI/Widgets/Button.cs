@@ -23,16 +23,29 @@ namespace TUI.Widgets
 
     public class ButtonStyle : LabelStyle
     {
+        /// <summary>
+        /// When to invoke Callback: on TouchState.Begin or on TouchState.End.
+        /// </summary>
         public ButtonTriggerStyle TriggerStyle { get; set; } = ButtonTriggerStyle.TouchBegin;
+        /// <summary>
+        /// Style of blinking. Currently supports: left border blinking, right border blinking, full object blinking.
+        /// </summary>
         public ButtonBlinkStyle BlinkStyle { get; set; } = ButtonBlinkStyle.Left;
+        /// <summary>
+        /// Color of blink if BlinkStyle is not None.
+        /// </summary>
         public byte BlinkColor { get; set; } = UIDefault.ButtonBlinkColor;
-        public int BlinkDelay { get; set; } = 300;
+        /// <summary>
+        /// Minimal interval of blinking.
+        /// </summary>
+        public int BlinkDelay { get; set; } = UIDefault.LockDelay;
 
         public ButtonStyle() : base() { }
 
         public ButtonStyle(ButtonStyle style)
             : base(style)
         {
+            TriggerStyle = style.TriggerStyle;
             BlinkStyle = style.BlinkStyle;
             BlinkColor = style.BlinkColor;
             BlinkDelay = style.BlinkDelay;
@@ -41,6 +54,9 @@ namespace TUI.Widgets
 
     #endregion
 
+    /// <summary>
+    /// Widget for invoking callback and blinking on touch.
+    /// </summary>
     public class Button : Label
     {
         #region Data

@@ -14,13 +14,28 @@ namespace TUI.Widgets
         Underline
     }
 
+    /// <summary>
+    /// Widget for showing text using character statues.
+    /// </summary>
     public class LabelStyle : UIStyle
     {
         public byte TextColor { get; set; } = UIDefault.LabelTextColor;
         public Offset TextOffset { get; set; } = new Offset(UIDefault.LabelOffset);
+        /// <summary>
+        /// Where to place the text (up right corner/down side/center/...)
+        /// </summary>
         public Alignment TextAlignment { get; set; } = UIDefault.Alignment;
+        /// <summary>
+        /// Side to which shorter lines would adjoin.
+        /// </summary>
         public Side TextSide { get; set; } = UIDefault.Side;
+        /// <summary>
+        /// Whether to use underline part of statues for characters (makes their size 2x3 instead of 2x2).
+        /// </summary>
         public LabelUnderline TextUnderline { get; set; } = LabelUnderline.None;
+        /// <summary>
+        /// Color of statue underline part (if TextUnderline is LabelUnderLine.Underline).
+        /// </summary>
         public byte TextUnderlineColor { get; set; } = UIDefault.LabelTextColor;
 
         public LabelStyle() : base() { }

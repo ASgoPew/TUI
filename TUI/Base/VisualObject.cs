@@ -64,11 +64,13 @@ namespace TUI.Base
         /// Object full name (names of all objects up to the Root).
         /// </summary>
         public string FullName =>
-            Parent != null
-                ? (Cell != null
-                    ? $"{Parent.FullName}[{Cell.Column},{Cell.Line}].{Name}"
-                    : $"{Parent.FullName}[{IndexInParent}].{Name}")
-                : Name;
+            Parent == null
+                ? Name
+                : _Name != null
+                    ? $"{Parent.FullName}.{_Name}"
+                    : Cell != null
+                        ? $"{Parent.FullName}[{Cell.Column},{Cell.Line}].{Name}"
+                        : $"{Parent.FullName}[{IndexInParent}].{Name}";
 
         #endregion
 

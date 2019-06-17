@@ -86,7 +86,7 @@ UI.Update();
 UI.Apply();
 UI.Draw();
 
-Чтобы создать новый интерфейс, необходимо вызвать один из методов класса UI:
+Чтобы создать новый интерфейс, необходимо вызвать один из методов класса TUI:
 ```cs
 RootVisualObject CreateRoot(string name, int x, int y, int width, int height,
 	UIConfiguration configuration = null, UIStyle style = null, object provider = null)
@@ -251,7 +251,10 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 ## Как происходит нажатие
 На каждый элемент интерфейса (являющегося объектом класса VisualObject) можно нажать
 с помощью предмета "великий план" (the grand design). Каждому нажатия ставится в соответствие
-объект нажатия Touch, содержащий всю необходимую информацию о нажатии:
+объект нажатия Touch, содержащий всю необходимую информацию о нажатии.
+#### Класс Touch
+<details><summary> Нажмите сюда, чтобы развернуть </summary>
+<p>
 * int X
 	* Координата по горизонтали относительно своей левой границы.
 * int Y
@@ -269,14 +272,19 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 * int Index
 	* Номер нажатия, считая от начала нажатия (TouchState.Begin)
 * int TouchSessionIndex
-	* Индекс
+	* Индекс промежутка нажатия, в который этот Touch был совершен.
 * bool Undo
+	* true у нажатия с TouchState.End, если игрок окончил нажатие
+	правой кнопкой мыши (отмена действия плана)
 * byte Prefix
+	* Префикс плана (the grand design).
 * bool Red, Green, Blue, Yellow, Actuator, Cutter
 	* Включен ли красный провод/зеленый/желтый/актуаток/резак. Актуально только
 	на момент TouchState.End.
 * DateTime Time
 	* Время нажатия по Utc.
+</p>
+</details>
 
 Промежутком нажатия считается промежуток времени от нажатия левой кнопки мыши
 (создания проджектайла плана) до отпускания левой кнопки мыши.
@@ -288,7 +296,10 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 Начал водить с зажатым планом мышью по экрану - у нажатий TouchState.Moving.
 Отпустил кнопку мыши - у нажатия TouchState.End.
 Каждому игроку ставится в соответствие объект UserSession (сессия игрока),
-которая хранит некоторые общие данные об игроке:
+которая хранит некоторые общие данные об игроке.
+#### Класс UserSession
+<details><summary> Нажмите сюда, чтобы развернуть </summary>
+<p>
 * bool Enabled
 	* Если установить значение false, то все нажатия вплоть до следующего TouchState.End
 	будут проигнорированы. Затем игрок снова сможет нажимать.
@@ -307,6 +318,8 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 	Configuration.SessionAcquire какой-то VisualObject к промежутку нажатия, все последующие нажатия будут проходить только к этому объекту вплоть до окончания нажатия (TouchState.End).
 * ConcurrentDictionary<object, object> Data
 	* Приватное runtime-хранилище данных, к которому можно обратиться через оператор[string key].
+</p>
+</details>
 
 При нажатии, если этот объект удовлетворяет условиям нажатия (cм. UIConfiguration),
 вызывается функция VisualObject.Invoke(Touch touch) с передающимся объектом нажатия Touch.
@@ -317,7 +330,9 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 
 ## Класс UIConfiguration
 Каждый объект VisualObject имеет настройки нажатия и отрисовки, хранящиеся в свойстве
-Configuration класса UIConfiguration:
+Configuration класса UIConfiguration.
+<details><summary> Нажмите сюда, чтобы развернуть </summary>
+<p>
 * bool UseBegin
 	* Allows to touch this node if touch.State == TouchState.Begin. True by default.
 * bool UseMoving
@@ -341,9 +356,13 @@ Configuration класса UIConfiguration:
 * Func<VisualObject, Touch, bool> CustomCanTouch
 * Action<VisualObject> CustomApply
 * Action<VisualObject, PulseType> CustomPulse
+</p>
+</details>
 
 ## Класс UIStyle
-Каждый объект VisualObject имеет стили отрисовки, хранящиеся в свойстве Style класса UIStyle:
+Каждый объект VisualObject имеет стили отрисовки, хранящиеся в свойстве Style класса UIStyle.
+<details><summary> Нажмите сюда, чтобы развернуть </summary>
+<p>
 * bool? Active
 	* Sets tile.active(Style.Active) for every tile.
 	If not specified sets to true in case Style.Tile is specified,
@@ -358,6 +377,8 @@ Configuration класса UIConfiguration:
 	* Sets tile.wallColor(Style.WallColor) for every tile.
 * bool? InActive
 	* Sets tile.inActive(Style.InActive) for every tile.
+</p>
+</details>
 
 ## Сигналы PulseType
 С помощью функций Pulse(PulseType), PulseThis(PulseType) и PulseChild(PulseType)
@@ -373,6 +394,44 @@ Configuration класса UIConfiguration:
 * User3
 
 ## База данных
+У каждого объекта VisualObject есть свойство Name и FullName.
+Name обязательно задается при создании RootVisualObject/Panel, для остальных объектов это
+свойство не обязательно. FullName - полное название в дереве интерфейса, например:
+Если мы создадим панель Panel с именем "TestPanel" и добавим к ней контейнер VisualContainer,
+а к этому контейнеру добавим слайдер Slider, то для этого слайдера свойство FullName будет
+выдавать значение "TestPanel[0].VisualContainer[0].Slider", где 0 - индекс в массиве дочерних
+элементов. Если мы контейнеру установим свойство Name в значение "lol", то то же самое
+свойство FullName у слайдера теперь будет выдавать "TestPanel[0].lol[0].Slider".
+Поле FullName является ключем, по которому хранятся данные объекта в базе данных в
+таблице формата ключ-значение. Потому, если вы хотите хранить у какого-то объекта VisualObject
+данные в базе данных, рекомендуется у него и всех его родителей установить уникальное свойство Name,
+чтобы изменение индекса в массиве не поменяло ключ и, соответственно, данные.
+Прочитать(записать) данные из(в) базы(у) данных можно с помощью функции DBRead(DBWrite).
+Данные записываются и читаются в потоковом формате. Для определения поведения считывания
+и поведения записи потока данных существуют переопределяемые функции чтения и записи
+в BinaryReader и BinaryWriter:
+```cs
+virtual void DBReadNative(BinaryReader br)
+virtual void DBWriteNative(BinaryWriter bw)
+```
+Так, например, виджет панели Panel использует это для того, чтобы запомнить позицию и размеры:
+```cs
+protected override void DBReadNative(BinaryReader br)
+{
+	int x = br.ReadInt32();
+	int y = br.ReadInt32();
+	int width = br.ReadInt32();
+	int height = br.ReadInt32();
+	SetXYWH(x, y, width, height);
+}
+protected override void DBWriteNative(BinaryWriter bw)
+{
+	bw.Write((int)X);
+	bw.Write((int)Y);
+	bw.Write((int)Width);
+	bw.Write((int)Height);
+}
+```
 
 ## Виджеты
 Большинство виджетов имеют параметр стиля в конструкторе, зачастую это не UIStyle,
@@ -440,7 +499,7 @@ VisualContainer node = root.Add(
 Виджет, являющийся корнем дерева и выполняющий соответствующие функции.
 Нельзя создать напрямую, только через TUI.CreateRoot():
 ```cs
-public static RootVisualObject CreateRoot(string name, int x, int y, int width, int height,
+RootVisualObject TUI.CreateRoot(string name, int x, int y, int width, int height,
 	UIConfiguration configuration, ContainerStyle style, object provider)
 ```
 * provider - объект провайдера тайлов (блоков), дефолтное значение - null (интерфейс будет
@@ -472,7 +531,15 @@ RootVisualObject Confirm(string text, Action<bool> callback, ContainerStyle styl
 
 Панель автоматически сохраняет свои позицию и размер в базу данных и загружает на старте.
 Сохранить позицию панели напрямую можно вызывав функцию SavePosition().
-Точно так же, как и RootVisualObject, нельзя создать напрямую, только через TUI.CreatePanel().
+Точно так же, как и RootVisualObject, нельзя создать напрямую, только через TUI.CreatePanel():
+```cs
+Panel CreatePanel(string name, int x, int y, int width, int height,
+	UIConfiguration configuration = null, UIStyle style = null, object provider = null)
+```
+```cs
+Panel CreatePanel(string name, int x, int y, int width, int height, UIConfiguration configuration,
+	UIStyle style, PanelDrag drag, PanelResize resize, object provider = null)
+```
 ![]()
 
 ### Label
@@ -480,6 +547,19 @@ RootVisualObject Confirm(string text, Action<bool> callback, ContainerStyle styl
 ```cs
 Label(int x, int y, int width, int height, string text, LabelStyle style)
 ```
+Свойства LabelStyle:
+* Все свойства [UIStyle](#Класс-UIStyle)
+* byte TextColor
+* Offset TextOffset
+* Alignment TextAlignment
+	* Where to place the text (up right corner/down side/center/...)
+* Side TextSide
+	* Side to which shorter lines would adjoin.
+* LabelUnderline TextUnderline
+	* Whether to use underline part of statues for characters (makes their size 2x3 instead of 2x2).
+* byte TextUnderlineColor
+	* Color of statue underline part (if TextUnderline is LabelUnderLine.Underline).
+
 Пример:
 ```cs
 Label label = node.Add(new Label(1, 1, 15, 2, "some text", new LabelStyle() { TextColor=13 })) as Label;
@@ -493,6 +573,17 @@ Label label = node.Add(new Label(1, 1, 15, 2, "some text", new LabelStyle() { Te
 Button(int x, int y, int width, int height, string text, UIConfiguration configuration,
 	ButtonStyle style, Action<VisualObject, Touch> callback)
 ```
+Свойства ButtonStyle:
+* Все свойства [LabelStyle](#Label)
+* ButtonTriggerStyle TriggerStyle
+	* When to invoke Callback: on TouchState.Begin or on TouchState.End.
+* ButtonBlinkStyle BlinkStyle
+	* Style of blinking. Currently supports: left border blinking, right border blinking, full object blinking.
+* byte BlinkColor
+	* Color of blink if BlinkStyle is not None.
+* int BlinkDelay
+	* Minimal interval of blinking.
+
 Пример:
 ```cs
 Button button = node.Add(new Button(0, 7, 12, 4, "lol", null, new ButtonStyle()
