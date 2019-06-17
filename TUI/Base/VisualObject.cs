@@ -30,19 +30,19 @@ namespace TUI.Base
         /// </summary>
         public bool ForceSection { get; set; } = false;
         /// <summary>
-        /// X coordinate relative to tile provider. Sets in Update().
+        /// X coordinate relative to tile provider. Sets in Update() and PulseType.PositionChanged. Used in Tile() function.
         /// </summary>
         public int ProviderX { get; protected set; }
         /// <summary>
-        /// Y coordinate relative to tile provider. Sets in Update().
+        /// Y coordinate relative to tile provider. Sets in Update() and PulseType.PositionChanged. Used in Tile() function.
         /// </summary>
         public int ProviderY { get; protected set; }
         /// <summary>
-        /// Bounds in which this object is allowed to draw.
+        /// Bounds (relative to this object) in which this object is allowed to draw.
         /// </summary>
         public ExternalOffset Bounds { get; protected set; } = new ExternalOffset();
         /// <summary>
-        /// Database storing data.
+        /// Database storing stream data. See <see cref="DBWriteNative"/>
         /// </summary>
         private byte[] Data { get; set; }
 
@@ -186,7 +186,7 @@ namespace TUI.Base
         #region Tile
 
         /// <summary>
-        /// Returns tile relative to this node point (x=0, y=0 is a top left point of this node)
+        /// Returns tile relative to this node point (x=0, y=0 is a top left point of this object)
         /// </summary>
         /// <param name="x">x coordinate counting from left node border</param>
         /// <param name="y">y coordinate counting from top node border</param>
@@ -272,10 +272,10 @@ namespace TUI.Base
         /// <summary>
         /// Setup grid for child positioning. Use Absolute and Relative classes for specifying sizes.
         /// </summary>
-        /// <param name="columns">Column sizes</param>
-        /// <param name="lines">Line sizes</param>
+        /// <param name="columns">Column sizes (i.e. new ISize[] { new Absolute(10), new Relative(100) })</param>
+        /// <param name="lines">Line sizes (i.e. new ISize[] { new Absolute(10), new Relative(100) })</param>
         /// <param name="offset">Grid offset</param>
-        /// <param name="fillWithEmptyObjects">Whether to fills all grid cells with empty VisualObjects</param>
+        /// <param name="fillWithEmptyObjects">Whether to fills all grid cells with empty VisualContainers</param>
         /// <returns>this</returns>
         public VisualObject SetupGrid(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null,
             Offset offset = null, bool fillWithEmptyObjects = true)
@@ -374,7 +374,7 @@ namespace TUI.Base
         #region LayoutIndent
 
         /// <summary>
-        /// Scrolling indent of layout.
+        /// Scrolling indent of layout. Used in ScrollBackground and ScrollBar.
         /// </summary>
         /// <param name="value">Indent value</param>
         /// <returns>this</returns>
@@ -397,7 +397,7 @@ namespace TUI.Base
         #region Pulse
 
             /// <summary>
-            /// Send a signal to all sub-tree including this node.
+            /// Send specified signal to all sub-tree including this node.
             /// </summary>
             /// <param name="type">Type of signal</param>
             /// <returns>this</returns>
@@ -415,7 +415,7 @@ namespace TUI.Base
             #region PulseThis
 
             /// <summary>
-            /// Send signal only to this node.
+            /// Send specified signal only to this node.
             /// </summary>
             /// <param name="type">Type of signal</param>
             /// <returns>this</returns>
@@ -433,7 +433,7 @@ namespace TUI.Base
             #region PulseThisNative
 
             /// <summary>
-            /// Overridable function to handle pulse signal.
+            /// Overridable function to handle pulse signal for this node.
             /// </summary>
             /// <param name="type"></param>
             protected virtual void PulseThisNative(PulseType type)
@@ -456,7 +456,7 @@ namespace TUI.Base
             #region PulseChild
 
             /// <summary>
-            /// Send signal to sub-tree without this node.
+            /// Send specified signal to sub-tree without this node.
             /// </summary>
             /// <param name="type">Type of signal</param>
             /// <returns>this</returns>
@@ -530,6 +530,9 @@ namespace TUI.Base
             #endregion
             #region UpdateBounds
 
+            /// <summary>
+            /// Calculate Bounds for this node (intersection of Parent's layout offset/alignment offset and Parent's Bounds)
+            /// </summary>
             protected void UpdateBounds()
             {
                 bool layoutBounds = Configuration.InLayout && Parent.Configuration.Layout.BoundsIsOffset;
@@ -569,7 +572,7 @@ namespace TUI.Base
             #region UpdateChildPositioning
 
             /// <summary>
-            /// First updates child sizes, then calculates child positions based on sizes.
+            /// First updates child sizes, then calculates child positions based on sizes (layout, grid, alignment).
             /// </summary>
             /// <returns>this</returns>
             public VisualObject UpdateChildPositioning()
@@ -593,23 +596,34 @@ namespace TUI.Base
             #endregion
             #region UpdateChildSize
 
+            /// <summary>
+            /// Updates child sizes with call of overridable child.UpdateSizeNative()
+            /// </summary>
             protected void UpdateChildSize()
             {
                 foreach (VisualObject child in ChildrenFromTop)
                 {
                     child.SetWH(child.UpdateSizeNative());
-                    child.UpdateFullSize();
+                    if (child.Configuration.FullSize != FullSize.None)
+                        child.UpdateFullSize();
                 }
             }
 
             #endregion
             #region UpdateSizeNative
 
+            /// <summary>
+            /// Overridable method for determining object size depending on own data (image/text/etc size)
+            /// </summary>
+            /// <returns></returns>
             protected virtual (int, int) UpdateSizeNative() => (Width, Height);
 
             #endregion
             #region UpdateFullSize
 
+            /// <summary>
+            /// Updates this object size relative to Parent size if Configuration.FullSize is not None.
+            /// </summary>
             protected void UpdateFullSize()
             {
                 FullSize fullSize = Configuration.FullSize;
@@ -637,6 +651,9 @@ namespace TUI.Base
             #endregion
             #region UpdateAlignment
 
+            /// <summary>
+            /// Sets position of child objects with set Configuration.Alignment
+            /// </summary>
             protected void UpdateAlignment()
             {
                 foreach (VisualObject child in ChildrenFromTop)
@@ -669,6 +686,9 @@ namespace TUI.Base
             #endregion
             #region UpdateLayout
 
+            /// <summary>
+            /// Set position for children in layout
+            /// </summary>
             protected void UpdateLayout()
             {
                 ExternalOffset offset = Configuration.Layout.Offset;
@@ -846,6 +866,9 @@ namespace TUI.Base
             #endregion
             #region UpdateGrid
 
+            /// <summary>
+            /// Sets position for children in grid
+            /// </summary>
             protected void UpdateGrid()
             {
                 CalculateGridSizes();
@@ -1000,7 +1023,7 @@ namespace TUI.Base
             #region PostUpdateThis
 
             /// <summary>
-            /// Updates related to this node and dependant on child updates. Executes after calling Update() and each child.
+            /// Updates related to this node and dependant on child updates. Executes after calling Update() on each child.
             /// </summary>
             /// <returns></returns>
             public VisualObject PostUpdateThis()
@@ -1076,7 +1099,7 @@ namespace TUI.Base
             #region ApplyThisNative
 
             /// <summary>
-            /// Overridable method for apply related to this node. By default draws tiles/walls and grid if UI.ShowGrid is true.
+            /// Overridable method for apply related to this node. By default draws tiles and/or walls.
             /// </summary>
             protected virtual void ApplyThisNative() => ApplyTiles();
 

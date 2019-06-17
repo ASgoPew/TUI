@@ -11,6 +11,20 @@
 
 Эти и некоторые другие примеры игр вы можете посмотреть в измерении games на сервере terraria-servers.ru:7777.
 
+## Содержание
+* [Основы интерфейса](#Основы-интерфейса)
+* [Базовые операции VisualObject](#Базовые-операции-VisualObject)
+* [4 независимых способа автоматического регулирования позиций и/или размеров объектов](#4-независимых-способа-автоматического-регулирования-позиций-и/или-размеров-объектов)
+* [Layout](#Layout)
+* [Grid](#Grid)
+* [Alignment](#Alignment)
+* [FullSize](#FullSize)
+* [Базовые классы UIConfiguration и UIStyle](#Базовые-классы-UIConfiguration-и-UIStyle)
+* [Сигналы PulseType](#Сигналы-PulseType)
+* [База данных](#База-данных)
+* [Виджеты](#Виджеты)
+* [Общие факты о клиентской стороне управления интерфейсом](#Общие-факты-о-клиентской-стороне-управления-интерфейсом)
+
 ## Основы интерфейса
 
 Каждый элемент, будь то кнопка, надпись, поле ввода, слайдер или что-то еще, является объектом класса,
@@ -36,7 +50,7 @@
 
 ```VisualObject *Add*(VisualObject newChild)```
 
-## Базовые операции над VisualObject
+## Базовые операции VisualObject
 
 Есть несколько важных операций, которые можно применять к объектам VisualObject:
 1. **Update()**
@@ -47,6 +61,8 @@
 со стилем отображения элемента)
 3. **Draw()**
 Отправка отрисованного (хотя не обязательно) объекта игрокам с помощью SendSection или SendTileSquare
+4. **Pulse(PulseType)**
+Отправка указанного сигнала дереву объектов
 
 Эти три операции обычно идут в указанном порядке и делают примерно следующее:
 Вызов Update вычисляет некторые свои поля (Root, ProviderX, ProviderY, ...), потом вычисляет позиции
@@ -107,7 +123,7 @@ Button button = node.Add(new Button(0, 7, 12, 4, "lol", null, new ButtonStyle()
 ```
 ![](PanelExample.png)
 
-# 4 независимых способа автоматического регулирования позиций и/или размеров объектов
+## 4 независимых способа автоматического регулирования позиций и/или размеров объектов
 
 ### Позиционирование дочерних объектов внутри текущей вершины:
 * **Layout** (разметка)
@@ -228,11 +244,13 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 ```
 ![](FullSizeExample.png)
 
-# Базовые классы UIConfiguration и UIStyle
+## Базовые классы UIConfiguration и UIStyle
 
-# База данных
+## Сигналы PulseType
 
-# Виджеты
+## База данных
+
+## Виджеты
 Большинство виджетов имеют параметр стиля в конструкторе, зачастую это не UIStyle,
 а класс, наследующийся от UIStyle. Например, ButtonStyle включает в себя как
 конфигурацию UIStyle, так и разные стили, связанные с морганием кнопки:
@@ -243,7 +261,7 @@ BlinkColor, BlinkDelay, TriggerStyle, BlinkStyle.
 Обращение же к полю .Style будет возвращать тот же самый объект, но в типе UIStyle,
 это надо иметь в виду.
 
-## VisualObject
+### VisualObject
 Базовый объект интерфейса. Любой виджет наследуется от этого класса.
 Как и в большинстве других виджетов, параметры configuration, style и callback не обязательны.
 Структура конструктора VisualObject задает стиль конструкторов всех остальных виджетов:
@@ -271,139 +289,11 @@ VisualObject obj = node.Add(new VisualObject(0, 0, 8, 4, null, new UIStyle() { W
 ```
 ![]()
 
-### Подробнее о полях и методах...
-<details><summary> Нажмите сюда, чтобы развернуть </summary>
-<p>
-
-### Публичные поля и свойства VisualObject
-* string Name
-* string FullName
-* int X
-* int Y
-* int Width
-* int Height
-* VisualObject Parent
-* RootVisualObject Root
-* UIConfiguration Configuration
-* UIStyle Style
-* Action<VisualObject, Touch> Callback
-* dynamic Provider
-* bool UsesDefaultMainProvider
-* int ChildCount
-* bool Active
-* bool Loaded
-* bool Disposed
-* bool Enabled
-* bool Visible
-* int Layer
-* bool Orderable
-* GridCell Cell
-* bool ForceSection
-* int ProviderX
-* int ProviderY
-* ExternalOffset Bounds
-* object Data
-* IEnumerable<VisualObject> DescendantDFS
-* IEnumerable<VisualObject> DescendantBFS
-
-### Защищенные (protected) поля VisualObject
-* object Locker
-* ConcurrentDictionary<string, object> Shortcuts
-* List<VisualObject> Child
-* VisualObject[,] Grid
-* IEnumerable<VisualObject> ChildrenFromTop
-* IEnumerable<VisualObject> ChildrenFromBottom
-* IEnumerable<(int, int)> Points
-* IEnumerable<(int, int)> AbsolutePoints
-* IEnumerable<(int, int)> ProviderPoints
-
-### Публичные методы VisualObject
-* VisualObject Add(VisualObject child, int layer = 0)
-* VisualObject Remove(VisualObject child)
-* VisualObject Select(VisualObject o)
-* VisualObject Selected()
-* VisualObject Deselect()
-* VisualObject GetRoot()
-* bool IsAncestorFor(VisualObject child)
-* bool SetTop(VisualObject child)
-* (int X, int Y, int Width, int Height) XYWH(int dx = 0, int dy = 0)
-* VisualObject SetXYWH(int x, int y, int width, int height)
-* VisualObject SetXY(int x, int y)
-* VisualObject SetWH(int width, int height)
-* VisualObject Move(int dx, int dy)
-* VisualObject MoveBack(int dx, int dy)
-* VisualObject GetChild(int index)
-* VisualObject Enable()
-* VisualObject Disable()
-* bool CalculateActive()
-* (int X, int Y) RelativeXY(int x = 0, int y = 0, VisualDOM parent = null)
-* (int X, int Y) AbsoluteXY(int dx = 0, int dy = 0)
-* (int X, int Y) ProviderXY(int dx = 0, int dy = 0)
-* dynamic Tile(int x, int y)
-* VisualObject AddToLayout(VisualObject child, int layer = 0)
-* SetupLayout(Alignment alignment = Alignment.Center, Direction direction = Direction.Down,
-	Side side = Side.Center, ExternalOffset offset = null, int childIndent = 1, bool boundsIsOffset = true)
-* VisualObject SetupGrid(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null,
-	Offset offset = null, bool fillWithEmptyObjects = true)
-* VisualObject SetAlignmentInParent(Alignment alignment, ExternalOffset offset = null, bool boundsIsOffset = true)
-* VisualObject SetFullSize(bool horizontal = false, bool vertical = false)
-* VisualObject LayoutIndent(int value)
-
-* VisualObject Pulse(PulseType type)
-* VisualObject PulseThis(PulseType type)
-* VisualObject PulseChild(PulseType type)
-
-* VisualObject Update()
-* VisualObject UpdateThis()
-* VisualObject UpdateChildPositioning()
-* VisualObject UpdateChild()
-* VisualObject PostUpdateThis()
-
-* VisualObject Apply()
-* VisualObject ApplyThis()
-* VisualObject ApplyTiles()
-* VisualObject ApplyChild()
-* VisualObject Clear()
-
-* VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1, int userIndex = -1,
-	int exceptUserIndex = -1, bool? forceSection = null, bool frame = true)
-* VisualObject DrawPoints(IEnumerable<(int, int)> points, int userIndex = -1,
-	int exceptUserIndex = -1, bool? forceSection = null)
-* void ShowGrid()
-
-* bool DBRead()
-* void DBWrite()
-
-### Защищенные методы VisualObject
-* virtual bool CanTouch(Touch touch)
-* virtual void PostSetTop(VisualObject o)
-* virtual bool CanTouchThis(Touch touch)
-* virtual void Invoke(Touch touch)
-* virtual void PulseThisNative(PulseType type)
-* virtual void UpdateThisNative()
-* void UpdateBounds()
-* void UpdateChildSize()
-* virtual (int, int) UpdateSizeNative()
-* void UpdateFullSize()
-* void UpdateAlignment()
-* void UpdateLayout()
-* void UpdateGrid()
-* virtual void PostUpdateThisNative()
-* virtual void ApplyThisNative()
-* virtual void ApplyTile(int x, int y)
-* virtual void DBReadNative(BinaryReader br)
-* virtual void DBWriteNative(BinaryWriter bw)
-
-### Операторы VisualObject
-* this[string key]
-* this[int column, int line]
-
-</p>
-</details>
+[Подробнее о полях и методах VisualObject](ru_VisualObject.md)
 
 ***
 
-## VisualContainer
+### VisualContainer
 Виджет-контейнер других виджетов. Рекомендуется использовать именно его, несмотря на то,
 что можно использовать и обычный VisualObject для хранения других виджетов.
 Этот виджет гарантирует правильную работу виджетов ScrollBackground и ScrollBar внутри себя.
@@ -422,7 +312,7 @@ VisualContainer node = root.Add(
 ```
 ![]()
 
-## RootVisualObject
+### RootVisualObject
 Виджет, являющийся корнем дерева и выполняющий соответствующие функции.
 Нельзя создать напрямую, только через TUI.CreateRoot():
 ```cs
@@ -449,7 +339,7 @@ RootVisualObject Confirm(string text, Action<bool> callback, ContainerStyle styl
 	ButtonStyle yesButtonStyle = null, ButtonStyle noButtonStyle = null)
 ```
 
-## Panel
+### Panel
 Подразновидность RootVisualObject, обладающая некоторыми особенностями:
 Панель можно перемещать и изменять ее размер прямо в процессе.
 Исходно панель имеет 2 кнопки:
@@ -461,7 +351,7 @@ RootVisualObject Confirm(string text, Action<bool> callback, ContainerStyle styl
 Точно так же, как и RootVisualObject, нельзя создать напрямую, только через TUI.CreatePanel().
 ![]()
 
-## Label
+### Label
 Виджет отображения текста с помощью статуй символов и цифр.
 ```cs
 Label(int x, int y, int width, int height, string text, LabelStyle style)
@@ -472,7 +362,7 @@ Label label = node.Add(new Label(1, 1, 15, 2, "some text", new LabelStyle() { Te
 ```
 ![]()
 
-## Button
+### Button
 Кнопка, выполняющая указанные действия по нажатию и моргающая тем или иным способом.
 Может отображать указанный текст, ибо наследуется от Label.
 ```cs
@@ -488,7 +378,7 @@ Button button = node.Add(new Button(0, 7, 12, 4, "lol", null, new ButtonStyle()
 ```
 ![]()
 
-## Slider
+### Slider
 Слайдер (ползунок для указания относительной величины)
 ```cs
 Slider(int x, int y, int width, int height, SliderStyle style, Action<Slider, int> callback)
@@ -504,7 +394,7 @@ Slider slider = node.Add(new Slider(0, 0, 10, 2, new SliderStyle()
 ```
 ![]()
 
-## Checkbox
+### Checkbox
 Чекбокс: кнопка 2х2, имеющая 2 состояния (вкл/выкл)
 ```cs
 Checkbox(int x, int y, int size, CheckboxStyle style, Action<Checkbox, bool> callback)
@@ -519,7 +409,7 @@ Checkbox checkbox = node.Add(new Checkbox(0, 0, 2, new CheckboxStyle()
 ```
 ![]()
 
-## Separator
+### Separator
 Разделитель. Обычно пустой объект, необходимый для вставки с целью занятия пространства.
 ```cs
 Separator(int size, UIStyle style)
@@ -535,7 +425,7 @@ Separator separator = node.Add(new Separator(6, new UIStyle()
 ```
 ![]()
 
-## InputLabel
+### InputLabel
 Виджет для ввода текста. Ввод происходит посимвольно, путем зажатия мыши на символе
 и таскании его вверх/вниз. Поддерживаются несколько наборов символов.
 Наследуется от Label
@@ -553,7 +443,7 @@ InputLabel input = node.Add(new InputLabel(0, 0, new InputLabelStyle()
 ```
 ![]()
 
-## ItemRack
+### ItemRack
 Виджет для отображения предмета. Рисуется в виде подставки для оружия (weapon rack),
 верхняя часть может быть заменена на таблички для отображения надписи.
 ```cs
@@ -569,7 +459,7 @@ ItemRack irack = node.Add(new ItemRack(0, 0, new ItemRackStyle()
 ```
 ![]()
 
-## VisualSign
+### VisualSign
 Виджет отображения таблички с надписью.
 ```cs
 VisualSign(int x, int y, int width, int height, string text, UIConfiguration configuration,
@@ -581,7 +471,7 @@ VisualSign vsign = node.Add(new VisualSign(0, 0, "lmfao sosi")) as VisualSign;
 ```
 ![]()
 
-## FormField
+### FormField
 Этот виджет нужен для добавления текста слева к другому виджету, например к
 Checkbox, Button, InputLabel, Slider, ...
 Наследуется от Label
@@ -600,7 +490,7 @@ FormField ffield = node.Add(new FormField(new VisualSign(0, 0, "test"),
 ```
 ![]()
 
-## Image
+### Image
 Виджет отображения картинки в формате WorldEdit (.dat) или TEdit (.TEditSch)
 Поддерживает отображение табличек.
 Отображает битую картинку в случае неудачи загрузки картинки.
@@ -616,7 +506,7 @@ Image image = node.Add(new Image(2, 2, "Media\\Help.TEditSch")) as Image;
 ```
 ![]()
 
-## Video
+### Video
 Виджет отображения видео, состоящего из картинок Image.
 Загружает в качестве path путь директории, в которой лежат все слайды в алфавитном порядке.
 Отображает битую картинку в случае неудачи загрузки слайдов.
@@ -634,7 +524,7 @@ Video video = node.Add(new Video(2, 2, null, new VideoStyle()
 ```
 ![]()
 
-## AlertWindow
+### AlertWindow
 Виджет всплывающего окна с информационным сообщением.
 Создается с помощью метода корневого объекта RootVisualObject:
 ```cs
@@ -646,7 +536,7 @@ node.Root.Alert("Hello world")
 ```
 ![]()
 
-## ConfirmWindow
+### ConfirmWindow
 Виджет всплывающего окна с подтверждением действия.
 Создается с помощью метода корневого объекта RootVisualObject:
 ```cs
@@ -659,7 +549,7 @@ node.Root.Confirm("Hello world", value => Console.WriteLine(value))
 ```
 ![]()
 
-## ScrollBackground
+### ScrollBackground
 Виджет прокручивания layout своего Parent (родительского) объекта как на сенсорном экране:
 Потяни за задний фон вниз - layout поедет вниз. И наоборот.
 Виджет всегда находится сзади всех остальных дочерних объектов, потому позволяет
@@ -680,7 +570,7 @@ ScrollBackground scrollbg = node.Add(new ScrollBackground(true, true, true), Int
 ```
 ![]()
 
-## ScrollBar
+### ScrollBar
 Полоса прокручивания layout. Добавляется с одной из сторон (справа/слева/сверху/снизу).
 На данный момент не поддерживает относительный скроллинг (когда размер layout слишком большой)
 ```cs
@@ -692,8 +582,8 @@ ScrollBar scrollbar = node.Add(new ScrollBar(Direction.Right)) as ScrollBar;
 ```
 ![]()
 
-## Arrow
-Простой виджет отображения стрелки
+### Arrow
+Простой виджет отображения стрелки.
 ```cs
 Arrow(int x, int y, ArrowStyle style, Action<VisualObject, Touch> callback)
 ```
@@ -705,7 +595,7 @@ Arrow arrow = node.Add(new Arrow(0, 0, new ArrowStyle() { Direction = Direction.
 
 
 
-## Общие факты о клиентской стороне управления интерфейсом:
+## Общие факты о клиентской стороне управления интерфейсом
 1. Клиент работает так, что в начале нажатия планом пакеты перемещения мыши отправляются очень быстро,
 	а начиная с момента примерно через секунду - скорость уменьшается и становится постоянной.
 2. В режимах освещения retro и trippy отрисовка интерфейса происходит быстрее и плавнее.

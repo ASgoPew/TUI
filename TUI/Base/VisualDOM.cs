@@ -41,11 +41,11 @@ namespace TUI.Base
         /// </summary>
         public RootVisualObject Root { get; set; }
         /// <summary>
-        /// Whether the object was loaded. See <see cref="LoadThisNative"/>.
+        /// True once the object was loaded. See <see cref="LoadThisNative"/>.
         /// </summary>
         public bool Loaded { get; private set; } = false;
         /// <summary>
-        /// Whether the object was disposed. See <see cref="DisposeThisNative"/>.
+        /// True once the object was disposed. See <see cref="DisposeThisNative"/>.
         /// </summary>
         public bool Disposed { get; private set; } = false;
         /// <summary>
@@ -65,11 +65,11 @@ namespace TUI.Base
         /// </summary>
         public UIConfiguration Configuration { get; set; }
         /// <summary>
-        /// Locker for node locking.
+        /// Locker for locking node related operations.
         /// </summary>
         protected object Locker { get; set; } = new object();
         /// <summary>
-        /// Storage for node related data.
+        /// Runtime storage for node related data.
         /// </summary>
         protected ConcurrentDictionary<string, object> Shortcuts { get; set; }
 
@@ -86,7 +86,7 @@ namespace TUI.Base
         /// </summary>
         public int IndexInParent => Parent.Child.IndexOf(this as VisualObject);
         /// <summary>
-        /// DEBUG function. Get Child array size.
+        /// DEBUG property: Child array size.
         /// </summary>
         /// <returns>Size of Child array</returns>
         public int ChildCount => Child.Count;
@@ -95,9 +95,130 @@ namespace TUI.Base
         /// </summary>
         public virtual bool Active => Enabled && Visible;
         /// <summary>
-        /// Overridable field for disabling ability to be ordered in Parent's Child array.
+        /// Overridable property for disabling ability to be ordered in Parent's Child array.
         /// </summary>
         public virtual bool Orderable => true;
+
+        #endregion
+        #region DescendantDFS
+
+        /// <summary>
+        /// Deep Fast Search method of iterating objects in sub-tree including this node.
+        /// </summary>
+        public IEnumerable<VisualObject> DescendantDFS
+        {
+            get
+            {
+                List<VisualObject> list = new List<VisualObject>();
+                DFS(list);
+
+                foreach (VisualObject o in list)
+                    yield return o;
+            }
+        }
+
+        #endregion
+        #region DescendantBFS
+
+        /// <summary>
+        /// Broad Fast Search method of iterating objects in sub-tree including this node.
+        /// </summary>
+        public IEnumerable<VisualObject> DescendantBFS
+        {
+            get
+            {
+                List<VisualObject> list = new List<VisualObject>();
+                BFS(list);
+
+                foreach (VisualObject o in list)
+                    yield return o;
+            }
+        }
+
+        #endregion
+        #region ChildrenFromTop
+
+        /// <summary>
+        /// Iterates over Child array starting with objects on top.
+        /// </summary>
+        protected IEnumerable<VisualObject> ChildrenFromTop
+        {
+            get
+            {
+                int index = Child.Count - 1;
+                lock (Child)
+                    while (index >= 0)
+                        yield return Child[index--];
+            }
+        }
+
+        #endregion
+        #region ChildrenFromBottom
+
+        /// <summary>
+        /// Iterates over Child array starting with objects at bottom.
+        /// </summary>
+        protected IEnumerable<VisualObject> ChildrenFromBottom
+        {
+            get
+            {
+                int count = Child.Count;
+                int index = 0;
+                lock (Child)
+                    while (index < count)
+                        yield return Child[index++];
+            }
+        }
+
+        #endregion
+        #region Points
+
+        /// <summary>
+        /// Iterates over object points relative to this node.
+        /// </summary>
+        public IEnumerable<(int, int)> Points
+        {
+            get
+            {
+                for (int x = 0; x < Width; x++)
+                    for (int y = 0; y < Height; y++)
+                        yield return (x, y);
+            }
+        }
+
+        #endregion
+        #region AbsolutePoints
+
+        /// <summary>
+        /// Iterates over object points relative to world map.
+        /// </summary>
+        public IEnumerable<(int, int)> AbsolutePoints
+        {
+            get
+            {
+                (int x, int y) = AbsoluteXY();
+                for (int _x = x; _x < x + Width; _x++)
+                    for (int _y = y; _y < y + Height; _y++)
+                        yield return (_x, _y);
+            }
+        }
+
+        #endregion
+        #region ProviderPoints
+
+        /// <summary>
+        /// Iterates over object points relative to tile provider.
+        /// </summary>
+        public IEnumerable<(int, int)> ProviderPoints
+        {
+            get
+            {
+                (int x, int y) = ProviderXY();
+                for (int _x = x; _x < x + Width; _x++)
+                    for (int _y = y; _y < y + Height; _y++)
+                        yield return (_x, _y);
+            }
+        }
 
         #endregion
 
@@ -302,36 +423,6 @@ namespace TUI.Base
                     foreach (VisualObject o in list[index].ChildrenFromTop)
                         list.Add(o);
                     index++;
-                }
-            }
-
-            /// <summary>
-            /// Deep Fast Search method of iterating objects in sub-tree including this node.
-            /// </summary>
-            public IEnumerable<VisualObject> DescendantDFS
-            {
-                get
-                {
-                    List<VisualObject> list = new List<VisualObject>();
-                    DFS(list);
-
-                    foreach (VisualObject o in list)
-                        yield return o;
-                }
-            }
-
-            /// <summary>
-            /// Broad Fast Search method of iterating objects in sub-tree including this node.
-            /// </summary>
-            public IEnumerable<VisualObject> DescendantBFS
-            {
-                get
-                {
-                    List<VisualObject> list = new List<VisualObject>();
-                    BFS(list);
-
-                    foreach (VisualObject o in list)
-                        yield return o;
                 }
             }
 
@@ -555,7 +646,7 @@ namespace TUI.Base
         #region operator[]
 
         /// <summary>
-        /// Dictionary for storing node related data.
+        /// Get/set node related data in runtime storage.
         /// </summary>
         /// <param name="key"></param>
         /// <returns>this</returns>
@@ -625,7 +716,7 @@ namespace TUI.Base
         #region RelativeXY
 
         /// <summary>
-        /// Calculates coordinates relative to specified object.
+        /// Calculates coordinates relative to specified parent object.
         /// </summary>
         /// <param name="x">X coordinate delta</param>
         /// <param name="y">Y coordinate delta</param>
@@ -643,61 +734,10 @@ namespace TUI.Base
         }
 
         #endregion
-        #region ChildrenFromTop
-
-        /// <summary>
-        /// Iterates over Child array starting with objects on top.
-        /// </summary>
-        protected IEnumerable<VisualObject> ChildrenFromTop
-        {
-            get
-            {
-                int index = Child.Count - 1;
-                lock (Child)
-                    while (index >= 0)
-                        yield return Child[index--];
-            }
-        }
-
-        #endregion
-        #region ChildrenFromBottom
-
-        /// <summary>
-        /// Iterates over Child array starting with objects at bottom.
-        /// </summary>
-        protected IEnumerable<VisualObject> ChildrenFromBottom
-        {
-            get
-            {
-                int count = Child.Count;
-                int index = 0;
-                lock (Child)
-                    while (index < count)
-                        yield return Child[index++];
-            }
-        }
-
-        #endregion
-        #region Points
-
-        /// <summary>
-        /// Iterates over object points relative to this node.
-        /// </summary>
-        public IEnumerable<(int, int)> Points
-        {
-            get
-            {
-                for (int x = 0; x < Width; x++)
-                    for (int y = 0; y < Height; y++)
-                        yield return (x, y);
-            }
-        }
-
-        #endregion
         #region AbsoluteXY
 
         /// <summary>
-        /// Coordinates relative to world map.
+        /// Calculates coordinates relative to world map.
         /// </summary>
         /// <param name="dx">X coordinate delta</param>
         /// <param name="dy">Y coordinate delta</param>
@@ -709,47 +749,13 @@ namespace TUI.Base
         #region ProviderXY
 
         /// <summary>
-        /// Coordinates relative to tile provider.
+        /// Calculates coordinates relative to tile provider.
         /// </summary>
         /// <param name="dx">X coordinate delta</param>
         /// <param name="dy">Y coordinate delta</param>
         /// <returns>Coordinates relative to tile provider</returns>
         public (int X, int Y) ProviderXY(int dx = 0, int dy = 0) =>
             RelativeXY(dx, dy, UsesDefaultMainProvider ? null : Root);
-
-        #endregion
-        #region AbsolutePoints
-
-        /// <summary>
-        /// Iterates over object points relative to world map.
-        /// </summary>
-        public IEnumerable<(int, int)> AbsolutePoints
-        {
-            get
-            {
-                (int x, int y) = AbsoluteXY();
-                for (int _x = x; _x < x + Width; _x++)
-                    for (int _y = y; _y < y + Height; _y++)
-                        yield return (_x, _y);
-            }
-        }
-
-        #endregion
-        #region ProviderPoints
-
-        /// <summary>
-        /// Iterates over object points relative to tile provider.
-        /// </summary>
-        public IEnumerable<(int, int)> ProviderPoints
-        {
-            get
-            {
-                (int x, int y) = ProviderXY();
-                for (int _x = x; _x < x + Width; _x++)
-                    for (int _y = y; _y < y + Height; _y++)
-                        yield return (_x, _y);
-            }
-        }
 
         #endregion
     }

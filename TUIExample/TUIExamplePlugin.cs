@@ -168,7 +168,7 @@ namespace TUIExample
             {
                 TextColor = 29,
                 TextAlignment = Alignment.Left
-            })) as FormField;
+            }, new ExternalOffset() { Right = 1 })) as FormField;
             ffield.SetFullSize(true);
 
             // Image

@@ -11,7 +11,7 @@ namespace TUI.Base
         internal Locked Locked { get; set; }
         internal ConcurrentDictionary<int, Locked> PersonalLocked { get; set; } = new ConcurrentDictionary<int, Locked>();
         /// <summary>
-        /// Object touch callback.
+        /// Function to call on touching this object with the grand design.
         /// </summary>
         public Action<VisualObject, Touch> Callback { get; set; }
 
@@ -222,6 +222,7 @@ namespace TUI.Base
 
         /// <summary>
         /// Overridable function which is called when touch satisfies the conditions of pressing this object.
+        /// Invokes Callback function by default.
         /// </summary>
         /// <param name="touch"></param>
         /// <returns></returns>
