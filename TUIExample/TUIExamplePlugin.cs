@@ -160,10 +160,11 @@ namespace TUIExample
             }, (self, touch) => { })) as ItemRack;
 
             // VisualSign
-            VisualSign vsign = node.AddToLayout(new VisualSign(0, 0, "lmfao sosi")) as VisualSign;
+            VisualSign vsign = node.AddToLayout(new VisualSign(0, 0, "lmfao sosi(te pozhaluista)")) as VisualSign;
 
             // FormField
-            FormField ffield = node.AddToLayout(new FormField(new VisualSign(0, 0, "test"),
+            FormField ffield = node.AddToLayout(new FormField(new VisualSign(0, 0, "This is an example of what can happen " +
+                "if you use signs in TUI without FakeManager (only $399!). Text above would be empty. Even tho it has to have it..."),
                 0, 0, 0, 2, "VSign", new LabelStyle()
             {
                 TextColor = 29,

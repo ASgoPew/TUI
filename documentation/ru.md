@@ -519,6 +519,7 @@ VisualContainer node = root.Add(
 RootVisualObject TUI.CreateRoot(string name, int x, int y, int width, int height,
 	UIConfiguration configuration, ContainerStyle style, object provider)
 ```
+* name - уникальное имя корня интерфейса.
 * provider - объект провайдера тайлов (блоков), дефолтное значение - null (интерфейс будет
 отрисовываться на карте Main.tile). В случае дефолтного значения блоки карты, находящиеся
 внутри этого интерфейса, будут безвозвратно изменены.
