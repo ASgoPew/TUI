@@ -19,7 +19,9 @@
 * [Grid](#Grid)
 * [Alignment](#Alignment)
 * [FullSize](#FullSize)
-* [Базовые классы UIConfiguration и UIStyle](#Базовые-классы-UIConfiguration-и-UIStyle)
+* [Как происходит нажатие](#Как-происходит-нажатие)
+* [Класс UIConfiguration](#Класс-UIConfiguration)
+* [Класс UIStyle](#Класс-UIStyle)
 * [Сигналы PulseType](#Сигналы-PulseType)
 * [База данных](#База-данных)
 * [Виджеты](#Виджеты)
@@ -244,9 +246,127 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 ```
 ![](FullSizeExample.png)
 
-## Базовые классы UIConfiguration и UIStyle
+## Как происходит нажатие
+На каждый элемент интерфейса (являющегося объектом класса VisualObject) можно нажать
+с помощью предмета "великий план" (the grand design). Каждому нажатия ставится в соответствие
+объект нажатия Touch, содержащий всю необходимую информацию о нажатии:
+* int X
+	* Координата по горизонтали относительно своей левой границы.
+* int Y
+	* Координата по вертикали относительно своей верхней границы.
+* int AbsoluteX
+	* Координата по горизонтали относительно левой границы мира.
+* int AbsoluteY
+	* Координата по вертикали относительно верхней границы мира.
+* TouchState State
+	* Состояние нажатие. Принимает одно из значений: Begin, Moving, End.
+* UserSession Session
+	* Объект сессии нажимающего пользователя.
+* VisualObject Object
+	* Объект, на который это нажатие попало.
+* int Index
+	* Номер нажатия, считая от начала нажатия (TouchState.Begin)
+* int TouchSessionIndex
+	* Индекс
+* bool Undo
+* byte Prefix
+* bool Red, Green, Blue, Yellow, Actuator, Cutter
+	* Включен ли красный провод/зеленый/желтый/актуаток/резак. Актуально только
+	на момент TouchState.End.
+* DateTime Time
+	* Время нажатия по Utc.
+
+Промежутком нажатия считается промежуток времени от нажатия левой кнопки мыши
+(создания проджектайла плана) до отпускания левой кнопки мыши.
+Каждому нажатию Touch этого промежутка соответствует состояния нажатия State,
+принимающее значение TouchState.Begin в первое нажатие из промежутка нажатия,
+значение TouchState.End в последнее нажатие из промежутка нажатия
+и значение TouchState.Moving во все промежуточные нажатия :)
+Короче говоря, нажал планом - у нажатия TouchState.Begin.
+Начал водить с зажатым планом мышью по экрану - у нажатий TouchState.Moving.
+Отпустил кнопку мыши - у нажатия TouchState.End.
+Каждому игроку ставится в соответствие объект UserSession (сессия игрока),
+которая хранит некоторые общие данные об игроке:
+* bool Enabled
+	* Если установить значение false, то все нажатия вплоть до следующего TouchState.End
+	будут проигнорированы. Затем игрок снова сможет нажимать.
+* int UserIndex
+	* Индекс пользователя, соответствующего этому объекту UserSession
+* int TouchSessionIndex
+	* Текущий индекс промежутка нажатия. Увеличивается на 1 с каждым TouchState.End.
+* ProjectileID
+	* ID проджектайла великого плана, соответствующего этому нажатия.
+* Touch PreviousTouch
+	* Объект предыдущего нажатия.
+* Touch BeginTouch
+	* Объект первого нажатия промежутка нажатия (TouchState.Begin)
+* VisualObject Acquired
+	* Привязанный к промежутку нажатия объект. Однажды привязав с помощью
+	Configuration.SessionAcquire какой-то VisualObject к промежутку нажатия, все последующие нажатия будут проходить только к этому объекту вплоть до окончания нажатия (TouchState.End).
+* ConcurrentDictionary<object, object> Data
+	* Приватное runtime-хранилище данных, к которому можно обратиться через оператор[string key].
+
+При нажатии, если этот объект удовлетворяет условиям нажатия (cм. UIConfiguration),
+вызывается функция VisualObject.Invoke(Touch touch) с передающимся объектом нажатия Touch.
+Фунция Invoke по дефолту вызывает функцию-колбэк, хранящуюся в поле VisualObject.Callback.
+Это пользовательская функция, в которой программист указывает, что он хочет, чтобы происходило
+по нажатию на этот объект. Виджеты, написанные на C#, могут не использовать эту функцию,
+а напрямую переопределить Invoke.
+
+## Класс UIConfiguration
+Каждый объект VisualObject имеет настройки нажатия и отрисовки, хранящиеся в свойстве
+Configuration класса UIConfiguration:
+* bool UseBegin
+	* Allows to touch this node if touch.State == TouchState.Begin. True by default.
+* bool UseMoving
+	* Allows to touch this node if touch.State == TouchState.Moving. False by default.
+* bool UseEnd
+	* Allows to touch this node if touch.State == TouchState.End. False by default.
+* bool SessionAcquire
+	* Once node is touched all future touches within the same session will pass to this node.
+* bool BeginRequire
+	* Allows to touch this node only if current session began with touching it.
+* bool UseOutsideTouches
+	* Only for nodes with SessionAcquire. Passes touches even if they are not inside of this object.
+* bool Ordered
+	* Touching child node would place it on top of Child array layer so that it would draw
+	higher than other objects with the same layer and check for touching first.
+* object Permission
+	* Object that should be used for checking if user can touch this node (permission string for TShock).
+* Lock Lock
+	* Touching this node would prevent touches on it or on the whole root for some time.
+* Action<VisualObject> CustomUpdate
+* Func<VisualObject, Touch, bool> CustomCanTouch
+* Action<VisualObject> CustomApply
+* Action<VisualObject, PulseType> CustomPulse
+
+## Класс UIStyle
+Каждый объект VisualObject имеет стили отрисовки, хранящиеся в свойстве Style класса UIStyle:
+* bool? Active
+	* Sets tile.active(Style.Active) for every tile.
+	If not specified sets to true in case Style.Tile is specified,
+	otherwise to false in case Style.Wall is specified.
+* ushort? Tile
+	* Sets tile.type = Style.Tile for every tile.
+* byte? TileColor
+	* Sets tile.color(Style.TileColor) for every tile.
+* byte? Wall
+	* Sets tile.wall = Style.Wall for every tile.
+* byte? WallColor
+	* Sets tile.wallColor(Style.WallColor) for every tile.
+* bool? InActive
+	* Sets tile.inActive(Style.InActive) for every tile.
 
 ## Сигналы PulseType
+* Reset
+	* Сигнал сбрасывания объекта. В виджетах ввода данных устанавливает изначальные значения итд.
+* PositionChanged
+	* Сигнал посылается автоматически поддереву, если корень этого поддерева изменил свою позицию
+	или размеры.
+* User1
+	* Пользовательский сигнал
+* User2
+* User3
 
 ## База данных
 

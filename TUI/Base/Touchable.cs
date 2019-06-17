@@ -164,7 +164,7 @@ namespace TUI.Base
             (touch.State == TouchState.Begin && Configuration.UseBegin
                 || touch.State == TouchState.Moving && Configuration.UseMoving
                 || touch.State == TouchState.End && Configuration.UseEnd)
-            && (touch.State == TouchState.Begin || !Configuration.BeginRequire || touch.Session.BeginObject == this);
+            && (touch.State == TouchState.Begin || !Configuration.BeginRequire || touch.Session.BeginTouch.Object == this);
 
         #endregion
         #region TouchedThis
@@ -172,9 +172,6 @@ namespace TUI.Base
         private void TouchedThis(Touch touch)
         {
             VisualObject @this = this as VisualObject;
-            if (touch.State == TouchState.Begin)
-                touch.Session.BeginObject = @this;
-
             touch.Object = @this;
 
             TrySetLock(touch);

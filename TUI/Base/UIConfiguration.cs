@@ -204,7 +204,7 @@ namespace TUI.Base
         /// </summary>
         public bool BeginRequire { get; set; } = true;
         /// <summary>
-        /// Only for nodes with SessionAcquire. Passes touches even if they are not inside.
+        /// Only for nodes with SessionAcquire. Passes touches even if they are not inside of this object.
         /// </summary>
         public bool UseOutsideTouches { get; set; } = false;
         /// <summary>
@@ -213,15 +213,15 @@ namespace TUI.Base
         /// </summary>
         public bool Ordered { get; set; } = false;
         /// <summary>
-        /// Allows to touch this node only if touch.State == TouchState.Begin. True by default.
+        /// Allows to touch this node if touch.State == TouchState.Begin. True by default.
         /// </summary>
         public bool UseBegin { get; set; } = true;
         /// <summary>
-        /// Allows to touch this node only if touch.State == TouchState.Moving. False by default.
+        /// Allows to touch this node if touch.State == TouchState.Moving. False by default.
         /// </summary>
         public bool UseMoving { get; set; } = false;
         /// <summary>
-        /// Allows to touch this node only if touch.State == TouchState.End. False by default.
+        /// Allows to touch this node if touch.State == TouchState.End. False by default.
         /// </summary>
         public bool UseEnd { get; set; } = false;
 
@@ -234,6 +234,7 @@ namespace TUI.Base
             this.CustomUpdate = configuration.CustomUpdate?.Clone() as Action<VisualObject>;
             this.CustomCanTouch = configuration.CustomCanTouch?.Clone() as Func<VisualObject, Touch, bool>;
             this.CustomApply = configuration.CustomApply?.Clone() as Action<VisualObject>;
+            this.CustomPulse = configuration.CustomPulse?.Clone() as Action<VisualObject, PulseType>;
             this.SessionAcquire = configuration.SessionAcquire;
             this.BeginRequire = configuration.BeginRequire;
             this.UseOutsideTouches = configuration.UseOutsideTouches;
