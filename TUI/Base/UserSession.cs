@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace TUI.Base
 {
+    /// <summary>
+    /// Collection of TUI related data that corresponds to a player.
+    /// </summary>
     public class UserSession
     {
         /// <summary>
@@ -10,9 +13,9 @@ namespace TUI.Base
         /// </summary>
         public bool Enabled { get; set; } = true;
         /// <summary>
-        /// User index (index in Players array for TShock)
+        /// Player index (index in Players array for TShock)
         /// </summary>
-        public int UserIndex { get; internal set; }
+        public int PlayerIndex { get; internal set; }
         /// <summary>
         /// Identifier of touch interval (TouchState.Begin to TouchState.End). Increases after every TouchState.End.
         /// </summary>
@@ -43,9 +46,9 @@ namespace TUI.Base
         internal bool EndTouchHandled { get; set; }
         private ConcurrentDictionary<object, object> Data { get; } = new ConcurrentDictionary<object, object>();
 
-        public UserSession(int userIndex)
+        public UserSession(int playerIndex)
         {
-            UserIndex = userIndex;
+            PlayerIndex = playerIndex;
         }
 
         /// <summary>

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.ID;
 using TerrariaApi.Server;
+using TShockAPI;
 using TUI.Base;
 using TUI.Base.Style;
 using TUI.Widgets;
@@ -48,8 +49,8 @@ namespace TUIExample
                 node.SetupLayout(Alignment.Center, Direction.Down, Side.Center, new ExternalOffset()
                     { Left = 5, Up = 5, Right = 5, Down = 5 }, 3, false);
                 // Добавляем в layout виджет InputLabel, позволяющий вводить текст
-                node.AddToLayout(new InputLabel(0, 0, new InputLabelStyle() { Default = "12345",
-                    TextColor =PaintID.White, Type = InputLabelType.All, TextUnderline = LabelUnderline.None }));
+                node.AddToLayout(new InputLabel(0, 0, new InputLabelStyle()
+                    { TextColor = PaintID.White, Type = InputLabelType.All, TextUnderline = LabelUnderline.None }));
                 // Добавляем в layout еще один виджет ItemRack, который соответствует Weapon rack: отображение предмета
                 // на стойке размером 3х3. По нажатию выводит относительные и абсолютные координаты этого нажатия.
                 node.AddToLayout(new ItemRack(0, 0, new ItemRackStyle() { Type = 200, Left = true }, (self, touch) =>
@@ -59,7 +60,7 @@ namespace TUIExample
                 // ItemRack позволяет сверху добавть текст с помощью таблички:
                 irack1.Set("lololo\nkekeke");
                 // Наконец, добавляем слайдер в layout
-                node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle() { Default = 3,
+                node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle() {
                     Wall = WallID.AmberGemsparkOff, WallColor = PaintID.White }));
             }
 
@@ -125,17 +126,18 @@ namespace TUIExample
             // Slider
             Slider slider = node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle()
             {
-                Default = 3,
                 Wall = 157,
                 WallColor = PaintID.White
-            }, new Input<int>(0, 0, (self, value) => Console.WriteLine("Slider: " + value)))) as Slider;
+            }, new Input<int>(0, 0, (self, value, playerIndex) =>
+                TShock.Players[playerIndex].SendInfoMessage("Slider: " + value)))) as Slider;
 
             // Checkbox
             Checkbox checkbox = node.AddToLayout(new Checkbox(0, 0, 2, new CheckboxStyle()
             {
                 Wall = 156,
                 WallColor = PaintID.White
-            }, (self, value) => Console.WriteLine("Checkbox: " + value))) as Checkbox;
+            }, new Input<bool>(false, false, (self, value, playerIndex) =>
+                Console.WriteLine("Checkbox: " + value)))) as Checkbox;
 
             // Separator
             Separator separator = node.AddToLayout(new Separator(6, new UIStyle()
@@ -147,10 +149,10 @@ namespace TUIExample
             // InputLabel
             InputLabel input = node.AddToLayout(new InputLabel(0, 0, new InputLabelStyle()
             {
-                Default = "12345",
                 Type = InputLabelType.All,
                 TextUnderline = LabelUnderline.None
-            })) as InputLabel;
+            }, new Input<string>("12345", "12345", (self, value, playerIndex) =>
+                Console.WriteLine("InputLabel: " + value)))) as InputLabel;
 
             // ItemRack
             ItemRack irack = node.AddToLayout(new ItemRack(0, 0, new ItemRackStyle()
@@ -161,10 +163,13 @@ namespace TUIExample
 
             // VisualSign
             VisualSign vsign = node.AddToLayout(new VisualSign(0, 0, "lmfao sosi(te pozhaluista)")) as VisualSign;
+            VisualSign vsign2 = node.AddToLayout(new VisualSign(0, 0, "This is an example of what can happen " +
+                "if you use signs in TUI without FakeManager (only $399!)." +
+                "Text above would be empty. Even tho it has to have it...")) as VisualSign;
 
             // FormField
-            FormField ffield = node.AddToLayout(new FormField(new VisualSign(0, 0, "This is an example of what can happen " +
-                "if you use signs in TUI without FakeManager (only $399!). Text above would be empty. Even tho it has to have it..."),
+            FormField ffield = node.AddToLayout(new FormField(
+                new Checkbox(0, 0, 2, new CheckboxStyle() { CheckedColor=13 }),
                 0, 0, 0, 2, "VSign", new LabelStyle()
             {
                 TextColor = 29,

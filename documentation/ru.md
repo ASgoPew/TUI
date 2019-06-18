@@ -25,6 +25,7 @@
 * [Сигналы PulseType](#Сигналы-PulseType)
 * [База данных](#База-данных)
 * [Виджеты](#Виджеты)
+* [Создание собственного виджета](#Создание-собственного-виджета)
 * [Общие факты о клиентской стороне управления интерфейсом](#Общие-факты-о-клиентской-стороне-управления-интерфейсом)
 
 ## Основы интерфейса
@@ -170,7 +171,7 @@ ItemRack irack = node.AddToLayout(new ItemRack(0, 0,
 // ItemRack позволяет сверху добавть текст с помощью таблички:
 irack.Set("lololo\nkekeke");
 // Наконец, добавляем слайдер в layout
-node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle() { Default = 3,
+node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle() {
 	Wall = WallID.AmberGemsparkOff, WallColor = PaintID.White }));
 ```
 ![](LayoutExample.png)
@@ -504,6 +505,12 @@ VisualContainer()
 VisualContainer(UIConfiguration configuration)
 VisualContainer(ContainerStyle style)
 ```
+Свойства ContainerStyle:
+* All properties of [UIStyle](#Класс-UIStyle)
+* bool Transparent
+	* If set to false then container would inherit parent's wall and wall paint,
+	also every Apply() would clear every tile before drawing.
+
 Пример:
 ```cs
 VisualContainer node = root.Add(
@@ -566,7 +573,7 @@ Panel CreatePanel(string name, int x, int y, int width, int height, UIConfigurat
 Label(int x, int y, int width, int height, string text, LabelStyle style)
 ```
 Свойства LabelStyle:
-* Все свойства [UIStyle](#Класс-UIStyle)
+* All properties of [UIStyle](#Класс-UIStyle)
 * byte TextColor
 * Offset TextOffset
 * Alignment TextAlignment
@@ -592,7 +599,7 @@ Button(int x, int y, int width, int height, string text, UIConfiguration configu
 	ButtonStyle style, Action<VisualObject, Touch> callback)
 ```
 Свойства ButtonStyle:
-* Все свойства [LabelStyle](#Label)
+* All properties of [LabelStyle](#Label)
 * ButtonTriggerStyle TriggerStyle
 	* When to invoke Callback: on TouchState.Begin or on TouchState.End.
 * ButtonBlinkStyle BlinkStyle
@@ -614,31 +621,48 @@ Button button = node.Add(new Button(0, 7, 12, 4, "lol", null, new ButtonStyle()
 ### Slider
 Слайдер (ползунок для указания относительной величины)
 ```cs
-Slider(int x, int y, int width, int height, SliderStyle style, Action<Slider, int> callback)
+Slider(int x, int y, int width, int height, SliderStyle style, Input<int> input)
 ```
+* [input] - every input widget has such parameter in constructor.
+It contains Value of type <T>, DefaultValue and Action<VisualObject, T> Callback fields.
+
+Свойства SliderStyle:
+* All properties of [UIStyle](#Класс-UIStyle)
+* bool TriggerInRuntime
+	* Whether to invoke input callback on TouchState.Moving touches.
+* byte UsedColor
+	* Color of left part that corresponds to *used* part of value.
+* byte SeparatorColor
+	* Color of small separator between *used* part and *unused* one.
+
 Пример:
 ```cs
-Slider slider = node.Add(new Slider(0, 0, 10, 2, new SliderStyle()
+Slider slider = node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle()
 {
-	Default = 3,
 	Wall = 157,
 	WallColor = PaintID.White
-}, (self, value) => Console.WriteLine("Slider: " + value))) as Slider;
+}, new Input<int>(0, 0, (self, value) => Console.WriteLine("Slider: " + value)))) as Slider;
 ```
 ![]()
 
 ### Checkbox
 Чекбокс: кнопка 2х2, имеющая 2 состояния (вкл/выкл)
 ```cs
-Checkbox(int x, int y, int size, CheckboxStyle style, Action<Checkbox, bool> callback)
+Checkbox(int x, int y, int size, CheckboxStyle style, Input<bool> input = null)
 ```
+Свойства CheckboxStyle:
+* All properties of [UIStyle](#Класс-UIStyle)
+* CheckedColor
+	* Color of pressed checkbox.
+
 Пример:
 ```cs
-Checkbox checkbox = node.Add(new Checkbox(0, 0, 2, new CheckboxStyle()
+Checkbox checkbox = node.AddToLayout(new Checkbox(0, 0, 2, new CheckboxStyle()
 {
 	Wall = 156,
 	WallColor = PaintID.White
-}, (self, value) => Console.WriteLine("Checkbox: " + value))) as Checkbox;
+}, new Input<bool>(false, false, (self, value) =>
+	Console.WriteLine("Checkbox: " + value)))) as Checkbox;
 ```
 ![]()
 
@@ -665,6 +689,11 @@ Separator separator = node.Add(new Separator(6, new UIStyle()
 ```cs
 InputLabel(int x, int y, InputLabelStyle style, Action<InputLabel, string> callback)
 ```
+Свойства InputLabelStyle:
+* All properties of [UIStyle](#Класс-UIStyle)
+* bool TriggerInRuntime
+	* Whether to invoke input callback on TouchState.Moving touches.
+
 Пример:
 ```cs
 InputLabel input = node.Add(new InputLabel(0, 0, new InputLabelStyle()
@@ -682,6 +711,8 @@ InputLabel input = node.Add(new InputLabel(0, 0, new InputLabelStyle()
 ```cs
 ItemRack(int x, int y, ItemRackStyle style, Action<VisualObject, Touch> callback)
 ```
+* All properties of [UIStyle](#Класс-UIStyle)
+
 Пример:
 ```cs
 ItemRack irack = node.Add(new ItemRack(0, 0, new ItemRackStyle()
@@ -733,6 +764,8 @@ Image(int x, int y, string path, UIConfiguration configuration, UIStyle style,
 Image(int x, int y, ImageData data, UIConfiguration configuration, UIStyle style,
 	Action<VisualObject, Touch> callback)
 ```
+* All properties of [UIStyle](#Класс-UIStyle)
+
 Пример:
 ```cs
 Image image = node.Add(new Image(2, 2, "Media\\Help.TEditSch")) as Image;
@@ -809,6 +842,8 @@ ScrollBackground scrollbg = node.Add(new ScrollBackground(true, true, true), Int
 ```cs
 ScrollBar(Direction side, int width, ScrollBarStyle style)
 ```
+* All properties of [UIStyle](#Класс-UIStyle)
+
 Пример:
 ```cs
 ScrollBar scrollbar = node.Add(new ScrollBar(Direction.Right)) as ScrollBar;
@@ -820,13 +855,15 @@ ScrollBar scrollbar = node.Add(new ScrollBar(Direction.Right)) as ScrollBar;
 ```cs
 Arrow(int x, int y, ArrowStyle style, Action<VisualObject, Touch> callback)
 ```
+* All properties of [UIStyle](#Класс-UIStyle)
+
 Пример:
 ```cs
 Arrow arrow = node.Add(new Arrow(0, 0, new ArrowStyle() { Direction = Direction.Left })) as Arrow;
 ```
 ![]()
 
-
+## Создание собственного виджета
 
 ## Общие факты о клиентской стороне управления интерфейсом
 1. Клиент работает так, что в начале нажатия планом пакеты перемещения мыши отправляются очень быстро,

@@ -5,8 +5,15 @@ namespace TUI.Base
 {
     #region ContainerStyle
 
+    /// <summary>
+    /// Drawing styles for VisualContainer.
+    /// </summary>
     public class ContainerStyle : UIStyle
     {
+        /// <summary>
+        /// If set to false then container would inherit parent's wall and wall paint,
+        /// also every Apply() would clear every tile before drawing.
+        /// </summary>
         public bool Transparent { get; set; } = false;
 
         public ContainerStyle()
@@ -23,6 +30,10 @@ namespace TUI.Base
 
     #endregion
 
+    /// <summary>
+    /// Widget-container for other widgets. It is strongly recommended to use this
+    /// instead of just VisualObject, because it correctly supports Scrolling.
+    /// </summary>
     public class VisualContainer : VisualObject
     {
         #region Data

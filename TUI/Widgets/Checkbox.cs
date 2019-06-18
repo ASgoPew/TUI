@@ -6,9 +6,14 @@ namespace TUI.Widgets
 {
     #region CheckboxStyle
 
+    /// <summary>
+    /// Drawing styles for Checkbox widget.
+    /// </summary>
     public class CheckboxStyle : UIStyle
     {
-        public bool Default { get; set; } = false;
+        /// <summary>
+        /// Color of pressed checkbox.
+        /// </summary>
         public byte CheckedColor { get; set; } = 13;
 
         public CheckboxStyle() : base() { }
@@ -16,70 +21,94 @@ namespace TUI.Widgets
         public CheckboxStyle(CheckboxStyle style)
             : base(style)
         {
-            Default = style.Default;
             CheckedColor = style.CheckedColor;
         }
     }
 
     #endregion
 
-    public class Checkbox : VisualObject
+    /// <summary>
+    /// Input widget for boolean values.
+    /// </summary>
+    public class Checkbox : VisualObject, IInput, IInput<bool>
     {
         #region Data
 
-        private Action<Checkbox, bool> CheckboxCallback;
-        private byte? OldWallColor;
-
+        public Input<bool> Input { get; protected set; }
+        public object Value => Input.Value;
         public CheckboxStyle CheckboxStyle => Style as CheckboxStyle;
 
-        public bool Value { get; private set; }
+        private byte? OldWallColor;
 
         #endregion
 
         #region Constructor
 
-        public Checkbox(int x, int y, int size, CheckboxStyle style = null, Action<Checkbox, bool> callback = null)
+        public Checkbox(int x, int y, int size, CheckboxStyle style = null, Input<bool> input = null)
             : base(x, y, size, size, new UIConfiguration(), style ?? new CheckboxStyle())
         {
+            Input = input ?? new Input<bool>(false, false, null);
             Configuration.Lock = new Lock(LockLevel.Self, false, UIDefault.LockDelay, false, false);
-
-            CheckboxCallback = callback;
             OldWallColor = Style.WallColor;
-            Value = CheckboxStyle.Default;
         }
 
         #endregion
         #region Invoke
 
-        public override void Invoke(Touch touch)
+        public override void Invoke(Touch touch) =>
+            SetValue(!Input.Value, true, touch.Session.PlayerIndex);
+
+        #endregion
+        #region ApplyTile
+
+        protected override void ApplyTile(int x, int y)
         {
-            Set(!Value);
-            Apply().Draw();
+            dynamic tile = Tile(x, y);
+            if (tile == null)
+                return;
+            if (Style.Active != null)
+                tile.active(Style.Active.Value);
+            else if (Style.Tile != null)
+                tile.active(true);
+            else if (Style.Wall != null)
+                tile.active(false);
+            if (Style.InActive != null)
+                tile.inActive(Style.InActive.Value);
+            if (Style.Tile != null)
+                tile.type = Style.Tile.Value;
+            if (Style.TileColor != null)
+                tile.color(Style.TileColor.Value);
+            if (Style.Wall != null)
+                tile.wall = Style.Wall.Value;
+            if (Style.WallColor != null)
+                tile.wallColor((byte)(Input.Temp ? CheckboxStyle.CheckedColor : Style.WallColor));
         }
 
         #endregion
-        #region Set
+        #region GetValue
 
-        /// <summary>
-        /// Change value and call callback without drawing.
-        /// </summary>
-        /// <param name="value">New value.</param>
-        /// <returns>this</returns>
-        public Checkbox Set(bool value)
+        public bool GetValue() => Input.Value;
+
+        #endregion
+        #region SetTempValue
+
+        public void SetTempValue(bool temp, bool draw)
         {
-            if (value != Value)
+            if (Input.Temp != temp)
             {
-                if (value)
-                {
-                    OldWallColor = Style.WallColor;
-                    Style.WallColor = CheckboxStyle.CheckedColor;
-                }
-                else
-                    Style.WallColor = OldWallColor;
-                Value = value;
-                CheckboxCallback?.Invoke(this, Value);
+                Input.Temp = temp;
+                if (draw)
+                    ApplyTiles().Draw();
             }
-            return this;
+        }
+
+        #endregion
+        #region SetValue
+
+        public void SetValue(bool value, bool draw = false, int player = -1)
+        {
+            SetTempValue(value, draw);
+            Input.SubmitTemp(this, player);
         }
 
         #endregion
@@ -89,7 +118,7 @@ namespace TUI.Widgets
         {
             base.PulseThisNative(type);
             if (type == PulseType.Reset)
-                Set(CheckboxStyle.Default);
+                SetValue(Input.DefaultValue, false);
         }
 
         #endregion

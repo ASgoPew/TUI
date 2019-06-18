@@ -9,6 +9,9 @@ namespace TUI.Base
         End
     }
 
+    /// <summary>
+    /// Touch event information.
+    /// </summary>
     public class Touch : IVisual<Touch>
     {
         #region Data
@@ -73,6 +76,7 @@ namespace TUI.Base
         /// </summary>
         public DateTime Time { get; private set; }
 
+        public int PlayerIndex => Session.PlayerIndex;
         /// <summary>
         /// Whether this touch has red wire turned on. Actual only when State is TouchState.End.
         /// </summary>

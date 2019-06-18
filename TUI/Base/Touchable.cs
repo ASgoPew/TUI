@@ -62,7 +62,7 @@ namespace TUI.Base
         private bool IsLocked(Touch touch)
         {
             // We must check both personal and common lock
-            PersonalLocked.TryGetValue(touch.Session.UserIndex, out Locked personalLocked);
+            PersonalLocked.TryGetValue(touch.Session.PlayerIndex, out Locked personalLocked);
             return IsLocked(Locked, touch) || IsLocked(personalLocked, touch);
         }
 
@@ -78,7 +78,7 @@ namespace TUI.Base
                 && (!holderLock.DuringTouchSession || locked.Touch.TouchSessionIndex != locked.Touch.Session.TouchSessionIndex))
             {
                 if (holderLock.Personal)
-                    PersonalLocked.TryRemove(touch.Session.UserIndex, out _);
+                    PersonalLocked.TryRemove(touch.Session.PlayerIndex, out _);
                 else
                     Locked = null;
                 return false;
@@ -86,7 +86,7 @@ namespace TUI.Base
 
             // Immidiately blocking if user who set locked is different from current user
             // or if it is already new TouchSessionIndex since locked set
-            bool userInitializedLock = locked.Touch.Session.UserIndex == touch.Session.UserIndex;
+            bool userInitializedLock = locked.Touch.Session.PlayerIndex == touch.Session.PlayerIndex;
             bool lockingTouchSession = touch.TouchSessionIndex == locked.Touch.TouchSessionIndex;
             if (!userInitializedLock || !lockingTouchSession)
             {
@@ -196,7 +196,7 @@ namespace TUI.Base
             if (Configuration.Lock != null && !touch.Session.LockedObjects.Contains(@this))
             {
                 Lock lockConfig = Configuration.Lock;
-                int userIndex = touch.Session.UserIndex;
+                int userIndex = touch.Session.PlayerIndex;
                 VisualObject target = lockConfig.Level == LockLevel.Self ? @this : Root;
 
                 // We are going to set lock only if target doesn't have an existing one

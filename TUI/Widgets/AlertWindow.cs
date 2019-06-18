@@ -45,7 +45,7 @@ namespace TUI.Widgets
         #region Copy
 
         public AlertWindow(AlertWindow alertWindow)
-            : this(alertWindow.Label.Get(), new UIStyle(alertWindow.Style),
+            : this(alertWindow.Label.GetText(), new UIStyle(alertWindow.Style),
                 new ButtonStyle(alertWindow.Button.ButtonStyle))
         {
         }

@@ -6,17 +6,29 @@ namespace TUI.Widgets
 {
     #region SliderStyle
 
+    /// <summary>
+    /// Drawing styles for Slider widget.
+    /// </summary>
     public class SliderStyle : UIStyle
     {
-        public int Default { get; set; } = 0;
-        public bool TriggerOnDrag { get; set; } = false;
+        /// <summary>
+        /// Whether to invoke input callback on TouchState.Moving touches.
+        /// </summary>
+        public bool TriggerInRuntime { get; set; } = false;
+        /// <summary>
+        /// Color of left part that corresponds to *used* part of value.
+        /// </summary>
         public byte UsedColor { get; set; } = UIDefault.SliderUsedColor;
+        /// <summary>
+        /// Color of small separator between *used* part and *unused* one.
+        /// </summary>
         public byte SeparatorColor { get; set; } = UIDefault.SliderSeparatorColor;
 
         public SliderStyle() : base() { }
 
         public SliderStyle(SliderStyle style) : base(style)
         {
+            TriggerInRuntime = style.TriggerInRuntime;
             UsedColor = style.UsedColor;
             SeparatorColor = style.SeparatorColor;
         }
@@ -24,6 +36,9 @@ namespace TUI.Widgets
 
     #endregion
 
+    /// <summary>
+    /// Input widget for integer values between 0 and width-1.
+    /// </summary>
     public class Slider : VisualObject, IInput, IInput<int>
     {
         #region Data
@@ -51,24 +66,14 @@ namespace TUI.Widgets
 
         public override void Invoke(Touch touch)
         {
-            int oldValue;
             if (touch.State == TouchState.Begin)
-                Input.OldValue = Input.Value;
-            oldValue = Input.Value;
-            int newValue = touch.Undo ? Input.OldValue : touch.X;
-            if (newValue < 0)
-                newValue = 0;
-            if (newValue >= Width)
-                newValue = Width - 1;
-            if (Input.Value != newValue)
-            {
-                Input.Value = newValue;
-                ApplyTiles().Draw(newValue < oldValue ? newValue : oldValue, 0,
-                    newValue > oldValue ? newValue + 1 - oldValue : oldValue + 1 - newValue);
-            }
-            if (touch.State == TouchState.End && newValue != Input.OldValue && (!SliderStyle.TriggerOnDrag || oldValue != newValue)
-                    || SliderStyle.TriggerOnDrag && oldValue != newValue)
-                Input.Callback?.Invoke(this, newValue);
+                Input.Value = Input.Temp;
+
+            int newValue = touch.Undo ? Input.Value : touch.X;
+            if (touch.State == TouchState.End || SliderStyle.TriggerInRuntime)
+                SetValue(newValue, true, touch.Session.PlayerIndex);
+            else
+                SetTempValue(newValue, true);
         }
 
         #endregion
@@ -94,7 +99,7 @@ namespace TUI.Widgets
             if (Style.Wall != null)
                 tile.wall = Style.Wall.Value;
             if (Style.WallColor != null)
-                tile.wallColor((x > Input.Value) ? Style.WallColor.Value : (x == Input.Value) ? SliderStyle.SeparatorColor : SliderStyle.UsedColor);
+                tile.wallColor((x > Input.Temp) ? Style.WallColor.Value : (x == Input.Temp) ? SliderStyle.SeparatorColor : SliderStyle.UsedColor);
         }
 
         #endregion
@@ -103,19 +108,32 @@ namespace TUI.Widgets
         public int GetValue() => Input.Value;
 
         #endregion
+        #region SetTempValue
+
+        public void SetTempValue(int temp, bool draw)
+        {
+            if (temp < 0)
+                temp = 0;
+            else if (temp >= Width)
+                temp = Width - 1;
+
+            if (Input.Temp != temp)
+            {
+                int oldTemp = Input.Temp;
+                Input.Temp = temp;
+                if (draw)
+                    ApplyTiles().Draw(temp < oldTemp ? temp : oldTemp, 0,
+                    temp > oldTemp ? temp + 1 - oldTemp : oldTemp + 1 - temp);
+            }
+        }
+
+        #endregion
         #region SetValue
 
-        public void SetValue(int value)
+        public void SetValue(int value, bool draw = false, int player = -1)
         {
-            if (value < 0)
-                value = 0;
-            if (value >= Width)
-                value = Width - 1;
-            if (value != Input.Value)
-            {
-                Input.Value = value;
-                Input.Callback?.Invoke(this, Input.Value);
-            }
+            SetTempValue(value, draw);
+            Input.SubmitTemp(this, player);
         }
 
         #endregion
@@ -125,7 +143,7 @@ namespace TUI.Widgets
         {
             base.PulseThisNative(type);
             if (type == PulseType.Reset)
-                SetValue(Input.DefaultValue);
+                SetValue(Input.DefaultValue, false, -1);
         }
 
         #endregion

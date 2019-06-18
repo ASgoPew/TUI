@@ -9,13 +9,16 @@ using TUI.Widgets;
 
 namespace TUI
 {
+    /// <summary>
+    /// Main user interface class.
+    /// </summary>
     public static class TUI
     {
         #region Data
 
-        public static int MaxUsers;
+        public static int MaxPlayers;
         public static HookManager Hooks = new HookManager();
-        public static UserSession[] Session = new UserSession[MaxUsers];
+        public static UserSession[] Session = new UserSession[MaxPlayers];
         public static int MaxHoldTouchMilliseconds = 30000;
         public const short FakeSignSTileHeader = 29728;
         private static List<RootVisualObject> Child = new List<RootVisualObject>();
@@ -28,10 +31,10 @@ namespace TUI
 
         #region Initialize
 
-        public static void Initialize(int maxUsers = 256)
+        public static void Initialize(int maxPlayers = 256)
         {
-            MaxUsers = maxUsers;
-            Session = new UserSession[MaxUsers];
+            MaxPlayers = maxPlayers;
+            Session = new UserSession[MaxPlayers];
             Timer = new Timer(5000) { AutoReset = true };
             Timer.Elapsed += OnTimerElapsed;
         }
@@ -52,7 +55,7 @@ namespace TUI
                     Child.Load();
             }
 
-            Hooks.Load.Invoke(new LoadArgs(MaxUsers));
+            Hooks.Load.Invoke(new LoadArgs(MaxPlayers));
         }
 
         #endregion
@@ -161,41 +164,41 @@ namespace TUI
         }
 
         #endregion
-        #region InitializeUser
+        #region InitializePlayer
 
-        public static void InitializeUser(int userIndex)
+        public static void InitializePlayer(int playerIndex)
         {
             lock (Session)
-                Session[userIndex] = new UserSession(userIndex);
+                Session[playerIndex] = new UserSession(playerIndex);
         }
 
         #endregion
-        #region RemoveUser
+        #region RemovePlayer
 
-        public static void RemoveUser(int userIndex)
+        public static void RemovePlayer(int playerIndex)
         {
-            UserSession session = Session[userIndex];
+            UserSession session = Session[playerIndex];
 
             if (session.PreviousTouch != null && session.PreviousTouch.State != TouchState.End)
             {
                 Touch simulatedEndTouch = session.PreviousTouch.SimulatedEndTouch();
-                TUI.Touched(userIndex, simulatedEndTouch);
+                TUI.Touched(playerIndex, simulatedEndTouch);
             }
 
             lock (Child)
                 foreach (RootVisualObject child in Child)
-                    child.Players.Remove(userIndex);
+                    child.Players.Remove(playerIndex);
 
-            Session[userIndex] = null;
+            Session[playerIndex] = null;
         }
 
         #endregion
 
         #region Touched
 
-        public static bool Touched(int userIndex, Touch touch)
+        public static bool Touched(int playerIndex, Touch touch)
         {
-            UserSession session = Session[userIndex];
+            UserSession session = Session[playerIndex];
             touch.SetSession(session);
 
             lock (session)
@@ -282,7 +285,7 @@ namespace TUI
                 {
                     RootVisualObject o = Child[i];
                     int saveX = o.X, saveY = o.Y;
-                    if (o.Active && o.Contains(touch) && o.Players.Contains(touch.Session.UserIndex))
+                    if (o.Active && o.Contains(touch) && o.Players.Contains(touch.Session.PlayerIndex))
                     {
                         insideUI = true;
                         touch.MoveBack(saveX, saveY);

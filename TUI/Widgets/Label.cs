@@ -15,7 +15,7 @@ namespace TUI.Widgets
     }
 
     /// <summary>
-    /// Widget for showing text using character statues.
+    /// Drawing styles for Label widget.
     /// </summary>
     public class LabelStyle : UIStyle
     {
@@ -54,6 +54,9 @@ namespace TUI.Widgets
 
     #endregion
 
+    /// <summary>
+    /// Widget for showing text using character statues.
+    /// </summary>
     public class Label : VisualObject
     {
         #region Data
@@ -99,7 +102,7 @@ namespace TUI.Widgets
             base.ApplyThisNative();
 
             LabelStyle style = Style as LabelStyle;
-            string text = Get();
+            string text = GetText();
             if (string.IsNullOrWhiteSpace(text))
                 return;
             int lineH = 2 + (int)style.TextUnderline;
@@ -206,21 +209,21 @@ namespace TUI.Widgets
         }
 
         #endregion
-        #region Set
+        #region SetText
 
         /// <summary>
         /// Set text. Doesn't call update/apply/draw.
         /// </summary>
         /// <param name="value"></param>
-        public virtual void Set(string value)
+        public virtual void SetText(string value)
         {
             RawText = value ?? throw new ArgumentNullException(nameof(value));
         }
 
         #endregion
-        #region Get
+        #region GetText
 
-        public virtual string Get() => RawText;
+        public virtual string GetText() => RawText;
 
         #endregion
 

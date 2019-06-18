@@ -121,7 +121,7 @@ namespace TUIPlugin
         private static void OnServerConnect(ConnectEventArgs args)
         {
             playerDesignState[args.Who] = DesignState.Waiting;
-            TUI.TUI.InitializeUser(args.Who);
+            TUI.TUI.InitializePlayer(args.Who);
         }
 
         #endregion
@@ -129,7 +129,7 @@ namespace TUIPlugin
 
         private static void OnServerLeave(LeaveEventArgs args)
         {
-            TUI.TUI.RemoveUser(args.Who);
+            TUI.TUI.RemovePlayer(args.Who);
         }
 
         #endregion

@@ -86,7 +86,7 @@ namespace TUI.Widgets
         #region Copy
 
         public ConfirmWindow(ConfirmWindow confirmWindow)
-            : this(confirmWindow.Label.Get(), confirmWindow.ConfirmCallback.Clone() as Action<bool>,
+            : this(confirmWindow.Label.GetText(), confirmWindow.ConfirmCallback.Clone() as Action<bool>,
                 new ContainerStyle(confirmWindow.Container.ContainerStyle),
                 new ButtonStyle(confirmWindow.YesButton.ButtonStyle),
                 new ButtonStyle(confirmWindow.NoButton.ButtonStyle))

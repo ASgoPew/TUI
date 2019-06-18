@@ -1,7 +1,7 @@
 ﻿namespace TUI.Base.Style
 {
     /// <summary>
-    /// Object drawing style class.
+    /// Drawing styles for VisualObject.
     /// </summary>
     public class UIStyle
     {

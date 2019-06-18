@@ -5,6 +5,9 @@ using TUI.Hooks.Args;
 
 namespace TUI.Widgets
 {
+    /// <summary>
+    /// Widget for drawing sign with text.
+    /// </summary>
     public class VisualSign : VisualObject
     {
         #region Data

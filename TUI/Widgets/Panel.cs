@@ -5,12 +5,16 @@ using TUI.Base.Style;
 
 namespace TUI.Widgets
 {
-    public enum PanelState
+    enum PanelState
     {
         Moving = 0,
         Resizing
     }
 
+    /// <summary>
+    /// Root widget that saves its position and size and has a button for changing position
+    /// and a button for changing size (top left corner 1x1 and bottom right corner 1x1 by default).
+    /// </summary>
     public class Panel : RootVisualObject
     {
         #region Data
@@ -55,9 +59,11 @@ namespace TUI.Widgets
             if (oldX != x || oldY != y || oldWidth != width || oldHeight != height)
             {
                 base.SetXYWH(x, y, width, height);
-                Console.WriteLine("SETXYWH: " + SaveDataNow);
+#if DEBUG
+                Console.WriteLine($"{FullName}.SetXYWH({x}, {y}, {width}, {height}){(SaveDataNow ? " SAVING" : "")}");
+#endif
                 if (SaveDataNow)
-                    SavePosition();
+                    SavePanel();
                 SaveDataNow = false;
             }
             return this;
@@ -87,14 +93,20 @@ namespace TUI.Widgets
 
         #endregion
 
-        #region SavePosition
+        #region SavePanel
 
-        public void SavePosition() =>
+        /// <summary>
+        /// Save panel position and size
+        /// </summary>
+        public void SavePanel() =>
             DBWrite();
 
         #endregion
         #region Drag
 
+        /// <summary>
+        /// Change panel position.
+        /// </summary>
         public void Drag(int x, int y)
         {
             if (x == X && y == Y)
@@ -111,6 +123,9 @@ namespace TUI.Widgets
         #endregion
         #region Resize
 
+        /// <summary>
+        /// Change panel size.
+        /// </summary>
         public void Resize(int width, int height)
         {
             GridConfiguration grid = Configuration.Grid;
@@ -169,7 +184,7 @@ namespace TUI.Widgets
                     if (ending)
                     {
                         touch.Session[@this] = null;
-                        panel.SavePosition();
+                        panel.SavePanel();
                     }
                 }
             }
@@ -212,7 +227,7 @@ namespace TUI.Widgets
                     if (ending)
                     {
                         touch.Session[@this] = null;
-                        panel.SavePosition();
+                        panel.SavePanel();
                     }
                 }
             }
