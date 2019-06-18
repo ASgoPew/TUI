@@ -39,4 +39,3 @@ F:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.csproj.CoreCompileInputs.cache
 F:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.csproj.CopyComplete
 F:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.dll
 F:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.pdb
-F:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.csprojAssemblyReference.cache

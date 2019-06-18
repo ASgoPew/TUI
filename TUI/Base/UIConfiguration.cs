@@ -207,8 +207,8 @@ namespace TUI.Base
         /// </summary>
         public bool UseOutsideTouches { get; set; } = false;
         /// <summary>
-        /// Touching child node would place it on top of Child array layer so that it would draw
-        /// higher than other objects with the same layer and check for touching first.
+        /// Touching child node would place it on top of Child array layer so that it would be drawn
+        /// above other objects with the same layer and check for touching first.
         /// </summary>
         public bool Ordered { get; set; } = false;
         /// <summary>
