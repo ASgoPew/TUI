@@ -9,10 +9,16 @@ namespace TUI.Widgets
     /// </summary>
     public class FormField : Label
     {
+        #region Data
+
         /// <summary>
         /// Corresponding input widget.
         /// </summary>
         public IInput Input { get; protected set; }
+
+        #endregion
+
+        #region Constructor
 
         /// <summary>
         /// Widget for adding a label to the left side of some other input widget (Checkbox/InputLabel/Slider/...).
@@ -26,5 +32,7 @@ namespace TUI.Widgets
             Add((VisualObject)input)
                 .SetAlignmentInParent(Alignment.Right, inputOffset);
         }
+
+        #endregion
     }
 }
