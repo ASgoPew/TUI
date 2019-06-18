@@ -6,11 +6,6 @@
     public class UIStyle
     {
         /// <summary>
-        /// Whether to use walls from parents or not. By default true (use).
-        /// </summary>
-        //public bool InheritParentWall { get; set; } = false;
-
-        /// <summary>
         /// Sets tile.active(Style.Active) for every tile.
         /// <para></para>
         /// If not specified sets to true in case Style.Tile is specified,
@@ -38,8 +33,14 @@
         /// </summary>
         public bool? InActive { get; set; }
 
+        /// <summary>
+        /// Drawing styles for VisualObject.
+        /// </summary>
         public UIStyle() { }
 
+        /// <summary>
+        /// Drawing styles for VisualObject.
+        /// </summary>
         public UIStyle(UIStyle style)
         {
             if (style.Active.HasValue)

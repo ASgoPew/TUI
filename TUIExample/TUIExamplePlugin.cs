@@ -169,8 +169,8 @@ namespace TUIExample
 
             // FormField
             FormField ffield = node.AddToLayout(new FormField(
-                new Checkbox(0, 0, 2, new CheckboxStyle() { CheckedColor=13 }),
-                0, 0, 0, 2, "VSign", new LabelStyle()
+                new Checkbox(0, 0, 2, new CheckboxStyle() { Wall=165, WallColor=26, CheckedColor=13 }),
+                0, 0, 0, 2, "check me", new LabelStyle()
             {
                 TextColor = 29,
                 TextAlignment = Alignment.Left

@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using TUI.Base;
 using TUI.Base.Style;
 
 namespace TUI.Widgets
 {
-    public class AlertWindow : VisualObject
+    public class AlertWindow : VisualContainer
     {
         #region Data
 
@@ -19,8 +15,8 @@ namespace TUI.Widgets
 
         #region Constructor
 
-        public AlertWindow(string text, UIStyle style = null, ButtonStyle buttonStyle = null)
-            : base(0, 0, 0, 0, null, style ?? new UIStyle() { Wall = 165, WallColor = 27 })
+        public AlertWindow(string text, ContainerStyle windowStyle = null, ButtonStyle buttonStyle = null)
+            : base(0, 0, 0, 0, null, windowStyle ?? new ContainerStyle() { Wall = 165, WallColor = 27 })
         {
             SetAlignmentInParent(Alignment.Center);
             SetupLayout(Alignment.Center, Direction.Down, childIndent: 0);
@@ -45,7 +41,7 @@ namespace TUI.Widgets
         #region Copy
 
         public AlertWindow(AlertWindow alertWindow)
-            : this(alertWindow.Label.GetText(), new UIStyle(alertWindow.Style),
+            : this(alertWindow.Label.GetText(), new ContainerStyle(alertWindow.ContainerStyle),
                 new ButtonStyle(alertWindow.Button.ButtonStyle))
         {
         }

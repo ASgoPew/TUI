@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Timers;
 using TUI.Base;
 using TUI.Hooks;
 using TUI.Hooks.Args;
-using TUI.Widgets;
 
 namespace TUI
 {
@@ -128,7 +128,13 @@ namespace TUI
             // Locking for Child and Active
             lock (Child)
             {
-                Child.Add(root);
+                if (Child.Count(r => r.Name == root.Name) > 0)
+                    throw new ArgumentException($"TUI.Create: name {root.Name} is already taken.");
+
+                int index = 0;
+                while (index < Child.Count && Child[index].Layer <= root.Layer)
+                    index++;
+                Child.Insert(index, root);
 
                 if (Active)
                     root.Load();
@@ -304,27 +310,26 @@ namespace TUI
         #endregion
         #region SetTop
 
-        // TODO: Main.tile objects can't be set on top of fake objects
-        public static bool SetTop(RootVisualObject o)
+        public static bool SetTop(RootVisualObject root)
         {
-            bool result;
-            int index = Child.IndexOf(o);
-            if (index > 0)
+            lock (Child)
             {
-                Child.Remove(o);
-                Child.Insert(0, o);
-                result = true;
-            }
-            else if (index == 0)
-                result = false;
-            else
-                throw new InvalidOperationException("Trying to SetTop an object that isn't a child of current VisualDOM");
+                int previousIndex = Child.IndexOf(root);
+                int index = previousIndex;
+                if (index < 0)
+                    throw new InvalidOperationException("Trying to SetTop an object that isn't a child of current VisualDOM");
+                int count = Child.Count;
+                index++;
+                while (index < count && Child[index].Layer <= root.Layer)
+                    index++;
 
-            // Let a custom provider actually become top
-            if (result)
-                TUI.Hooks.SetTop.Invoke(new SetTopArgs(o));
-            
-            return result;
+                if (index == previousIndex + 1)
+                    return false;
+
+                Child.Remove(root);
+                Child.Insert(index - 1, root);
+                return true;
+            }
         }
 
         #endregion

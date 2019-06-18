@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using OTAPI.Tile;
+﻿using OTAPI.Tile;
 using System;
 using System.Collections.Generic;
 using System.IO;

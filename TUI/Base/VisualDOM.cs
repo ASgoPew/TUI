@@ -74,7 +74,11 @@ namespace TUI.Base
         protected ConcurrentDictionary<string, object> Shortcuts { get; set; }
 
         /// <summary>
-        /// Tile provider of current interface tree.
+        /// Tile provider object, default value - null (interface would
+        /// be drawn on the Main.tile, tiles would be irrevocably modified).
+        /// <para></para>
+        /// FakeTileRectangle from [FakeManager](https://github.com/AnzhelikaO/FakeManager)
+        /// can be passed as a value so that interface would be drawn above the Main.tile.
         /// </summary>
         public virtual dynamic Provider => Root?.Provider;
         /// <summary>
@@ -386,8 +390,8 @@ namespace TUI.Base
             {
                 lock (Child)
                 {
-                    int index = Child.IndexOf(child);
-                    int previousIndex = index;
+                    int previousIndex = Child.IndexOf(child);
+                    int index = previousIndex;
                     if (index < 0)
                         throw new InvalidOperationException("Trying to SetTop an object that isn't a child of current VisualDOM");
                     int count = Child.Count;
@@ -570,6 +574,7 @@ namespace TUI.Base
             try
             {
                 LoadThisNative();
+                Configuration.Custom.Load?.Invoke(this as VisualObject);
             }
             catch (Exception e)
             {
@@ -611,6 +616,7 @@ namespace TUI.Base
             try
             {
                 DisposeThisNative();
+                Configuration.Custom.Dispose?.Invoke(this as VisualObject);
             }
             catch (Exception e)
             {

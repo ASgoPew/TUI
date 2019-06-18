@@ -8,19 +8,34 @@ using TUI.Widgets;
 namespace TUI.Base
 {
     /// <summary>
-    /// Basic root widget.
+    /// Basic root of user interface tree widget.
     /// </summary>
     public class RootVisualObject : VisualContainer
     {
         #region Data
-
+        /// <summary>
+        /// Set of players that are currently close enough to this interface.
+        /// </summary>
         public HashSet<int> Players = new HashSet<int>();
-
+        /// <summary>
+        /// Unique interface root identifier.
+        /// </summary>
         public override string Name { get; set; }
+        /// <summary>
+        /// Tile provider object, default value - null (interface would
+        /// be drawn on the Main.tile, tiles would be irrevocably modified).
+        /// <para></para>
+        /// FakeTileRectangle from [FakeManager](https://github.com/AnzhelikaO/FakeManager)
+        /// can be passed as a value so that interface would be drawn above the Main.tile.
+        /// </summary>
         public override dynamic Provider { get; }
-        public override int Layer => UsesDefaultMainProvider ? 0 : Provider.IsPersonal ? 2 : 1;
+        // Provider.IsPersonal for personal fakes
+        /// <summary>
+        /// 0 for Root with MainTileProvider, 1 for root with any fake provider.
+        /// </summary>
+        public override int Layer => UsesDefaultMainProvider ? 0 : 1;
 
-        public VisualContainer PopUpBackground { get; protected set; }
+        protected VisualContainer PopUpBackground { get; set; }
         protected Dictionary<VisualObject, Action<VisualObject>> PopUpCancelCallbacks =
             new Dictionary<VisualObject, Action<VisualObject>>();
 
@@ -29,7 +44,7 @@ namespace TUI.Base
         #region Constructor
 
         /// <summary>
-        /// Basic root widget.
+        /// Basic root of user interface tree widget.
         /// </summary>
         /// <param name="name">Unique interface identifier</param>
         /// <param name="provider">Tile provider object, default value - null (interface would
@@ -130,8 +145,10 @@ namespace TUI.Base
         #region ShowPopUp
 
         /// <summary>
-        /// Draws popup object.
+        /// Draws popup object on top of all other child objects.
         /// </summary>
+        /// <param name="style">Style of popup background</param>
+        /// <param name="cancelCallback">Action to call when player touches popup background but not popup itself</param>
         /// <returns>PopUpBackground</returns>
         public virtual VisualContainer ShowPopUp(VisualObject popup, ContainerStyle style = null, Action<VisualObject> cancelCallback = null)
         {
@@ -169,10 +186,6 @@ namespace TUI.Base
         #endregion
         #region HidePopUp
 
-        /// <summary>
-        /// Hides popup.
-        /// </summary>
-        /// <returns>this</returns>
         public virtual RootVisualObject HidePopUp()
         {
             if (PopUpBackground != null)
@@ -186,19 +199,27 @@ namespace TUI.Base
         #endregion
         #region Alert
 
-        public virtual RootVisualObject Alert(string text, UIStyle style = null, ButtonStyle okButtonStyle = null)
+        /// <summary>
+        /// Show alert window with information text and "ok" button.
+        /// </summary>
+        /// <returns>this</returns>
+        public virtual RootVisualObject Alert(string text, ContainerStyle windowStyle = null, ButtonStyle okButtonStyle = null)
         {
-            ShowPopUp(new AlertWindow(text, style, okButtonStyle));
+            ShowPopUp(new AlertWindow(text, windowStyle, okButtonStyle));
             return this;
         }
 
         #endregion
         #region Confirm
 
-        public virtual RootVisualObject Confirm(string text, Action<bool> callback, ContainerStyle style = null,
-                ButtonStyle yesButtonStyle = null, ButtonStyle noButtonStyle = null)
+        /// <summary>
+        /// Show confirm window with information text and "yes", "no" buttons.
+        /// </summary>
+        /// <returns>this</returns>
+        public virtual RootVisualObject Confirm(string text, Action<bool> callback, ContainerStyle windowStyle = null,
+            ButtonStyle yesButtonStyle = null, ButtonStyle noButtonStyle = null)
         {
-            ShowPopUp(new ConfirmWindow(text, callback, style, yesButtonStyle, noButtonStyle));
+            ShowPopUp(new ConfirmWindow(text, callback, windowStyle, yesButtonStyle, noButtonStyle));
             return this;
         }
 

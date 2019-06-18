@@ -1,3 +1,4 @@
+# VisualObject
 ## Public fields and properties of VisualObject
 * string **Name**
 	* Object name. Class type name by default.
@@ -78,7 +79,7 @@
 	* Iterates over object points relative to tile provider.
 
 ## Public methods of VisualObject
-* virtual VisualObject **Add**(VisualObject child, int layer = 0)
+* virtual VisualObject **Add**(VisualObject child, int layer)
 	* Adds object as a child in specified layer (0 by default). Does nothing if object is already a child.
 * VisualObject **Remove**(VisualObject child)
 	* Removes child object. Calls Dispose() on removed object so you can't use this object anymore.
@@ -95,7 +96,7 @@
 * virtual bool **SetTop**(VisualObject child)
 	* Places child object on top of layer. This function will be called automatically on child touch
 	if object is orderable.
-* (int X, int Y, int Width, int Height) **XYWH**(int dx = 0, int dy = 0)
+* (int X, int Y, int Width, int Height) **XYWH**(int dx, int dy)
 	* Get object position and size.
 		* dx - X coordinate delta
 		* dy - Y coordinate delta
@@ -115,18 +116,18 @@
 * bool **CalculateActive**()
 	* Finds out if every object including this node and up to the Root is Active. Root must
 	be a RootVisualObject.
-* (int X, int Y) **RelativeXY**(int x = 0, int y = 0, VisualDOM parent = null)
+* (int X, int Y) **RelativeXY**(int x, int y, VisualDOM parent)
 	* Calculates coordinates relative to specified parent object.
-* (int X, int Y) **AbsoluteXY**(int dx = 0, int dy = 0)
+* (int X, int Y) **AbsoluteXY**(int dx, int dy)
 	* Calculates coordinates relative to world map.
-* (int X, int Y) **ProviderXY**(int dx = 0, int dy = 0)
+* (int X, int Y) **ProviderXY**(int dx, int dy)
 	* Calculates coordinates relative to tile provider.
 * virtual dynamic **Tile**(int x, int y)
 	* Returns tile relative to this node point (x=0, y=0 is a top left point of this object)
-* VisualObject **AddToLayout**(VisualObject child, int layer = 0)
+* VisualObject **AddToLayout**(VisualObject child, int layer)
 	* Add object as a child in layout. Removes child alignment and grid positioning.
-* VisualObject **SetupLayout**(Alignment alignment = Alignment.Center, Direction direction = Direction.Down,
-		Side side = Side.Center, ExternalOffset offset = null, int childIndent = 1, bool boundsIsOffset = true)
+* VisualObject **SetupLayout**(Alignment alignment, Direction direction, Side side,
+		ExternalOffset offset, int childIndent, bool boundsIsOffset)
 	* Setup layout for child positioning.
 		* alignment - Where to place all layout objects row/line
 		* direction - Direction of placing objects
@@ -134,16 +135,15 @@
 		* offset - Layout offset
 		* childIndent - Distance between objects in layout
 		* boundsIsOffset - Whether to draw objects/ object tiles that are outside of bounds of offset or not
-* VisualObject **SetupGrid**(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null,
-		Offset offset = null, bool fillWithEmptyObjects = true)
+* VisualObject **SetupGrid**(IEnumerable<ISize> columns, IEnumerable<ISize> lines, Offset offset, bool fillWithEmptyObjects)
 	* Setup grid for child positioning. Use Absolute and Relative classes for specifying sizes.
 		* columns - Column sizes (i.e. new ISize[] { new Absolute(10), new Relative(100) })
 		* lines - Line sizes
 		* offset - Grid offset
 		* fillWithEmptyObjects - Whether to fills all grid cells with empty VisualContainers
-* VisualObject **SetAlignmentInParent**(Alignment alignment, ExternalOffset offset = null, bool boundsIsOffset = true)
+* VisualObject **SetAlignmentInParent**(Alignment alignment, ExternalOffset offset, bool boundsIsOffset)
 	* Setup alignment positioning inside parent. Removes layout and grid positioning.
-* VisualObject **SetFullSize**(bool horizontal = false, bool vertical = false)
+* VisualObject **SetFullSize**(bool horizontal, bool vertical)
 	* Set automatic stretching to parent size. Removes grid positioning.
 * VisualObject **LayoutIndent**(int value)
 	* Scrolling indent of layout. Used in ScrollBackground and ScrollBar.
@@ -177,8 +177,7 @@
 * VisualObject **Clear**()
 	* Clear all tiles with ITile.ClearEverything()
 
-* VisualObject **Draw**(int dx = 0, int dy = 0, int width = -1, int height = -1, int userIndex = -1,
-		int exceptUserIndex = -1, bool? forceSection = null, bool frame = true)
+* VisualObject **Draw**(int dx, int dy, int width, int height, int userIndex, int exceptUserIndex, bool? forceSection, bool frame)
 	* Sends SendTileSquare/SendSection packet to clients.
 		* dx - X coordinate delta
 		* dy - Y coordinate delta
@@ -188,8 +187,7 @@
 		* exceptUserIndex - Index of user to ignore on sending
 		* forceSection - Whether to send with SendTileSquare or with SendSection, SendTileSquare (false) by default
 		* frame - Whether to send SectionFrame if sending with SendSection
-* VisualObject **DrawPoints**(IEnumerable<(int, int)> points, int userIndex = -1,
-		int exceptUserIndex = -1, bool? forceSection = null)
+* VisualObject **DrawPoints**(IEnumerable<(int, int)> points, int userIndex, int exceptUserIndex, bool? forceSection)
 	* Draw list of points related to this node.
 * void **ShowGrid**()
 	* DEBUG function for showing grid bounds.
@@ -243,3 +241,22 @@
 	* Get/set node related data in runtime storage.
 * **this**[int column, int line]
 	* Get: Get a child in grid.
+
+# RootVisualObject : VisualObject
+
+## Public unique fields and properties of RootVisualObject:
+* HashSet<int> **Players**
+	* Set of players that are currently close enough to this interface.
+* dynamic **Provider** (см. выше)
+
+## Public unique methods of RootVisualObject:
+* virtual VisualContainer **ShowPopUp**(VisualObject popup, ContainerStyle style, Action<VisualObject> cancelCallback)
+	* Draws popup object on top of all other child objects.
+		* ContainerStyle style - Style of popup background
+		* Action<VisualObject> cancelCallback - Action to call when player touches popup background but not popup itself
+* virtual RootVisualObject **HidePopUp**()
+* virtual RootVisualObject Alert(string text, UIStyle style, ButtonStyle okButtonStyle)
+	* Show alert window with information text and "ok" button.
+* virtual RootVisualObject Confirm(string text, Action<bool> callback, ContainerStyle windowStyle,
+		ButtonStyle yesButtonStyle, ButtonStyle noButtonStyle)
+	* Show confirm window with information text and "yes", "no" buttons.

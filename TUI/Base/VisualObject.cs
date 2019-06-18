@@ -423,7 +423,7 @@ namespace TUI.Base
                 PulseThisNative(type);
 
                 // Custom pulse handler
-                Configuration.CustomPulse?.Invoke(this, type);
+                Configuration.Custom.Pulse?.Invoke(this, type);
                 return this;
             }
 
@@ -503,7 +503,7 @@ namespace TUI.Base
                 UpdateThisNative();
 
                 // Custom update callback
-                Configuration.CustomUpdate?.Invoke(this);
+                Configuration.Custom.Update?.Invoke(this);
 
                 return this;
             }
@@ -1088,7 +1088,7 @@ namespace TUI.Base
                     ApplyThisNative();
 
                     // Custom apply callback
-                    Configuration.CustomApply?.Invoke(this);
+                    Configuration.Custom.Apply?.Invoke(this);
                 }
                 return this;
             }
@@ -1303,7 +1303,10 @@ namespace TUI.Base
                 {
                     using (MemoryStream ms = new MemoryStream(data))
                     using (BinaryReader br = new BinaryReader(ms))
+                    {
                         DBReadNative(br);
+                        Configuration.Custom.DBRead?.Invoke(this, br);
+                    }
                     return true;
                 }
                 return false;
@@ -1316,7 +1319,7 @@ namespace TUI.Base
             /// Overridable method for reading from BinaryReader based on data from database
             /// </summary>
             /// <param name="br"></param>
-            protected virtual void DBReadNative(BinaryReader br) => Configuration.CustomDBRead?.Invoke(br);
+            protected virtual void DBReadNative(BinaryReader br) { }
 
             #endregion
             #region DBWrite
@@ -1330,6 +1333,7 @@ namespace TUI.Base
                 using (BinaryWriter bw = new BinaryWriter(ms))
                 {
                     DBWriteNative(bw);
+                    Configuration.Custom.DBWrite?.Invoke(this, bw);
                     byte[] data = ms.ToArray();
                     TUI.DBSet(FullName, data);
                 }
@@ -1342,7 +1346,7 @@ namespace TUI.Base
             /// Overridable method for writing to BinaryWriter for data to be stored in database
             /// </summary>
             /// <param name="bw"></param>
-            protected virtual void DBWriteNative(BinaryWriter bw) => Configuration.CustomDBWrite?.Invoke(bw);
+            protected virtual void DBWriteNative(BinaryWriter bw) { }
 
             #endregion
             #region UDBRead
@@ -1358,7 +1362,10 @@ namespace TUI.Base
                 {
                     using (MemoryStream ms = new MemoryStream(data))
                     using (BinaryReader br = new BinaryReader(ms))
+                    {
                         UDBReadNative(br, user);
+                        Configuration.Custom.UDBRead?.Invoke(this, br, user);
+                    }
                     return true;
                 }
                 return false;
@@ -1371,7 +1378,7 @@ namespace TUI.Base
             /// Overridable method for reading from BinaryReader based on user data from database
             /// </summary>
             /// <param name="br"></param>
-            protected virtual void UDBReadNative(BinaryReader br, int user) => Configuration.CustomUDBRead?.Invoke(br, user);
+            protected virtual void UDBReadNative(BinaryReader br, int user) { }
 
             #endregion
             #region UDBWrite
@@ -1385,6 +1392,7 @@ namespace TUI.Base
                 using (BinaryWriter bw = new BinaryWriter(ms))
                 {
                     UDBWriteNative(bw, user);
+                    Configuration.Custom.UDBWrite?.Invoke(this, bw, user);
                     byte[] data = ms.ToArray();
                     TUI.UDBSet(user, FullName, data);
                 }
@@ -1398,7 +1406,7 @@ namespace TUI.Base
             /// </summary>
             /// <param name="bw"></param>
             /// <param name="user"></param>
-            protected virtual void UDBWriteNative(BinaryWriter bw, int user) => Configuration.CustomUDBWrite?.Invoke(bw, user);
+            protected virtual void UDBWriteNative(BinaryWriter bw, int user) { }
 
             #endregion
 

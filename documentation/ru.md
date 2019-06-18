@@ -124,18 +124,9 @@ UI.Update();
 UI.Apply();
 UI.Draw();
 
-Чтобы создать новый интерфейс, необходимо вызвать один из методов класса TUI:
+Чтобы создать новый интерфейс, необходимо вызвать метод Create класса TUI:
 ```cs
-RootVisualObject CreateRoot(string name, int x, int y, int width, int height,
-	UIConfiguration configuration = null, UIStyle style = null, object provider = null)
-```
-```cs
-Panel CreatePanel(string name, int x, int y, int width, int height,
-	UIConfiguration configuration = null, UIStyle style = null, object provider = null)
-```
-```cs
-Panel CreatePanel(string name, int x, int y, int width, int height, UIConfiguration configuration,
-	UIStyle style, PanelDrag drag, PanelResize resize, object provider = null)
+RootVisualObject Create(RootVisualObject root)
 ```
 
 Обычно вам нужен второй из них. Этот метод CreatePanel создает объект Panel, наследующийся от RootVisualObject
@@ -145,8 +136,8 @@ Panel CreatePanel(string name, int x, int y, int width, int height, UIConfigurat
 панели и добавления нескольких виджетов на нее:
 ```cs
 // Создаем панель
-Panel root = TUI.TUI.CreatePanel("TestPanel", 100, 100, 50, 40, null,
-	new ContainerStyle() { Wall = WallID.DiamondGemspark });
+Panel root = TUI.TUI.Create(Panel("TestPanel", 100, 100, 50, 40, null,
+	new ContainerStyle() { Wall = WallID.DiamondGemspark }));
 // Создаем виджет Label (отображение текста)
 Label label = new Label(1, 1, 17, 2, "some text");
 // Добавляем к панели
@@ -183,7 +174,9 @@ Button button = node.Add(new Button(0, 7, 12, 4, "lol", null, new ButtonStyle()
 Этот метод позвоялет автоатически распологать детей, добавленных с помощью метода AddToLayout,
 в определенном порядке друг за другом в указанном направлении:
 
-```VisualObject SetupLayout(Alignment alignment, Direction direction, Side side, ExternalOffset offset, int childIndent, bool boundsIsOffset)```
+```cs
+VisualObject SetupLayout(Alignment alignment, Direction direction, Side side, ExternalOffset offset, int childIndent, bool boundsIsOffset)
+```
 * alignment - сторона/угол/центр, где будут распологаться объекты layout. Например, правый верхний угол - Alignment.TopRight
 * direction - направление, по которому будут добавляться объекты. Например, вниз - Direction.Down
 * side - сторона, к которой будут прилегать объекты. Например, по центру - Side.Center
@@ -217,7 +210,9 @@ node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle() {
 
 Этот метод позволяет представить объект в виде решетки с абсолютными или относительными размерами колонок и линий:
 
-```VisualObject SetupGrid(IEnumerable<ISize> columns, IEnumerable<ISize> lines, Offset offset, bool fillWithEmptyObjects)```
+```cs
+VisualObject SetupGrid(IEnumerable<ISize> columns, IEnumerable<ISize> lines, Offset offset, bool fillWithEmptyObjects)
+```
 * columns - размеры колонок. Например, левая колонка размером 10 блоков, а правая - все оставшееся место: new ISize[] { Absolute(10), Relative(100) }
 * lines - размеры линий. Например, центральная линия занимает 20 блоков, а верхняя и нижняя поровну делят оставшееся место: new ISize[] { Relative(50), Absolute(20), Relative(50) }
 * offset - отступ сетки, включая внутренние отступы ячеек между собой и внешние отступы от границы объекта.
@@ -250,7 +245,9 @@ Task.Delay(10000).ContinueWith(_ => node.ShowGrid());
 
 Этот метод позволяет автоматически распологать объект в относительной позиции в родителе:
 
-```VisualObject SetAlignmentInParent(Alignment alignment, ExternalOffset offset, bool boundsIsOffset)```
+```cs
+VisualObject SetAlignmentInParent(Alignment alignment, ExternalOffset offset, bool boundsIsOffset)
+```
 * alignment - место расположения объекта в родителе.
 * offset - отступы от границ родителя.
 * boundsIsOffset - рисовать ли тайлы, которые вылезают за границы offset.
@@ -268,7 +265,9 @@ node.Add(new Label(0, 0, 10, 4, "test"))
 Этот метод позволяет автоматически устанавливать размеры объекта (как по ширине, так и по высоте)
 относительно размеров родителя, а именно - расширять в точности до размеров родителя:
 
-```VisualObject SetFullSize(bool horizontal, bool vertical)```
+```cs
+VisualObject SetFullSize(bool horizontal, bool vertical)
+```
 * horizontal - устанавливать ширину объекта равной ширине родителя.
 * vertical - устанавливать высоту объекта равной высоте родителя.
 
@@ -361,7 +360,7 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 
 При нажатии, если этот объект удовлетворяет условиям нажатия (cм. UIConfiguration),
 вызывается функция VisualObject.Invoke(Touch touch) с передающимся объектом нажатия Touch.
-Фунция Invoke по дефолту вызывает функцию-колбэк, хранящуюся в поле VisualObject.Callback.
+Фунция Invoke по умолчанию вызывает функцию-колбэк, хранящуюся в поле VisualObject.Callback.
 Это пользовательская функция, в которой программист указывает, что он хочет, чтобы происходило
 по нажатию на этот объект. Виджеты, написанные на C#, могут не использовать эту функцию,
 а напрямую переопределить Invoke.
@@ -390,19 +389,15 @@ Configuration класса UIConfiguration.
 	* Object that should be used for checking if user can touch this node (permission string for TShock).
 * Lock Lock
 	* Touching this node would prevent touches on it or on the whole root for some time.
-* Action<VisualObject> CustomUpdate
-* Func<VisualObject, Touch, bool> CustomCanTouch
-* Action<VisualObject> CustomApply
-* Action<VisualObject, PulseType> CustomPulse
-* Action<BinaryReader> CustomDBRead
-* Action<BinaryWriter> CustomDBWrite
-* Action<BinaryReader, int> CustomUDBRead
-* Action<BinaryWriter, int> CustomUDBWrite
+* CustomCallbacks Custom
+	* Collection of custom callbacks.
 </p>
 </details>
 
 ## Класс UIStyle
 Каждый объект VisualObject имеет стили отрисовки, хранящиеся в свойстве Style класса UIStyle.
+Каждое из свойств UIStyle является Nullable, значение null означает, что нужно оставить
+этот параметр тайла как есть (с помощью этого реализуется прозрачность).
 <details><summary> Нажмите сюда, чтобы развернуть </summary>
 <p>
 * bool? Active
@@ -476,6 +471,7 @@ void DBWrite()
 virtual void DBReadNative(BinaryReader br)
 virtual void DBWriteNative(BinaryWriter bw)
 ```
+Эти функцию по умолчанию пытаются вызывать функции Configuration.CustomDBRead и Configuration.
 Так, например, виджет панели Panel использует это для того, чтобы запомнить позицию и размеры:
 ```cs
 protected override void DBReadNative(BinaryReader br)
@@ -503,6 +499,22 @@ void UDBWrite(int user)
 virtual void UDBReadNative(BinaryReader br, int user)
 virtual void UDBWriteNative(BinaryWriter bw, int user)
 ```
+
+## Создание собственного виджета
+Для создания собственного виджета необходимо создать класс, наследующийся от VisualObject (или другого виджета).
+Для собственного/особенного обновления (полей/данных/статистики/...) виджета можно переопределить метод UpdateThisNative.
+Метод UpdateThis вызывается до вызова UpdateChild, потому, если обновление требует обновленных дочерних объектов,
+можно переопределить метод PostUpdateThisNative.
+Аналогично, можно переопределить ApplyThisNative, чтобы добавить собственную отрисовку у виджета.
+
+## Общие факты о клиентской стороне управления интерфейсом
+1. Клиент работает так, что в начале нажатия планом пакеты перемещения мыши отправляются очень быстро,
+	а начиная с момента примерно через секунду - скорость уменьшается и становится постоянной.
+2. В режимах освещения retro и trippy отрисовка интерфейса происходит быстрее и плавнее.
+3. Нажатием правой кнопки мыши во время использования плана можно отменить нажатие. Это действие особым
+	образом обрабатывается в некоторых виджетах (трактуется как отмена действия)
+4. Некоторые тайлы ломаются при определенных условиях при отправке с помощью SendTileSquare (например, это статуя без блоков под ней).
+Для того, чтобы заставить объект рисоваться с помощью отправок секций, достаточно установить у него поле ForceSection в значение true.
 
 ## Виджеты
 Большинство виджетов имеют параметр стиля в конструкторе, зачастую это не UIStyle,
@@ -576,29 +588,17 @@ VisualContainer node = root.Add(
 Виджет, являющийся корнем дерева и выполняющий соответствующие функции.
 Нельзя создать напрямую, только через TUI.CreateRoot():
 ```cs
-RootVisualObject TUI.CreateRoot(string name, int x, int y, int width, int height,
+RootVisualObject Root(string name, int x, int y, int width, int height,
 	UIConfiguration configuration, ContainerStyle style, object provider)
 ```
 * name - уникальное имя корня интерфейса.
-* provider - объект провайдера тайлов (блоков), дефолтное значение - null (интерфейс будет
-отрисовываться на карте Main.tile). В случае дефолтного значения блоки карты, находящиеся
+* provider - объект провайдера тайлов (блоков), значение по умолчанию - null (интерфейс будет
+отрисовываться на карте Main.tile). В случае значения по умолчанию блоки карты, находящиеся
 внутри этого интерфейса, будут безвозвратно изменены.
 В качестве значения можно использовать FakeTileRectangle из [FakeManager](https://github.com/AnzhelikaO/FakeManager),
 тогда интерфейс будет отрисовываться на слое блоков поверх карты Main.tile.
 
-Обладает следующими особенными функциями:
-```cs
-// Добавить объект в качестве всплывающего окна
-VisualContainer ShowPopUp(VisualObject popup, ContainerStyle style = null,
-	Action<VisualObject> cancelCallback = null)
-// Скрыть всплывающее окно
-RootVisualObject HidePopUp()
-// Отобразить информирующее окно с текстом
-RootVisualObject Alert(string text, UIStyle style = null, ButtonStyle buttonStyle = null)
-// Отобразить запрашивающее подтверждение окно с текстом и вариантами ответа yes и no (да и нет)
-RootVisualObject Confirm(string text, Action<bool> callback, ContainerStyle style = null,
-	ButtonStyle yesButtonStyle = null, ButtonStyle noButtonStyle = null)
-```
+[Подробнее о полях и методах RootVisualObject](ru_VisualObject.md#RootVisualObject--VisualObject)
 
 ### Panel
 Подразновидность RootVisualObject, обладающая некоторыми особенностями:
@@ -611,11 +611,11 @@ RootVisualObject Confirm(string text, Action<bool> callback, ContainerStyle styl
 Сохранить позицию панели напрямую можно вызывав функцию SavePosition().
 Точно так же, как и RootVisualObject, нельзя создать напрямую, только через TUI.CreatePanel():
 ```cs
-Panel CreatePanel(string name, int x, int y, int width, int height,
+Panel Panel(string name, int x, int y, int width, int height,
 	UIConfiguration configuration = null, UIStyle style = null, object provider = null)
 ```
 ```cs
-Panel CreatePanel(string name, int x, int y, int width, int height, UIConfiguration configuration,
+Panel Panel(string name, int x, int y, int width, int height, UIConfiguration configuration,
 	UIStyle style, PanelDrag drag, PanelResize resize, object provider = null)
 ```
 ![]()
@@ -931,18 +931,3 @@ Arrow(int x, int y, ArrowStyle style, Action<VisualObject, Touch> callback)
 Arrow arrow = node.Add(new Arrow(0, 0, new ArrowStyle() { Direction = Direction.Left })) as Arrow;
 ```
 ![]()
-
-## Создание собственного виджета
-Для создания собственного виджета необходимо создать класс, наследующийся от VisualObject (или другого виджета).
-Для собственного/особенного обновления (полей/данных/статистики/...) виджета можно переопределить метод UpdateThisNative.
-Метод UpdateThis вызывается до вызова UpdateChild, потому, если обновление требует обновленных дочерних объектов,
-можно переопределить метод PostUpdateThisNative
-
-## Общие факты о клиентской стороне управления интерфейсом
-1. Клиент работает так, что в начале нажатия планом пакеты перемещения мыши отправляются очень быстро,
-	а начиная с момента примерно через секунду - скорость уменьшается и становится постоянной.
-2. В режимах освещения retro и trippy отрисовка интерфейса происходит быстрее и плавнее.
-3. Нажатием правой кнопки мыши во время использования плана можно отменить нажатие. Это действие особым
-	образом обрабатывается в некоторых виджетах (трактуется как отмена действия)
-4. Некоторые тайлы ломаются при определенных условиях при отправке с помощью SendTileSquare (например, это статуя без блоков под ней).
-Для того, чтобы заставить объект рисоваться с помощью отправок секций, достаточно установить у него поле ForceSection в значение true.

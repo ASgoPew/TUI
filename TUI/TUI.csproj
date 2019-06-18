@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Base\CustomCallbacks.cs" />
     <Compile Include="Base\IInput.cs" />
     <Compile Include="Base\Input.cs" />
     <Compile Include="Base\InputVisualObject.cs" />

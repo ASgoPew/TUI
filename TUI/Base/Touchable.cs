@@ -111,13 +111,19 @@ namespace TUI.Base
         /// Checks if specified touch can press this object or one of child objects in sub-tree.
         /// </summary>
         /// <param name="touch">Touch to check</param>
-        public virtual bool CanTouch(Touch touch)
+        public bool CanTouch(Touch touch) =>
+            CanTouchNative(touch) && Configuration.Custom.CanTouch?.Invoke(this as VisualObject, touch) != false;
+
+        #endregion
+        #region CanTouchNative
+
+        protected virtual bool CanTouchNative(Touch touch)
         {
             VisualObject @this = this as VisualObject;
             CanTouchArgs args = new CanTouchArgs(@this, touch);
             TUI.Hooks.CanTouch.Invoke(args);
             lock (Locker)
-                return Loaded && !Disposed && args.CanTouch && Configuration.CustomCanTouch?.Invoke(@this, touch) != false;
+                return Loaded && !Disposed && args.CanTouch;
         }
 
         #endregion

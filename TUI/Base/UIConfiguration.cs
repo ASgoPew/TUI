@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
 using TUI.Base.Style;
 
@@ -8,6 +6,9 @@ namespace TUI.Base
 {
     #region AlignmentConfiguration
 
+    /// <summary>
+    /// Alignment configuration class for <see cref="VisualObject.SetAlignmentInParent"/>.
+    /// </summary>
     public class AlignmentConfiguration
     {
         /// <summary>
@@ -30,13 +31,16 @@ namespace TUI.Base
             BoundsIsOffset = boundsIsOffset;
         }
 
-        public AlignmentConfiguration(AlignmentConfiguration alignmentConfiguration)
+        internal AlignmentConfiguration(AlignmentConfiguration alignmentConfiguration)
             : this(alignmentConfiguration.Alignment, alignmentConfiguration.Offset) { }
     }
 
     #endregion
     #region LayoutConfiguration
 
+    /// <summary>
+    /// Layout configuration class for <see cref="VisualObject.SetupLayout"/>.
+    /// </summary>
     public class LayoutConfiguration
     {
         /// <summary>
@@ -96,6 +100,9 @@ namespace TUI.Base
     #endregion
     #region GridConfiguration
 
+    /// <summary>
+    /// Grid configuration class for <see cref="VisualObject.SetupGrid"/>.
+    /// </summary>
     public class GridConfiguration
     {
         internal (int Position, int Size)[] ResultingColumns;
@@ -132,6 +139,9 @@ namespace TUI.Base
 
     #endregion
 
+    /// <summary>
+    /// Touching and drawing settings for VisualObject.
+    /// </summary>
     public class UIConfiguration
     {
         #region Visual
@@ -139,20 +149,20 @@ namespace TUI.Base
         /// <summary>
         /// Node positioning with alignment inside parent. Not set by default (null).
         /// <para></para>
-        /// Use <see cref="VisualObject.SetAlignmentInParent(AlignmentConfiguration)"/> to initialize alignment.
+        /// Use <see cref="VisualObject.SetAlignmentInParent"/> to initialize alignment.
         /// </summary>
         public AlignmentConfiguration Alignment { get; internal set; } = null;
 
         /// <summary>
         /// Child objects positioning in Layout. Not set by default (null).
         /// <para></para>
-        /// Use <see cref="VisualObject.SetupLayout(LayoutConfiguration)"/>
+        /// Use <see cref="VisualObject.SetupLayout"/>
         /// </summary>
         public LayoutConfiguration Layout { get; internal set; } = null;
         /// <summary>
         /// Child objects positioning in grid. Not set by default (null).
         /// <para></para>
-        /// Use <see cref="VisualObject.SetupGrid(GridConfiguration, bool)"/> to initialize grid.
+        /// Use <see cref="VisualObject.SetupGrid"/> to initialize grid.
         /// </summary>
         public GridConfiguration Grid { get; internal set; } = null;
 
@@ -181,37 +191,9 @@ namespace TUI.Base
         /// </summary>
         public object Permission { get; set; }
         /// <summary>
-        /// Callback for applying custom actions on Update().
+        /// Collection of custom callbacks.
         /// </summary>
-        public Action<VisualObject> CustomUpdate { get; set; }
-        /// <summary>
-        /// Callback for custom checking if user can touch this node.
-        /// </summary>
-        public Func<VisualObject, Touch, bool> CustomCanTouch { get; set; }
-        /// <summary>
-        /// Callback for applying custom actions on Apply().
-        /// </summary>
-        public Action<VisualObject> CustomApply { get; set; }
-        /// <summary>
-        /// Callback for custom pulse event handling.
-        /// </summary>
-        public Action<VisualObject, PulseType> CustomPulse { get; set; }
-        /// <summary>
-        /// Callback for custom database data read.
-        /// </summary>
-        public Action<BinaryReader> CustomDBRead { get; set; }
-        /// <summary>
-        /// Callback for custom database data write
-        /// </summary>
-        public Action<BinaryWriter> CustomDBWrite { get; set; }
-        /// <summary>
-        /// Callback for custom database user data read
-        /// </summary>
-        public Action<BinaryReader, int> CustomUDBRead { get; set; }
-        /// <summary>
-        /// Callback for custom database user data write
-        /// </summary>
-        public Action<BinaryWriter, int> CustomUDBWrite { get; set; }
+        public CustomCallbacks Custom { get; set; } = new CustomCallbacks();
         /// <summary>
         /// Once node is touched all future touches within the same session will pass to this node.
         /// </summary>
@@ -242,16 +224,19 @@ namespace TUI.Base
         /// </summary>
         public bool UseEnd { get; set; } = false;
 
+        /// <summary>
+        /// Touching and drawing settings for VisualObject.
+        /// </summary>
         public UIConfiguration() { }
 
+        /// <summary>
+        /// Touching and drawing settings for VisualObject.
+        /// </summary>
         public UIConfiguration(UIConfiguration configuration)
         {
             this.Lock = new Lock(configuration.Lock);
             this.Permission = configuration.Permission;
-            this.CustomUpdate = configuration.CustomUpdate?.Clone() as Action<VisualObject>;
-            this.CustomCanTouch = configuration.CustomCanTouch?.Clone() as Func<VisualObject, Touch, bool>;
-            this.CustomApply = configuration.CustomApply?.Clone() as Action<VisualObject>;
-            this.CustomPulse = configuration.CustomPulse?.Clone() as Action<VisualObject, PulseType>;
+            this.Custom = new CustomCallbacks(configuration.Custom);
             this.SessionAcquire = configuration.SessionAcquire;
             this.BeginRequire = configuration.BeginRequire;
             this.UseOutsideTouches = configuration.UseOutsideTouches;
