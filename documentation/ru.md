@@ -25,9 +25,9 @@
 * [Сигналы PulseType](#Сигналы-PulseType)
 * [Загрузка и отгрузка виджетов](#Загрузка-и-отгрузка-виджетов)
 * [База данных](#База-данных)
-* [Виджеты](#Виджеты)
 * [Создание собственного виджета](#Создание-собственного-виджета)
 * [Общие факты о клиентской стороне управления интерфейсом](#Общие-факты-о-клиентской-стороне-управления-интерфейсом)
+* [Виджеты](#Виджеты)
 
 ## Основы интерфейса
 
@@ -87,7 +87,7 @@ node.Update().Apply().Draw()
 2. Применить операцию к дочерним объектам.
 [3.] Применить другие операции к своему объекту.
 
-Так, у Update следующая последовательность обновлений (происходят при вызове Update()):
+#### Так, у Update следующая последовательность обновлений (происходят при вызове Update()):
 1. Обновить поля/свойства своей вершины в UpdateThis().
 2. Обновить размеры и затем позиции дочерних объектов в UpdateChildPositioning().
 3. Рекурсивно запустить Update() у дочерних объектов.
@@ -97,14 +97,14 @@ node.Update().Apply().Draw()
 Вычисляет некторые свои поля (Root, ProviderX, ProviderY, ...), потом вычисляет размеры и позиции
 дочерних элементов, находящися в решетке/сетке/отступе и рекурсивно запускает вызов Update() у дочерних элементов.
 
-Последовательность действий при Apply():
+#### Последовательность действий при Apply():
 1. Отрисовать (изменить блоки) своей вершины в ApplyThis().
 2. Рекурсивно запустить Apply() у дочерних объектов в ApplyChild().
 
 Например, вызов Apply() у виджета AlertWindow устанавливает во всей области объекта 165 стену (sapphire
 gemspark wall) с краской 27 (серый), затем рекурсивно вызывает Apply() у дочерних элементов.
 
-Последовательность действий при Pulse(PulseType):
+#### Последовательность действий при Pulse(PulseType):
 1. Обработать сигнал у своей вершины в PulseThis(PulseType).
 2. Рекурсивно передать сигнал дочерним объектам в PulseChild(PulseType).
 
@@ -293,33 +293,33 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 <details><summary> Нажмите сюда, чтобы развернуть </summary>
 <p>
 
-* int X
+* int **X**
 	* Координата по горизонтали относительно своей левой границы.
-* int Y
+* int **Y**
 	* Координата по вертикали относительно своей верхней границы.
-* int AbsoluteX
+* int **AbsoluteX**
 	* Координата по горизонтали относительно левой границы мира.
-* int AbsoluteY
+* int **AbsoluteY**
 	* Координата по вертикали относительно верхней границы мира.
-* TouchState State
+* TouchState **State**
 	* Состояние нажатие. Принимает одно из значений: Begin, Moving, End.
-* UserSession Session
+* UserSession **Session**
 	* Объект сессии нажимающего пользователя.
-* VisualObject Object
+* VisualObject **Object**
 	* Объект, на который это нажатие попало.
-* int Index
+* int **Index**
 	* Номер нажатия, считая от начала нажатия (TouchState.Begin)
-* int TouchSessionIndex
+* int **TouchSessionIndex**
 	* Индекс промежутка нажатия, в который этот Touch был совершен.
-* bool Undo
+* bool **Undo**
 	* true у нажатия с TouchState.End, если игрок окончил нажатие
 	правой кнопкой мыши (отмена действия плана)
-* byte Prefix
+* byte **Prefix**
 	* Префикс плана (the grand design).
-* bool Red, Green, Blue, Yellow, Actuator, Cutter
+* bool **Red**, **Green**, **Blue**, **Yellow**, **Actuator**, **Cutter**
 	* Включен ли красный провод/зеленый/желтый/актуаток/резак. Актуально только
 	на момент TouchState.End.
-* DateTime Time
+* DateTime **Time**
 	* Время нажатия по Utc.
 
 </p>
@@ -340,23 +340,23 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 <details><summary> Нажмите сюда, чтобы развернуть </summary>
 <p>
 
-* bool Enabled
+* bool **Enabled**
 	* Если установить значение false, то все нажатия вплоть до следующего TouchState.End
 	будут проигнорированы. Затем игрок снова сможет нажимать.
-* int UserIndex
+* int **UserIndex**
 	* Индекс пользователя, соответствующего этому объекту UserSession
-* int TouchSessionIndex
+* int **TouchSessionIndex**
 	* Текущий индекс промежутка нажатия. Увеличивается на 1 с каждым TouchState.End.
-* ProjectileID
+* int **ProjectileID**
 	* ID проджектайла великого плана, соответствующего этому нажатия.
-* Touch PreviousTouch
+* Touch **PreviousTouch**
 	* Объект предыдущего нажатия.
-* Touch BeginTouch
+* Touch **BeginTouch**
 	* Объект первого нажатия промежутка нажатия (TouchState.Begin)
-* VisualObject Acquired
+* VisualObject **Acquired**
 	* Привязанный к промежутку нажатия объект. Однажды привязав с помощью
 	Configuration.SessionAcquire какой-то VisualObject к промежутку нажатия, все последующие нажатия будут проходить только к этому объекту вплоть до окончания нажатия (TouchState.End).
-* ConcurrentDictionary<object, object> Data
+* ConcurrentDictionary<object, object> **Data**
 	* Приватное runtime-хранилище данных, к которому можно обратиться через оператор[string key].
 
 </p>
@@ -375,26 +375,26 @@ Configuration класса UIConfiguration.
 <details><summary> Нажмите сюда, чтобы развернуть </summary>
 <p>
 
-* bool UseBegin
+* bool **UseBegin**
 	* Allows to touch this node if touch.State == TouchState.Begin. True by default.
-* bool UseMoving
+* bool **UseMoving**
 	* Allows to touch this node if touch.State == TouchState.Moving. False by default.
-* bool UseEnd
+* bool **UseEnd**
 	* Allows to touch this node if touch.State == TouchState.End. False by default.
-* bool SessionAcquire
+* bool **SessionAcquire**
 	* Once node is touched all future touches within the same session will pass to this node.
-* bool BeginRequire
+* bool **BeginRequire**
 	* Allows to touch this node only if current session began with touching it.
-* bool UseOutsideTouches
+* bool **UseOutsideTouches**
 	* Only for nodes with SessionAcquire. Passes touches even if they are not inside of this object.
-* bool Ordered
+* bool **Ordered**
 	* Touching child node would place it on top of Child array layer so that it would draw
 	higher than other objects with the same layer and check for touching first.
-* object Permission
+* object **Permission**
 	* Object that should be used for checking if user can touch this node (permission string for TShock).
-* Lock Lock
+* Lock **Lock**
 	* Touching this node would prevent touches on it or on the whole root for some time.
-* CustomCallbacks Custom
+* CustomCallbacks **Custom**
 	* Collection of custom callbacks.
 
 </p>
@@ -407,19 +407,19 @@ Configuration класса UIConfiguration.
 <details><summary> Нажмите сюда, чтобы развернуть </summary>
 <p>
 
-* bool? Active
+* bool? **Active**
 	* Sets tile.active(Style.Active) for every tile.
 	If not specified sets to true in case Style.Tile is specified,
 	otherwise to false in case Style.Wall is specified.
-* ushort? Tile
+* ushort? **Tile**
 	* Sets tile.type = Style.Tile for every tile.
-* byte? TileColor
+* byte? **TileColor**
 	* Sets tile.color(Style.TileColor) for every tile.
-* byte? Wall
+* byte? **Wall**
 	* Sets tile.wall = Style.Wall for every tile.
-* byte? WallColor
+* byte? **WallColor**
 	* Sets tile.wallColor(Style.WallColor) for every tile.
-* bool? InActive
+* bool? **InActive**
 	* Sets tile.inActive(Style.InActive) for every tile.
 
 </p>
