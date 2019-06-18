@@ -73,6 +73,9 @@ namespace TUI.Widgets
 
         #region Constructor
 
+        /// <summary>
+        /// Widget for showing text using character statues.
+        /// </summary>
         public Label(int x, int y, int width, int height, string text, UIConfiguration configuration = null,
                 LabelStyle style = null, Action<VisualObject, Touch> callback = null)
             : base(x, y, width, height, configuration, style ?? new LabelStyle(), callback)
@@ -80,6 +83,9 @@ namespace TUI.Widgets
             RawText = text ?? throw new ArgumentNullException(nameof(text));
         }
 
+        /// <summary>
+        /// Widget for showing text using character statues.
+        /// </summary>
         public Label(int x, int y, int width, int height, string text, LabelStyle style)
             : this(x, y, width, height, text, null, style)
         {

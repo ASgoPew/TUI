@@ -16,10 +16,22 @@ namespace TUI.Widgets
         Massive
     }
 
+    /// <summary>
+    /// Drawing styles of ItemRack widget.
+    /// </summary>
     public class ItemRackStyle : UIStyle
     {
+        /// <summary>
+        /// Item NetID.
+        /// </summary>
         public short Type { get; set; } = 0;
+        /// <summary>
+        /// Side of weapon rack.
+        /// </summary>
         public bool Left { get; set; } = true;
+        /// <summary>
+        /// Size of item (prefix).
+        /// </summary>
         public ItemSize Size { get; set; } = ItemSize.Normal;
 
         public ItemRackStyle() : base() { }
@@ -29,11 +41,15 @@ namespace TUI.Widgets
         {
             Type = style.Type;
             Left = style.Left;
+            Size = style.Size;
         }
     }
 
     #endregion
 
+    /// <summary>
+    /// Widget for drawing item (with ability to draw sign with text on topS).
+    /// </summary>
     public class ItemRack : VisualObject
     {
         #region Data
@@ -49,6 +65,9 @@ namespace TUI.Widgets
 
         #region Constructor
 
+        /// <summary>
+        /// Widget for drawing item (with ability to draw sign with text on topS).
+        /// </summary>
         public ItemRack(int x, int y, ItemRackStyle style = null, Action<VisualObject, Touch> callback = null)
             : base(x, y, 3, 3, new UIConfiguration(), style ?? new ItemRackStyle(), callback)
         {

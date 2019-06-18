@@ -14,6 +14,9 @@ namespace TUI.Widgets
         /// </summary>
         public IInput Input { get; protected set; }
 
+        /// <summary>
+        /// Widget for adding a label to the left side of some other input widget (Checkbox/InputLabel/Slider/...).
+        /// </summary>
         public FormField(IInput input, int x, int y, int width, int height, string text, LabelStyle style = null, ExternalOffset inputOffset = null)
             : base(x, y, width, height, text, new UIConfiguration() { UseBegin = false }, style)
         {

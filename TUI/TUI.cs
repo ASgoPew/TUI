@@ -113,7 +113,13 @@ namespace TUI
 
         #region Create
 
-        internal static RootVisualObject Create(RootVisualObject root)
+        /// <summary>
+        /// Create user interface tree and add it to TUI.
+        /// </summary>
+        /// <param name="root">Root of user interface tree.
+        /// <para></para>
+        /// Consider using Panel widget for ability to automatically save position and size.</param>
+        public static RootVisualObject Create(RootVisualObject root)
         {
             if (!(root.Provider is MainTileProvider)
                     && (root.Width > root.Provider.Width || root.Height > root.Provider.Height))
@@ -129,18 +135,6 @@ namespace TUI
             }
             return root;
         }
-
-        public static RootVisualObject CreateRoot(string name, int x, int y, int width, int height,
-                UIConfiguration configuration = null, ContainerStyle style = null, object provider = null) =>
-            Create(new RootVisualObject(name, x, y, width, height, configuration, style, provider));
-
-        public static Panel CreatePanel(string name, int x, int y, int width, int height,
-                UIConfiguration configuration = null, ContainerStyle style = null, object provider = null) =>
-            Create(new Panel(name, x, y, width, height, configuration, style, provider)) as Panel;
-
-        public static Panel CreatePanel(string name, int x, int y, int width, int height, UIConfiguration configuration,
-                ContainerStyle style, PanelDrag drag, PanelResize resize, object provider = null) =>
-            Create(new Panel(name, x, y, width, height, drag, resize, configuration, style, provider)) as Panel;
 
         #endregion
         #region Destroy

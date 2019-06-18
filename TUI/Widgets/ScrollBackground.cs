@@ -5,6 +5,9 @@ using TUI.Base.Style;
 
 namespace TUI.Widgets
 {
+    /// <summary>
+    /// Widget for scrolling parent's layout by pulling layout background.
+    /// </summary>
     public class ScrollBackground : VisualObject
     {
         #region Data
@@ -19,6 +22,11 @@ namespace TUI.Widgets
 
         #region Constructor
 
+        /// <summary>
+        /// Widget for scrolling parent's layout by pulling layout background.
+        /// </summary>
+        /// <param name="allowToPull">Ability to pull beyond a border</param>
+        /// <param name="rememberTouchPosition">Pulling the same point of layout background during touch session</param>
         public ScrollBackground(bool allowToPull = true, bool rememberTouchPosition = true, bool useMoving = true, Action<ScrollBackground, int> callback = null)
             : base(0, 0, 0, 0, new UIConfiguration() { UseMoving=useMoving, UseEnd=true, UseOutsideTouches=true })
         {

@@ -35,7 +35,7 @@ namespace TUITests
             TUI.TUI.Initialize();
             UIPlayer me = new UIPlayer();
             TUI.TUI.InitializePlayer(me.Index);
-            RootVisualObject root = TUI.TUI.CreateRoot("Game", 55, 115, 50, 40);
+            RootVisualObject root = TUI.TUI.Create(new RootVisualObject("Game", 55, 115, 50, 40));
             root.SetupGrid(new ISize[] { new Relative(100), new Absolute(20) }, new ISize[] { new Absolute(20), new Relative(100) }, new Offset() { Right = 1 });
             TUI.TUI.Update();
             TUI.TUI.Touched(me.Index, new Touch(124, 110, TouchState.Begin, 0, 0));

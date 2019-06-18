@@ -690,9 +690,11 @@ Separator separator = node.Add(new Separator(6, new UIStyle()
 InputLabel(int x, int y, InputLabelStyle style, Action<InputLabel, string> callback)
 ```
 Свойства InputLabelStyle:
-* All properties of [UIStyle](#Класс-UIStyle)
+* All properties of [LabelStyle](#Label)
 * bool TriggerInRuntime
 	* Whether to invoke input callback on TouchState.Moving touches.
+* InputLabelType Type
+	* Determines which set of characters to use.
 
 Пример:
 ```cs
@@ -711,7 +713,14 @@ InputLabel input = node.Add(new InputLabel(0, 0, new InputLabelStyle()
 ```cs
 ItemRack(int x, int y, ItemRackStyle style, Action<VisualObject, Touch> callback)
 ```
+Свойства ItemRackStyle:
 * All properties of [UIStyle](#Класс-UIStyle)
+* short Type
+	* Item NetID.
+* bool Left
+	* Side of weapon rack.
+* ItemSize Size
+	* Size of item (prefix).
 
 Пример:
 ```cs
@@ -740,9 +749,12 @@ VisualSign vsign = node.Add(new VisualSign(0, 0, "lmfao sosi")) as VisualSign;
 Checkbox, Button, InputLabel, Slider, ...
 Наследуется от Label
 ```cs
-FormField(VisualObject input, int x, int y, int width, int height, string text,
+FormField(IInput input, int x, int y, int width, int height, string text,
 	LabelStyle style, ExternalOffset inputOffset)
 ```
+* ExternalOffset inputOffset
+	* Alignment offset of input (input will automatically gain Alignment.Right).
+
 Пример:
 ```cs
 FormField ffield = node.Add(new FormField(new VisualSign(0, 0, "test"),
@@ -764,8 +776,6 @@ Image(int x, int y, string path, UIConfiguration configuration, UIStyle style,
 Image(int x, int y, ImageData data, UIConfiguration configuration, UIStyle style,
 	Action<VisualObject, Touch> callback)
 ```
-* All properties of [UIStyle](#Класс-UIStyle)
-
 Пример:
 ```cs
 Image image = node.Add(new Image(2, 2, "Media\\Help.TEditSch")) as Image;
@@ -794,16 +804,17 @@ Video video = node.Add(new Video(2, 2, null, new VideoStyle()
 Виджет всплывающего окна с информационным сообщением.
 Создается с помощью метода корневого объекта RootVisualObject:
 ```cs
-RootVisualObject Alert(string text, UIStyle style, ButtonStyle buttonStyle)
+RootVisualObject Alert(string text, UIStyle style, ButtonStyle okButtonStyle)
 ```
 Пример:
 ```cs
-node.Root.Alert("Hello world")
+node.Root.Alert("Hello world");
 ```
 ![]()
 
 ### ConfirmWindow
 Виджет всплывающего окна с подтверждением действия.
+Нажатие вне всплывающего окна равносильно нажатию кнопки 'no'.
 Создается с помощью метода корневого объекта RootVisualObject:
 ```cs
 RootVisualObject Confirm(string text, Action<bool> callback, ContainerStyle style,
@@ -811,7 +822,7 @@ RootVisualObject Confirm(string text, Action<bool> callback, ContainerStyle styl
 ```
 Пример:
 ```cs
-node.Root.Confirm("Hello world", value => Console.WriteLine(value))
+node.Root.Confirm("Hello world", value => Console.WriteLine(value));
 ```
 ![]()
 
@@ -825,10 +836,11 @@ node.Root.Confirm("Hello world", value => Console.WriteLine(value))
 ScrollBackground(bool allowToPull, bool rememberTouchPosition, bool useMoving,
 	Action<ScrollBackground, int> callback)
 ```
-* allowToPull - 
-* rememberTouchPosition - 
-* useMoving - 
-* callback - 
+* bool allowToPull
+	* Ability to pull beyond a border.
+* bool rememberTouchPosition
+	* Pulling the same point of layout background during touch session.
+
 Пример:
 ```cs
 // Указываем layer (слой) в значение Int32.MinValue, чтобы виджет был сзади всех прочих виджетов
@@ -842,7 +854,9 @@ ScrollBackground scrollbg = node.Add(new ScrollBackground(true, true, true), Int
 ```cs
 ScrollBar(Direction side, int width, ScrollBarStyle style)
 ```
+Свойства ScrollBarStyle:
 * All properties of [UIStyle](#Класс-UIStyle)
+* byte SliderColor
 
 Пример:
 ```cs
@@ -855,7 +869,9 @@ ScrollBar scrollbar = node.Add(new ScrollBar(Direction.Right)) as ScrollBar;
 ```cs
 Arrow(int x, int y, ArrowStyle style, Action<VisualObject, Touch> callback)
 ```
+Свойства ArrowStyle:
 * All properties of [UIStyle](#Класс-UIStyle)
+* Direction Direction
 
 Пример:
 ```cs

@@ -7,6 +7,9 @@ using TUI.Widgets;
 
 namespace TUI.Base
 {
+    /// <summary>
+    /// Basic root widget.
+    /// </summary>
     public class RootVisualObject : VisualContainer
     {
         #region Data
@@ -20,12 +23,21 @@ namespace TUI.Base
         public VisualContainer PopUpBackground { get; protected set; }
         protected Dictionary<VisualObject, Action<VisualObject>> PopUpCancelCallbacks =
             new Dictionary<VisualObject, Action<VisualObject>>();
-        
+
         #endregion
 
         #region Constructor
 
-        internal RootVisualObject(string name, int x, int y, int width, int height,
+        /// <summary>
+        /// Basic root widget.
+        /// </summary>
+        /// <param name="name">Unique interface identifier</param>
+        /// <param name="provider">Tile provider object, default value - null (interface would
+        /// be drawn on the Main.tile, tiles would be irrevocably modified).
+        /// <para></para>
+        /// FakeTileRectangle from [FakeManager](https://github.com/AnzhelikaO/FakeManager)
+        /// can be passed as a value so that interface would be drawn above the Main.tile.</param>
+        public RootVisualObject(string name, int x, int y, int width, int height,
                 UIConfiguration configuration = null, ContainerStyle style = null, object provider = null)
             : base(x, y, width, height, configuration ?? new UIConfiguration() { UseBegin=true, UseMoving=true, UseEnd=true }, style)
         {
@@ -174,9 +186,9 @@ namespace TUI.Base
         #endregion
         #region Alert
 
-        public virtual RootVisualObject Alert(string text, UIStyle style = null, ButtonStyle buttonStyle = null)
+        public virtual RootVisualObject Alert(string text, UIStyle style = null, ButtonStyle okButtonStyle = null)
         {
-            ShowPopUp(new AlertWindow(text, style, buttonStyle));
+            ShowPopUp(new AlertWindow(text, style, okButtonStyle));
             return this;
         }
 

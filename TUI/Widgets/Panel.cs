@@ -28,11 +28,21 @@ namespace TUI.Widgets
         public PanelResize ResizeObject { get; set; }
         internal bool SaveDataNow { get; set; } = false;
 
-        #endregion 
+        #endregion
 
         #region Constructor
 
-        internal protected Panel(string name, int x, int y, int width, int height, PanelDrag drag, PanelResize resize,
+        /// <summary>
+        /// Root widget that saves its position and size and has a button for changing position
+        /// and a button for changing size (top left corner 1x1 and bottom right corner 1x1 by default).
+        /// </summary>
+        /// <param name="name">Unique interface identifier</param>
+        /// <param name="provider">Tile provider object, default value - null (interface would
+        /// be drawn on the Main.tile, tiles would be irrevocably modified).
+        /// <para></para>
+        /// FakeTileRectangle from [FakeManager](https://github.com/AnzhelikaO/FakeManager)
+        /// can be passed as a value so that interface would be drawn above the Main.tile.</param>
+        public Panel(string name, int x, int y, int width, int height, PanelDrag drag, PanelResize resize,
                 UIConfiguration configuration = null, ContainerStyle style = null, object provider = null)
             : base(name, x, y, width, height, configuration ?? new UIConfiguration() { UseBegin = true,
                 UseMoving = true, UseEnd = true }, style, provider)
@@ -45,7 +55,17 @@ namespace TUI.Widgets
             DBRead();
         }
 
-        internal protected Panel(string name, int x, int y, int width, int height, UIConfiguration configuration = null,
+        /// <summary>
+        /// Root widget that saves its position and size and has a button for changing position
+        /// and a button for changing size (top left corner 1x1 and bottom right corner 1x1 by default).
+        /// </summary>
+        /// <param name="name">Unique interface identifier</param>
+        /// <param name="provider">Tile provider object, default value - null (interface would
+        /// be drawn on the Main.tile, tiles would be irrevocably modified).
+        /// <para></para>
+        /// FakeTileRectangle from [FakeManager](https://github.com/AnzhelikaO/FakeManager)
+        /// can be passed as a value so that interface would be drawn above the Main.tile.</param>
+        public Panel(string name, int x, int y, int width, int height, UIConfiguration configuration = null,
                 ContainerStyle style = null, object provider = null)
             : this(name, x, y, width, height, new DefaultPanelDrag(), new DefaultPanelResize(), configuration, style, provider)
         { }

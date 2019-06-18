@@ -16,7 +16,7 @@ namespace TUI.Widgets
     }
 
     /// <summary>
-    /// Drawing styles for InputLabel.
+    /// Drawing styles for InputLabel widget.
     /// </summary>
     public class InputLabelStyle : LabelStyle
     {
@@ -59,6 +59,9 @@ namespace TUI.Widgets
 
         #region Constructor
 
+        /// <summary>
+        /// Input widget for string/int values using *drag and slide the digit* method.
+        /// </summary>
         public InputLabel(int x, int y, InputLabelStyle style = null, Input<string> input = null)
             : base(x, y, input.DefaultValue.Length * 2, style?.TextUnderline == LabelUnderline.Underline ? 3 : 2, input.DefaultValue,
                   new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true }, style ?? new InputLabelStyle())

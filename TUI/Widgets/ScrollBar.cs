@@ -6,6 +6,9 @@ namespace TUI.Widgets
 {
     #region ScrollBarStyle
 
+    /// <summary>
+    /// Drawing styles for ScrollBar widget.
+    /// </summary>
     public class ScrollBarStyle : UIStyle
     {
         public byte SliderColor { get; set; } = UIDefault.SliderSeparatorColor;
@@ -20,6 +23,9 @@ namespace TUI.Widgets
 
     #endregion
 
+    /// <summary>
+    /// Widget for scrolling parent's layout with a sidebar.
+    /// </summary>
     public class ScrollBar : VisualObject
     {
         #region Data
@@ -36,6 +42,10 @@ namespace TUI.Widgets
 
         #region Constructor
 
+        /// <summary>
+        /// Widget for scrolling parent's layout with a sidebar.
+        /// </summary>
+        /// <param name="side">Side where to adjoin sidebar</param>
         public ScrollBar(Direction side = Direction.Right, int width = 1, ScrollBarStyle style = null)
             : base(0, 0, 0, 0, new UIConfiguration(), style ?? new ScrollBarStyle())
         {

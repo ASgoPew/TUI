@@ -74,6 +74,9 @@ namespace TUI.Widgets
 
         #region Constructor
 
+        /// <summary>
+        /// Widget for invoking callback and blinking on touch.
+        /// </summary>
         public Button(int x, int y, int width, int height, string text, UIConfiguration configuration = null,
                 ButtonStyle style = null, Action<VisualObject, Touch> callback = null)
             : base(x, y, width, height, text, configuration, style ?? new ButtonStyle(), callback)

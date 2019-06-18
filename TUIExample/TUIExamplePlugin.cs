@@ -25,8 +25,8 @@ namespace TUIExample
         public override void Initialize()
         {
             // Создаем панель
-            Panel root = TUI.TUI.CreatePanel("TestPanel", 100, 100, 50, 40, null,
-                new ContainerStyle() { Wall = WallID.DiamondGemspark });
+            Panel root = TUI.TUI.Create(new Panel("TestPanel", 100, 100, 50, 40, null,
+                new ContainerStyle() { Wall = WallID.DiamondGemspark })) as Panel;
             // Создаем виджет Label (отображение текста)
             Label label1 = new Label(1, 1, 17, 2, "some text");
             // Добавляем к панели

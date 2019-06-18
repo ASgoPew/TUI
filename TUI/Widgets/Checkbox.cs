@@ -44,6 +44,9 @@ namespace TUI.Widgets
 
         #region Constructor
 
+        /// <summary>
+        /// Input widget for boolean values.
+        /// </summary>
         public Checkbox(int x, int y, int size, CheckboxStyle style = null, Input<bool> input = null)
             : base(x, y, size, size, new UIConfiguration(), style ?? new CheckboxStyle())
         {

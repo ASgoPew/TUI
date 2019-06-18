@@ -7,14 +7,14 @@ namespace TUI.Widgets
 {
     #region ArrowStyle
 
+    /// <summary>
+    /// Drawing styles for Arrow widget.
+    /// </summary>
     public class ArrowStyle : UIStyle
     {
         public Direction Direction { get; set; } = Direction.Right;
 
-        public ArrowStyle()
-            : base()
-        {
-        }
+        public ArrowStyle() : base() { }
 
         public ArrowStyle(ArrowStyle arrowStyle)
             : base(arrowStyle)
@@ -25,6 +25,9 @@ namespace TUI.Widgets
 
     #endregion
 
+    /// <summary>
+    /// Widget for drawing arrow in one of directions.
+    /// </summary>
     public class Arrow : VisualObject
     {
         #region Data
@@ -43,6 +46,9 @@ namespace TUI.Widgets
 
         #region Constructor
 
+        /// <summary>
+        /// Widget for drawing arrow in one of directions.
+        /// </summary>
         public Arrow(int x, int y, ArrowStyle style = null, Action<VisualObject, Touch> callback = null)
             : base(x, y, 2, 2, null, style, callback)
         {
