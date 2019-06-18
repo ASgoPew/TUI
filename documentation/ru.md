@@ -292,6 +292,7 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 #### Класс Touch
 <details><summary> Нажмите сюда, чтобы развернуть </summary>
 <p>
+
 * int X
 	* Координата по горизонтали относительно своей левой границы.
 * int Y
@@ -320,6 +321,7 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 	на момент TouchState.End.
 * DateTime Time
 	* Время нажатия по Utc.
+
 </p>
 </details>
 
@@ -337,6 +339,7 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 #### Класс UserSession
 <details><summary> Нажмите сюда, чтобы развернуть </summary>
 <p>
+
 * bool Enabled
 	* Если установить значение false, то все нажатия вплоть до следующего TouchState.End
 	будут проигнорированы. Затем игрок снова сможет нажимать.
@@ -355,6 +358,7 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 	Configuration.SessionAcquire какой-то VisualObject к промежутку нажатия, все последующие нажатия будут проходить только к этому объекту вплоть до окончания нажатия (TouchState.End).
 * ConcurrentDictionary<object, object> Data
 	* Приватное runtime-хранилище данных, к которому можно обратиться через оператор[string key].
+
 </p>
 </details>
 
@@ -370,6 +374,7 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 Configuration класса UIConfiguration.
 <details><summary> Нажмите сюда, чтобы развернуть </summary>
 <p>
+
 * bool UseBegin
 	* Allows to touch this node if touch.State == TouchState.Begin. True by default.
 * bool UseMoving
@@ -391,6 +396,7 @@ Configuration класса UIConfiguration.
 	* Touching this node would prevent touches on it or on the whole root for some time.
 * CustomCallbacks Custom
 	* Collection of custom callbacks.
+
 </p>
 </details>
 
@@ -400,6 +406,7 @@ Configuration класса UIConfiguration.
 этот параметр тайла как есть (с помощью этого реализуется прозрачность).
 <details><summary> Нажмите сюда, чтобы развернуть </summary>
 <p>
+
 * bool? Active
 	* Sets tile.active(Style.Active) for every tile.
 	If not specified sets to true in case Style.Tile is specified,
@@ -414,6 +421,7 @@ Configuration класса UIConfiguration.
 	* Sets tile.wallColor(Style.WallColor) for every tile.
 * bool? InActive
 	* Sets tile.inActive(Style.InActive) for every tile.
+
 </p>
 </details>
 
