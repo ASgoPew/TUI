@@ -620,6 +620,33 @@ virtual void UDBWriteNative(BinaryWriter bw, int user)
 
 ## Виджеты
 
+<details><summary> <b><ins>Список</ins></b> (нажмите сюда, чтобы развернуть) </summary>
+<p>
+
+* [VisualObject](#VisualObject)
+* [VisualContainer](#VisualContainer)
+* [RootVisualObject](#RootVisualObject)
+* [Panel](#Panel)
+* [Label](#Label)
+* [Button](#Button)
+* [Slider](#Slider)
+* [Checkbox](#Checkbox)
+* [Separator](#Separator)
+* [InputLabel](#InputLabel)
+* [ItemRack](#ItemRack)
+* [VisualSign](#VisualSign)
+* [FormField](#FormField)
+* [Image](#Image)
+* [Video](#Video)
+* [AlertWindow](#AlertWindow)
+* [ConfirmWindow](#ConfirmWindow)
+* [ScrollBackground](#ScrollBackground)
+* [ScrollBar](#ScrollBar)
+* [Arrow](#Arrow)
+
+</p>
+</details>
+
 Большинство виджетов имеют параметр стиля в конструкторе, зачастую это не UIStyle,
 а класс, наследующийся от UIStyle. Например, ButtonStyle включает в себя как
 конфигурацию UIStyle, так и разные стили, связанные с морганием кнопки:
