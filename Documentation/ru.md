@@ -233,9 +233,9 @@ VisualObject SetupGrid(IEnumerable<ISize> columns, IEnumerable<ISize> lines, Off
 <details><summary> <sup><b><ins>Параметры</ins></b> (нажмите сюда, чтобы развернуть)</sup> </summary>
 <p>
 
-* IEnumerable<ISize> **columns**
+* IEnumerable\<ISize\> **columns**
 	* Размеры колонок. Например, левая колонка размером 10 блоков, а правая - все оставшееся место: new ISize[] { Absolute(10), Relative(100) }
-* IEnumerable<ISize> **lines**
+* IEnumerable\<ISize\> **lines**
 	* Размеры линий. Например, центральная линия занимает 20 блоков, а верхняя и нижняя поровну делят оставшееся место: new ISize[] { Relative(50), Absolute(20), Relative(50) }
 * Offset **offset**
 	* Отступ сетки, включая внутренние отступы ячеек между собой и внешние отступы от границы объекта.
