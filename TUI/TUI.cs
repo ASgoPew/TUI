@@ -328,6 +328,10 @@ namespace TUI
 
                 Child.Remove(root);
                 Child.Insert(index - 1, root);
+
+                if (!root.UsesDefaultMainProvider)
+                    root.Provider.Collection.SetTop(root.Provider.Key);
+
                 return true;
             }
         }
@@ -335,15 +339,15 @@ namespace TUI
         #endregion
         #region PostSetTop
 
-        public static void PostSetTop(RootVisualObject o)
+        public static void PostSetTop(RootVisualObject child)
         {
             // Should not apply if intersecting objects have different tile provider
-            (bool intersects, bool needsApply) = ChildIntersectingOthers(o);
+            (bool intersects, bool needsApply) = ChildIntersectingOthers(child);
             if (intersects)
             {
                 if (needsApply)
-                    o.Apply();
-                o.Draw();
+                    child.Apply();
+                child.Draw();
             }
         }
 

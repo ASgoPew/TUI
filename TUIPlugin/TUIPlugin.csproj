@@ -33,9 +33,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FakeManager">
-      <HintPath>_References\FakeManager.dll</HintPath>
-    </Reference>
     <Reference Include="Mono.Data.Sqlite">
       <HintPath>_References\Mono.Data.Sqlite.dll</HintPath>
     </Reference>
