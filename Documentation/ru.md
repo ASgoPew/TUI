@@ -60,7 +60,7 @@
 
 Добавить дочерний элемент можно несколькими способами, например, вызвав функцию Add:
 ```cs
-VisualObject Add(VisualObject newChild)
+VisualObject Add(VisualObject newChild);
 ```
 
 
@@ -81,7 +81,7 @@ VisualObject Add(VisualObject newChild)
 Первые три операции зачастую идут в указанном порядке:
 ```cs
 VisualObject node = ...
-node.Update().Apply().Draw()
+node.Update().Apply().Draw();
 ```
 Что логично, ведь для отправки нарисованного в Draw() необходимо сперва отрисовать в Apply(),
 а для отрисовки в Apply() очень часто необходимо сперва обновить виджет в Update().
@@ -133,10 +133,10 @@ TUI.Draw();
 
 Чтобы создать новый интерфейс, необходимо вызвать метод Create класса TUI:
 ```cs
-RootVisualObject Create(RootVisualObject root)
+RootVisualObject Create(RootVisualObject root);
 ```
 
-Этот метод создает объект RootVisualObject, (который, в свою очередь, наследуется от 
+Этот метод создает объект RootVisualObject, (который, в свою очередь, наследуется от
 VisualObject), затем добавляет его в список корней TUI.
 Таким образом, теперь система при обработке нажатий *увидит* этот объект и проверит, не на него ли нажал игрок.
 
@@ -184,7 +184,7 @@ Button button = node.Add(new Button(0, 7, 12, 4, "lol", null, new ButtonStyle()
 в определенном порядке друг за другом в указанном направлении:
 
 ```cs
-VisualObject SetupLayout(Alignment alignment, Direction direction, Side side, ExternalOffset offset, int childIndent, bool boundsIsOffset)
+VisualObject SetupLayout(Alignment alignment, Direction direction, Side side, ExternalOffset offset, int childIndent, bool boundsIsOffset);
 ```
 <details><summary> <sup><b><ins>Параметры</ins></b> (нажмите сюда, чтобы развернуть)</sup> </summary>
 <p>
@@ -232,7 +232,7 @@ node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle() {
 
 Метод SetupGrid позволяет представить объект в виде решетки с абсолютными или относительными размерами колонок и линий:
 ```cs
-VisualObject SetupGrid(IEnumerable<ISize> columns, IEnumerable<ISize> lines, Offset offset, bool fillWithEmptyObjects)
+VisualObject SetupGrid(IEnumerable<ISize> columns, IEnumerable<ISize> lines, Offset offset, bool fillWithEmptyObjects);
 ```
 <details><summary> <sup><b><ins>Параметры</ins></b> (нажмите сюда, чтобы развернуть)</sup> </summary>
 <p>
@@ -278,7 +278,7 @@ Task.Delay(10000).ContinueWith(_ => node.ShowGrid());
 Метод SetAlignmentInParent позволяет автоматически располагать объект в относительной позиции в родителе:
 
 ```cs
-VisualObject SetAlignmentInParent(Alignment alignment, ExternalOffset offset, bool boundsIsOffset)
+VisualObject SetAlignmentInParent(Alignment alignment, ExternalOffset offset, bool boundsIsOffset);
 ```
 <details><summary> <sup><b><ins>Параметры</ins></b> (нажмите сюда, чтобы развернуть)</sup> </summary>
 <p>
@@ -307,7 +307,7 @@ node.Add(new Label(0, 0, 10, 4, "test"))
 Метод SetFullSize позволяет автоматически устанавливать размеры объекта (как по ширине, так и по высоте)
 относительно размеров родителя (расширять в точности до размеров родительского объекта):
 ```cs
-VisualObject SetFullSize(bool horizontal, bool vertical)
+VisualObject SetFullSize(bool horizontal, bool vertical);
 ```
 <details><summary> <sup><b><ins>Параметры</ins></b> (нажмите сюда, чтобы развернуть)</sup> </summary>
 <p>
@@ -322,12 +322,12 @@ VisualObject SetFullSize(bool horizontal, bool vertical)
 
 Или:
 ```cs
-VisualObject SetFullSize(FullSize fullSize)
+VisualObject SetFullSize(FullSize fullSize);
 ```
 <details><summary> <sup><b><ins>Параметры</ins></b> (нажмите сюда, чтобы развернуть)</sup> </summary>
 <p>
 
-* FullSize fullSize
+* FullSize **fullSize**
 	* Одно из значений: FullSize.None, FullSize.Horizontal, FullSize.Vertical, FullSize.Both.
 
 </p>
@@ -524,8 +524,8 @@ Configuration класса UIConfiguration.
 снова использовать). При этом гарантируется, что отгрузка не произойдет, если не была
 произведена загрузка.
 ```cs
-virtual void LoadThisNative()
-virtual void DisposeThisNative()
+virtual void LoadThisNative();
+virtual void DisposeThisNative();
 ```
 
 ## База данных
@@ -552,11 +552,11 @@ FullName - полное название в дереве интерфейса.
 
 Прочитать данные из базы данных можно с помощью метода DBRead:
 ```cs
-bool DBRead()
+bool DBRead();
 ```
 Записать данные в базу данных можно с помощью метода DBWrite:
 ```cs
-void DBWrite()
+void DBWrite();
 ```
 Эти методы по умолчанию пытаются вызывать функции Configuration.Custom.DBRead и Configuration.Custom.DBWrite соответственно.
 
@@ -564,8 +564,8 @@ void DBWrite()
 и записи потока данных существуют переопределяемые функции чтения BinaryReader и записи
 в BinaryWriter:
 ```cs
-virtual void DBReadNative(BinaryReader br)
-virtual void DBWriteNative(BinaryWriter bw)
+virtual void DBReadNative(BinaryReader br);
+virtual void DBWriteNative(BinaryWriter bw);
 ```
 
 Например, виджет панели Panel переопределяет эти методы для того, чтобы запомнить позицию и размеры:
@@ -592,10 +592,10 @@ protected override void DBWriteNative(BinaryWriter bw)
 пользователю. Для хранения данных, относящихся к этому объекту и пользователю в совокупности
 есть аналогичные методы:
 ```cs
-bool UDBRead(int user)
-void UDBWrite(int user)
-virtual void UDBReadNative(BinaryReader br, int user)
-virtual void UDBWriteNative(BinaryWriter bw, int user)
+bool UDBRead(int user);
+void UDBWrite(int user);
+virtual void UDBReadNative(BinaryReader br, int user);
+virtual void UDBWriteNative(BinaryWriter bw, int user);
 ```
 
 
@@ -665,7 +665,7 @@ BlinkColor, BlinkDelay, TriggerStyle, BlinkStyle.
 [Координаты] -> [размеры] -> [текст (в данном случае его нет)] -> [конфигурация] -> [стиль] -> [функция].
 ```cs
 VisualObject(int x, int y, int width, int height, UIConfiguration configuration,
-	UIStyle style, Action<VisualObject, Touch> callback)
+	UIStyle style, Action<VisualObject, Touch> callback);
 ```
 <details><summary> <sup><b><ins>Параметры</ins></b> (нажмите сюда, чтобы развернуть)</sup> </summary>
 <p>
@@ -707,10 +707,10 @@ VisualObject obj = node.Add(new VisualObject(0, 0, 8, 4, null, new UIStyle() { W
 VisualContainer гарантирует правильную работу виджетов ScrollBackground и ScrollBar внутри себя.
 ```cs
 VisualContainer(int x, int y, int width, int height, UIConfiguration configuration,
-	ContainerStyle style, Action<VisualObject, Touch> callback)
-VisualContainer()
-VisualContainer(UIConfiguration configuration)
-VisualContainer(ContainerStyle style)
+	ContainerStyle style, Action<VisualObject, Touch> callback);
+VisualContainer();
+VisualContainer(UIConfiguration configuration);
+VisualContainer(ContainerStyle style);
 ```
 <details><summary> Свойства <b><ins>ContainerStyle:</ins></b> (нажмите сюда, чтобы развернуть) </summary>
 <p>
@@ -737,7 +737,7 @@ VisualContainer node = root.Add(
 Виджет, являющийся корнем дерева и выполняющий соответствующие функции.
 ```cs
 RootVisualObject(string name, int x, int y, int width, int height,
-	UIConfiguration configuration, ContainerStyle style, object provider)
+	UIConfiguration configuration, ContainerStyle style, object provider);
 ```
 <details><summary> <sup><b><ins>Параметры</ins></b> (нажмите сюда, чтобы развернуть)</sup> </summary>
 <p>
@@ -766,16 +766,16 @@ RootVisualObject(string name, int x, int y, int width, int height,
 
 ```cs
 Panel Panel(string name, int x, int y, int width, int height,
-	UIConfiguration configuration = null, UIStyle style = null, object provider = null)
+	UIConfiguration configuration = null, UIStyle style = null, object provider = null);
 Panel Panel(string name, int x, int y, int width, int height, UIConfiguration configuration,
-	UIStyle style, PanelDrag drag, PanelResize resize, object provider = null)
+	UIStyle style, PanelDrag drag, PanelResize resize, object provider = null);
 ```
 ![]()
 
 ### Label
 Виджет отображения текста с помощью статуй символов и цифр.
 ```cs
-Label(int x, int y, int width, int height, string text, LabelStyle style)
+Label(int x, int y, int width, int height, string text, LabelStyle style);
 ```
 <details><summary> Свойства <b><ins>LabelStyle:</ins></b> (нажмите сюда, чтобы развернуть) </summary>
 <p>
@@ -837,7 +837,7 @@ Button button = node.Add(new Button(0, 7, 12, 4, "lol", null, new ButtonStyle()
 ### Slider
 Ползунок для указания относительной величины.
 ```cs
-Slider(int x, int y, int width, int height, SliderStyle style, Input<int> input)
+Slider(int x, int y, int width, int height, SliderStyle style, Input<int> input);
 ```
 * [input] - every input widget has such parameter in constructor.
 	It contains Value of type <T>, DefaultValue and Action<VisualObject, T> Callback fields.
@@ -868,7 +868,7 @@ Slider slider = node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle()
 ### Checkbox
 Кнопка 2х2, имеющая 2 состояния (вкл/выкл).
 ```cs
-Checkbox(int x, int y, int size, CheckboxStyle style, Input<bool> input = null)
+Checkbox(int x, int y, int size, CheckboxStyle style, Input<bool> input = null);
 ```
 <details><summary> Свойства <b><ins>CheckboxStyle:</ins></b> (нажмите сюда, чтобы развернуть) </summary>
 <p>
@@ -894,8 +894,8 @@ Checkbox checkbox = node.AddToLayout(new Checkbox(0, 0, 2, new CheckboxStyle()
 ### Separator
 Разделитель. Обычно пустой объект, необходимый для вставки с целью занятия пространства.
 ```cs
-Separator(int size, UIStyle style)
-Separator(int width, int height, UIStyle style)
+Separator(int size, UIStyle style);
+Separator(int width, int height, UIStyle style);
 ```
 Пример:
 ```cs
@@ -912,7 +912,7 @@ Separator separator = node.Add(new Separator(6, new UIStyle()
 и таскания его вверх/вниз. Поддерживаются несколько наборов символов.
 Наследуется от Label.
 ```cs
-InputLabel(int x, int y, InputLabelStyle style, Action<InputLabel, string> callback)
+InputLabel(int x, int y, InputLabelStyle style, Action<InputLabel, string> callback);
 ```
 <details><summary> Свойства <b><ins>InputLabelStyle:</ins></b> (нажмите сюда, чтобы развернуть) </summary>
 <p>
@@ -941,7 +941,7 @@ InputLabel input = node.Add(new InputLabel(0, 0, new InputLabelStyle()
 Виджет для отображения предмета. Рисуется в виде подставки для оружия (weapon rack),
 верхняя часть может быть заменена на таблички для отображения надписи.
 ```cs
-ItemRack(int x, int y, ItemRackStyle style, Action<VisualObject, Touch> callback)
+ItemRack(int x, int y, ItemRackStyle style, Action<VisualObject, Touch> callback);
 ```
 <details><summary> Свойства <b><ins>ItemRackStyle:</ins></b> (нажмите сюда, чтобы развернуть) </summary>
 <p>
@@ -971,7 +971,7 @@ ItemRack irack = node.Add(new ItemRack(0, 0, new ItemRackStyle()
 Виджет отображения таблички с надписью.
 ```cs
 VisualSign(int x, int y, int width, int height, string text, UIConfiguration configuration,
-	UIStyle style, Action<VisualObject, Touch> callback)
+	UIStyle style, Action<VisualObject, Touch> callback);
 ```
 Пример:
 ```cs
@@ -985,7 +985,7 @@ VisualSign vsign = node.Add(new VisualSign(0, 0, "lmfao\nwtf")) as VisualSign;
 Наследуется от Label.
 ```cs
 FormField(IInput input, int x, int y, int width, int height, string text,
-	LabelStyle style, ExternalOffset inputOffset)
+	LabelStyle style, ExternalOffset inputOffset);
 ```
 <details><summary> <sup><b><ins>Параметры</ins></b> (нажмите сюда, чтобы развернуть)</sup> </summary>
 <p>
@@ -1013,9 +1013,9 @@ FormField ffield = node.Add(new FormField(new VisualSign(0, 0, "test"),
 Отображает битую картинку в случае неудачи загрузки.
 ```cs
 Image(int x, int y, string path, UIConfiguration configuration, UIStyle style,
-	Action<VisualObject, Touch> callback)
+	Action<VisualObject, Touch> callback);
 Image(int x, int y, ImageData data, UIConfiguration configuration, UIStyle style,
-	Action<VisualObject, Touch> callback)
+	Action<VisualObject, Touch> callback);
 ```
 Пример:
 ```cs
@@ -1028,7 +1028,7 @@ Image image = node.Add(new Image(2, 2, "Media\\Help.TEditSch")) as Image;
 Загружает в качестве path путь папки, в которой лежат все слайды в алфавитном порядке.
 Отображает битую картинку в случае неудачи загрузки слайдов.
 ```cs
-Video(int x, int y, UIConfiguration configuration, UIStyle style, Action<VisualObject, Touch> callback)
+Video(int x, int y, UIConfiguration configuration, UIStyle style, Action<VisualObject, Touch> callback);
 ```
 Пример:
 ```cs
@@ -1045,7 +1045,7 @@ Video video = node.Add(new Video(2, 2, null, new VideoStyle()
 Виджет всплывающего окна с информационным сообщением.
 Создается с помощью метода корневого объекта RootVisualObject:
 ```cs
-RootVisualObject Alert(string text, UIStyle style, ButtonStyle okButtonStyle)
+RootVisualObject Alert(string text, UIStyle style, ButtonStyle okButtonStyle);
 ```
 Пример:
 ```cs
@@ -1059,7 +1059,7 @@ node.Root.Alert("Hello world");
 Создается с помощью метода корневого объекта RootVisualObject:
 ```cs
 RootVisualObject Confirm(string text, Action<bool> callback, ContainerStyle style,
-	ButtonStyle yesButtonStyle, ButtonStyle noButtonStyle)
+	ButtonStyle yesButtonStyle, ButtonStyle noButtonStyle);
 ```
 Пример:
 ```cs
@@ -1075,7 +1075,7 @@ node.Root.Confirm("Hello world", value => Console.WriteLine(value));
 конкурирующих за нажатие дочерних элементов).
 ```cs
 ScrollBackground(bool allowToPull, bool rememberTouchPosition, bool useMoving,
-	Action<ScrollBackground, int> callback)
+	Action<ScrollBackground, int> callback);
 ```
 <details><summary> <sup><b><ins>Параметры</ins></b> (нажмите сюда, чтобы развернуть)</sup> </summary>
 <p>
@@ -1099,7 +1099,7 @@ ScrollBackground scrollbg = node.Add(new ScrollBackground(true, true, true), Int
 Полоса прокручивания layout. Добавляется с одной из сторон (справа/слева/сверху/снизу).
 На данный момент не поддерживает относительный скроллинг (когда размер layout слишком большой).
 ```cs
-ScrollBar(Direction side, int width, ScrollBarStyle style)
+ScrollBar(Direction side, int width, ScrollBarStyle style);
 ```
 <details><summary> Свойства <b><ins>ScrollBarStyle:</ins></b> (нажмите сюда, чтобы развернуть) </summary>
 <p>
@@ -1119,7 +1119,7 @@ ScrollBar scrollbar = node.Add(new ScrollBar(Direction.Right)) as ScrollBar;
 ### Arrow
 Простой виджет отображения стрелки.
 ```cs
-Arrow(int x, int y, ArrowStyle style, Action<VisualObject, Touch> callback)
+Arrow(int x, int y, ArrowStyle style, Action<VisualObject, Touch> callback);
 ```
 <details><summary> Свойства <b><ins>ArrowStyle:</ins></b> (нажмите сюда, чтобы развернуть) </summary>
 <p>
