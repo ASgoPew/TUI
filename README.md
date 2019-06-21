@@ -1,5 +1,6 @@
 # TUI
-![](ByASgo.png "Kek")
+In-game user interface library for Terraria.
+![](Images/Minesweeper.gif)
 
-## Known bugs
-* Incorrect grid column and line positions calcalation when size of grid is very small.
+You can find english documentation [here](Documentation/en.md).
+Вы можете найти документацию на русском [здесь](Documentation/ru.md).
