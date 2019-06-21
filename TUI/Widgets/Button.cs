@@ -10,7 +10,8 @@ namespace TUI.Widgets
     public enum ButtonTriggerStyle
     {
         TouchBegin = 0,
-        TouchEnd
+        TouchEnd,
+        Both
     }
 
     public enum ButtonBlinkStyle
@@ -27,7 +28,7 @@ namespace TUI.Widgets
     public class ButtonStyle : LabelStyle
     {
         /// <summary>
-        /// When to invoke Callback: on TouchState.Begin or on TouchState.End.
+        /// When to invoke Callback: on TouchState.Begin, on TouchState.End or on both.
         /// </summary>
         public ButtonTriggerStyle TriggerStyle { get; set; } = ButtonTriggerStyle.TouchBegin;
         /// <summary>
@@ -129,7 +130,7 @@ namespace TUI.Widgets
                     if (blinking)
                         StartBlink(blinkStyle);
 
-                    if (ButtonStyle.TriggerStyle == ButtonTriggerStyle.TouchBegin)
+                    if (ButtonStyle.TriggerStyle == ButtonTriggerStyle.TouchBegin || ButtonStyle.TriggerStyle == ButtonTriggerStyle.Both)
                         base.Invoke(touch);
 
                     if (blinking)
@@ -144,7 +145,8 @@ namespace TUI.Widgets
             {
                 lock (ButtonLocker)
                 {
-                    if (ButtonStyle.TriggerStyle == ButtonTriggerStyle.TouchEnd && !touch.Undo)
+                    if ((ButtonStyle.TriggerStyle == ButtonTriggerStyle.TouchEnd || ButtonStyle.TriggerStyle == ButtonTriggerStyle.Both)
+                            && !touch.Undo)
                         base.Invoke(touch);
                     TryEndBlink(ButtonStyle.BlinkStyle, 1);
                 }

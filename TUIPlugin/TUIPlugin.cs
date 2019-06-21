@@ -12,6 +12,7 @@ using TerrariaApi.Server;
 using TShockAPI;
 using TUI.Base;
 using TUI.Hooks.Args;
+using TUI.Widgets;
 using TUI.Widgets.Media;
 
 namespace TUIPlugin
@@ -36,8 +37,12 @@ namespace TUIPlugin
         public static int RegionAreaX = 80;
         public static int RegionAreaY = 50;
         public static DesignState[] playerDesignState = new DesignState[Main.maxPlayers];
-        private static Timer RegionTimer = new Timer(1000) { AutoReset = true };
         public static bool FakesEnabled = false;
+        private static Timer RegionTimer = new Timer(1000) { AutoReset = true };
+        public static Command[] CommandList = new Command[]
+        {
+            new Command("TUI.control", TUIPanelCommand, "tuipanel")
+        };
 
         #endregion
 
@@ -71,6 +76,8 @@ namespace TUIPlugin
             RegionTimer.Elapsed += OnRegionTimer;
             RegionTimer.Start();
 
+            Commands.ChatCommands.AddRange(CommandList);
+
             if (!ImageData.Readers.ContainsKey(".dat"))
                 ImageData.Readers.Add(".dat", ReadWorldEdit);
             if (!ImageData.Readers.ContainsKey(".TEditSch"))
@@ -103,6 +110,12 @@ namespace TUIPlugin
                 TUI.TUI.Hooks.Database.Event -= OnDatabase;
                 RegionTimer.Elapsed -= OnRegionTimer;
                 RegionTimer.Stop();
+
+                foreach (Command cmd in CommandList)
+                    Commands.ChatCommands.Remove(cmd);
+
+                ImageData.Readers.Remove(".dat");
+                ImageData.Readers.Remove(".TEditSch");
             }
             base.Dispose(disposing);
         }
@@ -449,6 +462,62 @@ namespace TUIPlugin
                         root.Players.Remove(plr.Index);
                 }
             }
+        }
+
+        #endregion
+
+        #region TUIPanelCommand
+
+        public static void TUIPanelCommand(CommandArgs args)
+        {
+            if (args.Parameters.Count != 1 && args.Parameters.Count != 3 && args.Parameters.Count != 5)
+            {
+                args.Player.SendErrorMessage("Usage: /tuipanel <panel name> <x> <y> [width] [height]");
+                return;
+            }
+
+            RootVisualObject root = TUI.TUI.GetRoots().Where(r => r.Name == args.Parameters[0]).FirstOrDefault();
+            if (root == null)
+            {
+                args.Player.SendErrorMessage("Invalid panel name: " + args.Parameters[0]);
+                return;
+            }
+
+            if (args.Parameters.Count == 1)
+            {
+                args.Player.SendInfoMessage("Panel position and size: " + root.XYWH());
+                return;
+            }
+
+            int x;
+            int y;
+            if (!Int32.TryParse(args.Parameters[1], out x) || !Int32.TryParse(args.Parameters[2], out y)
+                || x < 0 || y < 0 || x >= Main.maxTilesX || y >= Main.maxTilesY)
+            {
+                args.Player.SendErrorMessage("Invalid panel coordinates: " + args.Parameters[1] + ", " + args.Parameters[2]);
+                return;
+            }
+
+            int width = root.Width;
+            int height = root.Height;
+            if (args.Parameters.Count == 5
+                && (!Int32.TryParse(args.Parameters[3], out width) || !Int32.TryParse(args.Parameters[4], out height)
+                || width < 0 || height < 0 || width >= Main.maxTilesX || height >= Main.maxTilesY))
+            {
+                args.Player.SendErrorMessage("Invalid panel size: " + args.Parameters[3] + ", " + args.Parameters[4]);
+                return;
+            }
+
+            if (root is Panel panel)
+            {
+                panel.Drag(x, y);
+                if (width != panel.Width || height != panel.Height)
+                    panel.Resize(width, height);
+            }
+            else
+                root.Clear().Draw().SetXYWH(x, y, width, height).Update().Apply().Draw();
+
+            args.Player.SendSuccessMessage(root.Name + " new position and size: " + root.XYWH());
         }
 
         #endregion

@@ -100,13 +100,10 @@
     <Compile Include="Widgets\Media\SignData.cs" />
     <Compile Include="Widgets\Media\Video.cs" />
     <Compile Include="Widgets\Panel.cs" />
-    <Compile Include="Widgets\RadioList.cs" />
     <Compile Include="Widgets\ScrollBackground.cs" />
     <Compile Include="Widgets\ScrollBar.cs" />
     <Compile Include="Widgets\Separator.cs" />
     <Compile Include="Widgets\Slider.cs" />
-    <Compile Include="Widgets\Switch.cs" />
-    <Compile Include="Widgets\Tabs.cs" />
     <Compile Include="Widgets\VisualSign.cs" />
   </ItemGroup>
   <ItemGroup>

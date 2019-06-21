@@ -62,10 +62,12 @@ namespace TUI.Widgets
         /// Input widget for string/int values using *drag and slide the digit* method.
         /// </summary>
         public InputLabel(int x, int y, InputLabelStyle style = null, Input<string> input = null)
-            : base(x, y, input.DefaultValue.Length * 2, style?.TextUnderline == LabelUnderline.Underline ? 3 : 2, input.DefaultValue,
-                  new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true }, style ?? new InputLabelStyle())
+            : base(0, 0, 0, 0, "", new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true },
+                  style ?? new InputLabelStyle())
         {
             Input = input ?? new Input<string>("", "", null);
+            SetXYWH(x, y, Input.DefaultValue.Length* 2, style?.TextUnderline == LabelUnderline.Underline? 3 : 2);
+            SetText(Input.DefaultValue);
             InputLabelStyle ilstyle = InputLabelStyle;
             ilstyle.TextOffset = new Offset() { Left = 0, Up = 0, Right = 0, Down = 0, Horizontal = 2, Vertical = 2 };
             ilstyle.TextAlignment = Alignment.UpLeft;

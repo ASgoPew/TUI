@@ -2,6 +2,7 @@
 {
     public static class PaintID
     {
+        public const byte None = 0;
         public const byte Red = 1;
         public const byte Orange = 2;
         public const byte Yellow = 3;
