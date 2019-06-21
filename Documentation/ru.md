@@ -7,10 +7,11 @@
 лишь своей фантазией в том, что можно создать на пользовательском интерфейсе.
 Примером может быть настольная игра сапер, на которую ушло 314 строк кода (включая логику самой игры):
 
-![](Images/Minesweeper.png)
+![](Images/Minesweeper.gif)
 
 Эти и некоторые другие примеры игр вы можете посмотреть в измерении games на сервере terraria-servers.ru:7777.
 
+***
 
 ## Содержание
 
@@ -31,6 +32,7 @@
 * [Общие факты о клиентской стороне управления интерфейсом](#Общие-факты-о-клиентской-стороне-управления-интерфейсом)
 * [Виджеты](#Виджеты)
 
+***
 
 ## Основы интерфейса
 
@@ -63,6 +65,7 @@
 VisualObject Add(VisualObject newChild);
 ```
 
+***
 
 ## Базовые операции VisualObject
 
@@ -117,6 +120,7 @@ Gemspark Wall) с краской 27 (серая), затем рекурсивн�
 
 Вызов Draw отправляет секцию или SendTileSquare размером с объект всем игрокам, находящимся рядом с интерфейсом.
 
+***
 
 ## Класс TUI
 
@@ -171,6 +175,7 @@ node.Add(new Button(5, 0, 12, 4, "lol", null, new ButtonStyle()
 ```
 ![](Images/PanelExample.png)
 
+***
 
 ## 4 независимых способа автоматического регулирования позиций и размеров объектов
 
@@ -184,6 +189,7 @@ node.Add(new Button(5, 0, 12, 4, "lol", null, new ButtonStyle()
 #### Регулирование размеров объекта относительно родителя:
 * **[FullSize](#FullSize)** (полноразмерность)
 
+***
 
 ## Layout
 
@@ -227,13 +233,14 @@ node.AddToLayout(new ItemRack(0, 0, new ItemRackStyle() { Type = 200, Left = tru
 ItemRack irack1 = node.AddToLayout(new ItemRack(0, 0,
 	new ItemRackStyle() { Type = 201, Left = true })) as ItemRack;
 // ItemRack позволяет сверху добавть текст с помощью таблички:
-irack1.Set("lololo\nkekeke");
+irack1.SetText("lololo\nkekeke");
 // Наконец, добавляем слайдер в layout.
 node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle() {
 	Wall = WallID.AmberGemsparkOff, WallColor = PaintID.White }));
 ```
-![](Images/LayoutExample.png)
+![](Images/Layout.png)
 
+***
 
 ## Grid
 
@@ -279,7 +286,7 @@ node[0, 1] = new Label(0, 0, 0, 0, "testing", null, new LabelStyle()
 	TextColor = PaintID.Black
 });
 ```
-![](Images/GridExample.png)
+![](Images/Grid.png)
 
 Для тестов вы можете вызвать функцию ShowGrid(), чтобы увидеть решетку даже без объектов:
 ```cs
@@ -301,8 +308,9 @@ node.Add(new Button(3, 3, 10, 4, "show", null, new ButtonStyle()
 		node.Apply().Draw();
 }));
 ```
-![](Images/ShowGridExample.gif)
+![](Images/ShowGrid.gif)
 
+***
 
 ## Alignment
 
@@ -330,8 +338,9 @@ VisualObject SetAlignmentInParent(Alignment alignment, ExternalOffset offset, bo
 node.Add(new Label(0, 0, 16, 6, "test", new LabelStyle() { WallColor = PaintID.DeepPink }))
 	.SetAlignmentInParent(Alignment.DownRight, new ExternalOffset() { Right = 3, Down = 1 });
 ```
-![](Images/AlignmentExample.png)
+![](Images/Alignment.png)
 
+***
 
 ## FullSize
 
@@ -366,14 +375,12 @@ VisualObject SetFullSize(FullSize fullSize);
 
 Пример:
 ```cs
-// Добавляем желтый контейнер, устанавливаем его ширину на 3, а по высоте делаем FullSize,
-// затем указываем, что он должен быть в правом углу родителя.
-// Таким образом у нас получается желтая полоса справа с высотой node и шириной 3.
-node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYellow }))
-	.SetWH(3, 0).SetFullSize(false, true).SetAlignmentInParent(Alignment.Right);
+// Сделаем наш контейнер node размером с корневой root по ширине.
+node.SetFullSize(true, false);
 ```
-![](Images/FullSizeExample.gif)
+![](Images/FullSize.gif)
 
+***
 
 ## Как происходит нажатие
 
@@ -381,7 +388,7 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 с помощью предмета The Grand Design (Великий План). Каждому нажатию соответствует
 объект нажатия Touch, содержащий всю необходимую информацию о нем.
 
-#### Класс Touch
+### Класс Touch
 <details><summary> <b><ins>Свойства</ins></b> (нажмите сюда, чтобы развернуть) </summary>
 <p>
 
@@ -432,7 +439,7 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 Каждому игроку соответствует объект UserSession (сессия игрока), который хранит
 некоторые общие данные о нём.
 
-#### Класс UserSession
+### Класс UserSession
 <details><summary> <b><ins>Свойства</ins></b> (нажмите сюда, чтобы развернуть) </summary>
 <p>
 
@@ -467,6 +474,7 @@ node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYell
 по нажатию на этот объект. Виджеты, написанные на C#, могут не использовать эту функцию,
 а напрямую переопределить Invoke.
 
+***
 
 ## Класс UIConfiguration
 
@@ -500,6 +508,7 @@ Configuration класса UIConfiguration.
 </p>
 </details>
 
+***
 
 ## Класс UIStyle
 
@@ -527,6 +536,7 @@ Configuration класса UIConfiguration.
 </p>
 </details>
 
+***
 
 ## Сигналы PulseType
 
@@ -541,6 +551,8 @@ Configuration класса UIConfiguration.
 	* Пользовательский сигнал
 * User2
 * User3
+
+***
 
 ## Загрузка и отгрузка виджетов
 
@@ -558,6 +570,8 @@ Configuration класса UIConfiguration.
 virtual void LoadThisNative();
 virtual void DisposeThisNative();
 ```
+
+***
 
 ## База данных
 
@@ -629,6 +643,7 @@ virtual void UDBReadNative(BinaryReader br, int user);
 virtual void UDBWriteNative(BinaryWriter bw, int user);
 ```
 
+***
 
 ## Создание собственного виджета
 
@@ -637,6 +652,7 @@ virtual void UDBWriteNative(BinaryWriter bw, int user);
 Метод UpdateThis вызывается до вызова UpdateChild, потому, если обновление требует обновленных дочерних объектов, можно переопределить метод PostUpdateThisNative.
 Аналогично, можно переопределить ApplyThisNative, чтобы добавить собственную отрисовку у виджета.
 
+***
 
 ## Общие факты о клиентской стороне управления интерфейсом
 
@@ -648,8 +664,9 @@ virtual void UDBWriteNative(BinaryWriter bw, int user);
 4. Некоторые тайлы ломаются при определенных условиях при отправке с помощью SendTileSquare (например, это статуя без блоков под ней).
 Для того, чтобы заставить объект рисоваться с помощью отправок секций, достаточно установить его свойству ForceSection значение true.
 
+***
 
-## Виджеты
+# Виджеты
 
 <details><summary> <b><ins>Список</ins></b> (нажмите сюда, чтобы развернуть) </summary>
 <p>
@@ -687,7 +704,9 @@ BlinkColor, BlinkDelay, TriggerStyle, BlinkStyle.
 Так, виджет кнопки Button имеет свойство .ButtonStyle, которое содержит значение этого самого стиля.
 Обратите внимание, что в таком случае свойство .Style возвращает тот же самый объект, но в типе UIStyle.
 
-### VisualObject
+***
+
+## VisualObject
 [Подробнее о полях и методах VisualObject](ru_VisualObject.md)
 
 Базовый объект интерфейса. Любой виджет наследуется от этого класса.
@@ -725,14 +744,18 @@ TSPlayer нажимающего игрока можно получить чер�
 
 Пример:
 ```cs
-VisualObject obj = node.Add(new VisualObject(0, 0, 8, 4, null, new UIStyle() { WallColor = 15 },
-	(self, touch) => Console.WriteLine(touch.X + " " + touch.Y)));
+VisualObject obj = node.Add(new VisualObject(5, 5, 8, 4, null, new UIStyle()
+{
+	Wall = WallID.AmethystGemspark,
+	WallColor = PaintID.DeepPurple
+}, (self, touch) =>
+	TSPlayer.All.SendInfoMessage($"Relative: ({touch.X}, {touch.Y}); Absolute: ({touch.AbsoluteX}, {touch.AbsoluteY})")));
 ```
-![]()
+![](Images/VisualObject.gif)
 
 ***
 
-### VisualContainer
+## VisualContainer
 Виджет-контейнер других виджетов. Рекомендуется использовать именно его, несмотря на то,
 что можно использовать и обычный VisualObject для хранения других объектов.
 VisualContainer гарантирует правильную работу виджетов ScrollBackground и ScrollBar внутри себя.
@@ -756,13 +779,14 @@ VisualContainer(ContainerStyle style);
 
 Пример:
 ```cs
-VisualContainer node = root.Add(
-	new VisualContainer(25, 0, 25, 40, null, new ContainerStyle() { WallColor = PaintID.Black })
+VisualContainer node2 = node.Add(
+	new VisualContainer(5, 5, 20, 10, null, new ContainerStyle() { WallColor = PaintID.Black })
 ) as VisualContainer;
 ```
-![]()
 
-### RootVisualObject
+***
+
+## RootVisualObject
 [Подробнее о полях и методах RootVisualObject](ru_VisualObject.md#RootVisualObject--VisualObject)
 
 Виджет, являющийся корнем дерева и выполняющий соответствующие функции.
@@ -785,7 +809,9 @@ RootVisualObject(string name, int x, int y, int width, int height,
 </p>
 </details>
 
-### Panel
+***
+
+## Panel
 Разновидность RootVisualObject, обладающая некоторыми особенностями:
 Панель можно перемещать и изменять ее размер.
 Исходно панель имеет 2 кнопки:
@@ -801,9 +827,11 @@ Panel Panel(string name, int x, int y, int width, int height,
 Panel Panel(string name, int x, int y, int width, int height, UIConfiguration configuration,
 	UIStyle style, PanelDrag drag, PanelResize resize, object provider = null);
 ```
-![]()
+![](Images/Panel.gif)
 
-### Label
+***
+
+## Label
 Виджет отображения текста с помощью статуй символов и цифр.
 ```cs
 Label(int x, int y, int width, int height, string text, LabelStyle style);
@@ -828,12 +856,17 @@ Label(int x, int y, int width, int height, string text, LabelStyle style);
 
 Пример:
 ```cs
-Label label = node.Add(new Label(1, 1, 15, 2, "some text",
-	new LabelStyle() { TextColor=13 })) as Label;
+Label label = node.Add(new Label(15, 5, 19, 4, "some text", new LabelStyle()
+{
+	WallColor = PaintID.DeepLime,
+	TextColor = PaintID.DeepRed
+})) as Label;
 ```
-![]()
+![](Images/Label.png)
 
-### Button
+***
+
+## Button
 Кнопка, выполняющая указанные действия по нажатию и моргающая тем или иным способом.
 Может отображать указанный текст, т.к. наследуется от Label.
 ```cs
@@ -858,14 +891,18 @@ Button(int x, int y, int width, int height, string text, UIConfiguration configu
 
 Пример:
 ```cs
-Button button = node.Add(new Button(0, 7, 12, 4, "lol", null, new ButtonStyle()
+Button button = node.Add(new Button(15, 5, 12, 4, "lol", null, new ButtonStyle()
 {
-	WallColor = PaintID.DeepGreen
-}, (self, touch) => touch.Player().SendInfoMessage("You pressed lol button!"))) as Button;
+	WallColor = PaintID.DeepGreen,
+	BlinkColor = PaintID.Shadow,
+	TriggerStyle = ButtonTriggerStyle.TouchEnd
+}, (self, touch) => touch.Player().SendInfoMessage("You released lol button!"))) as Button;
 ```
-![]()
+![](Images/Button.gif)
 
-### Slider
+***
+
+## Slider
 Ползунок для указания относительной величины.
 ```cs
 Slider(int x, int y, int width, int height, SliderStyle style, Input<int> input);
@@ -888,15 +925,20 @@ Slider(int x, int y, int width, int height, SliderStyle style, Input<int> input)
 
 Пример:
 ```cs
-Slider slider = node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle()
+Slider slider = node.Add(new Slider(15, 5, 10, 2, new SliderStyle()
 {
-	Wall = 157,
-	WallColor = PaintID.White
-}, new Input<int>(0, 0, (self, value) => Console.WriteLine("Slider: " + value)))) as Slider;
+	Wall = WallID.EmeraldGemspark,
+	WallColor = PaintID.White,
+	SeparatorColor = PaintID.Black,
+	UsedColor = PaintID.DeepOrange
+}, new Input<int>(0, 0, (self, value, playerIndex) =>
+	TShock.Players[playerIndex].SendInfoMessage("Slider value: " + value)))) as Slider;
 ```
-![]()
+![](Images/Slider.gif)
 
-### Checkbox
+***
+
+## Checkbox
 Кнопка 2х2, имеющая 2 состояния (вкл/выкл).
 ```cs
 Checkbox(int x, int y, int size, CheckboxStyle style, Input<bool> input = null);
@@ -913,16 +955,19 @@ Checkbox(int x, int y, int size, CheckboxStyle style, Input<bool> input = null);
 
 Пример:
 ```cs
-Checkbox checkbox = node.AddToLayout(new Checkbox(0, 0, 2, new CheckboxStyle()
+Checkbox checkbox = node.Add(new Checkbox(15, 5, 2, new CheckboxStyle()
 {
-	Wall = 156,
-	WallColor = PaintID.White
-}, new Input<bool>(false, false, (self, value) =>
-	Console.WriteLine("Checkbox: " + value)))) as Checkbox;
+	Wall = WallID.EmeraldGemspark,
+	WallColor = PaintID.White,
+	CheckedColor = PaintID.DeepRed
+}, new Input<bool>(false, false, (self, value, playerIndex) =>
+	TSPlayer.All.SendInfoMessage("Checkbox value: " + value)))) as Checkbox;
 ```
-![]()
+![](Images/Checkbox.gif)
 
-### Separator
+***
+
+## Separator
 Разделитель. Обычно пустой объект, необходимый для вставки с целью занятия пространства.
 ```cs
 Separator(int size, UIStyle style);
@@ -936,9 +981,10 @@ Separator separator = node.Add(new Separator(6, new UIStyle()
 	WallColor = PaintID.DeepRed
 })) as Separator;
 ```
-![]()
 
-### InputLabel
+***
+
+## InputLabel
 Виджет для ввода текста. Ввод происходит посимвольно, путем зажатия мыши на символе
 и таскания его вверх/вниз. Поддерживаются несколько наборов символов.
 Наследуется от Label.
@@ -959,16 +1005,20 @@ InputLabel(int x, int y, InputLabelStyle style, Action<InputLabel, string> callb
 
 Пример:
 ```cs
-InputLabel input = node.Add(new InputLabel(0, 0, new InputLabelStyle()
+InputLabel input = node.Add(new InputLabel(15, 5, new InputLabelStyle()
 {
-	Default = "12345",
 	Type = InputLabelType.All,
-	TextUnderline = LabelUnderline.None
-})) as InputLabel;
+	TextUnderline = LabelUnderline.Underline,
+	TextColor = PaintID.DeepRed,
+	TextUnderlineColor = PaintID.Black // Этот параметр из LabelStyle
+}, new Input<string>("12345", "12345", (self, value, playerIndex) =>
+	TSPlayer.All.SendInfoMessage("InputLabel value: " + value)))) as InputLabel;
 ```
-![]()
+![](Images/InputLabel.gif)
 
-### ItemRack
+***
+
+## ItemRack
 Виджет для отображения предмета. Рисуется в виде подставки для оружия (weapon rack),
 верхняя часть может быть заменена на таблички для отображения надписи.
 ```cs
@@ -990,15 +1040,25 @@ ItemRack(int x, int y, ItemRackStyle style, Action<VisualObject, Touch> callback
 
 Пример:
 ```cs
-ItemRack irack = node.Add(new ItemRack(0, 0, new ItemRackStyle()
+ItemRack irack = node.Add(new ItemRack(15, 5, new ItemRackStyle()
 {
-	Type = 200,
+	Type = ItemID.LargeDiamond,
+	Size = ItemSize.Biggest,
 	Left = true
-}, (self, touch) => { })) as ItemRack;
+})) as ItemRack;
+ItemRack irack2 = node.Add(new ItemRack(20, 5, new ItemRackStyle()
+{
+	Type = ItemID.SnowmanCannon,
+	Size = ItemSize.Smallest,
+	Left = true
+})) as ItemRack;
+irack2.SetText("This is a snowman cannon.");
 ```
-![]()
+![](Images/ItemRack.png)
 
-### VisualSign
+***
+
+## VisualSign
 Виджет отображения таблички с надписью.
 ```cs
 VisualSign(int x, int y, int width, int height, string text, UIConfiguration configuration,
@@ -1006,11 +1066,12 @@ VisualSign(int x, int y, int width, int height, string text, UIConfiguration con
 ```
 Пример:
 ```cs
-VisualSign vsign = node.Add(new VisualSign(0, 0, "lmfao\nwtf")) as VisualSign;
+VisualSign vsign = node.Add(new VisualSign(15, 5, "lmfao\nwtf")) as VisualSign;
 ```
-![]()
 
-### FormField
+***
+
+## FormField
 Этот виджет нужен для добавления текста слева от другого виджета, например,
 слева от Checkbox, Button, InputLabel, Slider, ...
 Наследуется от Label.
@@ -1029,16 +1090,23 @@ FormField(IInput input, int x, int y, int width, int height, string text,
 
 Пример:
 ```cs
-FormField ffield = node.Add(new FormField(new VisualSign(0, 0, "test"),
-	0, 0, 2, 2, "VisualSign ->", new LabelStyle()
+FormField ffield = node.Add(new FormField(
+	new Checkbox(0, 0, 2, new CheckboxStyle()
+	{
+		Wall = WallID.AmberGemspark,
+		WallColor = PaintID.White,
+		CheckedColor = PaintID.DeepRed
+	}), 15, 5, 20, 2, "check me", new LabelStyle()
 {
-	TextColor = 29,
+	TextColor = PaintID.Shadow,
 	TextAlignment = Alignment.Left
-})) as FormField;
+}, new ExternalOffset() { Right = 1 })) as FormField;
 ```
-![]()
+![](Images/FormField.png)
 
-### Image
+***
+
+## Image
 Виджет отображения картинки в формате WorldEdit (.dat) или TEdit (.TEditSch)
 Поддерживает отображение табличек.
 Отображает битую картинку в случае неудачи загрузки.
@@ -1054,7 +1122,9 @@ Image image = node.Add(new Image(2, 2, "Media\\Help.TEditSch")) as Image;
 ```
 ![]()
 
-### Video
+***
+
+## Video
 Виджет отображения видео, состоящего из картинок Image.
 Загружает в качестве path путь папки, в которой лежат все слайды в алфавитном порядке.
 Отображает битую картинку в случае неудачи загрузки слайдов.
@@ -1063,16 +1133,18 @@ Video(int x, int y, UIConfiguration configuration, UIStyle style, Action<VisualO
 ```
 Пример:
 ```cs
-Video video = node.Add(new Video(2, 2, null, new VideoStyle()
+Video video = node.Add(new Video(15, 5, null, new VideoStyle()
 {
 	Path = "Media\\Animation-1",
 	Delay = 100,
 	TileColor = PaintID.DeepTeal
 }, (self, touch) => (self as Video).ToggleStart())) as Video;
 ```
-![]()
+![](Images/Video.gif)
 
-### AlertWindow
+***
+
+## AlertWindow
 Виджет всплывающего окна с информационным сообщением.
 Создается с помощью метода корневого объекта RootVisualObject:
 ```cs
@@ -1080,11 +1152,17 @@ RootVisualObject Alert(string text, UIStyle style, ButtonStyle okButtonStyle);
 ```
 Пример:
 ```cs
-node.Root.Alert("Hello world");
+Button alertButton = node.Add(new Button(15, 10, 16, 4, "alert", null, new ButtonStyle()
+{
+	Wall = WallID.AmberGemspark,
+	WallColor = PaintID.DeepOrange
+}, (self, touch) => node.Root.Alert("Hello world"))) as Button;
 ```
-![]()
+![](Images/Alert.gif)
 
-### ConfirmWindow
+***
+
+## ConfirmWindow
 Виджет всплывающего окна с подтверждением действия.
 Нажатие вне всплывающего окна равносильно нажатию кнопки 'no'.
 Создается с помощью метода корневого объекта RootVisualObject:
@@ -1094,11 +1172,17 @@ RootVisualObject Confirm(string text, Action<bool> callback, ContainerStyle styl
 ```
 Пример:
 ```cs
-node.Root.Confirm("Hello world", value => Console.WriteLine(value));
+Button confirmButton = node.AddToLayout(new Button(15, 13, 20, 4, "confirm\npls", null, new ButtonStyle()
+{
+	Wall = WallID.AmberGemspark,
+	WallColor = PaintID.DeepTeal
+}, (self, touch) => node.Root.Confirm("Very nice", value => TSPlayer.All.SendInfoMessage("Confirmed? " + value)))) as Button;
 ```
-![]()
+![](Images/Confirm.gif)
 
-### ScrollBackground
+***
+
+## ScrollBackground
 Виджет прокручивания layout своего Parent (родительского) объекта как на сенсорном экране:
 Потянув за задний фон вниз, layout поедет вниз. И наоборот.
 Виджет всегда находится сзади всех остальных дочерних объектов, потому позволяет
@@ -1126,7 +1210,9 @@ ScrollBackground scrollbg = node.Add(new ScrollBackground(true, true, true), Int
 ```
 ![]()
 
-### ScrollBar
+***
+
+## ScrollBar
 Полоса прокручивания layout. Добавляется с одной из сторон (справа/слева/сверху/снизу).
 На данный момент не поддерживает относительный скроллинг (когда размер layout слишком большой).
 ```cs
@@ -1147,7 +1233,9 @@ ScrollBar scrollbar = node.Add(new ScrollBar(Direction.Right)) as ScrollBar;
 ```
 ![]()
 
-### Arrow
+***
+
+## Arrow
 Простой виджет отображения стрелки.
 ```cs
 Arrow(int x, int y, ArrowStyle style, Action<VisualObject, Touch> callback);
@@ -1163,6 +1251,10 @@ Arrow(int x, int y, ArrowStyle style, Action<VisualObject, Touch> callback);
 
 Пример:
 ```cs
-Arrow arrow = node.Add(new Arrow(0, 0, new ArrowStyle() { Direction = Direction.Left })) as Arrow;
+Arrow arrow = node.Add(new Arrow(15, 5, new ArrowStyle()
+{
+	TileColor = PaintID.DeepBlue,
+	Direction = Direction.Left
+})) as Arrow;
 ```
-![]()
+![](Images/Arrow.png)

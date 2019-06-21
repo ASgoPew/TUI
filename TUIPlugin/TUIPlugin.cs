@@ -472,7 +472,7 @@ namespace TUIPlugin
         {
             if (args.Parameters.Count != 1 && args.Parameters.Count != 3 && args.Parameters.Count != 5)
             {
-                args.Player.SendErrorMessage("Usage: /tuipanel <panel name> <x> <y> [width] [height]");
+                args.Player.SendErrorMessage("Usage: /tuipanel <panel name> [<x> <y>] [<width> <height>]");
                 return;
             }
 

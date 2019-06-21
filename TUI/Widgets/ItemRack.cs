@@ -9,11 +9,11 @@ namespace TUI.Widgets
 
     public enum ItemSize
     {
-        Tiny = 0,
+        Smallest = 0,
         Small,
         Normal,
-        Large,
-        Massive
+        Big,
+        Biggest
     }
 
     /// <summary>
@@ -104,18 +104,18 @@ namespace TUI.Widgets
 
         #endregion
 
-        #region Set
+        #region SetText
 
         // Use this only after adding ItemRack to parent.
-        public void Set(string text)
+        public void SetText(string text)
         {
             RawText = text;
         }
 
         #endregion
-        #region Get
+        #region GetText
 
-        public string Get() => RawText;
+        public string GetText() => RawText;
 
         #endregion
         #region CreateSign
