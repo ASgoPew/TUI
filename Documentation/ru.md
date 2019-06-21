@@ -1118,9 +1118,9 @@ Image(int x, int y, ImageData data, UIConfiguration configuration, UIStyle style
 ```
 Пример:
 ```cs
-Image image = node.Add(new Image(2, 2, "Media\\Help.TEditSch")) as Image;
+Image image = node.Add(new Image(15, 5, "Media\\Image.TEditSch")) as Image;
 ```
-![]()
+![](Images/Image.png)
 
 ***
 
@@ -1205,10 +1205,11 @@ ScrollBackground(bool allowToPull, bool rememberTouchPosition, bool useMoving,
 
 Пример:
 ```cs
-// Указываем layer (слой) в значение Int32.MinValue, чтобы виджет был сзади всех прочих виджетов
+// <Добавляем кучу виджетов в layout>
+// Указываем layer (слой) в значение Int32.MinValue, чтобы виджет был сзади всех прочих виджетов.
 ScrollBackground scrollbg = node.Add(new ScrollBackground(true, true, true), Int32.MinValue) as ScrollBackground;
 ```
-![]()
+![](Images/ScrollBackground.gif)
 
 ***
 
@@ -1231,7 +1232,7 @@ ScrollBar(Direction side, int width, ScrollBarStyle style);
 ```cs
 ScrollBar scrollbar = node.Add(new ScrollBar(Direction.Right)) as ScrollBar;
 ```
-![]()
+![](Images/ScrollBar.gif)
 
 ***
 

@@ -140,12 +140,12 @@ namespace TUIExample
             node.SetupLayout(Alignment.Center, Direction.Down, Side.Center, null, 1, false);
 
             // VisualObject
-            //VisualObject obj = node.AddToLayout(new VisualObject(5, 5, 8, 4, null, new UIStyle()
-            //{
-            //    Wall = WallID.AmethystGemspark,
-            //    WallColor = PaintID.DeepPurple
-            //}, (self, touch) =>
-            //    TSPlayer.All.SendInfoMessage($"Relative: ({touch.X}, {touch.Y}); Absolute: ({touch.AbsoluteX}, {touch.AbsoluteY})")));
+            VisualObject obj = node.AddToLayout(new VisualObject(5, 5, 8, 4, null, new UIStyle()
+            {
+                Wall = WallID.AmethystGemspark,
+                WallColor = PaintID.DeepPurple
+            }, (self, touch) =>
+                TSPlayer.All.SendInfoMessage($"Relative: ({touch.X}, {touch.Y}); Absolute: ({touch.AbsoluteX}, {touch.AbsoluteY})")));
 
             // VisualContainer
             //VisualContainer node2 = node.Add(
@@ -153,129 +153,129 @@ namespace TUIExample
             //) as VisualContainer;
 
             // Label
-            //Label label = node.AddToLayout(new Label(15, 5, 19, 4, "some text", new LabelStyle()
-            //{
-            //    WallColor = PaintID.DeepLime,
-            //    TextColor = PaintID.DeepRed
-            //})) as Label;
+            Label label = node.AddToLayout(new Label(15, 5, 19, 4, "some text", new LabelStyle()
+            {
+                WallColor = PaintID.DeepLime,
+                TextColor = PaintID.DeepRed
+            })) as Label;
 
             // Button
-            //Button button = node.AddToLayout(new Button(15, 5, 12, 4, "lol", null, new ButtonStyle()
-            //{
-            //    WallColor = PaintID.DeepGreen,
-            //    BlinkColor = PaintID.Shadow,
-            //    TriggerStyle = ButtonTriggerStyle.TouchEnd
-            //}, (self, touch) => touch.Player().SendInfoMessage("You released lol button!"))) as Button;
+            Button button = node.AddToLayout(new Button(15, 5, 12, 4, "lol", null, new ButtonStyle()
+            {
+                WallColor = PaintID.DeepGreen,
+                BlinkColor = PaintID.Shadow,
+                TriggerStyle = ButtonTriggerStyle.TouchEnd
+            }, (self, touch) => touch.Player().SendInfoMessage("You released lol button!"))) as Button;
 
             // Slider
-            //Slider slider = node.AddToLayout(new Slider(15, 5, 10, 2, new SliderStyle()
-            //{
-            //    Wall = WallID.EmeraldGemspark,
-            //    WallColor = PaintID.White,
-            //    SeparatorColor = PaintID.Black,
-            //    UsedColor = PaintID.DeepOrange
-            //}, new Input<int>(0, 0, (self, value, playerIndex) =>
-            //    TShock.Players[playerIndex].SendInfoMessage("Slider value: " + value)))) as Slider;
+            Slider slider = node.AddToLayout(new Slider(15, 5, 10, 2, new SliderStyle()
+            {
+                Wall = WallID.EmeraldGemspark,
+                WallColor = PaintID.White,
+                SeparatorColor = PaintID.Black,
+                UsedColor = PaintID.DeepOrange
+            }, new Input<int>(0, 0, (self, value, playerIndex) =>
+                TShock.Players[playerIndex].SendInfoMessage("Slider value: " + value)))) as Slider;
 
             // Checkbox
-            //Checkbox checkbox = node.AddToLayout(new Checkbox(15, 5, 2, new CheckboxStyle()
-            //{
-            //    Wall = WallID.EmeraldGemspark,
-            //    WallColor = PaintID.White,
-            //    CheckedColor = PaintID.DeepRed
-            //}, new Input<bool>(false, false, (self, value, playerIndex) =>
-            //    TSPlayer.All.SendInfoMessage("Checkbox value: " + value)))) as Checkbox;
+            Checkbox checkbox = node.AddToLayout(new Checkbox(15, 5, 2, new CheckboxStyle()
+            {
+                Wall = WallID.EmeraldGemspark,
+                WallColor = PaintID.White,
+                CheckedColor = PaintID.DeepRed
+            }, new Input<bool>(false, false, (self, value, playerIndex) =>
+                TSPlayer.All.SendInfoMessage("Checkbox value: " + value)))) as Checkbox;
 
             // Separator
-            //Separator separator = node.AddToLayout(new Separator(6, new UIStyle()
-            //{
-            //    Wall = 156,
-            //    WallColor = PaintID.DeepRed
-            //})) as Separator;
+            Separator separator = node.AddToLayout(new Separator(6, new UIStyle()
+            {
+                Wall = 156,
+                WallColor = PaintID.DeepRed
+            })) as Separator;
 
             // InputLabel
-            //InputLabel input = node.AddToLayout(new InputLabel(15, 5, new InputLabelStyle()
-            //{
-            //    Type = InputLabelType.All,
-            //    TextUnderline = LabelUnderline.Underline,
-            //    TextColor = PaintID.DeepRed,
-            //    TextUnderlineColor = PaintID.Black // Этот параметр из LabelStyle
-            //}, new Input<string>("12345", "12345", (self, value, playerIndex) =>
-            //    TSPlayer.All.SendInfoMessage("InputLabel value: " + value)))) as InputLabel;
+            InputLabel input = node.AddToLayout(new InputLabel(15, 5, new InputLabelStyle()
+            {
+                Type = InputLabelType.All,
+                TextUnderline = LabelUnderline.Underline,
+                TextColor = PaintID.DeepRed,
+                TextUnderlineColor = PaintID.Black // Этот параметр из LabelStyle
+            }, new Input<string>("12345", "12345", (self, value, playerIndex) =>
+                TSPlayer.All.SendInfoMessage("InputLabel value: " + value)))) as InputLabel;
 
             // ItemRack
-            //ItemRack irack = node.AddToLayout(new ItemRack(15, 5, new ItemRackStyle()
-            //{
-            //    Type = ItemID.LargeDiamond,
-            //    Size = ItemSize.Biggest,
-            //    Left = true
-            //})) as ItemRack;
-            //ItemRack irack2 = node.AddToLayout(new ItemRack(20, 5, new ItemRackStyle()
-            //{
-            //    Type = ItemID.SnowmanCannon,
-            //    Size = ItemSize.Smallest,
-            //    Left = true
-            //})) as ItemRack;
-            //irack2.SetText("This is a snowman cannon.");
+            ItemRack irack = node.AddToLayout(new ItemRack(15, 5, new ItemRackStyle()
+            {
+                Type = ItemID.LargeDiamond,
+                Size = ItemSize.Biggest,
+                Left = true
+            })) as ItemRack;
+            ItemRack irack2 = node.AddToLayout(new ItemRack(20, 5, new ItemRackStyle()
+            {
+                Type = ItemID.SnowmanCannon,
+                Size = ItemSize.Smallest,
+                Left = true
+            })) as ItemRack;
+            irack2.SetText("This is a snowman cannon.");
 
             // VisualSign
-            //VisualSign vsign = node.AddToLayout(new VisualSign(0, 0, "lmfao sosi(te pozhaluista)")) as VisualSign;
-            //VisualSign vsign2 = node.AddToLayout(new VisualSign(0, 0, "This is an example of what can happen " +
-            //    "if you use signs in TUI without FakeManager (only $399!)." +
-            //    "Text above would be empty. Even tho it has to have it...")) as VisualSign;
+            VisualSign vsign = node.AddToLayout(new VisualSign(0, 0, "lmfao sosi(te pozhaluista)")) as VisualSign;
+            VisualSign vsign2 = node.AddToLayout(new VisualSign(0, 0, "This is an example of what can happen " +
+                "if you use signs in TUI without FakeManager (only $399!)." +
+                "Text above would be empty. Even tho it has to have it...")) as VisualSign;
 
             // FormField
-            //FormField ffield = node.AddToLayout(new FormField(
-            //    new Checkbox(0, 0, 2, new CheckboxStyle()
-            //    {
-            //        Wall = WallID.AmberGemspark,
-            //        WallColor = PaintID.White,
-            //        CheckedColor = PaintID.DeepRed
-            //    }), 15, 5, 20, 2, "check me", new LabelStyle()
-            //{
-            //    TextColor = PaintID.Shadow,
-            //    TextAlignment = Alignment.Left
-            //}, new ExternalOffset() { Right = 1 })) as FormField;
-            //ffield.SetFullSize(true);
+            FormField ffield = node.AddToLayout(new FormField(
+                new Checkbox(0, 0, 2, new CheckboxStyle()
+                {
+                    Wall = WallID.AmberGemspark,
+                    WallColor = PaintID.White,
+                    CheckedColor = PaintID.DeepRed
+                }), 15, 5, 20, 2, "check me", new LabelStyle()
+                {
+                    TextColor = PaintID.Shadow,
+                    TextAlignment = Alignment.Left
+                }, new ExternalOffset() { Right = 1 })) as FormField;
 
             // Image
-            Image image = node.Add(new Image(15, 0, "Media\\Image.TEditSch")) as Image;
+            Image image = node.AddToLayout(new Image(15, 5, "Media\\Image.TEditSch")) as Image;
 
             // Video
-            //Video video = node.AddToLayout(new Video(15, 5, null, new VideoStyle()
-            //{
-            //    Path = "Media\\Animation-1",
-            //    Delay = 100,
-            //    TileColor = PaintID.DeepTeal
-            //}, (self, touch) => (self as Video).ToggleStart())) as Video;
+            Video video = node.AddToLayout(new Video(15, 5, null, new VideoStyle()
+            {
+                Path = "Media\\Animation-1",
+                Delay = 100,
+                TileColor = PaintID.DeepTeal
+            }, (self, touch) => (self as Video).ToggleStart())) as Video;
 
             // AlertWindow
-            //Button alertButton = node.AddToLayout(new Button(15, 10, 16, 4, "alert", null, new ButtonStyle()
-            //{
-            //    Wall = WallID.AmberGemspark,
-            //    WallColor = PaintID.DeepOrange
-            //}, (self, touch) => node.Root.Alert("Hello world"))) as Button;
+            Button alertButton = node.AddToLayout(new Button(15, 10, 16, 4, "alert", null, new ButtonStyle()
+            {
+                Wall = WallID.AmberGemspark,
+                WallColor = PaintID.DeepOrange
+            }, (self, touch) => node.Root.Alert("Hello world"))) as Button;
 
             // ConfirmWindow
-            //Button confirmButton = node.AddToLayout(new Button(15, 13, 20, 4, "confirm\npls", null, new ButtonStyle()
-            //{
-            //    Wall = WallID.AmberGemspark,
-            //    WallColor = PaintID.DeepTeal
-            //}, (self, touch) => node.Root.Confirm("Very nice", value => TSPlayer.All.SendInfoMessage("Confirmed? " + value)))) as Button;
+            Button confirmButton = node.AddToLayout(new Button(15, 13, 20, 4, "confirm\npls", null, new ButtonStyle()
+            {
+                Wall = WallID.AmberGemspark,
+                WallColor = PaintID.DeepTeal
+            }, (self, touch) => node.Root.Confirm("Very nice", value => TSPlayer.All.SendInfoMessage("Confirmed? " + value)))) as Button;
 
             // ScrollBackground
-            // Указываем layer (слой) в значение Int32.MinValue, чтобы виджет был сзади всех прочих виджетов
-            //ScrollBackground scrollbg = node.Add(new ScrollBackground(true, true, true), Int32.MinValue) as ScrollBackground;
+            // <Добавляем кучу виджетов в layout>
+            // Указываем layer (слой) в значение Int32.MinValue, чтобы виджет был сзади всех прочих виджетов.
+            ScrollBackground scrollbg = node.Add(new ScrollBackground(true, true, true), Int32.MinValue) as ScrollBackground;
 
             // ScrollBar
-            //ScrollBar scrollbar = node.Add(new ScrollBar(Direction.Right)) as ScrollBar;
+            ScrollBar scrollbar = node.Add(new ScrollBar(Direction.Right)) as ScrollBar;
 
             // Arrow
-            //Arrow arrow = node.Add(new Arrow(15, 5, new ArrowStyle()
-            //{
-            //    TileColor = PaintID.DeepBlue,
-            //    Direction = Direction.Left
-            //})) as Arrow;
+            Arrow arrow = node.AddToLayout(new Arrow(15, 5, new ArrowStyle()
+            {
+                TileColor = PaintID.DeepBlue,
+                Direction = Direction.Left
+            })) as Arrow;
         }
     }
 }
