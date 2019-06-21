@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
+using System.Reflection;
 using System.Timers;
 using Terraria;
 using Terraria.ID;
@@ -35,6 +37,7 @@ namespace TUIPlugin
         public static int RegionAreaY = 50;
         public static DesignState[] playerDesignState = new DesignState[Main.maxPlayers];
         private static Timer RegionTimer = new Timer(1000) { AutoReset = true };
+        public static bool FakesEnabled = false;
 
         #endregion
 
@@ -43,7 +46,7 @@ namespace TUIPlugin
         public TUIPlugin(Main game)
             : base(game)
         {
-            Order = Int32.MinValue;
+            Order = -1000;
         }
 
         #endregion
@@ -51,6 +54,10 @@ namespace TUIPlugin
 
         public override void Initialize()
         {
+            foreach (var p in ServerApi.Plugins)
+                Console.WriteLine(p.Plugin.Name);
+            FakesEnabled = ServerApi.Plugins.Count(p => p.Plugin.Name == "FakeManager") > 0;
+
             ServerApi.Hooks.GamePostInitialize.Register(this, OnGamePostInitialize, Int32.MinValue);
             ServerApi.Hooks.ServerConnect.Register(this, OnServerConnect);
             ServerApi.Hooks.ServerLeave.Register(this, OnServerLeave);
@@ -254,23 +261,43 @@ namespace TUIPlugin
             else
                 players = new HashSet<int>() { args.UserIndex };
             players.Remove(args.ExceptUserIndex);
+            if (players.Count == 0)
+                return;
+
+            // Yes, we are converting HashSet<int> to NetworkText to pass it to NetMessage.SendData for FakeManager...
+            Terraria.Localization.NetworkText playerList = FakesEnabled
+                ? Terraria.Localization.NetworkText.FromLiteral(String.Join(String.Empty, players.Select(p => (char)p)))
+                : null;
 
             int size = Math.Max(args.Width, args.Height);
             if (size >= 50 || args.ForcedSection)
             {
-                int lowX = Netplay.GetSectionX(args.X);
-                int highX = Netplay.GetSectionX(args.X + args.Width - 1);
-                int lowY = Netplay.GetSectionY(args.Y);
-                int highY = Netplay.GetSectionY(args.Y + args.Height - 1);
-                foreach (int i in players)
-                    NetMessage.SendData(10, i, -1, null, args.X, args.Y, args.Width, args.Height);
-                if (args.Frame)
+                if (FakesEnabled)
+                    NetMessage.SendData(10, -1, -1, playerList, args.X, args.Y, args.Width, args.Height);
+                else
                     foreach (int i in players)
-                        NetMessage.SendData(11, i, -1, null, lowX, lowY, highX, highY);
+                        NetMessage.SendData(10, i, -1, null, args.X, args.Y, args.Width, args.Height);
+                if (args.Frame)
+                {
+                    int lowX = Netplay.GetSectionX(args.X);
+                    int highX = Netplay.GetSectionX(args.X + args.Width - 1);
+                    int lowY = Netplay.GetSectionY(args.Y);
+                    int highY = Netplay.GetSectionY(args.Y + args.Height - 1);
+                    if (FakesEnabled)
+                        NetMessage.SendData(11, -1, -1, playerList, lowX, lowY, highX, highY);
+                    else
+                        foreach (int i in players)
+                            NetMessage.SendData(11, i, -1, null, lowX, lowY, highX, highY);
+                }
             }
             else
-                foreach (int i in players)
-                    NetMessage.SendData(20, i, -1, null, size, args.X, args.Y);
+            {
+                if (FakesEnabled)
+                    NetMessage.SendData(20, -1, -1, playerList, size, args.X, args.Y);
+                else
+                    foreach (int i in players)
+                        NetMessage.SendData(20, i, -1, null, size, args.X, args.Y);
+            }
         }
 
         #endregion

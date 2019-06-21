@@ -186,15 +186,15 @@ namespace TUI.Widgets
         #endregion
         #region Blink
 
+        protected virtual void StartBlink(ButtonBlinkStyle blinkStyle) =>
+            Blink(blinkStyle, ButtonStyle.BlinkColor);
+
         private void TryEndBlink(ButtonBlinkStyle blinkStyle, byte type)
         {
             State |= type;
             if (State == 3)
                 EndBlink(blinkStyle);
         }
-
-        protected virtual void StartBlink(ButtonBlinkStyle blinkStyle) =>
-            Blink(blinkStyle, ButtonStyle.BlinkColor);
 
         protected virtual void EndBlink(ButtonBlinkStyle blinkStyle)
         {

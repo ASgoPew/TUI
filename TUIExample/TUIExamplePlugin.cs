@@ -24,9 +24,16 @@ namespace TUIExample
 
         public override void Initialize()
         {
+            // Определяем позицию (по умолчанию) и размеры интерфейса
+            int x = 100, y = 100, w = 50, h = 45;
+            // Передаем в панель пустой провайдер (интерфейс будет рисоваться на Main.tile)
+            object provider = null;
+            // Хотя можем использовать в качестве провайдера, например, FakeTileRectangle из FakeManager:
+            //object provider = FakeManager.FakeManager.Common.Add("TestPanelProvider", x, y, w, h);
+
             // Создаем панель
-            Panel root = TUI.TUI.Create(new Panel("TestPanel", 100, 100, 50, 40, null,
-                new ContainerStyle() { Wall = WallID.DiamondGemspark })) as Panel;
+            Panel root = TUI.TUI.Create(new Panel("TestPanel", x, y, w, h, null,
+                new ContainerStyle() { Wall = WallID.DiamondGemspark }, provider)) as Panel;
             // Создаем виджет Label (отображение текста)
             Label label1 = new Label(1, 1, 17, 2, "some text");
             // Добавляем к панели
@@ -36,7 +43,7 @@ namespace TUIExample
             // Функция Add возвращает только что добавленный объект в типе VisualObject,
             // так что добавление элемента можно реализовать следующим образом:
             VisualContainer node = root.Add(
-                new VisualContainer(25, 0, 25, 40, null, new ContainerStyle() { WallColor = PaintID.Black })
+                new VisualContainer(25, 0, 25, h, null, new ContainerStyle() { WallColor = PaintID.Black })
             ) as VisualContainer;
             // В этот контейнер добавим кнопку, которая по нажатию будет отправлять нажавшему текст в чат.
             /*node.Add(new Button(0, 7, 12, 4, "lol", null, new ButtonStyle()
@@ -120,7 +127,8 @@ namespace TUIExample
             // Button
             Button button = node.AddToLayout(new Button(0, 7, 12, 4, "lol", null, new ButtonStyle()
             {
-                WallColor = PaintID.DeepGreen
+                WallColor = PaintID.DeepGreen,
+                TriggerStyle = ButtonTriggerStyle.TouchEnd
             }, (self, touch) => touch.Player().SendInfoMessage("You pressed lol button!"))) as Button;
 
             // Slider
@@ -189,10 +197,18 @@ namespace TUIExample
             }, (self, touch) => (self as Video).ToggleStart())) as Video;
 
             // AlertWindow
-            Task.Delay(10000).ContinueWith(_ => node.Root.Alert("Hello world"));
+            Button alertButton = node.AddToLayout(new Button(5, 5, 16, 4, "alert", null, new ButtonStyle()
+            {
+                Wall = 154,
+                WallColor = PaintID.DeepOrange
+            }, (self, touch) => node.Root.Alert("Hello world"))) as Button;
 
             // ConfirmWindow
-            Task.Delay(10000).ContinueWith(_ => node.Root.Confirm("Hello world", value => Console.WriteLine(value)));
+            Button confirmButton = node.AddToLayout(new Button(5, 5, 20, 4, "confirm", null, new ButtonStyle()
+            {
+                Wall = 154,
+                WallColor = PaintID.DeepTeal
+            }, (self, touch) => node.Root.Confirm("Hello world", value => Console.WriteLine(value)))) as Button;
 
             // ScrollBackground
             // Указываем layer (слой) в значение Int32.MinValue, чтобы виджет был сзади всех прочих виджетов
