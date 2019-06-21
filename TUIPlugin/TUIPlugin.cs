@@ -54,8 +54,6 @@ namespace TUIPlugin
 
         public override void Initialize()
         {
-            foreach (var p in ServerApi.Plugins)
-                Console.WriteLine(p.Plugin.Name);
             FakesEnabled = ServerApi.Plugins.Count(p => p.Plugin.Name == "FakeManager") > 0;
 
             ServerApi.Hooks.GamePostInitialize.Register(this, OnGamePostInitialize, Int32.MinValue);
