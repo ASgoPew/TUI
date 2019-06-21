@@ -266,7 +266,7 @@ namespace TUIPlugin
 
             // Yes, we are converting HashSet<int> to NetworkText to pass it to NetMessage.SendData for FakeManager...
             Terraria.Localization.NetworkText playerList = FakesEnabled
-                ? Terraria.Localization.NetworkText.FromLiteral(String.Join(String.Empty, players.Select(p => (char)p)))
+                ? Terraria.Localization.NetworkText.FromLiteral(String.Concat(players.Select(p => (char)p)))
                 : null;
 
             int size = Math.Max(args.Width, args.Height);
