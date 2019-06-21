@@ -412,9 +412,9 @@ namespace TUI
         #endregion
         #region DrawRect
 
-        public static void DrawRect(VisualObject node, int x, int y, int width, int height, bool forcedSection, int userIndex = -1, int exceptUserIndex = -1, bool frame = true)
+        public static void DrawRect(VisualObject node, int x, int y, int width, int height, bool forcedSection, int playerIndex = -1, int exceptPlayerIndex = -1, bool frame = true)
         {
-            TUI.Hooks.Draw.Invoke(new DrawArgs(node, x, y, width, height, forcedSection, userIndex, exceptUserIndex, frame));
+            TUI.Hooks.Draw.Invoke(new DrawArgs(node, x, y, width, height, forcedSection, playerIndex, exceptPlayerIndex, frame));
         }
 
         #endregion

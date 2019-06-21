@@ -1176,7 +1176,7 @@ namespace TUI.Base
                 return this;
             }
 
-            #endregion
+        #endregion
 
         #endregion
         #region Draw
@@ -1188,19 +1188,19 @@ namespace TUI.Base
         /// <param name="dy">Y coordinate delta</param>
         /// <param name="width">Drawing rectangle width, -1 for object.Width</param>
         /// <param name="height">Drawing rectangle height, -1 for object.Height</param>
-        /// <param name="userIndex">Index of user to send to, -1 for all users</param>
-        /// <param name="exceptUserIndex">Index of user to ignore on sending</param>
+        /// <param name="playerIndex">Index of user to send to, -1 for all players</param>
+        /// <param name="exceptPlayerIndex">Index of user to ignore on sending</param>
         /// <param name="forceSection">Whether to send with SendTileSquare or with SendSection, SendTileSquare (false) by default</param>
         /// <param name="frame">Whether to send SectionFrame if sending with SendSection</param>
         /// <returns>this</returns>
-        public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1, int userIndex = -1, int exceptUserIndex = -1, bool? forceSection = null, bool frame = true)
+        public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1, int playerIndex = -1, int exceptPlayerIndex = -1, bool? forceSection = null, bool frame = true)
         {
             bool realForceSection = forceSection ?? ForceSection;
             (int ax, int ay) = AbsoluteXY();
 #if DEBUG
             Console.WriteLine($"Draw ({Name}): {ax + dx}, {ay + dy}, {(width >= 0 ? width : Width)}, {(height >= 0 ? height : Height)}: {realForceSection}");
 #endif
-            TUI.DrawRect(this, ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height, realForceSection, userIndex, exceptUserIndex, frame);
+            TUI.DrawRect(this, ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height, realForceSection, playerIndex, exceptPlayerIndex, frame);
             return this;
         }
 

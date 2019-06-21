@@ -267,11 +267,11 @@ namespace TUIPlugin
         private static void OnDraw(DrawArgs args)
         {
             HashSet<int> players;
-            if (args.UserIndex == -1)
+            if (args.PlayerIndex == -1)
                 players = (args.Node.GetRoot() as RootVisualObject).Players;
             else
-                players = new HashSet<int>() { args.UserIndex };
-            players.Remove(args.ExceptUserIndex);
+                players = new HashSet<int>() { args.PlayerIndex };
+            players.Remove(args.ExceptPlayerIndex);
             if (players.Count == 0)
                 return;
 
