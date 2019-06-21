@@ -1,5 +1,5 @@
 # TUI
-In-game user interface library for Terraria.
+Ingame user interface library for Terraria by [ASgo](https://github.com/ASgoPew) and [Anzhelika](https://github.com/AnzhelikaO).
 ![](Images/Minesweeper.gif)
 
 You can find english documentation [here](Documentation/en.md).
