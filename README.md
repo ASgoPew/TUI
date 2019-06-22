@@ -26,4 +26,4 @@ By default example will spawn interface at (0, 0) coordinates, so you have to us
 Be aware that interface will modify your map tiles irreversible if you don't use [FakeManager](https://github.com/AnzhelikaO/FakeManager) as provider.
 Use The Grand Design to interact with interface.
 
-![](Images/TUIPanelCommand.gif)
+![](Documentation/Images/TUIPanelCommand.gif)
