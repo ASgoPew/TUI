@@ -40,7 +40,7 @@ namespace TUI.Base
         /// <summary>
         /// Bounds (relative to this object) in which this object is allowed to draw.
         /// </summary>
-        public ExternalOffset Bounds { get; protected set; } = new ExternalOffset();
+        public ExternalIndent Bounds { get; protected set; } = new ExternalIndent();
 
         /// <summary>
         /// Overridable field for disabling ability to be ordered in Parent's Child array.
@@ -193,7 +193,7 @@ namespace TUI.Base
         {
             if (x < 0 || y < 0 || x >= Width || y >= Height)
                 throw new ArgumentOutOfRangeException($"{FullName}: Invalid tile x or y.");
-            ExternalOffset bounds = Bounds;
+            ExternalIndent bounds = Bounds;
             if (x < bounds.Left || x >= Width - bounds.Right || y < bounds.Up || y >= Height - bounds.Down)
                 return null;
             return Provider?[ProviderX + x, ProviderY + y];
@@ -253,14 +253,14 @@ namespace TUI.Base
         /// <param name="alignment">Where to place all layout objects row/line</param>
         /// <param name="direction">Direction of placing objects</param>
         /// <param name="side">Side to which objects adjoin, relative to direction</param>
-        /// <param name="offset">Layout offset</param>
+        /// <param name="indent">Layout indent</param>
         /// <param name="childIndent">Distance between objects in layout</param>
-        /// <param name="boundsIsOffset">Whether to draw objects/ object tiles that are outside of bounds of offset or not</param>
+        /// <param name="boundsIsIndent">Whether to draw objects/ object tiles that are outside of bounds of indent or not</param>
         /// <returns>this</returns>
         public VisualObject SetupLayout(Alignment alignment = Alignment.Center, Direction direction = Direction.Down,
-            Side side = Side.Center, ExternalOffset offset = null, int childIndent = 1, bool boundsIsOffset = true)
+            Side side = Side.Center, ExternalIndent indent = null, int childIndent = 1, bool boundsIsIndent = true)
         {
-            Configuration.Layout = new LayoutConfiguration(alignment, direction, side, offset, childIndent, boundsIsOffset);
+            Configuration.Layout = new LayoutConfiguration(alignment, direction, side, indent, childIndent, boundsIsIndent);
             return this;
         }
 
@@ -272,11 +272,11 @@ namespace TUI.Base
         /// </summary>
         /// <param name="columns">Column sizes (i.e. new ISize[] { new Absolute(10), new Relative(100) })</param>
         /// <param name="lines">Line sizes (i.e. new ISize[] { new Absolute(10), new Relative(100) })</param>
-        /// <param name="offset">Grid offset</param>
+        /// <param name="indent">Grid indent</param>
         /// <param name="fillWithEmptyObjects">Whether to fills all grid cells with empty VisualContainers</param>
         /// <returns>this</returns>
         public VisualObject SetupGrid(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null,
-            Offset offset = null, bool fillWithEmptyObjects = true)
+            Indent indent = null, bool fillWithEmptyObjects = true)
         {
             GridConfiguration gridStyle = Configuration.Grid = new GridConfiguration(columns, lines);
 
@@ -305,10 +305,10 @@ namespace TUI.Base
         /// Setup alignment positioning inside parent. Removes layout and grid positioning.
         /// </summary>
         /// <param name="alignment">Where to place this object in parent</param>
-        /// <param name="offset">Alignment offset from Parent's borders</param>
-        /// <param name="boundsIsOffset">Whether to draw tiles of this object that are outside of bounds of offset or not</param>
+        /// <param name="indent">Alignment indent from Parent's borders</param>
+        /// <param name="boundsIsIndent">Whether to draw tiles of this object that are outside of bounds of indent or not</param>
         /// <returns>this</returns>
-        public VisualObject SetAlignmentInParent(Alignment alignment, ExternalOffset offset = null, bool boundsIsOffset = true)
+        public VisualObject SetAlignmentInParent(Alignment alignment, ExternalIndent indent = null, bool boundsIsIndent = true)
         {
             if (Cell != null)
             {
@@ -317,7 +317,7 @@ namespace TUI.Base
             }
             Configuration.InLayout = false;
 
-            Configuration.Alignment = new AlignmentConfiguration(alignment, offset, boundsIsOffset);
+            Configuration.Alignment = new AlignmentConfiguration(alignment, indent, boundsIsIndent);
             return this;
         }
 
@@ -369,19 +369,19 @@ namespace TUI.Base
         }
 
         #endregion
-        #region LayoutIndent
+        #region LayoutOffset
 
         /// <summary>
-        /// Scrolling indent of layout. Used in ScrollBackground and ScrollBar.
+        /// Scrolling offset of layout. Used in ScrollBackground and ScrollBar.
         /// </summary>
         /// <param name="value">Indent value</param>
         /// <returns>this</returns>
-        public VisualObject LayoutIndent(int value)
+        public VisualObject LayoutOffset(int value)
         {
             if (Configuration.Layout == null)
                 throw new Exception("Layout is not set for this object: " + FullName);
 
-            Configuration.Layout.LayoutIndent = value;
+            Configuration.Layout.LayoutOffset = value;
             return this;
         }
 
@@ -440,7 +440,7 @@ namespace TUI.Base
                 {
                     case PulseType.Reset:
                         if (Configuration.Layout != null)
-                            LayoutIndent(0);
+                            LayoutOffset(0);
                         break;
                     case PulseType.PositionChanged:
                         // Update position relative to Provider
@@ -529,33 +529,33 @@ namespace TUI.Base
             #region UpdateBounds
 
             /// <summary>
-            /// Calculate Bounds for this node (intersection of Parent's layout offset/alignment offset and Parent's Bounds)
+            /// Calculate Bounds for this node (intersection of Parent's layout indent/alignment indent and Parent's Bounds)
             /// </summary>
             protected void UpdateBounds()
             {
-                bool layoutBounds = Configuration.InLayout && Parent.Configuration.Layout.BoundsIsOffset;
-                bool alignmentBounds = Configuration.Alignment != null && Configuration.Alignment.BoundsIsOffset;
+                bool layoutBounds = Configuration.InLayout && Parent.Configuration.Layout.BoundsIsIndent;
+                bool alignmentBounds = Configuration.Alignment != null && Configuration.Alignment.BoundsIsIndent;
                 if (layoutBounds || alignmentBounds)
                 {
-                    ExternalOffset parentOffset = layoutBounds ? Parent.Configuration.Layout.Offset : Configuration.Alignment.Offset;
-                    Bounds = new ExternalOffset()
+                    ExternalIndent parentIndent = layoutBounds ? Parent.Configuration.Layout.Indent : Configuration.Alignment.Indent;
+                    Bounds = new ExternalIndent()
                     {
-                        Left = Math.Max(0, parentOffset.Left - X),
-                        Up = Math.Max(0, parentOffset.Up - Y),
-                        Right = Math.Max(0, (X + Width) - (Parent.Width - parentOffset.Right)),
-                        Down = Math.Max(0, (Y + Height) - (Parent.Height - parentOffset.Down)),
+                        Left = Math.Max(0, parentIndent.Left - X),
+                        Up = Math.Max(0, parentIndent.Up - Y),
+                        Right = Math.Max(0, (X + Width) - (Parent.Width - parentIndent.Right)),
+                        Down = Math.Max(0, (Y + Height) - (Parent.Height - parentIndent.Down)),
                     };
                 }
                 else
-                    Bounds = new ExternalOffset(UIDefault.ExternalOffset);
+                    Bounds = new ExternalIndent(UIDefault.ExternalIndent);
 
                 // Intersecting bounds with parent's Bounds
                 if (Parent != null)
                 {
-                    ExternalOffset parentBounds = Parent.Bounds;
+                    ExternalIndent parentBounds = Parent.Bounds;
                     if (parentBounds == null)
                         return;
-                    Bounds = new ExternalOffset()
+                    Bounds = new ExternalIndent()
                     {
                         Left = Math.Max(Bounds.Left, parentBounds.Left - X),
                         Up = Math.Max(Bounds.Up, parentBounds.Up - Y),
@@ -625,18 +625,18 @@ namespace TUI.Base
             protected void UpdateFullSize()
             {
                 FullSize fullSize = Configuration.FullSize;
-                // If child is in layout then FullSize should match parent size minus layout offset.
-                // If Alignment is set then FullSize should match parent size minus alignment offset.
-                ExternalOffset offset = Configuration.InLayout
-                    ? Parent.Configuration.Layout.Offset
+                // If child is in layout then FullSize should match parent size minus layout indent.
+                // If Alignment is set then FullSize should match parent size minus alignment indent.
+                ExternalIndent indent = Configuration.InLayout
+                    ? Parent.Configuration.Layout.Indent
                     : Configuration.Alignment != null
-                        ? Configuration.Alignment.Offset
-                        : UIDefault.ExternalOffset;
+                        ? Configuration.Alignment.Indent
+                        : UIDefault.ExternalIndent;
 
-                int newX = offset.Left;
-                int newY = offset.Up;
-                int newWidth = Parent.Width - newX - offset.Right;
-                int newHeight = Parent.Height - newY - offset.Down;
+                int newX = indent.Left;
+                int newY = indent.Up;
+                int newWidth = Parent.Width - newX - indent.Right;
+                int newHeight = Parent.Height - newY - indent.Down;
 
                 if (fullSize == FullSize.Both)
                     SetXYWH(newX, newY, newWidth, newHeight);
@@ -660,20 +660,20 @@ namespace TUI.Base
                     if (positioning  == null)
                         continue;
 
-                    ExternalOffset offset = positioning.Offset ?? UIDefault.ExternalOffset;
+                    ExternalIndent indent = positioning.Indent ?? UIDefault.ExternalIndent;
                     Alignment alignment = positioning.Alignment;
                     int x, y;
                     if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
-                        x = offset.Left;
+                        x = indent.Left;
                     else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
-                        x = Width - offset.Right - child.Width;
+                        x = Width - indent.Right - child.Width;
                     else
                         x = (int)Math.Floor((Width - child.Width) / 2f);
 
                     if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
-                        y = offset.Up;
+                        y = indent.Up;
                     else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
-                        y = Height - offset.Down - child.Height;
+                        y = Height - indent.Down - child.Height;
                     else
                         y = (int)Math.Floor((Height - child.Height) / 2f);
 
@@ -689,14 +689,14 @@ namespace TUI.Base
             /// </summary>
             protected void UpdateLayout()
             {
-                ExternalOffset offset = Configuration.Layout.Offset;
+                ExternalIndent indent = Configuration.Layout.Indent;
                 Alignment alignment = Configuration.Layout.Alignment;
                 Direction direction = Configuration.Layout.Direction;
                 Side side = Configuration.Layout.Side;
-                int indent = Configuration.Layout.ChildIndent;
-                int layoutIndent = Configuration.Layout.LayoutIndent;
+                int offset = Configuration.Layout.ChildOffset;
+                int layoutIndent = Configuration.Layout.LayoutOffset;
 
-                (int abstractLayoutW, int abstractLayoutH, List<VisualObject> layoutChild) = CalculateLayoutSize(direction, indent);
+                (int abstractLayoutW, int abstractLayoutH, List<VisualObject> layoutChild) = CalculateLayoutSize(direction, offset);
                 Configuration.Layout.Objects = layoutChild;
                 for (int i = 0; i < Configuration.Layout.Index; i++)
                     layoutChild[i].Visible = false;
@@ -709,30 +709,30 @@ namespace TUI.Base
 
                 // Initializing sx
                 if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
-                    layoutX = offset.Left;
+                    layoutX = indent.Left;
                 else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
-                    layoutX = Width - offset.Right - abstractLayoutW;
+                    layoutX = Width - indent.Right - abstractLayoutW;
                 else
                     layoutX = (Width - abstractLayoutW + 1) / 2;
-                layoutX = Math.Max(layoutX, offset.Left);
-                layoutW = Math.Min(abstractLayoutW, Width - offset.Left - offset.Right);
+                layoutX = Math.Max(layoutX, indent.Left);
+                layoutW = Math.Min(abstractLayoutW, Width - indent.Left - indent.Right);
 
                 // Initializing sy
                 if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
-                    layoutY = offset.Up;
+                    layoutY = indent.Up;
                 else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
-                    layoutY = Height - offset.Down - abstractLayoutH;
+                    layoutY = Height - indent.Down - abstractLayoutH;
                 else
                     layoutY = (Height - abstractLayoutH + 1) / 2;
-                layoutY = Math.Max(layoutY, offset.Up);
-                layoutH = Math.Min(abstractLayoutH, Height - offset.Up - offset.Down);
+                layoutY = Math.Max(layoutY, indent.Up);
+                layoutH = Math.Min(abstractLayoutH, Height - indent.Up - indent.Down);
 
                 // Updating cell objects padding
                 int cx = direction == Direction.Left
-                    ? Math.Min(abstractLayoutW - layoutChild[0].Width, Width - layoutX - offset.Right - layoutChild[0].Width)
+                    ? Math.Min(abstractLayoutW - layoutChild[0].Width, Width - layoutX - indent.Right - layoutChild[0].Width)
                     : 0;
                 int cy = direction == Direction.Up
-                    ? Math.Min(abstractLayoutH - layoutChild[0].Height, Height - layoutY - offset.Down - layoutChild[0].Height)
+                    ? Math.Min(abstractLayoutH - layoutChild[0].Height, Height - layoutY - indent.Down - layoutChild[0].Height)
                     : 0;
 
                 // Layout indent for smooth scrolling
@@ -783,11 +783,11 @@ namespace TUI.Base
                     int resultX = layoutX + cx + sideDeltaX;
                     int resultY = layoutY + cy + sideDeltaY;
                     //Console.WriteLine($"{Width}, {Height}: {resultX}, {resultY}, {resultX + child.Width - 1}, {resultY + child.Height - 1}");
-                    //child.Visible = LayoutContains(resultX, resultY, offset)
-                    //    && LayoutContains(resultX + child.Width - 1, resultY + child.Height - 1, offset);
-                    if (Configuration.Layout.BoundsIsOffset)
-                        child.Visible = Intersecting(resultX, resultY, child.Width, child.Height, offset.Left, offset.Up,
-                            Width - offset.Right - offset.Left, Height - offset.Down - offset.Up);
+                    //child.Visible = LayoutContains(resultX, resultY, indent)
+                    //    && LayoutContains(resultX + child.Width - 1, resultY + child.Height - 1, indent);
+                    if (Configuration.Layout.BoundsIsIndent)
+                        child.Visible = Intersecting(resultX, resultY, child.Width, child.Height, indent.Left, indent.Up,
+                            Width - indent.Right - indent.Left, Height - indent.Down - indent.Up);
                     else
                         child.Visible = Intersecting(resultX, resultY, child.Width, child.Height, 0, 0, Width, Height);
 
@@ -798,26 +798,26 @@ namespace TUI.Base
                         break;
 
                     if (direction == Direction.Right)
-                        cx = cx + indent + child.Width;
+                        cx = cx + offset + child.Width;
                     else if (direction == Direction.Left)
-                        cx = cx - indent - layoutChild[k + 1].Width;
+                        cx = cx - offset - layoutChild[k + 1].Width;
                     else if (direction == Direction.Down)
-                        cy = cy + indent + child.Height;
+                        cy = cy + offset + child.Height;
                     else if (direction == Direction.Up)
-                        cy = cy - indent - layoutChild[k + 1].Height;
+                        cy = cy - offset - layoutChild[k + 1].Height;
                 }
 
                 if (direction == Direction.Left || direction == Direction.Right)
-                    Configuration.Layout.IndentLimit = abstractLayoutW - layoutW;
+                    Configuration.Layout.OffsetLimit = abstractLayoutW - layoutW;
                 else if (direction == Direction.Up || direction == Direction.Down)
-                    Configuration.Layout.IndentLimit = abstractLayoutH - layoutH;
+                    Configuration.Layout.OffsetLimit = abstractLayoutH - layoutH;
             }
 
             #endregion
             #region CalculateLayoutSize
 
             private (int absoluteLayoutW, int absoluteLayoutH, List<VisualObject> objects) CalculateLayoutSize(
-                Direction direction, int indent)
+                Direction direction, int offset)
             {
                 // Calculating total objects width and height
                 int totalW = 0, totalH = 0;
@@ -835,19 +835,19 @@ namespace TUI.Base
                     {
                         if (child.Height > totalH)
                             totalH = child.Height;
-                        totalW += child.Width + indent;
+                        totalW += child.Width + offset;
                     }
                     else if (direction == Direction.Up || direction == Direction.Down)
                     {
                         if (child.Width > totalW)
                             totalW = child.Width;
-                        totalH += child.Height + indent;
+                        totalH += child.Height + offset;
                     }
                 }
                 if ((direction == Direction.Left || direction == Direction.Right) && totalW > 0)
-                    totalW -= indent;
+                    totalW -= offset;
                 if ((direction == Direction.Up || direction == Direction.Down) && totalH > 0)
-                    totalH -= indent;
+                    totalH -= offset;
 
                 return (totalW, totalH, layoutChild);
             }
@@ -858,8 +858,8 @@ namespace TUI.Base
             public bool Intersecting(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2) =>
                 x1 < x2 + w2 && y1 < y2 + h2 && x2 < x1 + w1 && y2 < y1 + h1;
 
-            //public virtual bool LayoutContains(int x, int y, ExternalOffset offset) =>
-                //x >= offset.Left && y >= offset.Up && x < Width - offset.Right && y < Height - offset.Down;
+            //public virtual bool LayoutContains(int x, int y, ExternalIndent indent) =>
+                //x >= indent.Left && y >= indent.Up && x < Width - indent.Right && y < Height - indent.Down;
 
             #endregion
             #region UpdateGrid
@@ -892,20 +892,20 @@ namespace TUI.Base
 
             public void CalculateGridSizes()
             {
-                Offset offset = Configuration.Grid.Offset ?? UIDefault.Offset;
-                CalculateSizes(Configuration.Grid.Columns, Width, offset.Left, offset.Horizontal, offset.Right,
+                Indent indent = Configuration.Grid.Indent ?? UIDefault.Indent;
+                CalculateSizes(Configuration.Grid.Columns, Width, indent.Left, indent.Horizontal, indent.Right,
                     ref Configuration.Grid.ResultingColumns, ref Configuration.Grid.MinWidth, "width");
-                CalculateSizes(Configuration.Grid.Lines, Height, offset.Up, offset.Vertical, offset.Down,
+                CalculateSizes(Configuration.Grid.Lines, Height, indent.Up, indent.Vertical, indent.Down,
                     ref Configuration.Grid.ResultingLines, ref Configuration.Grid.MinHeight, "height");
             }
 
             #endregion
             #region CalculateSizes
 
-            private void CalculateSizes(ISize[] sizes, int absoluteSize, int startOffset, int middleOffset, int endOffset, ref (int Position, int Size)[] resulting, ref int minSize, string sizeName)
+            private void CalculateSizes(ISize[] sizes, int absoluteSize, int startIndent, int middleIndent, int endIndent, ref (int Position, int Size)[] resulting, ref int minSize, string sizeName)
             {
                 // Initializing min size
-                minSize = startOffset + endOffset;
+                minSize = startIndent + endIndent;
                 int defaultMinSize = minSize;
 
                 // Initializing resulting array
@@ -931,13 +931,13 @@ namespace TUI.Base
                     throw new ArgumentException($"{FullName} (UpdateGrid): relative {sizeName} is more than 100: {FullName}");
 
                 // Now calculating actual column/line sizes
-                int relativeSize = absoluteSize - absoluteSum - middleOffset * (notZeroSizes - 1) - startOffset - endOffset;
+                int relativeSize = absoluteSize - absoluteSum - middleIndent * (notZeroSizes - 1) - startIndent - endIndent;
                 // ???
                 if (relativeSize < 0)
                     relativeSize = 0;
                 int relativeSizeUsed = 0;
                 List<(int, float)> descendingFractionalPart = new List<(int, float)>();
-                int sizeCounter = startOffset;
+                int sizeCounter = startIndent;
                 for (int i = 0; i < sizes.Length; i++)
                 {
                     ISize size = sizes[i];
@@ -956,11 +956,11 @@ namespace TUI.Base
                         InsertSort(descendingFractionalPart, i, sizeValue);
                     }
                     else
-                        minSize += realSize + middleOffset;
-                    sizeCounter += realSize + middleOffset;
+                        minSize += realSize + middleIndent;
+                    sizeCounter += realSize + middleIndent;
                 }
                 if (minSize > defaultMinSize)
-                    minSize -= middleOffset;
+                    minSize -= middleIndent;
                 if (minSize == 0)
                     minSize = 1;
 
@@ -975,13 +975,13 @@ namespace TUI.Base
                 }
 
                 // Here the sizes are already calculated finally. Calculating positions.
-                sizeCounter = startOffset;
+                sizeCounter = startIndent;
                 for (int i = 0; i < sizes.Length; i++)
                 {
                     int columnSize = resulting[i].Size;
                     resulting[i].Position = sizeCounter;
                     if (columnSize != 0)
-                        sizeCounter += columnSize + middleOffset;
+                        sizeCounter += columnSize + middleIndent;
                 }
             }
 

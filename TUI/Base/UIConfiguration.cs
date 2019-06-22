@@ -16,23 +16,23 @@ namespace TUI.Base
         /// </summary>
         public Alignment Alignment { get; set; }
         /// <summary>
-        /// Offset for <see cref="Alignment"/> inside parent.
+        /// Indent for <see cref="Alignment"/> inside parent.
         /// </summary>
-        public ExternalOffset Offset { get; set; }
+        public ExternalIndent Indent { get; set; }
         /// <summary>
-        /// Restrict drawing outside of offset or not.
+        /// Restrict drawing outside of indent or not.
         /// </summary>
-        public bool BoundsIsOffset { get; set; }
+        public bool BoundsIsIndent { get; set; }
 
-        internal AlignmentConfiguration(Alignment alignment, ExternalOffset offset = null, bool boundsIsOffset = true)
+        internal AlignmentConfiguration(Alignment alignment, ExternalIndent indent = null, bool boundsIsIndent = true)
         {
             Alignment = alignment;
-            Offset = offset ?? new ExternalOffset(UIDefault.ExternalOffset);
-            BoundsIsOffset = boundsIsOffset;
+            Indent = indent ?? new ExternalIndent(UIDefault.ExternalIndent);
+            BoundsIsIndent = boundsIsIndent;
         }
 
         internal AlignmentConfiguration(AlignmentConfiguration alignmentConfiguration)
-            : this(alignmentConfiguration.Alignment, alignmentConfiguration.Offset) { }
+            : this(alignmentConfiguration.Alignment, alignmentConfiguration.Indent) { }
     }
 
     #endregion
@@ -52,15 +52,18 @@ namespace TUI.Base
         /// </summary>
         public List<VisualObject> Objects { get; internal set; } = null;
         /// <summary>
-        /// Whole layout indentation.
+        /// Whole layout offset.
         /// </summary>
-        public int LayoutIndent { get; internal set; } = 0;
-        public int IndentLimit { get; internal set; }
+        public int LayoutOffset { get; internal set; } = 0;
+        /// <summary>
+        /// Maximum value of <see cref="LayoutOffset"/> (in other words layout size).
+        /// </summary>
+        public int OffsetLimit { get; internal set; }
 
         /// <summary>
-        /// Layout offset.
+        /// Layout indent.
         /// </summary>
-        public ExternalOffset Offset { get; set; }
+        public ExternalIndent Indent { get; set; }
         /// <summary>
         /// Object placing alignment in child layout.
         /// </summary>
@@ -76,25 +79,25 @@ namespace TUI.Base
         /// <summary>
         /// Distance between objects in child layout.
         /// </summary>
-        public int ChildIndent { get; set; }
+        public int ChildOffset { get; set; }
         /// <summary>
-        /// Restrict drawing outside of offset or not.
+        /// Restrict drawing outside of indent or not.
         /// </summary>
-        public bool BoundsIsOffset { get; set; }
+        public bool BoundsIsIndent { get; set; }
 
-        internal LayoutConfiguration(Alignment alignment = Alignment.Center, Direction direction = Style.Direction.Down, Side side = Style.Side.Center, ExternalOffset offset = null, int childIndent = 1, bool boundsIsOffset = true)
+        internal LayoutConfiguration(Alignment alignment = Alignment.Center, Direction direction = Style.Direction.Down, Side side = Style.Side.Center, ExternalIndent indent = null, int childIndent = 1, bool boundsIsIndent = true)
         {
             Alignment = alignment;
             Direction = direction;
             Side = side;
-            Offset = offset ?? new ExternalOffset(UIDefault.ExternalOffset);
-            ChildIndent = childIndent;
-            BoundsIsOffset = boundsIsOffset;
+            Indent = indent ?? new ExternalIndent(UIDefault.ExternalIndent);
+            ChildOffset = childIndent;
+            BoundsIsIndent = boundsIsIndent;
         }
 
         internal LayoutConfiguration(LayoutConfiguration layoutConfiguration)
             : this(layoutConfiguration.Alignment, layoutConfiguration.Direction,
-                  layoutConfiguration.Side, layoutConfiguration.Offset, layoutConfiguration.ChildIndent) { }
+                  layoutConfiguration.Side, layoutConfiguration.Indent, layoutConfiguration.ChildOffset) { }
     }
 
     #endregion
@@ -119,20 +122,20 @@ namespace TUI.Base
         /// </summary>
         public ISize[] Lines { get; internal set; }
         /// <summary>
-        /// Grid offset
+        /// Grid indent
         /// </summary>
-        public Offset Offset { get; set; }
+        public Indent Indent { get; set; }
 
-        internal GridConfiguration(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null, Offset offset = null)
+        internal GridConfiguration(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null, Indent indent = null)
         {
             Columns = columns?.ToArray() ?? new ISize[] { new Relative(100) };
             Lines = lines?.ToArray() ?? new ISize[] { new Relative(100) };
-            Offset = offset ?? new Offset(UIDefault.Offset);
+            Indent = indent ?? new Indent(UIDefault.Indent);
         }
 
         internal GridConfiguration(GridConfiguration gridConfiguration)
             : this((ISize[])gridConfiguration.Columns.Clone(), (ISize[])gridConfiguration.Lines.Clone(),
-                  new Offset(gridConfiguration.Offset))
+                  new Indent(gridConfiguration.Indent))
         {
         }
     }
@@ -174,7 +177,7 @@ namespace TUI.Base
         /// <summary>
         /// Object size matches parent horizontal/vertical/both size automatically.
         /// <para></para>
-        /// If node is in parent's layout/alignment then matching parent size consideres layout/alignment offset.
+        /// If node is in parent's layout/alignment then matching parent size consideres layout/alignment indent.
         /// <para></para>
         /// Can't be used with grid positioning.
         /// </summary>

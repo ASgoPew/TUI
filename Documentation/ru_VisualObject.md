@@ -51,7 +51,7 @@
 	* X координата относительно провайдера Provider. Устанавливается в Update() и по сигналу PulseType.PositionChanged.
 * int **ProviderY**
 	* Y координата относительно провайдера Provider. Устанавливается в Update() и по сигналу PulseType.PositionChanged.
-* ExternalOffset **Bounds**
+* ExternalIndent **Bounds**
 	* Рамки (относительно текущего объекта) в котором могут рисоваться блоки текущего объекта (и блоки поддерева дочерних объектов).
 * IEnumerable<VisualObject> **DescendantDFS**
 	* Метод обхода поддерева интерфейса (включая текущую вершину) Deep Fast Search (в глубину).
@@ -127,25 +127,25 @@
 * VisualObject **AddToLayout**(VisualObject child, int? layer)
 	* Добавляет объект в качестве дочернего в разметку layout. Удаляет Alignment и ячейку Grid.
 * VisualObject **SetupLayout**(Alignment alignment, Direction direction, Side side,
-		ExternalOffset offset, int childIndent, bool boundsIsOffset)
+		ExternalIndent indent, int childOffset, bool boundsIsIndent)
 	* Устанавливает разметку layout для позиционирования в ней дочерних объектов.
 		* alignment - Где расположить набор дочерних объектов в разметке.
 		* direction - Направление расположения дочерних объектов.
 		* side - Сторона, к которой примыкают объекты в наборе объектов разметки, относительна по отношению к направлению.
-		* offset - Отступы разметки.
-		* childIndent - Расстояние между объектами в разметке.
-		* boundsIsOffset - Рисовать ли объекты/блоки объектов, которые выходят за границу отступа Offset.
-* VisualObject **SetupGrid**(IEnumerable<ISize> columns, IEnumerable<ISize> lines, Offset offset, bool fillWithEmptyObjects)
+		* indent - Отступы разметки.
+		* childOffset - Расстояние между объектами в разметке.
+		* boundsIsIndent - Рисовать ли объекты/блоки объектов, которые выходят за границу отступа Indent.
+* VisualObject **SetupGrid**(IEnumerable<ISize> columns, IEnumerable<ISize> lines, Indent indent, bool fillWithEmptyObjects)
 	* Установить решетку для расположения дочерних объектов в ней. Используйте классы Absolute и Relative для указания размеров.
 		* columns - Размеры колонок (например, new ISize[] { new Absolute(10), new Relative(100) }).
 		* lines - Размеры линий.
-		* offset - Отступы решетки.
+		* indent - Отступы решетки.
 		* fillWithEmptyObjects - Заполнить ли решетку пустыми объектами VisualContainer.
-* VisualObject **SetAlignmentInParent**(Alignment alignment, ExternalOffset offset, bool boundsIsOffset)
+* VisualObject **SetAlignmentInParent**(Alignment alignment, ExternalIndent indent, bool boundsIsIndent)
 	* Установить Alignment-позиционирование текущей вершины в родителе. Запрещает позиционирование в разметке layout и решетке grid.
 * VisualObject **SetFullSize**(bool horizontal, bool vertical)
 	* Установить автоматическое растягивание размеров объекта относительно родителя. Запрещает позиционирование в grid.
-* VisualObject **LayoutIndent**(int value)
+* VisualObject **LayoutOffset**(int value)
 	* Отступ разметки в блоках. Используется в виджетах ScrollBackground и ScrollBar.
 
 * VisualObject **Pulse**(PulseType type)
@@ -216,7 +216,7 @@
 * virtual void **UpdateThisNative**()
 	* Переопределяемый метод для обновлений, связанных с текущей вершиной. Не меняйте размер/позицию текущего объекта в этом методе.
 * void **UpdateBounds**()
-	* Рассчитать рамку текущего объекта (пересечение отступа Offset родительской разметки/отступа Alignment текущего объекта и рамок родительского объекта).
+	* Рассчитать рамку текущего объекта (пересечение отступа Indent родительской разметки/отступа Alignment текущего объекта и рамок родительского объекта).
 * void **UpdateChildSize**()
 	* Обновление размеров дочерних объектов с помощью вызова child.UpdateSizeNative().
 * virtual (int, int) **UpdateSizeNative**()

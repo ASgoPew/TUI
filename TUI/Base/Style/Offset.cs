@@ -1,32 +1,32 @@
 ﻿namespace TUI.Base.Style
 {
-    public class InternalOffset
+    public class InternalIndent
     {
         public int Horizontal = 0;
         public int Vertical = 0;
 
-        public InternalOffset() { }
+        public InternalIndent() { }
 
-        public InternalOffset(InternalOffset indent)
+        public InternalIndent(InternalIndent indent)
         {
             this.Horizontal = indent.Horizontal;
             this.Vertical = indent.Vertical;
         }
 
         public override string ToString() =>
-            $"InternalOffset {{ Horizontal={Horizontal}, Vertical={Vertical} }}";
+            $"InternalIndent {{ Horizontal={Horizontal}, Vertical={Vertical} }}";
     }
 
-    public class ExternalOffset
+    public class ExternalIndent
     {
         public int Left = 0;
         public int Up = 0;
         public int Right = 0;
         public int Down = 0;
 
-        public ExternalOffset() { }
+        public ExternalIndent() { }
 
-        public ExternalOffset(ExternalOffset indent)
+        public ExternalIndent(ExternalIndent indent)
         {
             this.Left = indent.Left;
             this.Up = indent.Up;
@@ -35,10 +35,10 @@
         }
 
         public override string ToString() =>
-            $"ExternalOffset {{ Left={Left}, Up={Up}, Right={Right}, Down={Down} }}";
+            $"ExternalIndent {{ Left={Left}, Up={Up}, Right={Right}, Down={Down} }}";
     }
 
-    public class Offset
+    public class Indent
     {
         public int Left = 0;
         public int Up = 0;
@@ -47,9 +47,9 @@
         public int Horizontal = 0;
         public int Vertical = 0;
 
-        public Offset() { }
+        public Indent() { }
 
-        public Offset(Offset indent)
+        public Indent(Indent indent)
         {
             this.Left = indent.Left;
             this.Up = indent.Up;
@@ -60,6 +60,6 @@
         }
 
         public override string ToString() =>
-            $"Offset {{ Left={Left}, Up={Up}, Right={Right}, Down={Down}, Horizontal={Horizontal}, Vertical={Vertical} }}";
+            $"Indent {{ Left={Left}, Up={Up}, Right={Right}, Down={Down}, Horizontal={Horizontal}, Vertical={Vertical} }}";
     }
 }

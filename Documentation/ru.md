@@ -196,7 +196,7 @@ node.Add(new Button(5, 0, 12, 4, "lol", null, new ButtonStyle()
 в определенном порядке друг за другом в указанном направлении:
 
 ```cs
-VisualObject SetupLayout(Alignment alignment, Direction direction, Side side, ExternalOffset offset, int childIndent, bool boundsIsOffset);
+VisualObject SetupLayout(Alignment alignment, Direction direction, Side side, ExternalIndent indent, int childOffset, bool boundsIsIndent);
 ```
 <details><summary> <sup><b><ins>Параметры</ins></b> (нажмите сюда, чтобы развернуть)</sup> </summary>
 <p>
@@ -207,11 +207,11 @@ VisualObject SetupLayout(Alignment alignment, Direction direction, Side side, Ex
 	* Направление, по которому будут добавляться объекты. Например, вниз - Direction.Down.
 * Side **side**
 	* Сторона, к которой будут прилегать объекты. Например, по центру - Side.Center.
-* ExternalOffset **offset**
-	* Отступ layout. Например, отступ сверху на 3 и слева на 2: new ExternalOffset() { Up=3, Left=2 }
-* int **childIndent**
+* ExternalIndent **indent**
+	* Отступ layout. Например, отступ сверху на 3 и слева на 2: new ExternalIndent() { Up=3, Left=2 }
+* int **childOffset**
 	* Расстояние между объектами в layout.
-* bool **boundsIsOffset**
+* bool **boundsIsIndent**
 	* Если установлено true, то блоки объектов, выходящие за границы layout, не будут рисоваться.
 
 </p>
@@ -245,7 +245,7 @@ node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle() {
 
 Метод SetupGrid позволяет представить объект в виде решетки с абсолютными или относительными размерами колонок и линий:
 ```cs
-VisualObject SetupGrid(IEnumerable<ISize> columns, IEnumerable<ISize> lines, Offset offset, bool fillWithEmptyObjects);
+VisualObject SetupGrid(IEnumerable<ISize> columns, IEnumerable<ISize> lines, Indent indent, bool fillWithEmptyObjects);
 ```
 <details><summary> <sup><b><ins>Параметры</ins></b> (нажмите сюда, чтобы развернуть)</sup> </summary>
 <p>
@@ -254,7 +254,7 @@ VisualObject SetupGrid(IEnumerable<ISize> columns, IEnumerable<ISize> lines, Off
 	* Размеры колонок. Например, левая колонка размером 10 блоков, а правая - все оставшееся место: new ISize[] { Absolute(10), Relative(100) }
 * IEnumerable\<ISize\> **lines**
 	* Размеры линий. Например, центральная линия занимает 20 блоков, а верхняя и нижняя поровну делят оставшееся место: new ISize[] { Relative(50), Absolute(20), Relative(50) }
-* Offset **offset**
+* Indent **indent**
 	* Отступ сетки, включая внутренние отступы ячеек между собой и внешние отступы от границы объекта.
 * bool **fillWithEmptyObjects**
 	* Заполнить ли автоматически все ячейки пустыми VisualContainer или нет.
@@ -316,17 +316,17 @@ node.Add(new Button(3, 3, 10, 4, "show", null, new ButtonStyle()
 Метод SetAlignmentInParent позволяет автоматически располагать объект в относительной позиции в родителе:
 
 ```cs
-VisualObject SetAlignmentInParent(Alignment alignment, ExternalOffset offset, bool boundsIsOffset);
+VisualObject SetAlignmentInParent(Alignment alignment, ExternalIndent indent, bool boundsIsIndent);
 ```
 <details><summary> <sup><b><ins>Параметры</ins></b> (нажмите сюда, чтобы развернуть)</sup> </summary>
 <p>
 
 * Alignment **alignment**
 	* Место расположения объекта внутри родителе.
-* ExternalOffset **offset**
+* ExternalIndent **indent**
 	* Отступы от границ родителя.
-* bool **boundsIsOffset**
-	* Рисовать ли тайлы, которые вылезают за границы offset.
+* bool **boundsIsIndent**
+	* Рисовать ли тайлы, которые вылезают за границы indent.
 
 </p>
 </details>
@@ -335,7 +335,7 @@ VisualObject SetAlignmentInParent(Alignment alignment, ExternalOffset offset, bo
 ```cs
 // Добавляем label и сразу устанавливаем Alignment.DownRight с отступом 3 блока справа и 1 снизу.
 node.Add(new Label(0, 0, 16, 6, "test", new LabelStyle() { WallColor = PaintID.DeepPink }))
-	.SetAlignmentInParent(Alignment.DownRight, new ExternalOffset() { Right = 3, Down = 1 });
+	.SetAlignmentInParent(Alignment.DownRight, new ExternalIndent() { Right = 3, Down = 1 });
 ```
 ![](Images/Alignment.png)
 
@@ -849,7 +849,7 @@ Label(int x, int y, int width, int height, string text, LabelStyle style);
 
 * Все свойства [UIStyle](#Класс-UIStyle)
 * byte **TextColor**
-* Offset **TextOffset**
+* Indent **TextIndent**
 * Alignment **TextAlignment**
 	* Где расположить текст внутри объекта (верхний правый угол/нижняя сторона/центр/...)
 * Side **TextSide**
@@ -1087,12 +1087,12 @@ VisualSign vsign = node.Add(new VisualSign(15, 5, "lmfao\nwtf")) as VisualSign;
 Наследуется от Label.
 ```cs
 FormField(IInput input, int x, int y, int width, int height, string text,
-	LabelStyle style, ExternalOffset inputOffset);
+	LabelStyle style, ExternalIndent inputIndent);
 ```
 <details><summary> <sup><b><ins>Параметры</ins></b> (нажмите сюда, чтобы развернуть)</sup> </summary>
 <p>
 
-* ExternalOffset inputOffset
+* ExternalIndent inputIndent
 	* Отступ для Alignment у объекта input (объект input автоматически получает Alignment.Right).
 
 </p>
@@ -1110,7 +1110,7 @@ FormField ffield = node.Add(new FormField(
 {
 	TextColor = PaintID.Shadow,
 	TextAlignment = Alignment.Left
-}, new ExternalOffset() { Right = 1 })) as FormField;
+}, new ExternalIndent() { Right = 1 })) as FormField;
 ```
 ![](Images/FormField.png)
 

@@ -20,7 +20,7 @@ namespace TUI.Widgets
     public class LabelStyle : UIStyle
     {
         public byte TextColor { get; set; } = UIDefault.LabelTextColor;
-        public Offset TextOffset { get; set; } = new Offset(UIDefault.LabelOffset);
+        public Indent TextIndent { get; set; } = new Indent(UIDefault.LabelIndent);
         /// <summary>
         /// Where to place the text (up right corner/down side/center/...)
         /// </summary>
@@ -44,7 +44,7 @@ namespace TUI.Widgets
             : base(style)
         {
             this.TextColor = style.TextColor;
-            this.TextOffset = style.TextOffset;
+            this.TextIndent = style.TextIndent;
             this.TextAlignment = style.TextAlignment;
             this.TextSide = style.TextSide;
             this.TextUnderline = style.TextUnderline;
@@ -113,12 +113,12 @@ namespace TUI.Widgets
                 return;
             int lineH = 2 + (int)style.TextUnderline;
             ForceSection = false;
-            Offset offset = style.TextOffset;
+            Indent indent = style.TextIndent;
             Alignment alignment = style.TextAlignment;
             Side side = style.TextSide;
 
-            int spaceW = Width - offset.Left - offset.Right;
-            int spaceH = Height - offset.Up - offset.Down;
+            int spaceW = Width - indent.Left - indent.Right;
+            int spaceH = Height - indent.Up - indent.Down;
 		    int textW = TextW;
 		    int textH = TextH;
 
@@ -127,19 +127,19 @@ namespace TUI.Widgets
 
             int charX = 0;
             if (alignment == Alignment.Center || alignment == Alignment.Up || alignment == Alignment.Down)
-                charX = offset.Left + (int)Math.Floor((spaceW - textW) / 2d);
+                charX = indent.Left + (int)Math.Floor((spaceW - textW) / 2d);
             else if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
-                charX = offset.Left;
+                charX = indent.Left;
             else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
-                charX = offset.Left + spaceW - textW;
+                charX = indent.Left + spaceW - textW;
 
             int charY = 0;
             if (alignment == Alignment.Center || alignment == Alignment.Left || alignment == Alignment.Right)
-                charY = offset.Up + (int)Math.Floor((spaceH - textH) / 2d);
+                charY = indent.Up + (int)Math.Floor((spaceH - textH) / 2d);
             else if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
-                charY = offset.Up;
+                charY = indent.Up;
             else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
-                charY = offset.Up + spaceH - textH;
+                charY = indent.Up + spaceH - textH;
 
             int defaultCharX = charX;
 
@@ -182,15 +182,15 @@ namespace TUI.Widgets
                     }
 				    else
                     {
-                        for (int x = 0; x < offset.Horizontal; x++)
+                        for (int x = 0; x < indent.Horizontal; x++)
                             for (int statueY = 0; statueY <= Math.Min(lineH - 1, 3); statueY++)
                                 Tile(charX + x, charY + statueY)?.active(false);
-					    charX += offset.Horizontal;
+					    charX += indent.Horizontal;
                     }
                 }
-                if (charY + 2 * lineH + offset.Vertical + offset.Down > Height)
+                if (charY + 2 * lineH + indent.Vertical + indent.Down > Height)
                     break;
-                charY = charY + lineH + offset.Vertical;
+                charY = charY + lineH + indent.Vertical;
             }
         }
 
@@ -202,16 +202,16 @@ namespace TUI.Widgets
             base.UpdateThisNative();
 
             LabelStyle style = Style as LabelStyle;
-            Offset offset = style.TextOffset;
-            int spaceW = Width - offset.Left - offset.Right;
-            int spaceH = Height - offset.Up - offset.Down;
+            Indent indent = style.TextIndent;
+            int spaceW = Width - indent.Left - indent.Right;
+            int spaceH = Height - indent.Up - indent.Down;
             int lineH = 2 + (int)style.TextUnderline;
 
             //Dividing text into lines
-            (List<(string, int)> lines, int maxLineW) = LimitStatueText(RawText, spaceW, spaceH, offset.Horizontal, offset.Vertical, lineH);
+            (List<(string, int)> lines, int maxLineW) = LimitStatueText(RawText, spaceW, spaceH, indent.Horizontal, indent.Vertical, lineH);
             Lines = lines;
             TextW = maxLineW;
-            TextH = lines.Count * (lineH + offset.Vertical) - offset.Vertical;
+            TextH = lines.Count * (lineH + indent.Vertical) - indent.Vertical;
         }
 
         #endregion

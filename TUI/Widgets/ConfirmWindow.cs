@@ -36,7 +36,7 @@ namespace TUI.Widgets
 
             int lines = (text?.Count(c => c == '\n') ?? 0) + 1;
             Label = Container.AddToLayout(new Label(0, 0, 0, 1 + lines * 3, text, null,
-                new LabelStyle() { TextOffset = new Offset() { Horizontal = 1, Vertical = 1 } }))
+                new LabelStyle() { TextIndent = new Indent() { Horizontal = 1, Vertical = 1 } }))
                 .SetFullSize(FullSize.Horizontal) as Label;
 
             VisualContainer yesno = Container.AddToLayout(new VisualContainer(0, 0, 24, 4)) as VisualContainer;

@@ -69,7 +69,7 @@ namespace TUI.Widgets
             SetXYWH(x, y, Input.DefaultValue.Length* 2, style?.TextUnderline == LabelUnderline.Underline? 3 : 2);
             SetText(Input.DefaultValue);
             InputLabelStyle ilstyle = InputLabelStyle;
-            ilstyle.TextOffset = new Offset() { Left = 0, Up = 0, Right = 0, Down = 0, Horizontal = 2, Vertical = 2 };
+            ilstyle.TextIndent = new Indent() { Left = 0, Up = 0, Right = 0, Down = 0, Horizontal = 2, Vertical = 2 };
             ilstyle.TextAlignment = Alignment.UpLeft;
         }
 

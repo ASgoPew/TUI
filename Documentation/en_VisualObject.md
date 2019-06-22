@@ -49,7 +49,7 @@
 	* X coordinate relative to tile provider. Sets in Update() and by signal PulseType.PositionChanged.
 * int **ProviderY**
 	* Y coordinate relative to tile provider. Sets in Update() and by signal PulseType.PositionChanged.
-* ExternalOffset **Bounds**
+* ExternalIndent **Bounds**
 	* Bounds (relative to this object) in which tiles of this object is allowed to draw (and tiles of child sub-tree as well).
 * IEnumerable<VisualObject> **DescendantDFS**
 	* Deep Fast Search method of iterating objects in sub-tree including this node.
@@ -124,26 +124,26 @@
 * VisualObject **AddToLayout**(VisualObject child, int? layer)
 	* Add object as a child in layout. Removes child alignment and grid positioning.
 * VisualObject **SetupLayout**(Alignment alignment, Direction direction, Side side,
-		ExternalOffset offset, int childIndent, bool boundsIsOffset)
+		ExternalIndent indent, int childOffset, bool boundsIsIndent)
 	* Setup layout for child positioning.
 		* alignment - Where to place all layout objects row/line.
 		* direction - Direction of placing objects.
 		* side - Side to which objects adjoin, relative to direction.
-		* offset - Layout offset.
-		* childIndent - Distance between objects in layout.
-		* boundsIsOffset - Whether to draw objects/object tiles that are outside of bounds of offset or not.
-* VisualObject **SetupGrid**(IEnumerable<ISize> columns, IEnumerable<ISize> lines, Offset offset, bool fillWithEmptyObjects)
+		* indent - Layout indent.
+		* childOffset - Distance between objects in layout.
+		* boundsIsIndent - Whether to draw objects/object tiles that are outside of bounds of indent or not.
+* VisualObject **SetupGrid**(IEnumerable<ISize> columns, IEnumerable<ISize> lines, Indent indent, bool fillWithEmptyObjects)
 	* Setup grid for child positioning. Use Absolute and Relative classes for specifying sizes.
 		* columns - Column sizes (i.e. new ISize[] { new Absolute(10), new Relative(100) }).
 		* lines - Line sizes.
-		* offset - Grid offset.
+		* indent - Grid indent.
 		* fillWithEmptyObjects - Whether to fills all grid cells with empty VisualContainers.
-* VisualObject **SetAlignmentInParent**(Alignment alignment, ExternalOffset offset, bool boundsIsOffset)
+* VisualObject **SetAlignmentInParent**(Alignment alignment, ExternalIndent indent, bool boundsIsIndent)
 	* Setup alignment positioning inside parent. Removes layout and grid positioning.
 * VisualObject **SetFullSize**(bool horizontal, bool vertical)
 	* Set automatic stretching to parent size. Removes grid positioning.
-* VisualObject **LayoutIndent**(int value)
-	* Scrolling indent of layout in tiles. Used in ScrollBackground and ScrollBar widgets.
+* VisualObject **LayoutOffset**(int value)
+	* Scrolling offset of layout in tiles. Used in ScrollBackground and ScrollBar widgets.
 
 * VisualObject **Pulse**(PulseType type)
 	* Send specified signal to all sub-tree including this node.
@@ -213,7 +213,7 @@
 * virtual void **UpdateThisNative**()
 	* Overridable method for updates related to this node. Don't change this object's position/size in in this method.
 * void **UpdateBounds**()
-	* Calculate Bounds for this node (intersection of Parent's layout offset/alignment offset and Parent's Bounds).
+	* Calculate Bounds for this node (intersection of Parent's layout indent/alignment indent and Parent's Bounds).
 * void **UpdateChildSize**()
 	* Updates child sizes with call of overridable child.UpdateSizeNative().
 * virtual (int, int) **UpdateSizeNative**()

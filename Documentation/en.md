@@ -191,7 +191,7 @@ The SetupLayout method allows you to automatically have children added using the
 method in a specific order one after the other in the specified direction:
 
 ```cs
-VisualObject SetupLayout(Alignment alignment, Direction direction, Side side, ExternalOffset offset, int childIndent, bool boundsIsOffset);
+VisualObject SetupLayout(Alignment alignment, Direction direction, Side side, ExternalIndent indent, int childOffset, bool boundsIsIndent);
 ```
 <details><summary> <sup><b><ins>Parameters</ins></b> (click here to expand)</sup> </summary>
 <p>
@@ -202,12 +202,12 @@ VisualObject SetupLayout(Alignment alignment, Direction direction, Side side, Ex
 	* The direction in which the objects will be added. For example, down - Direction.Down.
 * Side **side**
 	* The side to which the objects will abut. For example, in the center - Side.Center.
-* ExternalOffset **offset**
-	* Layout offset. For example, offset from above for 3 and from left for 2: new ExternalOffset () {Up = 3, Left = 2}
-* int **childIndent**
+* ExternalIndent **indent**
+	* Layout indent. For example, indent from above for 3 and from left for 2: new ExternalIndent () {Up = 3, Left = 2}
+* int **childOffset**
 	* Distance between objects in layout.
-* bool **boundsIsOffset**
-	* If set to true, then blocks of objects that go beyond the offset of the layout will not be drawn.
+* bool **boundsIsIndent**
+	* If set to true, then blocks of objects that go beyond the indent of the layout will not be drawn.
 
 </p>
 </details>
@@ -240,7 +240,7 @@ node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle()
 
 The SetupGrid method allows you to represent an object in the form of a grid with absolute or relative sizes of columns and lines:
 ```cs
-VisualObject SetupGrid(IEnumerable<ISize> columns, IEnumerable<ISize> lines, Offset offset, bool fillWithEmptyObjects);
+VisualObject SetupGrid(IEnumerable<ISize> columns, IEnumerable<ISize> lines, Indent indent, bool fillWithEmptyObjects);
 ```
 <details><summary> <sup><b><ins>Parameters</ins></b> (click here to expand)</sup> </summary>
 <p>
@@ -249,8 +249,8 @@ VisualObject SetupGrid(IEnumerable<ISize> columns, IEnumerable<ISize> lines, Off
 	* The size of the columns. For example, the left column is 10 blocks in size, and the right one is the remaining space: new ISize [] {Absolute (10), Relative (100)}
 * IEnumerable\<ISize\> **lines**
 	* Sizes of lines. For example, the central line occupies 20 blocks, and the upper and lower equally divide the remaining space: new ISize [] {Relative (50), Absolute (20), Relative (50)}
-* Offset **offset**
-	* The offset of the grid, including the inner indents of the cells between them and the outer indents from the object boundary.
+* Indent **indent**
+	* The indent of the grid, including the inner indent of the cells between them and the outer indent from the object boundary.
 * bool **fillWithEmptyObjects**
 	* Whether all cells should be automatically filled with empty VisualContainer or not.
 
@@ -311,26 +311,26 @@ node.Add(new Button(3, 3, 10, 4, "show", null, new ButtonStyle()
 The SetAlignmentInParent method allows you to automatically position an object in a relative position inside of the parent:
 
 ```cs
-VisualObject SetAlignmentInParent(Alignment alignment, ExternalOffset offset, bool boundsIsOffset);
+VisualObject SetAlignmentInParent(Alignment alignment, ExternalIndent indent, bool boundsIsIndent);
 ```
 <details><summary> <sup><b><ins>Parameters</ins></b> (click here to expand)</sup> </summary>
 <p>
 
 * Alignment **alignment**
 	* The location of the object inside the parent.
-* ExternalOffset **offset**
-	* Offset from parental boundaries.
-* bool **boundsIsOffset**
-	* Whether to draw tiles which get beyond offset.
+* ExternalIndent **indent**
+	* Indent from parental boundaries.
+* bool **boundsIsIndent**
+	* Whether to draw tiles which get beyond indent.
 
 </p>
 </details>
 
 Example (Add method returns newly added child object):
 ```cs
-// Add a label and immediately set Alignment.DownRight with offset 3 blocks to the right and 1 below.
+// Add a label and immediately set Alignment.DownRight with indent 3 blocks to the right and 1 below.
 node.Add(new Label(0, 0, 16, 6, "test", new LabelStyle() { WallColor = PaintID.DeepPink }))
-	.SetAlignmentInParent(Alignment.DownRight, new ExternalOffset() { Right = 3, Down = 1 });
+	.SetAlignmentInParent(Alignment.DownRight, new ExternalIndent() { Right = 3, Down = 1 });
 ```
 ![](Images/Alignment.png)
 
@@ -829,7 +829,7 @@ Label(int x, int y, int width, int height, string text, LabelStyle style);
 
 * All properties of [UIStyle](#UIStyle-class)
 * byte **TextColor**
-* Offset **TextOffset**
+* Indent **TextIndent**
 * Alignment **TextAlignment**
 	* Where to place the text (up right corner/down side/center/...)
 * Side **TextSide**
@@ -1063,13 +1063,13 @@ This widget is needed for adding text to the left of some other widget (e.g. Che
 Inherits from Label.
 ```cs
 FormField(IInput input, int x, int y, int width, int height, string text,
-	LabelStyle style, ExternalOffset inputOffset);
+	LabelStyle style, ExternalIndent inputIndent);
 ```
 <details><summary> <sup><b><ins>Parameters</ins></b> (click here to expand)</sup> </summary>
 <p>
 
-* ExternalOffset inputOffset
-	* Alignment offset of input (input will automatically gain Alignment.Right).
+* ExternalIndent inputIndent
+	* Alignment indent of input (input will automatically gain Alignment.Right).
 
 </p>
 </details>
@@ -1086,7 +1086,7 @@ FormField ffield = node.Add(new FormField(
 {
 	TextColor = PaintID.Shadow,
 	TextAlignment = Alignment.Left
-}, new ExternalOffset() { Right = 1 })) as FormField;
+}, new ExternalIndent() { Right = 1 })) as FormField;
 ```
 ![](Images/FormField.png)
 

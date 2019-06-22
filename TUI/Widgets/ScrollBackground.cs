@@ -46,8 +46,8 @@ namespace TUI.Widgets
             if (Parent?.Configuration?.Layout == null)
                 throw new Exception("Scroll has no parent or parent doesn't have layout.");
             LayoutConfiguration layout = Parent.Configuration.Layout;
-            int indent = layout.LayoutIndent;
-            Limit = layout.IndentLimit;
+            int indent = layout.LayoutOffset;
+            Limit = layout.OffsetLimit;
             bool vertical = layout.Direction == Direction.Up || layout.Direction == Direction.Down;
             bool forward = layout.Direction == Direction.Right || layout.Direction == Direction.Down;
             if (touch.State == TouchState.Begin)
@@ -83,9 +83,9 @@ namespace TUI.Widgets
                         else if (newIndent > Limit)
                             newIndent = Limit;
                     }
-                    if (Parent.Configuration.Layout.LayoutIndent != newIndent)
+                    if (Parent.Configuration.Layout.LayoutOffset != newIndent)
                     {
-                        Parent.LayoutIndent(newIndent);
+                        Parent.LayoutOffset(newIndent);
                         Action<ScrollBackground, int> callback = ScrollBackgroundCallback;
                         if (callback != null)
                             callback.Invoke(this, newIndent);

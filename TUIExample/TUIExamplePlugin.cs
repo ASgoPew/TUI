@@ -118,9 +118,9 @@ namespace TUIExample
 
             if (false)
             {
-                // Add a label and immediately set Alignment.DownRight with offset 3 blocks to the right and 1 below.
+                // Add a label and immediately set Alignment.DownRight with indent 3 blocks to the right and 1 below.
                 node.Add(new Label(0, 0, 16, 6, "test", new LabelStyle() { WallColor = PaintID.DeepPink }))
-                    .SetAlignmentInParent(Alignment.DownRight, new ExternalOffset() { Right = 3, Down = 1 });
+                    .SetAlignmentInParent(Alignment.DownRight, new ExternalIndent() { Right = 3, Down = 1 });
             }
 
             if (false)
@@ -227,7 +227,7 @@ namespace TUIExample
                 {
                     TextColor = PaintID.Shadow,
                     TextAlignment = Alignment.Left
-                }, new ExternalOffset() { Right = 1 })) as FormField;
+                }, new ExternalIndent() { Right = 1 })) as FormField;
 
             // Image
             Image image = node.AddToLayout(new Image(15, 5, "Media\\Image.TEditSch")) as Image;

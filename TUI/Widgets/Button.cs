@@ -97,12 +97,12 @@ namespace TUI.Widgets
             Configuration.BeginRequire = true;
             Configuration.UseOutsideTouches = true;
 
-            Offset offset = ButtonStyle.TextOffset;
-            int minOffset = ButtonStyle.BlinkStyle == ButtonBlinkStyle.Left ? 3 : ButtonStyle.BlinkStyle == ButtonBlinkStyle.Right ? 2 : 0;
-            if (offset.Left < minOffset)
-                offset.Left = minOffset;
-            if (offset.Right < minOffset)
-                offset.Right = minOffset;
+            Indent indent = ButtonStyle.TextIndent;
+            int minIndent = ButtonStyle.BlinkStyle == ButtonBlinkStyle.Left ? 3 : ButtonStyle.BlinkStyle == ButtonBlinkStyle.Right ? 2 : 0;
+            if (indent.Left < minIndent)
+                indent.Left = minIndent;
+            if (indent.Right < minIndent)
+                indent.Right = minIndent;
         }
 
         #endregion

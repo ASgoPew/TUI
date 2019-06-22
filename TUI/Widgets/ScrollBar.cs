@@ -91,7 +91,7 @@ namespace TUI.Widgets
         {
             //int newIndent = (int)Math.Round((value / (float)@this.Limit) * @this.Parent.Configuration.Layout.IndentLimit);
             //Console.WriteLine(newIndent);
-            @this.Parent.Parent.LayoutIndent(value)
+            @this.Parent.Parent.LayoutOffset(value)
                 .Update()
                 .Apply()
                 .Draw();
@@ -104,8 +104,8 @@ namespace TUI.Widgets
         {
             base.UpdateThisNative();
 
-            Configuration.Layout.LayoutIndent = Parent.Configuration.Layout.LayoutIndent;
-            int limit = Parent.Configuration.Layout.IndentLimit;
+            Configuration.Layout.LayoutOffset = Parent.Configuration.Layout.LayoutOffset;
+            int limit = Parent.Configuration.Layout.OffsetLimit;
             Slider.Style.WallColor = ScrollBarStyle.SliderColor;
             if (Vertical)
             {
@@ -174,16 +174,16 @@ namespace TUI.Widgets
             if (Vertical)
             {
                 if (touch.Y > Slider.Y)
-                    ScrollAction(Slider, Configuration.Layout.LayoutIndent + (touch.Y - (Slider.Y + Slider.Height) + 1) * forward);
+                    ScrollAction(Slider, Configuration.Layout.LayoutOffset + (touch.Y - (Slider.Y + Slider.Height) + 1) * forward);
                 else
-                    ScrollAction(Slider, Configuration.Layout.LayoutIndent - (Slider.Y - touch.Y) * forward);
+                    ScrollAction(Slider, Configuration.Layout.LayoutOffset - (Slider.Y - touch.Y) * forward);
             }
             else
             {
                 if (touch.X > Slider.X)
-                    ScrollAction(Slider, Configuration.Layout.LayoutIndent + (touch.X - (Slider.X + Slider.Width) + 1) * forward);
+                    ScrollAction(Slider, Configuration.Layout.LayoutOffset + (touch.X - (Slider.X + Slider.Width) + 1) * forward);
                 else
-                    ScrollAction(Slider, Configuration.Layout.LayoutIndent - (Slider.X - touch.X) * forward);
+                    ScrollAction(Slider, Configuration.Layout.LayoutOffset - (Slider.X - touch.X) * forward);
             }
         }
 
