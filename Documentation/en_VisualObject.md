@@ -77,8 +77,8 @@
 	* Iterates over object points (coordinates) relative to tile provider.
 
 ## Public methods of VisualObject
-* virtual VisualObject **Add**(VisualObject child, int layer)
-	* Adds object as a child in specified layer (0 by default). Does nothing if object is already a child.
+* virtual VisualObject **Add**(VisualObject child, int? layer)
+	* Adds object as a child in specified layer (use object's layer by default). Does nothing if object is already a child.
 * VisualObject **Remove**(VisualObject child)
 	* Removes child object. Calls Dispose() on removed object so you can't use this object anymore.
 * VisualObject **Select**(VisualObject o)
@@ -121,7 +121,7 @@
 	* Calculates coordinates relative to tile provider.
 * virtual dynamic **Tile**(int x, int y)
 	* Returns tile by coordinates relative to this node point (x=0, y=0 is a top left point of this object).
-* VisualObject **AddToLayout**(VisualObject child, int layer)
+* VisualObject **AddToLayout**(VisualObject child, int? layer)
 	* Add object as a child in layout. Removes child alignment and grid positioning.
 * VisualObject **SetupLayout**(Alignment alignment, Direction direction, Side side,
 		ExternalOffset offset, int childIndent, bool boundsIsOffset)

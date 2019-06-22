@@ -49,7 +49,7 @@ namespace TUI.Widgets
         public ScrollBar(Direction side = Direction.Right, int width = 1, ScrollBarStyle style = null)
             : base(0, 0, 0, 0, new UIConfiguration(), style ?? new ScrollBarStyle())
         {
-
+            Layer = Int32.MaxValue - 1;
             Vertical = side == Direction.Left || side == Direction.Right;
             _Width = width;
             if (Vertical)
@@ -74,7 +74,8 @@ namespace TUI.Widgets
             }
             Empty1 = AddToLayout(new Separator(0)) as Separator;
             Empty1.Configuration.UseBegin = false;
-            Slider = AddToLayout(new ScrollBackground(false, true, true, ScrollAction)) as ScrollBackground;
+            // Adding ScrollBackground with 0 layer.
+            Slider = AddToLayout(new ScrollBackground(false, true, true, ScrollAction), 0) as ScrollBackground;
             Empty2 = AddToLayout(new Separator(0)) as Separator;
             Empty2.Configuration.UseBegin = false;
             Slider.SetFullSize(FullSize.None);

@@ -33,6 +33,7 @@ namespace TUI.Widgets
             AllowToPull = allowToPull;
             RememberTouchPosition = rememberTouchPosition;
             ScrollBackgroundCallback = callback;
+            Layer = Int32.MinValue;
 
             SetFullSize(FullSize.Both);
         }

@@ -265,6 +265,7 @@ namespace TUIExample
             // ScrollBackground
             // <Добавляем кучу виджетов в layout>
             // Указываем layer (слой) в значение Int32.MinValue, чтобы виджет был сзади всех прочих виджетов.
+            // Хотя на самом деле конструктор ScrollBackground сам это делает, потому необязательно указывать слой.
             ScrollBackground scrollbg = node.Add(new ScrollBackground(true, true, true), Int32.MinValue) as ScrollBackground;
 
             // ScrollBar

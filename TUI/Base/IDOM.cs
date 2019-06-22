@@ -6,7 +6,7 @@ namespace TUI.Base
     {
         T Parent { get; }
 
-        T Add(T child, int layer);
+        T Add(T child, int? layer);
         T Remove(T child);
         T Select(T child);
         T Selected();

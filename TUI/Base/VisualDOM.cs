@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using TUI.Widgets;
 
 namespace TUI.Base
 {
@@ -59,7 +60,7 @@ namespace TUI.Base
         /// <summary>
         /// Layer in Parent's Child array. Objects with higher layer are always higher in this array.
         /// </summary>
-        public virtual int Layer { get; private set; } = 0;
+        public virtual int Layer { get; protected set; } = 0;
         /// <summary>
         /// Object touching and drawing settings.
         /// </summary>
@@ -241,9 +242,9 @@ namespace TUI.Base
             /// Adds object as a child in specified layer (0 by default). Does nothing if object is already a child.
             /// </summary>
             /// <param name="child">Object to add as a child.</param>
-            /// <param name="layer">Layout to add object to.</param>
+            /// <param name="layer">Layer to add object to. Null by default (don't change object layer).</param>
             /// <returns>Added object</returns>
-            public virtual VisualObject Add(VisualObject child, int layer = 0)
+            public virtual VisualObject Add(VisualObject child, int? layer = null)
             {
                 VisualObject @this = this as VisualObject;
                 lock (Child)
@@ -252,13 +253,15 @@ namespace TUI.Base
                         return child;
                         //throw new InvalidOperationException("You can't add an object that is already a child: " + child.FullName);
 
-                    int index = 0;
-                    while (index < Child.Count && Child[index].Layer <= layer)
-                        index++;
+                    if (layer.HasValue)
+                        child.Layer = layer.Value;
+
+                    int index = Child.Count;
+                    while (index > 0 && Child[index - 1].Layer > child.Layer)
+                        index--;
                     Child.Insert(index, child);
                 }
                 child.Parent = @this;
-                child.Layer = layer;
 
                 TUI.TryToLoadChild(@this, child);
 

@@ -206,9 +206,9 @@ namespace TUI.Base
         /// Add object as a child in layout. Removes child alignment and grid positioning.
         /// </summary>
         /// <param name="child">Object to add as a child.</param>
-        /// <param name="layer">Layer where to add the object.</param>
+        /// <param name="layer">Layer where to add the object. Null by default (don't change object layer).</param>
         /// <returns></returns>
-        public virtual VisualObject AddToLayout(VisualObject child, int layer = 0)
+        public virtual VisualObject AddToLayout(VisualObject child, int? layer = null)
         {
             child.Configuration.Alignment = null;
             if (child.Cell != null)

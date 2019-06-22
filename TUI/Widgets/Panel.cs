@@ -48,9 +48,9 @@ namespace TUI.Widgets
                 UseMoving = true, UseEnd = true }, style, provider)
         {
             if (drag != null)
-                DragObject = Add(drag, 1000000) as PanelDrag;
+                DragObject = Add(drag) as PanelDrag;
             if (resize != null)
-                ResizeObject = Add(resize, 1000000) as PanelResize;
+                ResizeObject = Add(resize) as PanelResize;
 
             DBRead();
         }
@@ -178,6 +178,7 @@ namespace TUI.Widgets
             : base(x, y, width, height, configuration, style, callback)
         {
             Configuration.UseEnd = true;
+            Layer = Int32.MaxValue;
             if (Callback == null)
                 Callback = CustomCallback;
         }
@@ -221,6 +222,7 @@ namespace TUI.Widgets
             : base(x, y, width, height, configuration, style, callback)
         {
             Configuration.UseEnd = true;
+            Layer = Int32.MaxValue;
             if (Callback == null)
                 Callback = CustomCallback;
         }

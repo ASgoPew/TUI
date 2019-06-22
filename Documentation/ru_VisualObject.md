@@ -79,8 +79,9 @@
 	* Итератор перебора внутренних точек (координат) объекта, относительно провайдера Provider.
 
 ## Публичные методы VisualObject
-* virtual VisualObject **Add**(VisualObject child, int layer)
-	* Добавляет объект в качестве дочернего в указанный слой (0 по умолчанию). Не делает ничего, если объект уже является дочерним.
+* virtual VisualObject **Add**(VisualObject child, int? layer)
+	* Добавляет объект в качестве дочернего в указанный слой (использовать слой объекта).
+	Не делает ничего, если объект уже является дочерним.
 * VisualObject **Remove**(VisualObject child)
 	* Удаляет дочерний объект. Вызывает Dispose() у удаленного объекта, так что использовать его больше нельзя.
 * VisualObject **Select**(VisualObject o)
@@ -123,7 +124,7 @@
 	* Рассчитывает координаты относительно провайдера Provider.
 * virtual dynamic **Tile**(int x, int y)
 	* Возвращает тайл (блок) по координатам, относительно текущей вершины (x=0, y=0 - левый верхний блок объекта).
-* VisualObject **AddToLayout**(VisualObject child, int layer)
+* VisualObject **AddToLayout**(VisualObject child, int? layer)
 	* Добавляет объект в качестве дочернего в разметку layout. Удаляет Alignment и ячейку Grid.
 * VisualObject **SetupLayout**(Alignment alignment, Direction direction, Side side,
 		ExternalOffset offset, int childIndent, bool boundsIsOffset)

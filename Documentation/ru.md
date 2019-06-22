@@ -60,7 +60,7 @@
 
 Добавить дочерний элемент можно несколькими способами, например, вызвав функцию Add:
 ```cs
-VisualObject Add(VisualObject newChild);
+VisualObject Add(VisualObject newChild, int? layer);
 ```
 
 ***
@@ -643,6 +643,17 @@ virtual void UDBWriteNative(BinaryWriter bw, int user);
 
 ***
 
+## Команда tuipanel
+
+Плагин добавляет команду ```/tuipanel <panel name> [<x> <y>] [<width> <height>]```.
+В качестве параметра <panel name> нужно указать название корневого объекта интерфейса (RootVisualObject).
+Виджет панели Panel тоже является корневым объектом (так как наследуется от RootVisualObject).
+Вызывав команду ```/tuipanel "your panel"```, вы узнаете координаты и размеры панели "your panel".
+Чтобы сменить позицию, вы можете написать: ```/tuipanel "panel" 150 100``` - тогда панель "panel" переместится в координаты (150, 100).
+Можно сменить и размеры: ```/tuipanel "panel" 150 100 50 40``` - тогда панель не только переместится, но и поменяет размер на (50, 40).
+
+***
+
 ## Создание собственного виджета
 
 Для создания собственного виджета необходимо создать класс, наследующийся от VisualObject (или другого виджета).
@@ -695,7 +706,7 @@ virtual void UDBWriteNative(BinaryWriter bw, int user);
 
 Большинство виджетов имеют параметр стиля в конструкторе, зачастую это не UIStyle,
 а класс, наследующийся от UIStyle. Например, ButtonStyle включает в себя как
-конфигурацию UIStyle, так и разные стили, связанные с морганием кнопки:
+свойства UIStyle, так и разные стили, связанные с морганием кнопки:
 BlinkColor, BlinkDelay, TriggerStyle, BlinkStyle.
 Если виджет имеет в конструкторе стиль с собственным типом (как ButtonStyle у Button),
 то этот виджет имеет поле с именем соответствующего типа стиля.
@@ -705,12 +716,12 @@ BlinkColor, BlinkDelay, TriggerStyle, BlinkStyle.
 ***
 
 ## VisualObject
-[Подробнее о полях и методах VisualObject](ru_VisualObject.md)
+[Подробнее о полях, свойствах и методах VisualObject](ru_VisualObject.md)
 
 Базовый объект интерфейса. Любой виджет наследуется от этого класса.
 Как и в большинстве других виджетов, параметры configuration, style и callback не обязательны.
 Структура конструктора VisualObject задает стиль конструкторов всех остальных виджетов:
-[Координаты] -> [размеры] -> [текст (в данном случае его нет)] -> [конфигурация] -> [стиль] -> [функция].
+[координаты] -> [размеры] -> [текст (в данном случае его нет)] -> [конфигурация] -> [стиль] -> [функция].
 ```cs
 VisualObject(int x, int y, int width, int height, UIConfiguration configuration,
 	UIStyle style, Action<VisualObject, Touch> callback);
@@ -734,8 +745,7 @@ VisualObject(int x, int y, int width, int height, UIConfiguration configuration,
 	* Функция, вызываемая по нажатию на этот объект. Принимает 2 параметра:
 	VisualObject (это сам объект) и Touch - объект нажатия, хранящий информацию о координатах,
 	состоянии нажатия, о нажимающем игроке (.Session.UserIndex), ...
-TSPlayer нажимающего игрока можно получить через функцию-расширение Touch.Player(),
-доступную в сборке TUIPlugin.dll.
+TSPlayer нажимающего игрока можно получить через функцию-расширение Touch.Player(), доступную в сборке TUIPlugin.dll.
 
 </p>
 </details>
@@ -755,7 +765,7 @@ VisualObject obj = node.Add(new VisualObject(5, 5, 8, 4, null, new UIStyle()
 
 ## VisualContainer
 Виджет-контейнер других виджетов. Рекомендуется использовать именно его, несмотря на то,
-что можно использовать и обычный VisualObject для хранения других объектов.
+что можно использовать и обычный VisualObject или любой другой виджет для хранения других объектов.
 VisualContainer гарантирует правильную работу виджетов ScrollBackground и ScrollBar внутри себя.
 ```cs
 VisualContainer(int x, int y, int width, int height, UIConfiguration configuration,
@@ -767,10 +777,10 @@ VisualContainer(ContainerStyle style);
 <details><summary> Свойства <b><ins>ContainerStyle:</ins></b> (нажмите сюда, чтобы развернуть) </summary>
 <p>
 
-* All properties of [UIStyle](#Класс-UIStyle)
+* Все свойства [UIStyle](#Класс-UIStyle)
 * bool Transparent
-	* If set to false then container would inherit parent's wall and wall paint,
-	also every Apply() would clear every tile before drawing.
+	* Если значение false, контейнер будет наследовать родительские стили отрисовки (стены, и краски стен),
+	а также каждый вызов Apply() будет очищать каждый тайл перед отрисовкой.
 
 </p>
 </details>
@@ -785,7 +795,7 @@ VisualContainer node2 = node.Add(
 ***
 
 ## RootVisualObject
-[Подробнее о полях и методах RootVisualObject](ru_VisualObject.md#RootVisualObject--VisualObject)
+[Подробнее о полях, свойствах и методах RootVisualObject](ru_VisualObject.md#RootVisualObject--VisualObject)
 
 Виджет, являющийся корнем дерева и выполняющий соответствующие функции.
 ```cs
@@ -837,17 +847,17 @@ Label(int x, int y, int width, int height, string text, LabelStyle style);
 <details><summary> Свойства <b><ins>LabelStyle:</ins></b> (нажмите сюда, чтобы развернуть) </summary>
 <p>
 
-* All properties of [UIStyle](#Класс-UIStyle)
+* Все свойства [UIStyle](#Класс-UIStyle)
 * byte **TextColor**
 * Offset **TextOffset**
 * Alignment **TextAlignment**
-	* Where to place the text (up right corner/down side/center/...)
+	* Где расположить текст внутри объекта (верхний правый угол/нижняя сторона/центр/...)
 * Side **TextSide**
-	* Side to which shorter lines would adjoin.
+	* Сторона, к которой будут прилегать более короткие строки.
 * LabelUnderline **TextUnderline**
-	* Whether to use underline part of statues for characters (makes their size 2x3 instead of 2x2).
+	* Использовать ли часть статуй символов - подчеркивание (делает размер текста 2х3 вместо 2х2).
 * byte **TextUnderlineColor**
-	* Color of statue underline part (if TextUnderline is LabelUnderLine.Underline).
+	* Цвет подчеркивания, если установлен TextUnderline.
 
 </p>
 </details>
@@ -876,13 +886,13 @@ Button(int x, int y, int width, int height, string text, UIConfiguration configu
 
 * All properties of [LabelStyle](#Label)
 * ButtonTriggerStyle **TriggerStyle**
-	* When to invoke Callback: on TouchState.Begin, on TouchState.End or on both.
+	* Когда вызывать функцию Callback: в начале нажатия TouchState.Begin, конце TouchState.End или в обоих случаях (both).
 * ButtonBlinkStyle **BlinkStyle**
-	* Style of blinking. Currently supports: left border blinking, right border blinking, full object blinking.
+	* Стиль моргания. На данный момент поддерживаются: моргание левой границы, правой границы, всего объекта.
 * byte **BlinkColor**
-	* Color of blink if BlinkStyle is not None.
+	* Цвет моргания, если установлен BlinkStyle.
 * int **BlinkDelay**
-	* Minimal interval of blinking.
+	* Минимальный интервал моргания.
 
 </p>
 </details>
@@ -901,22 +911,24 @@ Button button = node.Add(new Button(15, 5, 12, 4, "lol", null, new ButtonStyle()
 ***
 
 ## Slider
-Ползунок для указания относительной величины.
+Ползунок для указания величины из промежутка чисел от 0 до (ширина-1).
 ```cs
 Slider(int x, int y, int width, int height, SliderStyle style, Input<int> input);
 ```
+* [input] - каждый виджет ввода имеет такой параметр в конструкторе.
+	Этот объект содержит значение Value типа <T>, значение по умолчанию DefaultValue и функцию Callback, вызывающуюся, когда меняется значение.
 * [input] - every input widget has such parameter in constructor.
-	It contains Value of type <T>, DefaultValue and Action<VisualObject, T> Callback fields.
+	It contains Value of type <T>, DefaultValue and Action<VisualObject, T> Callback function (that is called when value changes) fields.
 <details><summary> Свойства <b><ins>SliderStyle:</ins></b> (нажмите сюда, чтобы развернуть) </summary>
 <p>
 
-* All properties of [UIStyle](#Класс-UIStyle)
+* Все свойства [UIStyle](#Класс-UIStyle)
 * bool **TriggerInRuntime**
-	* Whether to invoke input callback on TouchState.Moving touches.
+	* Вызвать ли Callback во время TouchState.Moving нажатий.
 * byte **UsedColor**
-	* Color of left part that corresponds to *used* part of value.
+	* Цвет используемой части слайдера.
 * byte **SeparatorColor**
-	* Color of small separator between *used* part and *unused* one.
+	* Цвет разделителя используемой и неиспользуемой частей.
 
 </p>
 </details>
@@ -944,9 +956,9 @@ Checkbox(int x, int y, int size, CheckboxStyle style, Input<bool> input = null);
 <details><summary> Свойства <b><ins>CheckboxStyle:</ins></b> (нажмите сюда, чтобы развернуть) </summary>
 <p>
 
-* All properties of [UIStyle](#Класс-UIStyle)
+* Все свойства [UIStyle](#Класс-UIStyle)
 * byte **CheckedColor**
-	* Color of pressed checkbox.
+	* Цвет нажатой кнопки.
 
 </p>
 </details>
@@ -987,16 +999,16 @@ Separator separator = node.Add(new Separator(6, new UIStyle()
 и таскания его вверх/вниз. Поддерживаются несколько наборов символов.
 Наследуется от Label.
 ```cs
-InputLabel(int x, int y, InputLabelStyle style, Action<InputLabel, string> callback);
+InputLabel(int x, int y, InputLabelStyle style, Input<string> input);
 ```
 <details><summary> Свойства <b><ins>InputLabelStyle:</ins></b> (нажмите сюда, чтобы развернуть) </summary>
 <p>
 
 * All properties of [LabelStyle](#Label)
 * bool TriggerInRuntime
-	* Whether to invoke input callback on TouchState.Moving touches.
+	* Вызывать ли Callback во время TouchState.Moving нажатий.
 * InputLabelType Type
-	* Determines which set of characters to use.
+	* Набор символов.
 
 </p>
 </details>
@@ -1017,7 +1029,7 @@ InputLabel input = node.Add(new InputLabel(15, 5, new InputLabelStyle()
 ***
 
 ## ItemRack
-Виджет для отображения предмета. Рисуется в виде подставки для оружия (weapon rack),
+Виджет для отображения предмета Item. Рисуется в виде подставки для оружия (weapon rack),
 верхняя часть может быть заменена на таблички для отображения надписи.
 ```cs
 ItemRack(int x, int y, ItemRackStyle style, Action<VisualObject, Touch> callback);
@@ -1025,13 +1037,13 @@ ItemRack(int x, int y, ItemRackStyle style, Action<VisualObject, Touch> callback
 <details><summary> Свойства <b><ins>ItemRackStyle:</ins></b> (нажмите сюда, чтобы развернуть) </summary>
 <p>
 
-* All properties of [UIStyle](#Класс-UIStyle)
+* Все свойства [UIStyle](#Класс-UIStyle)
 * short **Type**
-	* Item NetID.
+	* Тип NetID предмета.
 * bool **Left**
-	* Side of weapon rack.
+	* Сторона weapon rack.
 * ItemSize **Size**
-	* Size of item (prefix).
+	* Размер предмета (префикс).
 
 </p>
 </details>
@@ -1081,7 +1093,7 @@ FormField(IInput input, int x, int y, int width, int height, string text,
 <p>
 
 * ExternalOffset inputOffset
-	* Alignment offset of input (input will automatically gain Alignment.Right).
+	* Отступ для Alignment у объекта input (объект input автоматически получает Alignment.Right).
 
 </p>
 </details>
@@ -1105,9 +1117,10 @@ FormField ffield = node.Add(new FormField(
 ***
 
 ## Image
-Виджет отображения картинки в формате WorldEdit (.dat) или TEdit (.TEditSch)
-Поддерживает отображение табличек.
+Виджет отображения картинки в формате WorldEdit (.dat) или TEdit (.TEditSch).
+Загружает картинку по указанному пути Path. Поддерживает отображение табличек.
 Отображает битую картинку в случае неудачи загрузки.
+Вы можете добавить собственный метод чтения формата в ImageData.Readers по вашему ключу ".расширение".
 ```cs
 Image(int x, int y, string path, UIConfiguration configuration, UIStyle style,
 	Action<VisualObject, Touch> callback);
@@ -1163,7 +1176,7 @@ Button alertButton = node.Add(new Button(15, 10, 16, 4, "alert", null, new Butto
 ## ConfirmWindow
 Виджет всплывающего окна с подтверждением действия.
 Нажатие вне всплывающего окна равносильно нажатию кнопки 'no'.
-Создается с помощью метода корневого объекта RootVisualObject:
+Создается с помощью метода Confirm корневого объекта RootVisualObject:
 ```cs
 RootVisualObject Confirm(string text, Action<bool> callback, ContainerStyle style,
 	ButtonStyle yesButtonStyle, ButtonStyle noButtonStyle);
@@ -1194,9 +1207,9 @@ ScrollBackground(bool allowToPull, bool rememberTouchPosition, bool useMoving,
 <p>
 
 * bool **allowToPull**
-	* Ability to pull beyond a border.
+	* Можно ли оттягивать layout за границу.
 * bool **rememberTouchPosition**
-	* Pulling the same point of layout background during touch session.
+	* Прокручивание будет происходить все время за одну и ту же точку layout.
 
 </p>
 </details>
@@ -1205,6 +1218,7 @@ ScrollBackground(bool allowToPull, bool rememberTouchPosition, bool useMoving,
 ```cs
 // <Добавляем кучу виджетов в layout>
 // Указываем layer (слой) в значение Int32.MinValue, чтобы виджет был сзади всех прочих виджетов.
+// Хотя на самом деле конструктор ScrollBackground сам это делает, потому необязательно указывать слой.
 ScrollBackground scrollbg = node.Add(new ScrollBackground(true, true, true), Int32.MinValue) as ScrollBackground;
 ```
 ![](Images/ScrollBackground.gif)
@@ -1220,7 +1234,7 @@ ScrollBar(Direction side, int width, ScrollBarStyle style);
 <details><summary> Свойства <b><ins>ScrollBarStyle:</ins></b> (нажмите сюда, чтобы развернуть) </summary>
 <p>
 
-* All properties of [UIStyle](#Класс-UIStyle)
+* Все свойства [UIStyle](#Класс-UIStyle)
 * byte **SliderColor**
 
 </p>
@@ -1235,14 +1249,14 @@ ScrollBar scrollbar = node.Add(new ScrollBar(Direction.Right)) as ScrollBar;
 ***
 
 ## Arrow
-Простой виджет отображения стрелки.
+Простой виджет отображения стрелки размером 2х2.
 ```cs
 Arrow(int x, int y, ArrowStyle style, Action<VisualObject, Touch> callback);
 ```
 <details><summary> Свойства <b><ins>ArrowStyle:</ins></b> (нажмите сюда, чтобы развернуть) </summary>
 <p>
 
-* All properties of [UIStyle](#Класс-UIStyle)
+* Все свойства [UIStyle](#Класс-UIStyle)
 * Direction **Direction**
 
 </p>

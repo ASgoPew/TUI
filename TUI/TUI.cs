@@ -131,9 +131,9 @@ namespace TUI
                 if (Child.Count(r => r.Name == root.Name) > 0)
                     throw new ArgumentException($"TUI.Create: name {root.Name} is already taken.");
 
-                int index = 0;
-                while (index < Child.Count && Child[index].Layer <= root.Layer)
-                    index++;
+                int index = Child.Count;
+                while (index > 0 && Child[index - 1].Layer > root.Layer)
+                    index--;
                 Child.Insert(index, root);
 
                 if (Active)
