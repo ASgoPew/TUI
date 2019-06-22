@@ -25,7 +25,7 @@ namespace TUIExample
         public override void Initialize()
         {
             // Determine the position and size of the interface.
-            int x = 100, y = 100, w = 50, h = 40;
+            int x = 0, y = 0, w = 50, h = 40;
             // Pass an empty provider to the panel (the interface will be drawn on Main.tile).
             object provider = null;
             // Although we can use as a provider, for example, FakeTileRectangle from FakeManager:
