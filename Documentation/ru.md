@@ -482,26 +482,26 @@ Configuration класса UIConfiguration.
 <p>
 
 * bool **UseBegin**
-	* Allows to touch this node if touch.State == TouchState.Begin. True by default.
+	* Позволяет нажимать на этот объект, если touch.State == TouchState.Begin. Позволяет по умолчанию.
 * bool **UseMoving**
-	* Allows to touch this node if touch.State == TouchState.Moving. False by default.
+	* Позволяет нажимать на этот объект, если touch.State == TouchState.Moving. Не позволяет по умолчанию.
 * bool **UseEnd**
-	* Allows to touch this node if touch.State == TouchState.End. False by default.
+	* Позволяет нажимать на этот объект, если touch.State == TouchState.End. Не позволяет по умолчанию.
 * bool **SessionAcquire**
-	* Once node is touched all future touches within the same session will pass to this node.
+	* Единожды нажав на объект, все последующие нажатия в течение текущего промежутка нажатий будут передаваться этому объекту.
 * bool **BeginRequire**
-	* Allows to touch this node only if current session began with touching it.
+	* Позволяет нажимать на этот объект, если текущий промежуток нажатий начался с нажатия на этот самый объект.
 * bool **UseOutsideTouches**
-	* Only for nodes with SessionAcquire. Passes touches even if they are not inside of this object.
+	* Только для объектов с установленным SessionAcquire. Передает нажатия объекту, даже если они не попадают внутрь объекта.
 * bool **Ordered**
-	* Touching child node would place it on top of Child array layer so that it would be drawn
-	above other objects with the same layer and check for touching first.
+	* Нажатие на объект поднимет его на вершину массива дочерних объектов, так что он будет рисоваться поверх
+	остальных объектов того же слоя и будет нажиматься первее.
 * object **Permission**
-	* Object that should be used for checking if user can touch this node (permission string for TShock).
+	* Пермис, по которому проверяется, может ли пользователь нажать на этот объект (строка permission для TShock).
 * Lock **Lock**
-	* Touching this node would prevent touches on it or on the whole root for some time.
+	* Нажатие на объект запретит нажимать на него в течение некоторого времени после этого.
 * CustomCallbacks **Custom**
-	* Collection of custom callbacks.
+	* Набор пользовательских фукнций-колбеков.
 
 </p>
 </details>
@@ -517,19 +517,19 @@ Configuration класса UIConfiguration.
 <p>
 
 * bool? **Active**
-	* Sets tile.active(Style.Active) for every tile.
-	If not specified sets to true in case Style.Tile is specified,
-	otherwise to false in case Style.Wall is specified.
+	* Устанавливает tile.active(Style.Active) для каждого блока (тайла).
+	Если значение не указано, то установит true, если указан Style.Tile,
+	иначе укажет false, если указан Style.Wall.
 * ushort? **Tile**
-	* Sets tile.type = Style.Tile for every tile.
+	* Устанавливает tile.type = Style.Tile для каждого блока.
 * byte? **TileColor**
-	* Sets tile.color(Style.TileColor) for every tile.
+	* Устанавливает tile.color(Style.TileColor) для каждого блока.
 * byte? **Wall**
-	* Sets tile.wall = Style.Wall for every tile.
+	* Устанавливает tile.wall = Style.Wall для каждого блока.
 * byte? **WallColor**
-	* Sets tile.wallColor(Style.WallColor) for every tile.
+	* Устанавливает tile.wallColor(Style.WallColor) для каждого блока.
 * bool? **InActive**
-	* Sets tile.inActive(Style.InActive) for every tile.
+	* Устанавливает tile.inActive(Style.InActive) для каждого блока.
 
 </p>
 </details>
@@ -1020,7 +1020,7 @@ InputLabel input = node.Add(new InputLabel(15, 5, new InputLabelStyle()
 	Type = InputLabelType.All,
 	TextUnderline = LabelUnderline.Underline,
 	TextColor = PaintID.DeepRed,
-	TextUnderlineColor = PaintID.Black // Этот параметр из LabelStyle
+	TextUnderlineColor = PaintID.Black // Это свойство из LabelStyle
 }, new Input<string>("12345", "12345", (self, value, playerIndex) =>
 	TSPlayer.All.SendInfoMessage("InputLabel value: " + value)))) as InputLabel;
 ```

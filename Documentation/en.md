@@ -1,4 +1,4 @@
-# Документация TUI
+# TUI documentation
 
 The library allows the user to create tile areas on the map. These zones work on the principle of a normal user interface: you can click on this area with The Grand Design and something can happen. For example, you can place a button that, when pressed, will display the specified text in the chat. And in principle, the developer is limited only by his imagination in what can be created on the user interface.
 An example would be a minesweeper board game, which took 314 lines of code (including the logic of the game itself):
@@ -262,8 +262,8 @@ Example:
 // Set up the grid configuration. Specify that it has to fill all the cells automatically.
 // Two columns (right size of 15, left - everything else) and two lines, occupying the same amount of space.
 node.SetupGrid(
-	new ISize[] { new Relative(100), new Absolute(15) }, // Размеры колонок
-	new ISize[] { new Relative(50), new Relative(50) }, // Размеры линий
+	new ISize[] { new Relative(100), new Absolute(15) }, // Columns sizes
+	new ISize[] { new Relative(50), new Relative(50) }, // Line sizes
 	null, true);
 // In the top left cell (at the intersection of the first column and the first line), set the background color to orange.
 node[0, 0].Style.WallColor = PaintID.DeepOrange;
@@ -354,7 +354,7 @@ VisualObject SetFullSize(bool horizontal, bool vertical);
 </p>
 </details>
 
-Или:
+Or:
 ```cs
 VisualObject SetFullSize(FullSize fullSize);
 ```
@@ -459,7 +459,9 @@ general information about him.
 
 When clicked, if this object satisfies the conditions (see [UIConfiguration] (# Class-UIConfiguration)),
 the VisualObject.Invoke(Touch touch) method is called with the touch information object being passed.
-The Invoke method by default calls the callback function stored in the VisualObject.Callback field. This is a user-defined function in which the programmer indicates that he wants to occur by clicking on this object. Widgets written in C # may not use this function, but directly override Invoke.
+The Invoke method by default calls the callback function stored in the VisualObject.Callback field.
+This is a user-defined function in which the programmer indicates that he wants to occur by clicking
+on this object. Widgets written in C # may not use this function, but directly override Invoke.
 
 ***
 
@@ -998,7 +1000,7 @@ InputLabel input = node.Add(new InputLabel(15, 5, new InputLabelStyle()
 	Type = InputLabelType.All,
 	TextUnderline = LabelUnderline.Underline,
 	TextColor = PaintID.DeepRed,
-	TextUnderlineColor = PaintID.Black // Этот параметр из LabelStyle
+	TextUnderlineColor = PaintID.Black // This property is from LabelStyle
 }, new Input<string>("12345", "12345", (self, value, playerIndex) =>
 	TSPlayer.All.SendInfoMessage("InputLabel value: " + value)))) as InputLabel;
 ```
