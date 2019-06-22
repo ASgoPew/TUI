@@ -1,172 +1,168 @@
 # Документация TUI
 
-Библиотека предоставляет пользователю возможность создавать области блоков на карте,
-которые работают по принципу обычного пользовательского интерфейса: на эту область можно нажимать
-с помощью The Grand Design (Великий План) и что-то может происходить. НаExample, можно поставить
-кнопку, которая по нажатию будет выводить заданный текст в чат. И в принципе разработчик ограничен
-лишь своей фантазией в том, что можно создать на пользовательском интерфейсе.
-Exampleом может быть настольная игра сапер, на которую ушло 314 строк кода (включая логику самой игры):
+The library allows the user to create tile areas on the map. These zones work on the principle of a normal user interface: you can click on this area with The Grand Design and something can happen. For example, you can place a button that, when pressed, will display the specified text in the chat. And in principle, the developer is limited only by his imagination in what can be created on the user interface.
+An example would be a minesweeper board game, which took 314 lines of code (including the logic of the game itself):
 
 ![](Images/Minesweeper.gif)
 
 ***
 
-## Содержание
+## Contents
 
-* [Основы интерфейса](#Основы-интерфейса)
-* [Базовые операции VisualObject](#Базовые-операции-VisualObject)
-* [4 независимых способа автоматического регулирования позиций и размеров объектов](#4-независимых-способа-автоматического-регулирования-позиций-и-размеров-объектов)
+* [Interface basics](#Interface-basics)
+* [Basic VisualObject operations](#Basic-VisualObject-operations)
+* [TUI class](#TUI-class)
+* [4 independent ways of automatic regulation of the positions and sizes of objects](#4-independent-ways-of-automatic-regulation-of-the-positions-and-sizes-of-objects)
 * [Layout](#Layout)
 * [Grid](#Grid)
 * [Alignment](#Alignment)
 * [FullSize](#FullSize)
-* [Как происходит нажатие](#Как-происходит-нажатие)
-* [Класс UIConfiguration](#Класс-UIConfiguration)
-* [Класс UIStyle](#UIStyle-class)
-* [Сигналы PulseType](#Сигналы-PulseType)
-* [Загрузка и отгрузка виджетов](#Загрузка-и-отгрузка-виджетов)
-* [База данных](#База-данных)
-* [Создание собственного виджета](#Создание-собственного-виджета)
-* [Общие факты о клиентской стороне управления интерфейсом](#Общие-факты-о-клиентской-стороне-управления-интерфейсом)
-* [Виджеты](#Виджеты)
+* [How touch goes](#How-touch-goes)
+* [Class UIConfiguration](#UIConfiguration-class)
+* [Class UIStyle](#UIStyle-class)
+* [PulseType Signals](#PulseType-signals)
+* [Loading and disposing widgets](#Loading-and-disposing-widgets)
+* [Database](#Database)
+* [Create own widget](#Create-own-widget)
+* [General facts about client side of user interface control](#General-facts-about-client-side-of-user-interface-control)
+* [Widgets](#Widgets)
 
 ***
 
-## Основы интерфейса
+## Interface basics
 
-Каждый элемент, будь то кнопка, надпись, поле ввода, слайдер или что-то еще, является объектом,
-наследующемся от базового класса VisualObject. НаExample, слайдер - это класс Slider, наследующийся сразу
-от VisualObject. А кнопка - это класс Button, наследующийся от класса Label, который, в свою очередь,
-наследуется от VisualObject. Любой виджет, работающий в этой библиотеке, обязан наследоваться от VisualObject.
-Далее такие кнопки и слайдеры будут называться "виджетами".
+Each element, be it a button, a label, an input box, a slider, or something else, is an object, inherited from the
+base class VisualObject. For example, slider is a Slider class inherited straight from VisualObject. And button is
+a Button class that inherits from the Label class, which, in turn, inherited from VisualObject. Any widget running
+in this library must inherit from VisualObject.
+Further, these buttons and sliders will be called "widgets".
 
-Весь интерфейс представляет из себя набор деревьев, каждая вершина которого - VisualObject
-или объект класса, наследующегося от VisualObject (виджет). Таким образом, игра сапер представляет
-из себя одно из таких деревьев. При этом корень дерева - это всегда объект класса RootVisualObject
-или класса, наследующегося от RootVisualObject (наExample, Panel). Для разработчика приложений
-на интерфейсе объект класса RootVisualObject не сильно отличается от обычного VisualObject,
-потому как RootVisualObject наследуется от VisualObject и лишь добавляет некоторые поля и
-функционал (наExample, функции всплывающего окна ShowPopUp, Alert, Confirm).
+The whole interface is a set of trees, each vertex of which is a VisualObject or a class object inherited from
+VisualObject (widget). So the minesweeper game represents one of these trees. At the same time, the root of the
+tree is always an object of the class RootVisualObject or a class inherited from RootVisualObject (for example, Panel).
+For developer of application on the interface, the RootVisualObject class object is not much different
+from the usual VisualObject, because RootVisualObject is inherited from VisualObject and only adds some
+fields and functional (for example, popup window methods ShowPopUp, Alert, Confirm).
 
 ![](Images/VisualObjectTree.png)
 
-Дочерние элементы объекта VisualObject находятся в закрытом поле Child (List<VisualObject>).
-Обычно не требуется обращение к этому списку напрямую, но в целях отладки это возможно: GetChild(int index).
-Родительская вершина хранится в поле Parent (VisualObject).
-Корень дерева доступен по свойству Root (RootVisualObject). Учтите, что получить доступ к этому полю
-можно только после того, как будет вызван хотя бы один Update всего дерева. Чтобы получить корень дерева
-до вызова Update(), воспользуйтесь методом GetRoot(). Все корни интерфейса автоматически обновляются
-и загружаются после инициализации игры (на хуке GamePostInitialize), таким образом в вашем плагине вам достаточно создать свой интерфейс и добавить его в TUI.
+The child elements of the VisualObject object are stored in the private field Child (List<VisualObject>).
+Usually you do not need to refer to this list directly, but for debugging purposes it is possible: GetChild (int index).
+The parent node is stored in the field Parent (VisualObject).
+The root of the tree is available by the Root property (RootVisualObject). Note that accessing this field is
+possible only after at least one Update of the whole tree is called. To get the root of the tree before calling Update(),
+use the GetRoot() method. All interface roots are automatically updated and loaded after game initialization
+(on the GamePostInitialize hook), so in your plugin you just need to create your own interface and add it to TUI.
 
-Добавить дочерний элемент можно несколькими способами, наExample, вызвав функцию Add:
+You can add a child in several ways, for example, by calling the Add function:
 ```cs
 VisualObject Add(VisualObject newChild, int? layer);
 ```
 
 ***
 
-## Базовые операции VisualObject
+## Basic VisualObject operations
 
-Есть несколько важных операций, которые можно применять к объектам VisualObject:
+There are several important operations that can be applied to VisualObject objects:
 1. **Update()**
-	* Рекурсивная функция, обновляющая каждый из объектов поддерева (устанавливает нужные значения в
-	нужные поля, рассчитывает позицию относительных элементов, ...).
+	* Recursive function that updates each of the objects in the subtree (sets the required values
+	to the required fields, calculates the position of the relative elements, ...).
 2. **Apply()**
-	* Рекурсивная функция, отрисовывающая объект на карте (изменение блоков карты в соответствии
-	со стилем отображения элемента).
+	* Recursive function that draws an object on the map (changing the map tiles according
+	to the style of displaying the element).
 3. **Draw()**
-	* Отправка отрисованного (хотя не обязательно) объекта игрокам с помощью SendSection или SendTileSquare.
+	* Sending a drawn (though not necessarily) object to players using SendSection or SendTileSquare.
 4. **Pulse(PulseType)**
-	* Отправка указанного сигнала дереву объектов.
+	* Sending the specified signal to the object tree.
 
-Первые три операции зачастую идут в указанном порядке:
+The first three operations often go in the indicated order:
 ```cs
 VisualObject node = ...
 node.Update().Apply().Draw();
 ```
-Что логично, ведь для отправки нарисованного в Draw() необходимо сперва отрисовать в Apply(),
-а для отрисовки в Apply() очень часто необходимо сперва обновить виджет в Update().
+Which is logical, because in order to send what is drawn in Draw(), you must first draw it in Apply(),
+and in order to draw it in Apply() it is often necessary to first update the widget in Update().
 
-Каждый по отдельности из перечисленных выше методов (за исключением Draw) работают в следующей последовательности:
-1. Применить операцию к своему объекту.
-2. Применить операцию к дочерним объектам.
-[3.] Применить другие операции к своему объекту.
+Each one of the methods listed above (with the exception of Draw) work in the following sequence:
+1. Apply operation to your object.
+2. Apply operation to child objects.
+3. Apply other operations to your object.
 
-#### Так, у Update следующая последовательность обновлений (происходят при вызове Update()):
-1. Обновить поля/свойства своей вершины в UpdateThis().
-2. Обновить размеры и затем позиции дочерних объектов в UpdateChildPositioning().
-3. Рекурсивно запустить Update() у дочерних объектов.
-4. Обновить поля/свойства своей вершины, зависящие от обновления дочерних объектов в PostUpdateThis().
+#### So, Update has the following sequence of updates (occur when you call Update()):
+1. Update the fields/properties of your object in UpdateThis().
+2. Update the sizes and then the positions of the child objects in UpdateChildPositioning().
+3. Recursively run Update() on child objects.
+4. Update the fields/properties of its object, depending on the update of child objects in PostUpdateThis().
 
-НаExample, вызов Update() у виджета VisualContainer делает приблизительно следующее:
-Вычисляет некоторые свои поля (Root, ProviderX, ProviderY, ...), потом вычисляет размеры и позиции
-дочерних элементов, находящихся в решетке/сетке/отступе и рекурсивно запускает вызов Update() у дочерних элементов.
+For example, calling Update () on a VisualContainer widget does something like the following:
+It calculates some of its fields (Root, ProviderX, ProviderY, ...), then it calculates the sizes
+and positions of the child elements in the layout/grid/alignment and recursively starts the Update() call on the children.
 
-#### Последовательность действий при Apply():
-1. Отрисовать (изменить блоки) своей вершины в ApplyThis().
-2. Рекурсивно запустить Apply() у дочерних объектов в ApplyChild().
+#### Apply() Sequence:
+1. Draw (change blocks) of your vertex in ApplyThis().
+2. Run recursively Apply() on child objects in ApplyChild().
 
-НаExample, вызов Apply() у виджета AlertWindow устанавливает во всей области объекта 165 стену (Sapphire
-Gemspark Wall) с краской 27 (серая), затем рекурсивно вызывает Apply() у дочерних элементов.
+For example, the Apply() call on the AlertWindow widget sets a wall 165 in the entire area of ​​the object (Sapphire
+Gemspark Wall) with paint 27 (gray), then recursively call Apply() on the children.
 
-#### Последовательность действий при Pulse(PulseType):
-1. Обработать сигнал у своей вершины в PulseThis(PulseType).
-2. Рекурсивно передать сигнал дочерним объектам в PulseChild(PulseType).
+#### Pulse(PulseType) Sequence:
+1. Process the signal at its vertex in PulseThis(PulseType).
+2. Recursively transmit a signal to child objects in PulseChild(PulseType).
 
-НаExample, вызов Pulse(PulseType.Reset) у виджета Slider сбрасывает введенное значение на Input.DefaultValue,
-затем рекурсивно вызывает Pulse(PulseType.Reset) у дочерних элементов.
+For example, calling Pulse(PulseType.Reset) on a Slider widget resets the entered value to Input.DefaultValue,
+then recursively calls Pulse(PulseType.Reset) on the children.
 
-Вызов Draw отправляет секцию или SendTileSquare размером с объект всем игрокам, находящимся рядом с интерфейсом.
+The Draw call sends a section or SendTileSquare object-sized to all players near the interface.
 
 ***
 
-## Класс TUI
+## TUI class
 
-Существует статичный класс TUI, который представляет из себя список корней RootVisualObject
-и обладает операциями, похожими на описанные выше для VisualObject:
+There is a static class TUI, which is a list of roots RootVisualObject
+and has operations similar to those described above for a VisualObject:
 Update, Apply, Draw
-Эти функции делают одноименный вызов для всех корней. Таким образом, чтобы полностью обновить
-и отрисовать все деревья пользовательского интерфейса, необходимо выполнить:
+These functions make the same call for all roots. So as to completely update
+and draw all the user interface trees, you need to run:
 ```cs
 TUI.Update();
 TUI.Apply();
 TUI.Draw();
 ```
 
-Чтобы создать новый интерфейс, необходимо вызвать метод Create класса TUI:
+To create a new interface, you must call the Create method of the TUI class:
 ```cs
 RootVisualObject Create(RootVisualObject root);
 ```
 
-Этот метод создает объект RootVisualObject, (который, в свою очередь, наследуется от
-VisualObject), затем добавляет его в список корней TUI.
-Таким образом, теперь система при обработке нажатий *увидит* этот объект и проверит, не на него ли нажал игрок.
+This method creates a RootVisualObject object, (which, in turn, is inherited from
+VisualObject), then adds it to the TUI root list.
+Thus, now the system, when processing clicks, *sees* this object and checks whether the player has pressed it.
 
-Все элементы этого интерфейса теперь необходимо добавлять уже к этой панели, вот Example создания
-панели и добавления нескольких виджетов на нее:
+All elements of this interface now should be added already to this panel, here is an example of creating
+panel and adding multiple widgets to it:
 ```cs
-// Определяем позицию (по умолчанию) и размеры интерфейса.
+// Determine the position and size of the interface.
 int x = 100, y = 100, w = 50, h = 40;
-// Передаем в панель пустой провайдер (интерфейс будет рисоваться на Main.tile).
+// Pass an empty provider to the panel (the interface will be drawn on Main.tile).
 object provider = null;
-// Хотя можем использовать в качестве провайдера, наExample, FakeTileRectangle из FakeManager:
+// Although we can use as a provider, for example, FakeTileRectangle from FakeManager:
 //object provider = FakeManager.FakeManager.Common.Add("TestPanelProvider", x, y, w, h);
 
-// Создаем панель со стеной Diamond gemspark wall с черной краской.
+// Create a panel with a wall of diamond gemspark wall with black paint.
 Panel root = TUI.TUI.Create(new Panel("TestPanel", x, y, w, h, null,
 	new ContainerStyle() { Wall = WallID.DiamondGemspark, WallColor = PaintID.Black }, provider)) as Panel;
-// Создаем виджет Label (отображение текста) с белыми символами.
+// Create a Label widget (text display) with white characters.
 Label label1 = new Label(1, 1, 17, 2, "some text", new LabelStyle() { TextColor = PaintID.White });
-// Добавляем к панели
+// Add to panel
 root.Add(label1);
 
-// Создаем контейнер, занимающий нижнюю (большую) половину нашей панели, закрашенный белой краской.
-// Функция Add возвращает только что добавленный объект в типе VisualObject,
-// так что добавление элемента можно реализовать следующим образом:
+// Create a container that occupies the lower (larger) half of our panel, painted over with white paint.
+// The Add function returns the newly added object in the VisualObject type,
+// so adding an element can be implemented as follows:
 VisualContainer node = root.Add(
 	new VisualContainer(0, 15, w, 25, null, new ContainerStyle() { WallColor = PaintID.White })
 ) as VisualContainer;
-// В этот контейнер добавим кнопку, которая по нажатию будет отправлять нажавшему текст в чат.
+// Add a button to this container, which, when clicked, will send the clicker to the chat.
 node.Add(new Button(5, 0, 12, 4, "lol", null, new ButtonStyle()
 	{ Wall=165, WallColor = PaintID.DeepGreen }, (self, touch) =>
 		touch.Player().SendInfoMessage("You pressed lol button!")));
@@ -175,24 +171,24 @@ node.Add(new Button(5, 0, 12, 4, "lol", null, new ButtonStyle()
 
 ***
 
-## 4 независимых способа автоматического регулирования позиций и размеров объектов
+## 4 independent ways of automatic regulation of the positions and sizes of objects
 
-#### Позиционирование дочерних объектов внутри текущей вершины:
-* **[Layout](#Layout)** (разметка)
-* **[Grid](#Grid)** (решетка)
+#### Positioning child objects within the current object:
+* **[Layout](#Layout)**
+* **[Grid](#Grid)**
 
-#### Позиционирование текущей вершины внутри родительской:
-* **[Alignment](#Alignment)** (отступ)
+#### Positioning the current object within the parent:
+* **[Alignment](#Alignment)**
 
-#### Регулирование размеров объекта относительно родителя:
-* **[FullSize](#FullSize)** (полноразмерность)
+#### Regulation of the size of the object relative to the parent:
+* **[FullSize](#FullSize)**
 
 ***
 
 ## Layout
 
-Метод SetupLayout позволяет автоматически располагать детей, добавленных с помощью метода AddToLayout,
-в определенном порядке друг за другом в указанном направлении:
+The SetupLayout method allows you to automatically have children added using the AddToLayout
+method in a specific order one after the other in the specified direction:
 
 ```cs
 VisualObject SetupLayout(Alignment alignment, Direction direction, Side side, ExternalOffset offset, int childIndent, bool boundsIsOffset);
@@ -201,40 +197,40 @@ VisualObject SetupLayout(Alignment alignment, Direction direction, Side side, Ex
 <p>
 
 * Alignment **alignment**
-	* Сторона/угол/центр, где будут располагаться объекты layout. НаExample, правый верхний угол - Alignment.TopRight.
+	* Side/angle/center where layout objects will be located. For example, the upper right corner is Alignment.TopRight.
 * Direction **direction**
-	* Направление, по которому будут добавляться объекты. НаExample, вниз - Direction.Down.
+	* The direction in which the objects will be added. For example, down - Direction.Down.
 * Side **side**
-	* Сторона, к которой будут прилегать объекты. НаExample, по центру - Side.Center.
+	* The side to which the objects will abut. For example, in the center - Side.Center.
 * ExternalOffset **offset**
-	* Отступ layout. НаExample, отступ сверху на 3 и слева на 2: new ExternalOffset() { Up=3, Left=2 }
+	* Layout offset. For example, offset from above for 3 and from left for 2: new ExternalOffset () {Up = 3, Left = 2}
 * int **childIndent**
-	* Расстояние между объектами в layout.
+	* Distance between objects in layout.
 * bool **boundsIsOffset**
-	* Если установлено true, то блоки объектов, выходящие за границы layout, не будут рисоваться.
+	* If set to true, then blocks of objects that go beyond the offset of the layout will not be drawn.
 
 </p>
 </details>
 
 Example:
 ```cs
-// Настраиваем конфигурацию layout.
+// Set the layout configuration.
 node.SetupLayout(Alignment.Center, Direction.Right, Side.Center, null, 3, false);
-// Добавляем в layout виджет InputLabel, позволяющий вводить текст.
+// Add the InputLabel widget to the layout that allows you to input text.
 node.AddToLayout(new InputLabel(0, 0, new InputLabelStyle()
 	{ TextColor = PaintID.Black, Type = InputLabelType.All, TextUnderline = LabelUnderline.None },
 	new Input<string>("000", "000")));
-// Добавляем в layout еще один виджет ItemRack, который соответствует Weapon rack: отображение предмета
-// на стойке размером 3х3. По нажатию выводит относительные и абсолютные координаты этого нажатия.
+// Add to the layout one more ItemRack widget that corresponds to the Weapon rack: displaying an item
+// on a 3x3 rack. By clicking displays the relative and absolute coordinates of this click.
 node.AddToLayout(new ItemRack(0, 0, new ItemRackStyle() { Type = 200, Left = true }, (self, touch) =>
 	Console.WriteLine($"Touch: {touch.X}, {touch.Y}; absolute: {touch.AbsoluteX}, {touch.AbsoluteY}")));
 ItemRack irack1 = node.AddToLayout(new ItemRack(0, 0,
 	new ItemRackStyle() { Type = 201, Left = true })) as ItemRack;
-// ItemRack позволяет сверху добавть текст с помощью таблички:
+// ItemRack allows you to add text on top using a sign:
 irack1.SetText("lololo\nkekeke");
-// Наконец, добавляем слайдер в layout.
-node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle() {
-	Wall = WallID.AmberGemsparkOff, WallColor = PaintID.White }));
+// Finally, add the slider to the layout.
+node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle()
+	{ Wall = WallID.AmberGemsparkOff, WallColor = PaintID.White }));
 ```
 ![](Images/Layout.png)
 
@@ -242,7 +238,7 @@ node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle() {
 
 ## Grid
 
-Метод SetupGrid позволяет представить объект в виде решетки с абсолютными или относительными размерами колонок и линий:
+The SetupGrid method allows you to represent an object in the form of a grid with absolute or relative sizes of columns and lines:
 ```cs
 VisualObject SetupGrid(IEnumerable<ISize> columns, IEnumerable<ISize> lines, Offset offset, bool fillWithEmptyObjects);
 ```
@@ -250,33 +246,33 @@ VisualObject SetupGrid(IEnumerable<ISize> columns, IEnumerable<ISize> lines, Off
 <p>
 
 * IEnumerable\<ISize\> **columns**
-	* Размеры колонок. НаExample, левая колонка размером 10 блоков, а правая - все оставшееся место: new ISize[] { Absolute(10), Relative(100) }
+	* The size of the columns. For example, the left column is 10 blocks in size, and the right one is the remaining space: new ISize [] {Absolute (10), Relative (100)}
 * IEnumerable\<ISize\> **lines**
-	* Размеры линий. НаExample, центральная линия занимает 20 блоков, а верхняя и нижняя поровну делят оставшееся место: new ISize[] { Relative(50), Absolute(20), Relative(50) }
+	* Sizes of lines. For example, the central line occupies 20 blocks, and the upper and lower equally divide the remaining space: new ISize [] {Relative (50), Absolute (20), Relative (50)}
 * Offset **offset**
-	* Отступ сетки, включая внутренние отступы ячеек между собой и внешние отступы от границы объекта.
+	* The offset of the grid, including the inner indents of the cells between them and the outer indents from the object boundary.
 * bool **fillWithEmptyObjects**
-	* Заполнить ли автоматически все ячейки пустыми VisualContainer или нет.
+	* Whether all cells should be automatically filled with empty VisualContainer or not.
 
 </p>
 </details>
 
 Example:
 ```cs
-// Настраиваем конфигуарцию сетки grid. Указываем, что нужно все ячейки заполнить автоматически.
-// Две колонки (правая размером 15, левая - все остальное) и две линии, занимающие одинаковое количество места.
+// Set up the grid configuration. Specify that it has to fill all the cells automatically.
+// Two columns (right size of 15, left - everything else) and two lines, occupying the same amount of space.
 node.SetupGrid(
 	new ISize[] { new Relative(100), new Absolute(15) }, // Размеры колонок
 	new ISize[] { new Relative(50), new Relative(50) }, // Размеры линий
 	null, true);
-// В левой верхней ячейке (на пересечении первой колонки и первой линии) установим оранжевый цвет фона.
+// In the top left cell (at the intersection of the first column and the first line), set the background color to orange.
 node[0, 0].Style.WallColor = PaintID.DeepOrange;
-// В правой верхней поставим сапфировую (синюю) стену без краски.
+// At the top right, we put a sapphire (blue) wall without paint.
 node[1, 0].Style.Wall = WallID.SapphireGemspark;
 node[1, 0].Style.WallColor = PaintID.None;
-// В левой нижней ячейке можно расположить виджет Label с блоком SandStoneSlab.
-// Несмотря на то, что координаты и размеры указаны как 0, они автоматически будут
-// установлены, так как объект находится в решетке Grid.
+// In the bottom left cell, you can place the Label widget with the SandStoneSlab block.
+// Although the coordinates and sizes are specified as 0, they will automatically be
+// set, since the object is in the Grid.
 node[0, 1] = new Label(0, 0, 0, 0, "testing", null, new LabelStyle()
 {
 	Tile = TileID.SandStoneSlab,
@@ -286,13 +282,13 @@ node[0, 1] = new Label(0, 0, 0, 0, "testing", null, new LabelStyle()
 ```
 ![](Images/Grid.png)
 
-Для тестов вы можете вызвать функцию ShowGrid(), чтобы увидеть решетку даже без объектов:
+For tests, you can call the ShowGrid() function to see the grid even without objects:
 ```cs
-// Устанавливаем большую и сложную решетку.
+// Install a large and complex grid.
 node.SetupGrid(new ISize[] { new Absolute(3), new Relative(50), new Absolute(6), new Relative(50) },
 	new ISize[] { new Relative(20), new Absolute(5), new Relative(80) });
-// Хоть мы и установили решетку у node, мы все еще можем добавлять объекты по-старому.
-// Добавим кнопку, которая по нажатию отрисовывает сетку, а по отпусканию скрывает ее.
+// Although we set the grid on the node, we can still add objects as before.
+// Add a button that draws the grid by pressing, and hides it when released.
 node.Add(new Button(3, 3, 10, 4, "show", null, new ButtonStyle()
 {
 	WallColor = PaintID.DeepBlue,
@@ -312,7 +308,7 @@ node.Add(new Button(3, 3, 10, 4, "show", null, new ButtonStyle()
 
 ## Alignment
 
-Метод SetAlignmentInParent позволяет автоматически располагать объект в относительной позиции в родителе:
+The SetAlignmentInParent method allows you to automatically position an object in a relative position inside of the parent:
 
 ```cs
 VisualObject SetAlignmentInParent(Alignment alignment, ExternalOffset offset, bool boundsIsOffset);
@@ -321,18 +317,18 @@ VisualObject SetAlignmentInParent(Alignment alignment, ExternalOffset offset, bo
 <p>
 
 * Alignment **alignment**
-	* Место расположения объекта в родителе.
+	* The location of the object inside the parent.
 * ExternalOffset **offset**
-	* Отступы от границ родителя.
+	* Offset from parental boundaries.
 * bool **boundsIsOffset**
-	* Рисовать ли тайлы, которые вылезают за границы offset.
+	* Whether to draw tiles which get beyond offset.
 
 </p>
 </details>
 
-Example (метод Add возвращает только что добавленный дочерний объект):
+Example (Add method returns newly added child object):
 ```cs
-// Добавляем label и сразу устанавливаем Alignment.DownRight с отступом 3 блока справа и 1 снизу.
+// Add a label and immediately set Alignment.DownRight with offset 3 blocks to the right and 1 below.
 node.Add(new Label(0, 0, 16, 6, "test", new LabelStyle() { WallColor = PaintID.DeepPink }))
 	.SetAlignmentInParent(Alignment.DownRight, new ExternalOffset() { Right = 3, Down = 1 });
 ```
@@ -342,8 +338,8 @@ node.Add(new Label(0, 0, 16, 6, "test", new LabelStyle() { WallColor = PaintID.D
 
 ## FullSize
 
-Метод SetFullSize позволяет автоматически устанавливать размеры объекта (как по ширине, так и по высоте)
-относительно размеров родителя (расширять в точности до размеров родительского объекта):
+The SetFullSize method allows you to automatically set the size of an object (both in width and height)
+relative to the size of the parent (expand exactly to the size of the parent object):
 ```cs
 VisualObject SetFullSize(bool horizontal, bool vertical);
 ```
@@ -351,9 +347,9 @@ VisualObject SetFullSize(bool horizontal, bool vertical);
 <p>
 
 * bool **horizontal**
-	* Устанавливать ширину объекта равной ширине родителя.
+	* Set the width of the object to the width of the parent.
 * bool **vertical**
-	* Устанавливать высоту объекта равной высоте родителя.
+	* Set the height of the object to the height of the parent.
 
 </p>
 </details>
@@ -366,118 +362,110 @@ VisualObject SetFullSize(FullSize fullSize);
 <p>
 
 * FullSize **fullSize**
-	* Одно из значений: FullSize.None, FullSize.Horizontal, FullSize.Vertical, FullSize.Both.
+	* One of values: FullSize.None, FullSize.Horizontal, FullSize.Vertical, FullSize.Both.
 
 </p>
 </details>
 
 Example:
 ```cs
-// Сделаем наш контейнер node размером с корневой root по ширине.
+// Let's make our node container the size of the root in width.
 node.SetFullSize(true, false);
 ```
 ![](Images/FullSize.gif)
 
 ***
 
-## Как происходит нажатие
+## How touch goes
 
-На каждый элемент интерфейса (являющегося объектом класса VisualObject) можно нажать
-с помощью предмета The Grand Design (Великий План). Каждому нажатию соответствует
-объект нажатия Touch, содержащий всю необходимую информацию о нем.
+Each element of the interface can be clicked on with the subject The Grand Design.
+Each click corresponds to an object pressing the Touch, containing all the necessary information about it.
 
-### Класс Touch
+### Touch class
 <details><summary> <b><ins>Properties</ins></b> (click here to expand) </summary>
 <p>
 
 * int **X**
-	* Координата по горизонтали относительно левой границы объекта.
+	* The horizontal coordinate relative to the object's left border.
 * int **Y**
-	* Координата по вертикали относительно верхней границы объекта.
+	* The vertical coordinate relative to the upper boundary of the object.
 * int **AbsoluteX**
-	* Координата по горизонтали относительно левой границы мира.
+	* The horizontal coordinate relative to the left border of the world.
 * int **AbsoluteY**
-	* Координата по вертикали относительно верхней границы мира.
+	* The vertical coordinate relative to the top of the world.
 * TouchState **State**
-	* Состояние нажатия. Принимает одно из значений: Begin, Moving, End.
+	* State of touch. Accepts one of the following values: Begin, Moving, End.
 * UserSession **Session**
-	* Объект сессии нажимающего пользователя.
+	* And object of user interface related data.
 * VisualObject **Object**
-	* Объект, на который это нажатие попало.
+	* The object on which this touch is hit.
 * int **Index**
-	* Индекс нажатия, считая от начала нажатия (TouchState.Begin).
+	* Index of touch, counted from the beginning of touch session (TouchState.Begin).
 * int **TouchSessionIndex**
-	* Индекс промежутка нажатия, в который этот Touch был совершен.
+	* The index of the touch session in which this touch was made.
 * bool **Undo**
-	* true у нажатия с TouchState.End, если игрок окончил нажатие
-	правой кнопкой мыши (отмена действия плана).
+	* true for touch with TouchState.End, if the player has finished clicking with the
+	right mouse button (canceling action).
 * byte **Prefix**
-	* Префикс плана (The Grand Design).
+	* The Grand Design prefix.
 * bool **Red**, **Green**, **Blue**, **Yellow**, **Actuator**, **Cutter**
-	* Включен ли красный/зеленый/желтый провод/активатор/кусачки. Актуально только
-	на момент TouchState.End.
+	* Is the red/green/yellow wire/actuator/cutter turned on? Only relevant at the time of TouchState.End.
 * DateTime **Time**
-	* Время нажатия по UTC.
+	* Time of touch in UTC.
 
 </p>
 </details>
 
-Промежутком нажатия считается промежуток времени от нажатия левой кнопки мыши
-(создания проджектайла плана) до отпускания левой кнопки мыши или отмены
-правой кнопкой мыши.
+The interval of clicking is the time from pressing the left mouse button (creating a plan
+project file) to releasing the left mouse button or canceling with the right mouse button.
 
-Каждому нажатию Touch этого промежутка соответствует состояние нажатия State.
+The interval of clicking is the time from pressing the left mouse button (creating projectile)
+to releasing the left mouse button or canceling with the right mouse button.
 * TouchState.Begin
-	* При нажатии левой кнопки мыши.
+	* When you click the left mouse button.
 * TouchState.Moving
-	* При движении планом с зажатой кнопкой мыши.
+	* When moving The Grand Designed with the mouse button held down.
 * TouchState.End
-	* При отпускании левой кнопки мыши или при отмене действия правой кнопкой мыши.
+	* When you release the left mouse button or cancel the action with the right mouse button.
 
-Каждому игроку соответствует объект UserSession (сессия игрока), который хранит
-некоторые общие данные о нём.
+Each player corresponds to a UserSession object (player's session) that stores some
+general information about him.
 
-### Класс UserSession
+### UserSession class
 <details><summary> <b><ins>Properties</ins></b> (click here to expand) </summary>
 <p>
 
 * bool **Enabled**
-	* Если установить значение false, то все нажатия вплоть до следующего TouchState.End
-	будут проигнорированы. Затем игрок снова сможет нажимать.
+	* If set to false, then all touches until the next TouchState.End will be ignored.
+	Then the player will be able to press again.
 * int **PlayerIndex**
-	* Индекс пользователя, соответствующего этому объекту UserSession.
+	* The index of the user corresponding to this UserSession object.
 * int **TouchSessionIndex**
-	* Текущий индекс промежутка нажатия. Увеличивается на 1 с каждым TouchState.End.
+	* The current index of the touch session. Increases by 1 with each TouchState.End.
 * int **ProjectileID**
-	* ID проджектайла Великого Плана, соответствующего этому нажатию.
+	* ID of The Grand Design projectile corresponding to this touch.
 * Touch **PreviousTouch**
-	* Объект предыдущего нажатия.
 * Touch **BeginTouch**
-	* Объект первого нажатия промежутка (TouchState.Begin).
+	* First touch of touch session (TouchState.Begin).
 * VisualObject **Acquired**
-	* Привязанный к промежутку нажатия объект. Однажды привязав с помощью
-	Configuration.SessionAcquire какой-либо VisualObject к промежутку нажатия, все
-	последующие нажатия будут проходить только к этому объекту вплоть до окончания
-	нажатия (TouchState.End).
+	* Object attached to the interval of touch. Once you attach a VisualObject to touch session
+	using Configuration.SessionAcquire, all subsequent touches will be passed only to this object
+	until the touch session is finished (TouchState.End).
 * ConcurrentDictionary<object, object> **Data**
-	* Приватное runtime-хранилище данных, к которому можно обратиться через оператор[object key].
+	* Private runtime data storage, that you can access with operator this[object key].
 
 </p>
 </details>
 
-При нажатии, если этот объект удовлетворяет условиям (cм. [UIConfiguration](#Класс-UIConfiguration)),
-вызывается метод VisualObject.Invoke(Touch touch) с передающимся объектом нажатия Touch.
-Метод Invoke по умолчанию вызывает функцию-колбэк, хранящуюся в поле VisualObject.Callback.
-Это пользовательская функция, в которой программист указывает, что он хочет, чтобы происходило
-по нажатию на этот объект. Виджеты, написанные на C#, могут не использовать эту функцию,
-а напрямую переопределить Invoke.
+When clicked, if this object satisfies the conditions (see [UIConfiguration] (# Class-UIConfiguration)),
+the VisualObject.Invoke(Touch touch) method is called with the touch information object being passed.
+The Invoke method by default calls the callback function stored in the VisualObject.Callback field. This is a user-defined function in which the programmer indicates that he wants to occur by clicking on this object. Widgets written in C # may not use this function, but directly override Invoke.
 
 ***
 
-## Класс UIConfiguration
+## UIConfiguration class
 
-Каждый объект VisualObject имеет настройки нажатия и отрисовки, хранящиеся в свойстве
-Configuration класса UIConfiguration.
+Each VisualObject has the touch and draw settings stored in the Configuration property of type UIConfiguration.
 <details><summary> <b><ins>Properties</ins></b> (click here to expand) </summary>
 <p>
 
@@ -508,11 +496,11 @@ Configuration класса UIConfiguration.
 
 ***
 
-## Класс UIStyle
+## UIStyle class
 
-Каждый объект VisualObject имеет стили отрисовки, хранящиеся в свойстве Style класса UIStyle.
-Каждое из свойств UIStyle является Nullable, значение null означает, что нужно оставить
-этот параметр тайла как есть (с помощью этого реализуется прозрачность).
+Each VisualObject has drawing styles that are stored in the Style property of the UIStyle type.
+Each of the UIStyle properties is Nullable, a null value means to leave
+this parameter is as-is (using this transparency is implemented).
 <details><summary> <b><ins>Properties</ins></b> (click here to expand) </summary>
 <p>
 
@@ -536,34 +524,32 @@ Configuration класса UIConfiguration.
 
 ***
 
-## Сигналы PulseType
+## PulseType signals
 
-С помощью функций Pulse(PulseType), PulseThis(PulseType) и PulseChild(PulseType)
-можно распространять сигналы в дереве объектов интерфейса следующих типов:
+Using Pulse(PulseType), PulseThis(PulseType), and PulseChild(PulseType) functions you can
+distribute signals in the tree of interface objects of the following types:
 * Reset
-	* Сигнал сбрасывания объекта. В виджетах ввода данных устанавливает изначальные значения и т.д.
+	* Signal of object settings/data reset. In data input widgets, sets initial values, etc.
 * PositionChanged
-	* Сигнал посылается автоматически поддереву, если корень этого поддерева изменил свою позицию
-	или размеры.
+	* The signal is sent automatically to the subtree if the root of this subtree (some VisualObject) has changed its position or size.
 * User1
-	* Пользовательский сигнал
+	* User defined signal
 * User2
 * User3
 
 ***
 
-## Загрузка и отгрузка виджетов
+## Loading and disposing widgets
 
-Некоторым виджетам необходимо загружать ресурсы при создании и освобождать их при удалении.
-В библиотеке есть средство для работы с подобными ресурсами:
-У любого виджета есть переопределяемые методы LoadThisNative() и DisposeThisNative(),
-которые вызываются автоматически во время загрузки и освобождения ресурсов соответственно.
-Загрузка Load() происходит единожды и автоматически при добавлении виджета в основное дерево интерфейса.
-При этом гарантируется, что загрузка произойдет после инициализации игры (события GamePostInitialize).
-Отгрузка Dispose() происходит единожды и автоматически при отгрузке плагина интерфейса TUI и при
-удалении объекта с помощью Remove() (таким образом, единожды удаленные объекты невозможно
-снова использовать). При этом гарантируется, что отгрузка не произойдет, если не была
-произведена загрузка.
+Some widgets need to load resources when they are created and free them when they are deleted.
+The library has a tool for working with similar resources:
+Any widget has overridable methods LoadThisNative() and DisposeThisNative(), which are called
+automatically during load and release of resources, respectively. Load() occurs once and automatically
+when a widget is added to the main tree of the interface. At the same time it is guaranteed that
+the load will occur after the game is initialized (GamePostInitialize event). Dispose() is happens once
+and automatically when a TUI plugin disposes and when an object is removed using Remove() (thus,
+once-deleted objects cannot be used again). At the same time it is guaranteed that dispose
+will not occur if object wasn't loaded.
 ```cs
 virtual void LoadThisNative();
 virtual void DisposeThisNative();
@@ -571,47 +557,45 @@ virtual void DisposeThisNative();
 
 ***
 
-## База данных
+## Database
 
-У каждого объекта VisualObject есть свойство Name и FullName.
-Name обязательно задается при создании RootVisualObject/Panel, для остальных объектов это
-свойство не обязательно.
+Each VisualObject has a Name and FullName property.
+Name is required when creating RootVisualObject/Panel, for other objects this property is optional.
 
-FullName - полное название в дереве интерфейса.
-НаExample:
-1. Создаем панель Panel с именем "TestPanel" и добавляем к ней контейнер VisualContainer.
-2. К этому контейнеру добавим слайдер Slider.
-3. Свойство FullName этого слайдера будет выдавать значение
-"TestPanel[0].VisualContainer[0].Slider", где 0 - индекс в массиве дочерних элементов.
-4. У контейнера установим свойству Name значение "lol".
-5. То же самое свойство FullName слайдера теперь будет выдавать "TestPanel.lol[0].Slider".
-6. У слайдера установим свойству Name значение "kek".
-7. Свойство FullName слайдера теперь будет выдавать "TestPanel.lol.kek".
+FullName - full name (path) in interface tree.
+For example:
+1. Create a Panel called "TestPanel" and add the VisualContainer container to it.
+2. Add Slider to this container.
+3. The FullName property of this slider will display the value "TestPanel[0].VisualContainer[0].Slider",
+where 0 is the index in the array of child elements.
+4. On the container, set the Name property to the value "lol".
+5. The same FullName slider property will now produce "TestPanel.lol[0].Slider".
+6. In the slider, set the Name property to "kek".
+7. The FullName slider property will now issue "TestPanel.lol.kek".
 
-Поле FullName является ключом, по которому хранятся данные объекта в базе данных в
-таблице формата ключ-значение. Потому, если вы хотите хранить у какого-то объекта VisualObject
-данные в базе данных, рекомендуется у него и всех его родителей установить уникальное свойство Name,
-чтобы изменение индекса в массиве не поменяло ключ и, соответственно, данные.
+The FullName field is the key by which object data is stored in the database in
+key-value format table. Therefore, if you want to store at some VisualObject
+data in the database, it is recommended that this object and all its parents set the unique Name property,
+so that changing the index in the array does not change the key and, accordingly, the data.
 
-Прочитать данные из базы данных можно с помощью метода DBRead:
+You can read data from the database using the DBRead method:
 ```cs
 bool DBRead();
 ```
-Записать данные в базу данных можно с помощью метода DBWrite:
+You can write data to the database using the DBWrite method:
 ```cs
 void DBWrite();
 ```
-Эти методы по умолчанию пытаются вызывать функции Configuration.Custom.DBRead и Configuration.Custom.DBWrite соответственно.
+By default these methods attempt to call the Configuration.Custom.DBRead and Configuration.Custom.DBWrite functions, respectively.
 
-Данные записываются и читаются в потоковом формате. Для определения поведения считывания
-и записи потока данных существуют переопределяемые функции чтения BinaryReader и записи
-в BinaryWriter:
+Data is written and read in streaming format. To determine read behavior
+there are overridable functions for reading/writting to BinaryReader:
 ```cs
 virtual void DBReadNative(BinaryReader br);
 virtual void DBWriteNative(BinaryWriter bw);
 ```
 
-НаExample, виджет панели Panel переопределяет эти методы для того, чтобы запомнить позицию и размеры:
+For example, the Panel widget overrides these methods in order to remember the position and dimensions:
 ```cs
 protected override void DBReadNative(BinaryReader br)
 {
@@ -631,9 +615,8 @@ protected override void DBWriteNative(BinaryWriter bw)
 }
 ```
 
-Вышеописанное актуально для хранения данных, относящихся к объекту в целом, но не к конкретному
-пользователю. Для хранения данных, относящихся к этому объекту и пользователю в совокупности
-есть аналогичные методы с указанием идентификатора пользователя:
+The above is relevant for storing data related to the object as a whole, but not to a specific user.
+To store data related to this object and the user in the aggregate there are similar methods with user ID:
 ```cs
 bool UDBRead(int user);
 void UDBWrite(int user);
@@ -643,35 +626,35 @@ virtual void UDBWriteNative(BinaryWriter bw, int user);
 
 ***
 
-## Команда tuipanel
+## Tuipanel command
 
-Плагин добавляет команду ```/tuipanel <panel name> [<x> <y>] [<width> <height>]```.
-В качестве параметра <panel name> нужно указать название корневого объекта интерфейса (RootVisualObject).
-Виджет панели Panel тоже является корневым объектом (так как наследуется от RootVisualObject).
-Вызывав команду ```/tuipanel "your panel"```, вы узнаете координаты и размеры панели "your panel".
-Чтобы сменить позицию, вы можете написать: ```/tuipanel "panel" 150 100``` - тогда панель "panel" переместится в координаты (150, 100).
-Можно сменить и размеры: ```/tuipanel "panel" 150 100 50 40``` - тогда панель не только переместится, но и поменяет размер на (50, 40).
-
-***
-
-## Создание собственного виджета
-
-Для создания собственного виджета необходимо создать класс, наследующийся от VisualObject (или другого виджета).
-Для собственного/особенного обновления (полей/данных/статистики/...) виджета можно переопределить метод UpdateThisNative.
-Метод UpdateThis вызывается до вызова UpdateChild, потому, если обновление требует обновленных дочерних объектов, можно переопределить метод PostUpdateThisNative.
-Аналогично, можно переопределить ApplyThisNative, чтобы добавить собственную отрисовку у виджета.
+The plugin adds the command ```/tuipanel <panel name> [<x> <y>] [<width> <height>]```.
+As the parameter <panel name> you need to specify the name of the root interface object (RootVisualObject).
+The Panel widget is also a root object (since it is inherited from RootVisualObject).
+By calling the command ```/tuipanel "your panel"```, you will know the coordinates and dimensions of the panel "your panel".
+To change the position, you can write: ```/tuipanel "panel" 150 100``` - then the panel "panel" will move to the coordinates (150, 100).
+You can also change the dimensions: ```/tuipanel "panel" 150 100 50 40``` - then the panel will not only move, but also change its size by (50, 40).
 
 ***
 
-## Общие факты о клиентской стороне управления интерфейсом
+## Creating own widget
 
-1. Клиент работает так, что в начале нажатия планом пакеты перемещения мыши отправляются очень быстро,
-	а Exampleно через секунду скорость уменьшается и становится постоянной.
-2. В режимах освещения Retro и Trippy отрисовка интерфейса происходит быстрее и плавнее.
-3. Нажатием правой кнопки мыши во время использования плана можно отменить нажатие. Это действие особым
-	образом обрабатывается в некоторых виджетах (трактуется как отмена действия).
-4. Некоторые тайлы ломаются при определенных условиях при отправке с помощью SendTileSquare (наExample, это статуя без блоков под ней).
-Для того, чтобы заставить объект рисоваться с помощью отправок секций, достаточно установить его свойству ForceSection значение true.
+To create your own widget, you need to create a class that inherits from VisualObject (or another widget).
+For the widget's own/special update (fields/data/statistics/...) of the widget, you can override the UpdateThisNative method.
+The UpdateThis method is called before the UpdateChild call, so if the update requires updated child objects, you can override the PostUpdateThisNative method.
+Similarly, you can override ApplyThisNative to add your own widget drawing.
+
+***
+
+## General facts about client side of user interface control
+
+1. Client works so that at first packets of touch movement send very frequently but after a second
+	speed decreases and becomes stable.
+2. In lighting modes Retro and Trippy drawing of interface is faster and more smooth.
+3. Right click while holding with the grand design cancels the touch. This action can be handled
+	as a cancellation event.
+4. Some tiles crash in some circumstances when sending uses SendTileSquare method (e.g. statue without tiles under it).
+You can force send with SendSection method by setting object's ForceSection property.
 
 ***
 

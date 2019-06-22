@@ -24,69 +24,69 @@ namespace TUIExample
 
         public override void Initialize()
         {
-            // Определяем позицию (по умолчанию) и размеры интерфейса.
+            // Determine the position and size of the interface.
             int x = 100, y = 100, w = 50, h = 40;
-            // Передаем в панель пустой провайдер (интерфейс будет рисоваться на Main.tile).
+            // Pass an empty provider to the panel (the interface will be drawn on Main.tile).
             object provider = null;
-            // Хотя можем использовать в качестве провайдера, например, FakeTileRectangle из FakeManager:
+            // Although we can use as a provider, for example, FakeTileRectangle from FakeManager:
             //object provider = FakeManager.FakeManager.Common.Add("TestPanelProvider", x, y, w, h);
 
-            // Создаем панель со стеной Diamond gemspark wall с черной краской.
+            // Create a panel with a wall of diamond gemspark wall with black paint.
             Panel root = TUI.TUI.Create(new Panel("TestPanel", x, y, w, h, null,
                 new ContainerStyle() { Wall = WallID.DiamondGemspark, WallColor = PaintID.Black }, provider)) as Panel;
-            // Создаем виджет Label (отображение текста) с белыми символами.
+            // Create a Label widget (text display) with white characters.
             Label label1 = new Label(1, 1, 17, 2, "some text", new LabelStyle() { TextColor = PaintID.White });
-            // Добавляем к панели
+            // Add to panel
             root.Add(label1);
 
-            // Создаем контейнер, занимающий нижнюю (большую) половину нашей панели, закрашенный белой краской.
-            // Функция Add возвращает только что добавленный объект в типе VisualObject,
-            // так что добавление элемента можно реализовать следующим образом:
+            // Create a container that occupies the lower (larger) half of our panel, painted over with white paint.
+            // The Add function returns the newly added object in the VisualObject type,
+            // so adding an element can be implemented as follows:
             VisualContainer node = root.Add(
                 new VisualContainer(0, 15, w, 25, null, new ContainerStyle() { WallColor = PaintID.White })
             ) as VisualContainer;
-            // В этот контейнер добавим кнопку, которая по нажатию будет отправлять нажавшему текст в чат.
-            //node.Add(new Button(5, 0, 12, 4, "lol", null, new ButtonStyle()
-            //    { Wall=165, WallColor = PaintID.DeepGreen }, (self, touch) =>
-            //        touch.Player().SendInfoMessage("You pressed lol button!")));
+            // Add a button to this container, which, when clicked, will send the clicker to the chat.
+            /*node.Add(new Button(5, 0, 12, 4, "lol", null, new ButtonStyle()
+            { Wall = 165, WallColor = PaintID.DeepGreen }, (self, touch) =>
+                  touch.Player().SendInfoMessage("You pressed lol button!")));*/
 
             if (false)
             {
-                // Настраиваем конфигурацию layout.
+                // Set the layout configuration.
                 node.SetupLayout(Alignment.Center, Direction.Right, Side.Center, null, 3, false);
-                // Добавляем в layout виджет InputLabel, позволяющий вводить текст.
+                // Add the InputLabel widget to the layout that allows you to input text.
                 node.AddToLayout(new InputLabel(0, 0, new InputLabelStyle()
                     { TextColor = PaintID.Black, Type = InputLabelType.All, TextUnderline = LabelUnderline.None },
                     new Input<string>("000", "000")));
-                // Добавляем в layout еще один виджет ItemRack, который соответствует Weapon rack: отображение предмета
-                // на стойке размером 3х3. По нажатию выводит относительные и абсолютные координаты этого нажатия.
+                // Add to the layout one more ItemRack widget that corresponds to the Weapon rack: displaying an item
+                // on a 3x3 rack. By clicking displays the relative and absolute coordinates of this click.
                 node.AddToLayout(new ItemRack(0, 0, new ItemRackStyle() { Type = 200, Left = true }, (self, touch) =>
                     Console.WriteLine($"Touch: {touch.X}, {touch.Y}; absolute: {touch.AbsoluteX}, {touch.AbsoluteY}")));
                 ItemRack irack1 = node.AddToLayout(new ItemRack(0, 0,
                     new ItemRackStyle() { Type = 201, Left = true })) as ItemRack;
-                // ItemRack позволяет сверху добавть текст с помощью таблички:
+                // ItemRack allows you to add text on top using a sign:
                 irack1.SetText("lololo\nkekeke");
-                // Наконец, добавляем слайдер в layout.
-                node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle() {
-                    Wall = WallID.AmberGemsparkOff, WallColor = PaintID.White }));
+                // Finally, add the slider to the layout.
+                node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle()
+                    { Wall = WallID.AmberGemsparkOff, WallColor = PaintID.White }));
             }
 
             if (false)
             {
-                // Настраиваем конфигуарцию сетки grid. Указываем, что нужно все ячейки заполнить автоматически.
-                // Две колонки (правая размером 15, левая - все остальное) и две линии, занимающие одинаковое количество места.
+                // Set up the grid configuration. Specify that it has to fill all the cells automatically.
+                // Two columns (right size of 15, left - everything else) and two lines, occupying the same amount of space.
                 node.SetupGrid(
                     new ISize[] { new Relative(100), new Absolute(15) }, // Размеры колонок
                     new ISize[] { new Relative(50), new Relative(50) }, // Размеры линий
                     null, true);
-                // В левой верхней ячейке (на пересечении первой колонки и первой линии) установим оранжевый цвет фона.
+                // In the top left cell (at the intersection of the first column and the first line), set the background color to orange.
                 node[0, 0].Style.WallColor = PaintID.DeepOrange;
-                // В правой верхней поставим сапфировую (синюю) стену без краски.
+                // At the top right, we put a sapphire (blue) wall without paint.
                 node[1, 0].Style.Wall = WallID.SapphireGemspark;
                 node[1, 0].Style.WallColor = PaintID.None;
-                // В левой нижней ячейке можно расположить виджет Label с блоком SandStoneSlab.
-                // Несмотря на то, что координаты и размеры указаны как 0, они автоматически будут
-                // установлены, так как объект находится в решетке Grid.
+                // In the bottom left cell, you can place the Label widget with the SandStoneSlab block.
+                // Although the coordinates and sizes are specified as 0, they will automatically be
+                // set, since the object is in the Grid.
                 node[0, 1] = new Label(0, 0, 0, 0, "testing", null, new LabelStyle()
                 {
                     Tile = TileID.SandStoneSlab,
@@ -97,11 +97,11 @@ namespace TUIExample
 
             if (false)
             {
-                // Устанавливаем большую и сложную решетку.
+                // Install a large and complex grid.
                 node.SetupGrid(new ISize[] { new Absolute(3), new Relative(50), new Absolute(6), new Relative(50) },
                     new ISize[] { new Relative(20), new Absolute(5), new Relative(80) });
-                // Хоть мы и установили решетку у node, мы все еще можем добавлять объекты по-старому.
-                // Добавим кнопку, которая по нажатию отрисовывает сетку, а по отпусканию скрывает ее.
+                // Although we set the grid on the node, we can still add objects as before.
+                // Add a button that draws the grid by pressing, and hides it when released.
                 node.Add(new Button(3, 3, 10, 4, "show", null, new ButtonStyle()
                 {
                     WallColor = PaintID.DeepBlue,
@@ -118,22 +118,14 @@ namespace TUIExample
 
             if (false)
             {
-                // Добавляем label и сразу устанавливаем Alignment.DownRight с отступом 3 блока справа и 1 снизу.
+                // Add a label and immediately set Alignment.DownRight with offset 3 blocks to the right and 1 below.
                 node.Add(new Label(0, 0, 16, 6, "test", new LabelStyle() { WallColor = PaintID.DeepPink }))
                     .SetAlignmentInParent(Alignment.DownRight, new ExternalOffset() { Right = 3, Down = 1 });
             }
 
             if (false)
             {
-                // Добавляем желтый контейнер, устанавливаем его ширину на 5, а по высоте делаем FullSize,
-                // затем указываем, что он должен быть в правом углу родителя.
-                // Таким образом у нас получается желтая полоса справа с высотой node и шириной 5.
-                /*node.Add(new VisualContainer(new ContainerStyle() { WallColor = PaintID.DeepYellow }))
-                    .SetWH(5, 0)
-                    .SetFullSize(false, true)
-                    .SetAlignmentInParent(Alignment.Right);*/
-
-                // Сделаем наш контейнер node размером с корневой root по ширине.
+                // Let's make our node container the size of the root in width.
                 node.SetFullSize(true, false);
             }
 
@@ -263,9 +255,9 @@ namespace TUIExample
             }, (self, touch) => node.Root.Confirm("Very nice", value => TSPlayer.All.SendInfoMessage("Confirmed? " + value)))) as Button;
 
             // ScrollBackground
-            // <Добавляем кучу виджетов в layout>
-            // Указываем layer (слой) в значение Int32.MinValue, чтобы виджет был сзади всех прочих виджетов.
-            // Хотя на самом деле конструктор ScrollBackground сам это делает, потому необязательно указывать слой.
+            // <Adding a lot of widgets to layout>
+            // Specifying layer value as Int32.MinValue so that this widget would be under all other child objects,
+            // although ScrollBackground specifies this layer by default in custructor so we don't have to do it manually.
             ScrollBackground scrollbg = node.Add(new ScrollBackground(true, true, true), Int32.MinValue) as ScrollBackground;
 
             // ScrollBar
