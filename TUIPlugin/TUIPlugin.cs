@@ -12,6 +12,7 @@ using TShockAPI;
 using TUI.Base;
 using TUI.Hooks.Args;
 using TUI.Widgets;
+using TUI.Widgets.Data;
 using TUI.Widgets.Media;
 
 namespace TUIPlugin
@@ -70,6 +71,8 @@ namespace TUIPlugin
             TUI.TUI.Hooks.TouchCancel.Event += OnTouchCancel;
             TUI.TUI.Hooks.CreateSign.Event += OnCreateSign;
             TUI.TUI.Hooks.RemoveSign.Event += OnRemoveSign;
+            TUI.TUI.Hooks.CreateChest.Event += OnCreateChest;
+            TUI.TUI.Hooks.RemoveChest.Event += OnRemoveChest;
             TUI.TUI.Hooks.Log.Event += OnLog;
             TUI.TUI.Hooks.Database.Event += OnDatabase;
             RegionTimer.Elapsed += OnRegionTimer;
@@ -105,6 +108,8 @@ namespace TUIPlugin
                 TUI.TUI.Hooks.TouchCancel.Event -= OnTouchCancel;
                 TUI.TUI.Hooks.CreateSign.Event -= OnCreateSign;
                 TUI.TUI.Hooks.RemoveSign.Event -= OnRemoveSign;
+                TUI.TUI.Hooks.CreateChest.Event -= OnCreateChest;
+                TUI.TUI.Hooks.RemoveChest.Event -= OnRemoveChest;
                 TUI.TUI.Hooks.Log.Event -= OnLog;
                 TUI.TUI.Hooks.Database.Event -= OnDatabase;
                 RegionTimer.Elapsed -= OnRegionTimer;
@@ -330,10 +335,10 @@ namespace TUIPlugin
 
         private static void OnCreateSign(CreateSignArgs args)
         {
-            if (args.Node.GetRoot().Provider.GetType().Name != "FakeTileRectangle")
+            dynamic provider = (args.Node.Root ?? args.Node.GetRoot()).Provider;
+            if (provider.GetType().Name != "FakeTileRectangle")
             {
-                Tile tile = new Tile() { type = 55, frameX = 0, frameY = 0 };
-                Main.tile[args.X, args.Y] = tile;
+                Main.tile[args.X, args.Y] = new Tile() { type = 55, frameX = 0, frameY = 0 };
                 int id = Sign.ReadSign(args.X, args.Y);
                 if (id >= 0)
                 {
@@ -343,7 +348,22 @@ namespace TUIPlugin
                 }
             }
             else
-                CreateFakeSign(args);
+            {
+                Sign sign = new Sign()
+                {
+                    x = args.X,
+                    y = args.Y
+                };
+                try
+                {
+                    provider.AddSign(sign, false);
+                    args.Sign = sign;
+                }
+                catch (Exception e)
+                {
+                    TShock.Log.ConsoleError("Can't create FAKE sign: " + e);
+                }
+            }
         }
 
         #endregion
@@ -351,10 +371,62 @@ namespace TUIPlugin
 
         private static void OnRemoveSign(RemoveSignArgs args)
         {
-            if (args.Node.GetRoot().Provider.GetType().Name != "FakeTileRectangle")
+            dynamic provider = (args.Node.Root ?? args.Node.GetRoot()).Provider;
+            if (provider.GetType().Name != "FakeTileRectangle")
                 Sign.KillSign(args.Sign.x, args.Sign.y);
             else
-                RemoveFakeSign(args);
+                provider.RemoveSign(args.Sign);
+        }
+
+        #endregion
+        #region OnCreateChest
+
+        private static void OnCreateChest(CreateChestArgs args)
+        {
+            dynamic provider = (args.Node.Root ?? args.Node.GetRoot()).Provider;
+            if (provider.GetType().Name != "FakeTileRectangle")
+            {
+                Main.tile[args.X, args.Y] = new Tile() { type = 21, sTileHeader = 32, frameX = 0, frameY = 0 };
+                Main.tile[args.X + 1, args.Y] = new Tile() { type = 21, sTileHeader = 32, frameX = 18, frameY = 0 };
+                Main.tile[args.X, args.Y + 1] = new Tile() { type = 21, sTileHeader = 32, frameX = 0, frameY = 18 };
+                Main.tile[args.X + 1, args.Y + 1] = new Tile() { type = 21, sTileHeader = 32, frameX = 18, frameY = 18 };
+                int id = Chest.FindChest(args.X, args.Y);
+                if (id >= 0)
+                {
+                    // Can lead to creating the same chest since FindChest returns existing chest if there is one.
+                    // Console.WriteLine($"{args.Node.FullName} OnCreateChest: {id} ({args.X}, {args.Y})");
+                    args.Chest = Main.chest[id];
+                }
+            }
+            else
+            {
+                Chest chest = new Chest()
+                {
+                    x = args.X,
+                    y = args.Y
+                };
+                try
+                {
+                    provider.AddChest(chest, false);
+                    args.Chest = chest;
+                }
+                catch (Exception e)
+                {
+                    TShock.Log.ConsoleError("Can't create FAKE chest: " + e);
+                }
+            }
+        }
+
+        #endregion
+        #region OnRemoveChest
+
+        private static void OnRemoveChest(RemoveChestArgs args)
+        {
+            dynamic provider = (args.Node.Root ?? args.Node.GetRoot()).Provider;
+            if (provider.GetType().Name != "FakeTileRectangle")
+                Chest.DestroyChest(args.Chest.x, args.Chest.y);
+            else
+                provider.RemoveChest(args.Chest);
         }
 
         #endregion
@@ -404,37 +476,7 @@ namespace TUIPlugin
         }
 
         #endregion
-
-        #region CreateFakeSign
-
-        private static void CreateFakeSign(CreateSignArgs args)
-        {
-            Sign sign = new Sign()
-            {
-                x = args.X,
-                y = args.Y
-            };
-            try
-            {
-                args.Node.GetRoot().Provider.AddSign(sign, false);
-                args.Sign = sign;
-            }
-            catch (Exception e)
-            {
-                TShock.Log.ConsoleError("Can't create FAKE sign: " + e);
-            }
-        }
-
-        #endregion
-        #region RemoveFakeSign
-
-        private static void RemoveFakeSign(RemoveSignArgs args)
-        {
-            args.Node.GetRoot().Provider.RemoveSign(args.Sign);
-        }
-
-        #endregion
-
+        
         #region OnRegionTimer
 
         private void OnRegionTimer(object sender, ElapsedEventArgs e)

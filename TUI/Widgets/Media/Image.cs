@@ -2,6 +2,7 @@
 using TUI.Base;
 using TUI.Base.Style;
 using TUI.Hooks.Args;
+using TUI.Widgets.Data;
 using TUI.Widgets.Media;
 
 namespace TUI.Widgets

@@ -1,4 +1,4 @@
-﻿namespace TUI.Widgets.Media
+﻿namespace TUI.Widgets.Data
 {
     public class SignData
     {
