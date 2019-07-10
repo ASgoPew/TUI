@@ -105,6 +105,7 @@
     <Compile Include="Widgets\Separator.cs" />
     <Compile Include="Widgets\Slider.cs" />
     <Compile Include="Widgets\VisualSign.cs" />
+    <Compile Include="Widgets\VisualChar.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

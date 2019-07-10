@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.ID;
 using TerrariaApi.Server;
