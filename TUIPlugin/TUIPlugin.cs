@@ -391,12 +391,20 @@ namespace TUIPlugin
                 Main.tile[args.X, args.Y + 1] = new Tile() { type = 21, sTileHeader = 32, frameX = 0, frameY = 18 };
                 Main.tile[args.X + 1, args.Y + 1] = new Tile() { type = 21, sTileHeader = 32, frameX = 18, frameY = 18 };
                 int id = Chest.FindChest(args.X, args.Y);
+                if (id < 0)
+                {
+                    Console.WriteLine($"CREATING NEW AT {args.X}, {args.Y}");
+                    id = Chest.CreateChest(args.X, args.Y);
+                }
                 if (id >= 0)
                 {
                     // Can lead to creating the same chest since FindChest returns existing chest if there is one.
                     // Console.WriteLine($"{args.Node.FullName} OnCreateChest: {id} ({args.X}, {args.Y})");
                     args.Chest = Main.chest[id];
+                    Console.WriteLine(id);
                 }
+                else
+                    TShock.Log.ConsoleError("Can't create Main.chest chest.");
             }
             else
             {
@@ -405,6 +413,8 @@ namespace TUIPlugin
                     x = args.X,
                     y = args.Y
                 };
+                for (int i = 0; i < 40; i++)
+                    chest.item[i] = new Item();
                 try
                 {
                     provider.AddChest(chest, false);
@@ -424,7 +434,13 @@ namespace TUIPlugin
         {
             dynamic provider = (args.Node.Root ?? args.Node.GetRoot()).Provider;
             if (provider.GetType().Name != "FakeTileRectangle")
-                Chest.DestroyChest(args.Chest.x, args.Chest.y);
+            {
+                int chestX = args.Chest.x;
+                int chestY = args.Chest.y;
+                for (int i = 0; i < 1000; i++)
+                    if (Main.chest[i] is Chest chest && (chest.x == chestX && chest.y == chestY))
+                        Main.chest[i] = null;
+            }
             else
                 provider.RemoveChest(args.Chest);
         }

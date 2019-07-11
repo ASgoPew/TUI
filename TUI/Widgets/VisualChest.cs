@@ -191,7 +191,7 @@ namespace TUI.Widgets
             tile.active(true);
             if (Style.InActive != null)
                 tile.inActive(Style.InActive.Value);
-            tile.type = (ushort)55;
+            tile.type = (ushort)21;
             if (Style.TileColor != null)
                 tile.color(Style.TileColor.Value);
             if (Style.Wall != null)
@@ -199,7 +199,7 @@ namespace TUI.Widgets
             if (Style.WallColor != null)
                 tile.wallColor(Style.WallColor.Value);
 
-            tile.frameX = (short)((x == 0) ? 144 : 162);
+            tile.frameX = (short)((x == 0) ? 0 : 18);
             tile.frameY = (short)((y == 0) ? 0 : 18);
         }
 

@@ -70,7 +70,7 @@
     <Compile Include="Hooks\Hook.cs" />
     <Compile Include="Hooks\HookManager.cs" />
     <Compile Include="Hooks\Args\SetXYWHArgs.cs" />
-    <Compile Include="Base\Style\Offset.cs" />
+    <Compile Include="Base\Style\Indent.cs" />
     <Compile Include="Base\ISize.cs" />
     <Compile Include="Base\Style\Side.cs" />
     <Compile Include="Base\IDOM.cs" />
