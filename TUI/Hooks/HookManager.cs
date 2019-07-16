@@ -13,10 +13,12 @@ namespace TUI.Hooks
         public Hook<EnabledArgs> Enabled = new Hook<EnabledArgs>();
         public Hook<CanTouchArgs> CanTouch = new Hook<CanTouchArgs>();
         public Hook<TouchCancelArgs> TouchCancel = new Hook<TouchCancelArgs>();
-        public Hook<CreateSignArgs> CreateSign = new Hook<CreateSignArgs>();
+
+        public Hook<UpdateSignArgs> UpdateSign = new Hook<UpdateSignArgs>();
         public Hook<RemoveSignArgs> RemoveSign = new Hook<RemoveSignArgs>();
-        public Hook<CreateChestArgs> CreateChest = new Hook<CreateChestArgs>();
+        public Hook<UpdateChestArgs> UpdateChest = new Hook<UpdateChestArgs>();
         public Hook<RemoveChestArgs> RemoveChest = new Hook<RemoveChestArgs>();
+
         public Hook<LogArgs> Log = new Hook<LogArgs>();
         public Hook<DatabaseArgs> Database = new Hook<DatabaseArgs>();
     }

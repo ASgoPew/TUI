@@ -41,7 +41,8 @@ namespace TUIPlugin
         private static Timer RegionTimer = new Timer(1000) { AutoReset = true };
         public static Command[] CommandList = new Command[]
         {
-            new Command("TUI.control", TUIPanelCommand, "tuipanel")
+            new Command("TUI.control", TUIPanelCommand, "tuipanel"),
+            new Command("TUI.control", TUIPanelsCommand, "tuipanels")
         };
 
         #endregion
@@ -69,9 +70,9 @@ namespace TUIPlugin
             TUI.TUI.Hooks.CanTouch.Event += OnCanTouch;
             TUI.TUI.Hooks.Draw.Event += OnDraw;
             TUI.TUI.Hooks.TouchCancel.Event += OnTouchCancel;
-            TUI.TUI.Hooks.CreateSign.Event += OnCreateSign;
+            TUI.TUI.Hooks.UpdateSign.Event += OnUpdateSign;
             TUI.TUI.Hooks.RemoveSign.Event += OnRemoveSign;
-            TUI.TUI.Hooks.CreateChest.Event += OnCreateChest;
+            TUI.TUI.Hooks.UpdateChest.Event += OnUpdateChest;
             TUI.TUI.Hooks.RemoveChest.Event += OnRemoveChest;
             TUI.TUI.Hooks.Log.Event += OnLog;
             TUI.TUI.Hooks.Database.Event += OnDatabase;
@@ -87,7 +88,7 @@ namespace TUIPlugin
 
             Database.ConnectDB();
 
-            TUI.TUI.Initialize(255);
+            TUI.TUI.Initialize(255, Main.maxTilesX, Main.maxTilesY);
         }
 
         #endregion
@@ -106,9 +107,9 @@ namespace TUIPlugin
                 TUI.TUI.Hooks.CanTouch.Event -= OnCanTouch;
                 TUI.TUI.Hooks.Draw.Event -= OnDraw;
                 TUI.TUI.Hooks.TouchCancel.Event -= OnTouchCancel;
-                TUI.TUI.Hooks.CreateSign.Event -= OnCreateSign;
+                TUI.TUI.Hooks.UpdateSign.Event -= OnUpdateSign;
                 TUI.TUI.Hooks.RemoveSign.Event -= OnRemoveSign;
-                TUI.TUI.Hooks.CreateChest.Event -= OnCreateChest;
+                TUI.TUI.Hooks.UpdateChest.Event -= OnUpdateChest;
                 TUI.TUI.Hooks.RemoveChest.Event -= OnRemoveChest;
                 TUI.TUI.Hooks.Log.Event -= OnLog;
                 TUI.TUI.Hooks.Database.Event -= OnDatabase;
@@ -333,7 +334,7 @@ namespace TUIPlugin
         #endregion
         #region OnCreateSign
 
-        private static void OnCreateSign(CreateSignArgs args)
+        private static void OnUpdateSign(UpdateSignArgs args)
         {
             dynamic provider = (args.Node.Root ?? args.Node.GetRoot()).Provider;
             if (provider.GetType().Name != "FakeTileRectangle")
@@ -381,7 +382,7 @@ namespace TUIPlugin
         #endregion
         #region OnCreateChest
 
-        private static void OnCreateChest(CreateChestArgs args)
+        private static void OnUpdateChest(UpdateChestArgs args)
         {
             dynamic provider = (args.Node.Root ?? args.Node.GetRoot()).Provider;
             if (provider.GetType().Name != "FakeTileRectangle")
@@ -576,6 +577,12 @@ namespace TUIPlugin
 
             args.Player.SendSuccessMessage(root.Name + " new position and size: " + root.XYWH());
         }
+
+        #endregion
+        #region TUIPanelsCommand
+
+        public static void TUIPanelsCommand(CommandArgs args) =>
+            args.Player.SendInfoMessage($"Panels: {String.Join(", ", TUI.TUI.GetRoots())}");
 
         #endregion
 
@@ -858,5 +865,16 @@ namespace TUIPlugin
         #endregion
 
         #endregion
+    }
+
+    public class TUIChest : Chest
+    {
+        public VisualChest Node { get; internal set; }
+
+        public override string ToString()
+        {
+            // Update Node.Items here?????????????????????????? LMAAAAAO
+            return base.ToString();
+        }
     }
 }

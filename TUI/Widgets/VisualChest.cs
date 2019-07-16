@@ -96,8 +96,8 @@ namespace TUI.Widgets
         protected void CreateChest()
         {
             (int x, int y) = AbsoluteXY();
-            CreateChestArgs args = new CreateChestArgs(x, y, this);
-            TUI.Hooks.CreateChest.Invoke(args);
+            UpdateChestArgs args = new UpdateChestArgs(x, y, null, this);
+            TUI.Hooks.UpdateChest.Invoke(args);
             if (args.Chest == null)
             {
                 TUI.Hooks.Log.Invoke(new LogArgs("Can't create new chest.", LogType.Error));

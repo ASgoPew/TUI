@@ -125,8 +125,8 @@ namespace TUI.Widgets
             if (RawText == null)
                 throw new NullReferenceException("CreateSign: Text is null");
             (int x, int y) = AbsoluteXY();
-            CreateSignArgs args = new CreateSignArgs(x, y, this);
-            TUI.Hooks.CreateSign.Invoke(args);
+            UpdateSignArgs args = new UpdateSignArgs(x, y, null, this);
+            TUI.Hooks.UpdateSign.Invoke(args);
             if (args.Sign == null)
             {
                 TUI.Hooks.Log.Invoke(new LogArgs("Can't create new sign.", LogType.Error));

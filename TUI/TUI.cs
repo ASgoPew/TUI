@@ -17,6 +17,8 @@ namespace TUI
         #region Data
 
         public static int MaxPlayers;
+        public static int MaxTilesX;
+        public static int MaxTilesY;
         public static HookManager Hooks = new HookManager();
         public static UserSession[] Session = new UserSession[MaxPlayers];
         public static int MaxHoldTouchMilliseconds = 30000;
@@ -31,9 +33,11 @@ namespace TUI
 
         #region Initialize
 
-        public static void Initialize(int maxPlayers = 256)
+        public static void Initialize(int maxPlayers = 256, int maxTilesX = 8400, int maxTilesY = 2400)
         {
             MaxPlayers = maxPlayers;
+            MaxTilesX = maxTilesX;
+            MaxTilesY = maxTilesY;
             Session = new UserSession[MaxPlayers];
             Timer = new Timer(5000) { AutoReset = true };
             Timer.Elapsed += OnTimerElapsed;
@@ -178,6 +182,8 @@ namespace TUI
         public static void RemovePlayer(int playerIndex)
         {
             UserSession session = Session[playerIndex];
+            if (session == null)
+                return;
 
             if (session.PreviousTouch != null && session.PreviousTouch.State != TouchState.End)
             {

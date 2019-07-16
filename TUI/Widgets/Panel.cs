@@ -97,7 +97,13 @@ namespace TUI.Widgets
             int y = br.ReadInt32();
             int width = br.ReadInt32();
             int height = br.ReadInt32();
-            SetXYWH(x, y, width, height);
+            if (x + width < TUI.MaxTilesX && y + height < TUI.MaxTilesY)
+                SetXYWH(x, y, width, height);
+            else
+            {
+                TUI.Hooks.Log.Invoke(new Hooks.Args.LogArgs($"{FullName} can't be placed at {x},{y}: map is too small", Hooks.Args.LogType.Warning));
+                SetXYWH(0, 0, width, height);
+            }
         }
 
         #endregion

@@ -3,17 +3,19 @@ using TUI.Base;
 
 namespace TUI.Hooks.Args
 {
-    public class CreateSignArgs : EventArgs
+    public class UpdateSignArgs : EventArgs
     {
         public int X { get; }
         public int Y { get; }
-        public dynamic Sign { get; set; }
+        public string Text { get; }
+        public object Sign { get; set; }
         public VisualObject Node { get; set; }
 
-        public CreateSignArgs(int x, int y, VisualObject node)
+        public UpdateSignArgs(int x, int y, string text, VisualObject node)
         {
             X = x;
             Y = y;
+            Text = text;
             Node = node;
         }
     }
