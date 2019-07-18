@@ -39,9 +39,10 @@ namespace TUIPlugin
                             TShock.Config.MySqlPassword)
                     };
                 }
-                catch (MySqlException x)
+                catch (MySqlException e)
                 {
-                    TShock.Log.Error(x.ToString());
+                    TUI.TUI.Hooks.Log.Invoke(new TUI.Hooks.Args.LogArgs(e.ToString(),
+                        TUI.Hooks.Args.LogType.Error));
                     throw new Exception("MySQL not setup correctly.");
                 }
             }
