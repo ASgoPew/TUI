@@ -33,6 +33,10 @@ namespace TUI.Widgets
         /// Size of item (prefix).
         /// </summary>
         public ItemSize Size { get; set; } = ItemSize.Normal;
+        /// <summary>
+        /// Style of lighting.
+        /// </summary>
+        public Light Light { get; set; } = null;
 
         public ItemRackStyle() : base() { }
 
@@ -42,6 +46,7 @@ namespace TUI.Widgets
             Type = style.Type;
             Left = style.Left;
             Size = style.Size;
+            Light = new Light(style.Light);
         }
     }
 
@@ -204,6 +209,7 @@ namespace TUI.Widgets
 
             short type = ItemRackStyle.Type;
             bool left = ItemRackStyle.Left;
+            Light light = ItemRackStyle.Light;
             int fx = left ? 54 : 0;
             bool sign = Sign != null;
             int prefix = Sizes[(int)ItemRackStyle.Size];
@@ -225,6 +231,12 @@ namespace TUI.Widgets
                     else
                         tile.frameX = (short)(fx + x * 18);
                     tile.frameY = (short)(sign && y == 0 ? 0 : y * 18);
+                    if (x == 1 && y == 1 && light != null)
+                    {
+                        tile.wall = (byte)light.Wall;
+                        if (light.Color > 0)
+                            tile.wallColor((byte)light.Color);
+                    }
                 }
         }
 

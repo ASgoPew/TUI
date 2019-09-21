@@ -175,7 +175,7 @@ namespace TUI.Widgets
                                     tile.color(style.TextColor);
 							    if (statueY == 2)
 								    tile.color(style.TextUnderlineColor);
-                                tile.inActive(false);
+                                tile.inActive(style.InActive ?? false);
                             }
                         ForceSection = true;
                         charX += 2;
