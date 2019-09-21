@@ -199,6 +199,22 @@ namespace TUI
         }
 
         #endregion
+        #region SetXYWH
+
+        public static void SetXYWH(RootVisualObject root, int x, int y, int width, int height)
+        {
+            if (root is Widgets.Panel panel)
+            {
+                panel.Drag(x, y);
+                if (width != panel.Width || height != panel.Height)
+                    panel.Resize(width, height);
+                panel.Update().Apply().Draw();
+            }
+            else
+                root.Clear().Draw().SetXYWH(x, y, width, height).Update().Apply().Draw();
+        }
+
+        #endregion
 
         #region Touched
 

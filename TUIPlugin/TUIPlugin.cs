@@ -41,8 +41,7 @@ namespace TUIPlugin
         private static Timer RegionTimer = new Timer(1000) { AutoReset = true };
         public static Command[] CommandList = new Command[]
         {
-            new Command("TUI.control", TUIPanelCommand, "tuipanel"),
-            new Command("TUI.control", TUIPanelsCommand, "tuipanels")
+            new Command("TUI.control", TUIPanelCommand, "tui")
         };
 
         #endregion
@@ -524,65 +523,155 @@ namespace TUIPlugin
 
         #endregion
 
+        #region FindRoot
+
+        public static bool FindRoot(string name, TSPlayer player, out RootVisualObject found)
+        {
+            found = null;
+            List<RootVisualObject> foundRoots = new List<RootVisualObject>();
+            string lowerName = name.ToLower();
+            foreach (RootVisualObject root in TUI.TUI.GetRoots())
+            {
+                if (root.Name == name)
+                {
+                    found = root;
+                    return true;
+                }
+                else if (root.Name.ToLower().StartsWith(lowerName))
+                    foundRoots.Add(root);
+            }
+            if (foundRoots.Count == 0)
+            {
+                player?.SendErrorMessage($"Invalid panel '{name}'.");
+                return false;
+            }
+            else if (foundRoots.Count > 1)
+            {
+                if (player != null)
+                    TShock.Utils.SendMultipleMatchError(player, foundRoots);
+                return false;
+            }
+            else
+            {
+                found = foundRoots[0];
+                return true;
+            }
+        }
+
+        #endregion
+
         #region TUIPanelCommand
 
         public static void TUIPanelCommand(CommandArgs args)
         {
-            if (args.Parameters.Count != 1 && args.Parameters.Count != 3 && args.Parameters.Count != 5)
+            string arg0 = args.Parameters.ElementAtOrDefault(0);
+            switch (arg0?.ToLower())
             {
-                args.Player.SendErrorMessage("Usage: /tuipanel <panel name> [<x> <y>] [<width> <height>]");
-                return;
-            }
+                case "list":
+                {
+                    if (!PaginationTools.TryParsePageNumber(args.Parameters, 1, args.Player, out int page))
+                        return;
+                    List<string> lines = PaginationTools.BuildLinesFromTerms(TUI.TUI.GetRoots());
+                    PaginationTools.SendPage(args.Player, page, lines, new PaginationTools.Settings()
+                    {
+                        HeaderFormat = "TUI interfaces ({0}/{1}):",
+                        FooterFormat = "Type '/tui list {0}' for more.",
+                        NothingToDisplayString = "There are no TUI interfaces yet."
+                    });
+                    break;
+                }
+                case "tp":
+                case "teleport":
+                {
+                    if (args.Parameters.Count != 2)
+                    {
+                        args.Player.SendErrorMessage("/tui tp \"interface name\"");
+                        return;
+                    }
+                    if (!FindRoot(args.Parameters[1], args.Player, out RootVisualObject root))
+                        return;
 
-            RootVisualObject root = TUI.TUI.GetRoots().Where(r => r.Name == args.Parameters[0]).FirstOrDefault();
-            if (root == null)
-            {
-                args.Player.SendErrorMessage("Invalid panel name: " + args.Parameters[0]);
-                return;
-            }
+                    args.Player.Teleport((root.X + root.Width / 2) * 16,
+                        (root.Y + root.Height / 2) * 16);
+                    args.Player.SendSuccessMessage($"Teleported to interface '{root.Name}'.");
+                    break;
+                }
+                case "tphere":
+                case "teleporthere":
+                {
+                    if (args.Parameters.Count < 2
+                        || args.Parameters.Count > 3)
+                    {
+                        args.Player.SendErrorMessage("/tui tphere \"interface name\" [-confirm]");
+                        return;
+                    }
+                    if (!FindRoot(args.Parameters[1], args.Player, out RootVisualObject root))
+                        return;
 
-            if (args.Parameters.Count == 1)
-            {
-                args.Player.SendInfoMessage("Panel position and size: " + root.XYWH());
-                return;
-            }
+                    if (root.UsesDefaultMainProvider
+                        && args.Parameters.Last().ToLower() != "-confirm")
+                    {
+                        args.Player.SendErrorMessage($"Interface '{root.Name}' is drawn on main map.\n" +
+                            $"Type '/tui tphere \"{root.Name}\" -confirm' " +
+                            "to confirm the interface transfer.");
+                        return;
+                    }
 
-            int x;
-            int y;
-            if (!Int32.TryParse(args.Parameters[1], out x) || !Int32.TryParse(args.Parameters[2], out y)
-                || x < 0 || y < 0 || x >= Main.maxTilesX || y >= Main.maxTilesY)
-            {
-                args.Player.SendErrorMessage("Invalid panel coordinates: " + args.Parameters[1] + ", " + args.Parameters[2]);
-                return;
-            }
+                    int x = args.Player.TileX, y = args.Player.TileY;
+                    TUI.TUI.SetXYWH(root, x, y, root.Width, root.Height);
+                    args.Player.SendSuccessMessage($"Moved interface '{root.Name}' to ({x},{y}).");
+                    break;
+                }
+                default:
+                {
+                    if (arg0 == null || arg0.ToLower() == "help")
+                    {
+                        args.Player.SendSuccessMessage("/tui subcommands:");
+                        args.Player.SendInfoMessage("/tui \"interface name\" [<x> <y> [<width> <height>]]");
+                        args.Player.SendInfoMessage("/tui tp \"interface name\"");
+                        args.Player.SendInfoMessage("/tui tphere \"interface name\" [-confirm]");
+                        args.Player.SendInfoMessage("/tui list [page]");
+                        return;
+                    }
+                    if (!FindRoot(args.Parameters[1], args.Player, out RootVisualObject root))
+                        return;
 
-            int width = root.Width;
-            int height = root.Height;
-            if (args.Parameters.Count == 5
-                && (!Int32.TryParse(args.Parameters[3], out width) || !Int32.TryParse(args.Parameters[4], out height)
-                || width < 0 || height < 0 || width >= Main.maxTilesX || height >= Main.maxTilesY))
-            {
-                args.Player.SendErrorMessage("Invalid panel size: " + args.Parameters[3] + ", " + args.Parameters[4]);
-                return;
-            }
+                    if (args.Parameters.Count == 1)
+                    {
+                        args.Player.SendInfoMessage("Position and size " +
+                            $"of interface '{root.Name}': {root.XYWH()}");
+                        return;
+                    }
 
-            if (root is Panel panel)
-            {
-                panel.Drag(x, y);
-                if (width != panel.Width || height != panel.Height)
-                    panel.Resize(width, height);
-            }
-            else
-                root.Clear().Draw().SetXYWH(x, y, width, height).Update().Apply().Draw();
+                    if (!int.TryParse(args.Parameters[1], out int x)
+                        || !int.TryParse(args.Parameters[2], out int y)
+                        || x < 0 || y < 0 || x >= Main.maxTilesX || y >= Main.maxTilesY)
+                    {
+                        args.Player.SendErrorMessage("Invalid coordinates " +
+                            $"'{args.Parameters[1]},{args.Parameters[2]}'.");
+                        return;
+                    }
 
-            args.Player.SendSuccessMessage(root.Name + " new position and size: " + root.XYWH());
+                    int width = root.Width;
+                    int height = root.Height;
+                    if (args.Parameters.Count == 5
+                        && (!int.TryParse(args.Parameters[3], out width)
+                        || !int.TryParse(args.Parameters[4], out height)
+                        || width < 0 || x + width >= Main.maxTilesX
+                        || height < 0 || y + height >= Main.maxTilesY))
+                    {
+                        args.Player.SendErrorMessage("Invalid size " +
+                            $"'{args.Parameters[3]},{args.Parameters[4]}'.");
+                        return;
+                    }
+
+                    TUI.TUI.SetXYWH(root, x, y, width, height);
+                    args.Player.SendSuccessMessage("Set position and size " +
+                        $"of interface '{root.Name}' to {root.XYWH()}.");
+                    break;
+                }
+            }
         }
-
-        #endregion
-        #region TUIPanelsCommand
-
-        public static void TUIPanelsCommand(CommandArgs args) =>
-            args.Player.SendInfoMessage($"Panels: {String.Join(", ", TUI.TUI.GetRoots())}");
 
         #endregion
 
