@@ -82,22 +82,19 @@ namespace TUI.Base
             /// <returns>this</returns>
             public override VisualObject Remove(VisualObject child)
             {
-                child = base.Remove(child);
-                if (child != null)
+                base.Remove(child);
+                GridCell cell = child.Cell;
+                if (cell != null)
                 {
-                    GridCell cell = child.Cell;
-                    if (cell != null)
-                    {
-                        Grid[cell.Column, cell.Line] = null;
-                        child.Cell = null;
-                    }
-                    if (child.Configuration.InLayout)
-                        Configuration.Layout.Objects.Remove(child);
+                    Grid[cell.Column, cell.Line] = null;
+                    child.Cell = null;
                 }
-                return child;
+                if (child.Configuration.InLayout)
+                    Configuration.Layout.Objects.Remove(child);
+                return this;
             }
 
-        #endregion
+            #endregion
 
         #endregion
         #region Touchable
@@ -278,9 +275,7 @@ namespace TUI.Base
         public VisualObject SetupGrid(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null,
             Indent indent = null, bool fillWithEmptyObjects = true)
         {
-            GridConfiguration gridStyle = Configuration.Grid = new GridConfiguration(columns, lines);
-
-            VisualObject[,] oldGrid = Grid;
+            GridConfiguration gridStyle = Configuration.Grid = new GridConfiguration(columns, lines, indent);
 
             if (gridStyle.Columns == null)
                 gridStyle.Columns = new ISize[] { new Relative(100) };
@@ -290,10 +285,7 @@ namespace TUI.Base
             if (fillWithEmptyObjects)
                 for (int i = 0; i < gridStyle.Columns.Length; i++)
                     for (int j = 0; j < gridStyle.Lines.Length; j++)
-                        if (i < oldGrid?.GetLength(0) && j < oldGrid?.GetLength(1) && oldGrid[i, j] != null)
-                            this[i, j] = Remove(oldGrid[i, j]);
-                        else
-                            this[i, j] = new VisualContainer();
+                        this[i, j] = new VisualContainer();
 
             return this as VisualObject;
         }
