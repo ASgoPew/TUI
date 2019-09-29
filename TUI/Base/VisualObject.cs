@@ -660,14 +660,14 @@ namespace TUI.Base
                     else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
                         x = Width - indent.Right - child.Width;
                     else
-                        x = (int)Math.Floor((Width - child.Width) / 2f);
+                        x = (int)Math.Floor((Width - indent.Left - indent.Right - child.Width) / 2f) + indent.Left;
 
                     if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
                         y = indent.Up;
                     else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
                         y = Height - indent.Down - child.Height;
                     else
-                        y = (int)Math.Floor((Height - child.Height) / 2f);
+                        y = (int)Math.Floor((Height - indent.Up - indent.Down - child.Height) / 2f) + indent.Up;
 
                     child.SetXY(x, y);
                 }
@@ -1104,8 +1104,9 @@ namespace TUI.Base
             {
                 lock (Locker)
                 {
-                    if (Style.Active == null && Style.InActive == null && Style.Tile == null && Style.TileColor == null
-                            && Style.Wall == null && Style.WallColor == null)
+                    if (!Style.CustomApplyTile && Style.Active == null && Style.InActive == null
+                            && Style.Tile == null && Style.TileColor == null && Style.Wall == null
+                            && Style.WallColor == null)
                         return this;
 
                     foreach ((int x, int y) in Points)

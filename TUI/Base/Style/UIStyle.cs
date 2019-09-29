@@ -32,6 +32,11 @@
         /// Sets tile.inActive(Style.InActive) for every tile.
         /// </summary>
         public bool? InActive { get; set; }
+        /// <summary>
+        /// Forces <see cref="VisualObject.ApplyTiles"/> to iterate over all tiles
+        /// and try to call <see cref="VisualObject.ApplyTile"/>
+        /// </summary>
+        public bool CustomApplyTile { get; set; } = false;
 
         /// <summary>
         /// Drawing styles for VisualObject.
