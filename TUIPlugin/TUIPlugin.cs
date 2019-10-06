@@ -41,7 +41,7 @@ namespace TUIPlugin
         private static Timer RegionTimer = new Timer(1000) { AutoReset = true };
         public static Command[] CommandList = new Command[]
         {
-            new Command("TUI.control", TUIPanelCommand, "tui")
+            new Command("TUI.control", TUICommand, "tui")
         };
 
         #endregion
@@ -560,9 +560,9 @@ namespace TUIPlugin
 
         #endregion
 
-        #region TUIPanelCommand
+        #region TUICommand
 
-        public static void TUIPanelCommand(CommandArgs args)
+        public static void TUICommand(CommandArgs args)
         {
             string arg0 = args.Parameters.ElementAtOrDefault(0);
             switch (arg0?.ToLower())
@@ -633,7 +633,7 @@ namespace TUIPlugin
                         args.Player.SendInfoMessage("/tui list [page]");
                         return;
                     }
-                    if (!FindRoot(args.Parameters[1], args.Player, out RootVisualObject root))
+                    if (!FindRoot(args.Parameters[0], args.Player, out RootVisualObject root))
                         return;
 
                     if (args.Parameters.Count == 1)
