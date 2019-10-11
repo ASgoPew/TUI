@@ -506,7 +506,13 @@ namespace TUIPlugin
                 int ey = y + RegionAreaY + root.Height - 1;
                 foreach (TSPlayer plr in TShock.Players)
                 {
-                    if (plr?.Active != true)
+                    // plr?.Active != true check won't work since broadcast is set to true
+                    // after setting player.active.
+                    // Sequence:
+                    // 1. player.Spawn() <=> player.active = true
+                    // 2. NetMessage.greetPlayer(...) - invokes a hook that can freeze the thread
+                    // 3. buffer.broadcast = true
+                    if (plr == null || !NetMessage.buffer[plr.Index].broadcast)
                         continue;
                     int tx = plr.TileX, ty = plr.TileY;
                     if ((tx >= sx) && (tx <= ex) && (ty >= sy) && (ty <= ey))
