@@ -1076,6 +1076,10 @@ namespace TUI.Base
             {
                 lock (Locker)
                 {
+                    // Mark changes to be drawn
+                    if (Root is RootVisualObject root)
+                        root.ApplyCounter++;
+
                     // Overridable apply function
                     ApplyThisNative();
 

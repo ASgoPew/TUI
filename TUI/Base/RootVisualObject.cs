@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using TUI.Base.Style;
@@ -13,10 +14,16 @@ namespace TUI.Base
     public class RootVisualObject : VisualContainer
     {
         #region Data
+
         /// <summary>
-        /// Set of players that are currently close enough to this interface.
+        /// Last Apply counter drawn to a player.
         /// </summary>
-        public HashSet<int> Players = new HashSet<int>();
+        public ConcurrentDictionary<int, ulong> PlayerApplyCounter { get; } =
+            new ConcurrentDictionary<int, ulong>();
+        /// <summary>
+        /// List of players that are currently close enough to this interface.
+        /// </summary>
+        public HashSet<int> Players { get; } = new HashSet<int>();
         /// <summary>
         /// Unique interface root identifier.
         /// </summary>
@@ -35,6 +42,10 @@ namespace TUI.Base
         /// </summary>
         public override int Layer => UsesDefaultMainProvider ? 0 : 1;
 
+        /// <summary>
+        /// Counter of Apply() calls. Interface won't redraw to user if ApplyCounter hasn't changed.
+        /// </summary>
+        public ulong ApplyCounter { get; protected internal set; }
         protected VisualContainer PopUpBackground { get; set; }
         protected Dictionary<VisualObject, Action<VisualObject>> PopUpCancelCallbacks =
             new Dictionary<VisualObject, Action<VisualObject>>();

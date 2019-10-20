@@ -270,12 +270,15 @@ namespace TUIPlugin
 
         private static void OnDraw(DrawArgs args)
         {
-            HashSet<int> players;
-            if (args.PlayerIndex == -1)
-                players = (args.Node.GetRoot() as RootVisualObject).Players;
-            else
-                players = new HashSet<int>() { args.PlayerIndex };
+            ulong currentApplyCounter = args.Node.Root.ApplyCounter;
+            HashSet<int> players = args.PlayerIndex == -1
+                ? args.Node.Root.Players
+                : new HashSet<int>() { args.PlayerIndex };
             players.Remove(args.ExceptPlayerIndex);
+            // Remove players that already received lastest version of interface
+            players.RemoveWhere(p =>
+                args.Node.Root.PlayerApplyCounter.TryGetValue(p, out ulong applyCounter)
+                && currentApplyCounter == applyCounter);
             if (players.Count == 0)
                 return;
 
@@ -313,6 +316,10 @@ namespace TUIPlugin
                     foreach (int i in players)
                         NetMessage.SendData(20, i, -1, null, size, args.X, args.Y);
             }
+
+            // Mark that these players received lastest version of interface
+            foreach (int player in players)
+                args.Node.Root.PlayerApplyCounter[player] = currentApplyCounter;
         }
 
         #endregion
@@ -516,14 +523,12 @@ namespace TUIPlugin
                         continue;
                     int tx = plr.TileX, ty = plr.TileY;
                     if ((tx >= sx) && (tx <= ex) && (ty >= sy) && (ty <= ey))
-                    {
-                        if (root.Players.Add(plr.Index))
-                            TUI.TUI.Hooks.Draw.Invoke(new DrawArgs(root, x, y, root.Width,
-                                root.Height, root.ForceSection, plr.Index, -1, true));
-                    }
+                        root.Players.Add(plr.Index);
                     else
                         root.Players.Remove(plr.Index);
                 }
+
+                root.Draw();
             }
         }
 
