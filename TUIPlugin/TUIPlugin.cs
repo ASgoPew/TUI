@@ -270,6 +270,9 @@ namespace TUIPlugin
 
         private static void OnDraw(DrawArgs args)
         {
+            if (args.Node.Root == null)
+                return;
+
             ulong currentApplyCounter = args.Node.Root.ApplyCounter;
             HashSet<int> players = args.PlayerIndex == -1
                 ? args.Node.Root.Players
