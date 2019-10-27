@@ -1,4 +1,4 @@
-﻿namespace TUI.Widgets.Data
+﻿namespace TerrariaUI.Widgets.Data
 {
     public class ChestData
     {

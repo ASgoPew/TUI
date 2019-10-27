@@ -1,7 +1,7 @@
 ﻿using System;
-using TUI.Base.Style;
+using TerrariaUI.Base.Style;
 
-namespace TUI.Base
+namespace TerrariaUI.Base
 {
     #region ContainerStyle
 

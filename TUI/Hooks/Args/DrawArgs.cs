@@ -1,7 +1,7 @@
 ﻿using System;
-using TUI.Base;
+using TerrariaUI.Base;
 
-namespace TUI.Hooks.Args
+namespace TerrariaUI.Hooks.Args
 {
     public class DrawArgs : EventArgs
     {

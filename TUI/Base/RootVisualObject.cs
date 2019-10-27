@@ -2,11 +2,11 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using TUI.Base.Style;
-using TUI.Hooks.Args;
-using TUI.Widgets;
+using TerrariaUI.Base.Style;
+using TerrariaUI.Hooks.Args;
+using TerrariaUI.Widgets;
 
-namespace TUI.Base
+namespace TerrariaUI.Base
 {
     /// <summary>
     /// Basic root of user interface tree widget.

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-namespace TUI.Base
+namespace TerrariaUI.Base
 {
     /// <summary>
     /// Collection of TUI related data that corresponds to a player.

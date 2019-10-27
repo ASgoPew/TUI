@@ -1,7 +1,7 @@
 ﻿using System;
-using TUI.Hooks.Args;
+using TerrariaUI.Hooks.Args;
 
-namespace TUI.Hooks
+namespace TerrariaUI.Hooks
 {
     public class HookManager
     {

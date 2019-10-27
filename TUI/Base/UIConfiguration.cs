@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using TUI.Base.Style;
+using TerrariaUI.Base.Style;
 
-namespace TUI.Base
+namespace TerrariaUI.Base
 {
     #region AlignmentConfiguration
 
@@ -85,7 +85,7 @@ namespace TUI.Base
         /// </summary>
         public bool BoundsIsIndent { get; set; }
 
-        internal LayoutConfiguration(Alignment alignment = Alignment.Center, Direction direction = Style.Direction.Down, Side side = Style.Side.Center, ExternalIndent indent = null, int childIndent = 1, bool boundsIsIndent = true)
+        internal LayoutConfiguration(Alignment alignment = Alignment.Center, Direction direction = Direction.Down, Side side = Side.Center, ExternalIndent indent = null, int childIndent = 1, bool boundsIsIndent = true)
         {
             Alignment = alignment;
             Direction = direction;

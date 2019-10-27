@@ -1,8 +1,8 @@
 ﻿using System;
-using TUI.Base;
-using TUI.Widgets.Data;
+using TerrariaUI.Base;
+using TerrariaUI.Widgets.Data;
 
-namespace TUI.Hooks.Args
+namespace TerrariaUI.Hooks.Args
 {
     public class UpdateChestArgs : EventArgs
     {

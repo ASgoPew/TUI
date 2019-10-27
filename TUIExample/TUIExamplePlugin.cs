@@ -4,10 +4,11 @@ using Terraria;
 using Terraria.ID;
 using TerrariaApi.Server;
 using TShockAPI;
-using TUI.Base;
-using TUI.Base.Style;
-using TUI.Widgets;
+using TerrariaUI.Base;
+using TerrariaUI.Base.Style;
+using TerrariaUI.Widgets;
 using TUIPlugin;
+using TerrariaUI;
 
 namespace TUIExample
 {
@@ -31,7 +32,7 @@ namespace TUIExample
             //object provider = FakeManager.FakeManager.Common.Add("TestPanelProvider", x, y, w, h);
 
             // Create a panel with a wall of diamond gemspark wall with black paint.
-            Panel root = TUI.TUI.Create(new Panel("TestPanel", x, y, w, h, null,
+            Panel root = TUI.Create(new Panel("TestPanel", x, y, w, h, null,
                 new ContainerStyle() { Wall = WallID.DiamondGemspark, WallColor = PaintID.Black }, provider)) as Panel;
             // Create a Label widget (text display) with white characters.
             Label label1 = new Label(1, 1, 17, 2, "some text", new LabelStyle() { TextColor = PaintID.White });

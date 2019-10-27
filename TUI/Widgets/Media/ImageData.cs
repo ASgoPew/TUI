@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using TUI.Widgets.Data;
+using TerrariaUI.Widgets.Data;
 
-namespace TUI.Widgets.Media
+namespace TerrariaUI.Widgets.Media
 {
     public class ImageData
     {

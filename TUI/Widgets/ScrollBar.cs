@@ -1,8 +1,8 @@
 ﻿using System;
-using TUI.Base;
-using TUI.Base.Style;
+using TerrariaUI.Base;
+using TerrariaUI.Base.Style;
 
-namespace TUI.Widgets
+namespace TerrariaUI.Widgets
 {
     #region ScrollBarStyle
 

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.IO;
-using TUI.Base;
-using TUI.Base.Style;
-using TUI.Hooks.Args;
+using TerrariaUI.Base;
+using TerrariaUI.Base.Style;
+using TerrariaUI.Hooks.Args;
 
-namespace TUI.Widgets
+namespace TerrariaUI.Widgets
 {
     enum PanelState
     {

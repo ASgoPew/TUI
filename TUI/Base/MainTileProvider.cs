@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace TUI.Base
+namespace TerrariaUI.Base
 {
     public class MainTileProvider
     {

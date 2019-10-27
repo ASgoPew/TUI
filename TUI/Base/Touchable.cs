@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using TUI.Hooks.Args;
+using TerrariaUI.Hooks.Args;
 
-namespace TUI.Base
+namespace TerrariaUI.Base
 {
     public abstract class Touchable : VisualDOM
     {

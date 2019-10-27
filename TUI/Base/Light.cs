@@ -1,4 +1,4 @@
-﻿namespace TUI.Base
+﻿namespace TerrariaUI.Base
 {
     /// <summary>
     /// Represents a style of widget lighting.

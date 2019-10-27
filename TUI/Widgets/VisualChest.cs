@@ -1,10 +1,10 @@
 ﻿using System;
-using TUI.Base;
-using TUI.Base.Style;
-using TUI.Hooks.Args;
-using TUI.Widgets.Data;
+using TerrariaUI.Base;
+using TerrariaUI.Base.Style;
+using TerrariaUI.Hooks.Args;
+using TerrariaUI.Widgets.Data;
 
-namespace TUI.Widgets
+namespace TerrariaUI.Widgets
 {
     /// <summary>
     /// Widget for drawing chest with items.

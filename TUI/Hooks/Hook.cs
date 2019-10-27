@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TUI.Hooks
+namespace TerrariaUI.Hooks
 {
     public class Hook<T>
     {

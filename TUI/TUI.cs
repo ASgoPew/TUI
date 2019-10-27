@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Timers;
-using TUI.Base;
-using TUI.Hooks;
-using TUI.Hooks.Args;
+using TerrariaUI.Base;
+using TerrariaUI.Hooks;
+using TerrariaUI.Hooks.Args;
 
-namespace TUI
+namespace TerrariaUI
 {
     /// <summary>
     /// Main user interface class.
@@ -195,7 +195,7 @@ namespace TUI
             if (session.PreviousTouch != null && session.PreviousTouch.State != TouchState.End)
             {
                 Touch simulatedEndTouch = session.PreviousTouch.SimulatedEndTouch();
-                TUI.Touched(playerIndex, simulatedEndTouch);
+                Touched(playerIndex, simulatedEndTouch);
             }
 
             lock (Child)
@@ -464,7 +464,7 @@ namespace TUI
 
         public static void DrawRect(VisualObject node, int x, int y, int width, int height, bool forcedSection, int playerIndex = -1, int exceptPlayerIndex = -1, bool frame = true)
         {
-            TUI.Hooks.Draw.Invoke(new DrawArgs(node, x, y, width, height, forcedSection, playerIndex, exceptPlayerIndex, frame));
+            Hooks.Draw.Invoke(new DrawArgs(node, x, y, width, height, forcedSection, playerIndex, exceptPlayerIndex, frame));
         }
 
         #endregion

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using TUI.Base.Style;
+using TerrariaUI.Base.Style;
 
-namespace TUI.Base
+namespace TerrariaUI.Base
 {
     /// <summary>
     /// Basic TUI object. Every TUI object is VisualObject or is an object of class inherited from VisualObject.

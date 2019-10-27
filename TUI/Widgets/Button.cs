@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
-using TUI.Base;
-using TUI.Base.Style;
+using TerrariaUI.Base;
+using TerrariaUI.Base.Style;
 
-namespace TUI.Widgets
+namespace TerrariaUI.Widgets
 {
     #region ButtonStyle
 

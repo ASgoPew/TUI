@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TUI.Hooks.Args
+namespace TerrariaUI.Hooks.Args
 {
     public class LoadArgs : EventArgs
     {

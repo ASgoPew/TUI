@@ -1,4 +1,4 @@
-﻿namespace TUI.Base
+﻿namespace TerrariaUI.Base
 {
     /// <summary>
     /// Type of pulse signal to send to VisualObject(s).

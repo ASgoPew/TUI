@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Timers;
-using TUI.Base;
-using TUI.Base.Style;
-using TUI.Hooks.Args;
-using TUI.Widgets.Media;
+using TerrariaUI.Base;
+using TerrariaUI.Base.Style;
+using TerrariaUI.Hooks.Args;
+using TerrariaUI.Widgets.Media;
 
-namespace TUI.Widgets
+namespace TerrariaUI.Widgets
 {
     #region VideoStyle
 

@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace TUI.Base
+namespace TerrariaUI.Base
 {
     public abstract class VisualDOM : IDOM<VisualObject>, IVisual<VisualObject>
     {

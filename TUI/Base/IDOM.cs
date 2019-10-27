@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace TUI.Base
+namespace TerrariaUI.Base
 {
     internal interface IDOM<T>
     {

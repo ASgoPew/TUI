@@ -9,10 +9,11 @@ using Terraria;
 using Terraria.ID;
 using TerrariaApi.Server;
 using TShockAPI;
-using TUI.Base;
-using TUI.Hooks.Args;
-using TUI.Widgets.Data;
-using TUI.Widgets.Media;
+using TerrariaUI.Base;
+using TerrariaUI.Hooks.Args;
+using TerrariaUI.Widgets.Data;
+using TerrariaUI.Widgets.Media;
+using TerrariaUI;
 
 namespace TUIPlugin
 {
@@ -67,15 +68,15 @@ namespace TUIPlugin
                 ServerApi.Hooks.ServerLeave.Register(this, OnServerLeave);
                 ServerApi.Hooks.NetGetData.Register(this, OnGetData, 100);
                 GetDataHandlers.NewProjectile += OnNewProjectile;
-                TUI.TUI.Hooks.CanTouch.Event += OnCanTouch;
-                TUI.TUI.Hooks.Draw.Event += OnDraw;
-                TUI.TUI.Hooks.TouchCancel.Event += OnTouchCancel;
-                TUI.TUI.Hooks.UpdateSign.Event += OnUpdateSign;
-                TUI.TUI.Hooks.RemoveSign.Event += OnRemoveSign;
+                TUI.Hooks.CanTouch.Event += OnCanTouch;
+                TUI.Hooks.Draw.Event += OnDraw;
+                TUI.Hooks.TouchCancel.Event += OnTouchCancel;
+                TUI.Hooks.UpdateSign.Event += OnUpdateSign;
+                TUI.Hooks.RemoveSign.Event += OnRemoveSign;
                 //TUI.TUI.Hooks.UpdateChest.Event += OnUpdateChest;
                 //TUI.TUI.Hooks.RemoveChest.Event += OnRemoveChest;
-                TUI.TUI.Hooks.Log.Event += OnLog;
-                TUI.TUI.Hooks.Database.Event += OnDatabase;
+                TUI.Hooks.Log.Event += OnLog;
+                TUI.Hooks.Database.Event += OnDatabase;
                 RegionTimer.Elapsed += OnRegionTimer;
 
                 Commands.ChatCommands.AddRange(CommandList);
@@ -87,11 +88,11 @@ namespace TUIPlugin
 
                 Database.ConnectDB();
 
-                TUI.TUI.Initialize(255, Main.maxTilesX, Main.maxTilesY);
+                TUI.Initialize(255, Main.maxTilesX, Main.maxTilesY);
             }
             catch (Exception e)
             {
-                TUI.TUI.HandleException(e);
+                TUI.HandleException(e);
             }
         }
 
@@ -106,21 +107,21 @@ namespace TUIPlugin
                 {
                     RegionTimer.Stop();
 
-                    TUI.TUI.Dispose();
+                    TUI.Dispose();
 
                     ServerApi.Hooks.ServerConnect.Deregister(this, OnServerConnect);
                     ServerApi.Hooks.ServerLeave.Deregister(this, OnServerLeave);
                     ServerApi.Hooks.NetGetData.Deregister(this, OnGetData);
-                    TShockAPI.GetDataHandlers.NewProjectile -= OnNewProjectile;
-                    TUI.TUI.Hooks.CanTouch.Event -= OnCanTouch;
-                    TUI.TUI.Hooks.Draw.Event -= OnDraw;
-                    TUI.TUI.Hooks.TouchCancel.Event -= OnTouchCancel;
-                    TUI.TUI.Hooks.UpdateSign.Event -= OnUpdateSign;
-                    TUI.TUI.Hooks.RemoveSign.Event -= OnRemoveSign;
-                    TUI.TUI.Hooks.UpdateChest.Event -= OnUpdateChest;
-                    TUI.TUI.Hooks.RemoveChest.Event -= OnRemoveChest;
-                    TUI.TUI.Hooks.Log.Event -= OnLog;
-                    TUI.TUI.Hooks.Database.Event -= OnDatabase;
+                    GetDataHandlers.NewProjectile -= OnNewProjectile;
+                    TUI.Hooks.CanTouch.Event -= OnCanTouch;
+                    TUI.Hooks.Draw.Event -= OnDraw;
+                    TUI.Hooks.TouchCancel.Event -= OnTouchCancel;
+                    TUI.Hooks.UpdateSign.Event -= OnUpdateSign;
+                    TUI.Hooks.RemoveSign.Event -= OnRemoveSign;
+                    TUI.Hooks.UpdateChest.Event -= OnUpdateChest;
+                    TUI.Hooks.RemoveChest.Event -= OnRemoveChest;
+                    TUI.Hooks.Log.Event -= OnLog;
+                    TUI.Hooks.Database.Event -= OnDatabase;
                     RegionTimer.Elapsed -= OnRegionTimer;
 
                     foreach (Command cmd in CommandList)
@@ -131,7 +132,7 @@ namespace TUIPlugin
                 }
                 catch (Exception e)
                 {
-                    TUI.TUI.HandleException(e);
+                    TUI.HandleException(e);
                 }
             }
             base.Dispose(disposing);
@@ -145,16 +146,16 @@ namespace TUIPlugin
         {
             try
             {
-                TUI.TUI.Load();
-                TUI.TUI.Update();
-                TUI.TUI.Apply();
-                TUI.TUI.Draw();
+                TUI.Load();
+                TUI.Update();
+                TUI.Apply();
+                TUI.Draw();
 
                 RegionTimer.Start();
             }
             catch (Exception e)
             {
-                TUI.TUI.HandleException(new Exception("Failed to load, update, apply and draw TUI", e));
+                TUI.HandleException(new Exception("Failed to load, update, apply and draw TUI", e));
             }
         }
 
@@ -166,11 +167,11 @@ namespace TUIPlugin
             try
             {
                 playerDesignState[args.Who] = DesignState.Waiting;
-                TUI.TUI.InitializePlayer(args.Who);
+                TUI.InitializePlayer(args.Who);
             }
             catch (Exception e)
             {
-                TUI.TUI.HandleException(e);
+                TUI.HandleException(e);
             }
         }
 
@@ -181,11 +182,11 @@ namespace TUIPlugin
         {
             try
             {
-                TUI.TUI.RemovePlayer(args.Who);
+                TUI.RemovePlayer(args.Who);
             }
             catch (Exception e)
             {
-                TUI.TUI.HandleException(e);
+                TUI.HandleException(e);
             }
         }
 
@@ -216,8 +217,8 @@ namespace TUIPlugin
                         else
                             return;
 
-                        TUI.TUI.Touched(player.Index, new Touch(ex, ey, TouchState.End, prefix, designStateByte));
-                        args.Handled = TUI.TUI.EndTouchHandled(player.Index);
+                        TUI.Touched(player.Index, new Touch(ex, ey, TouchState.End, prefix, designStateByte));
+                        args.Handled = TUI.EndTouchHandled(player.Index);
                         playerDesignState[player.Index] = DesignState.Waiting;
                     }
                 }
@@ -230,12 +231,12 @@ namespace TUIPlugin
                         byte owner = br.ReadByte();
                         if (owner != args.Msg.whoAmI)
                             return;
-                        Touch previousTouch = TUI.TUI.Session[owner].PreviousTouch;
-                        if (TUI.TUI.Session[owner].ProjectileID == projectileID && previousTouch != null && previousTouch.State != TouchState.End)
+                        Touch previousTouch = TUI.Session[owner].PreviousTouch;
+                        if (TUI.Session[owner].ProjectileID == projectileID && previousTouch != null && previousTouch.State != TouchState.End)
                         {
                             Touch simulatedEndTouch = previousTouch.SimulatedEndTouch();
                             simulatedEndTouch.Undo = true;
-                            TUI.TUI.Touched(owner, simulatedEndTouch);
+                            TUI.Touched(owner, simulatedEndTouch);
                             playerDesignState[owner] = DesignState.Waiting;
                         }
                     }
@@ -243,7 +244,7 @@ namespace TUIPlugin
             }
             catch (Exception e)
             {
-                TUI.TUI.HandleException(e);
+                TUI.HandleException(e);
             }
         }
 
@@ -272,8 +273,8 @@ namespace TUIPlugin
                     int tileX = (int)Math.Floor((args.Position.X + 5) / 16);
                     int tileY = (int)Math.Floor((args.Position.Y + 5) / 16);
 
-                    if (TUI.TUI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Begin, prefix, 0)))
-                        TUI.TUI.Session[args.Owner].ProjectileID = args.Identity;
+                    if (TUI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Begin, prefix, 0)))
+                        TUI.Session[args.Owner].ProjectileID = args.Identity;
                     playerDesignState[args.Owner] = DesignState.Moving;
                     //args.Handled = true;
                 }
@@ -281,12 +282,12 @@ namespace TUIPlugin
                 {
                     int tileX = (int)Math.Floor((args.Position.X + 5) / 16);
                     int tileY = (int)Math.Floor((args.Position.Y + 5) / 16);
-                    TUI.TUI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Moving, prefix, 0));
+                    TUI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Moving, prefix, 0));
                 }
             }
             catch (Exception e)
             {
-                TUI.TUI.HandleException(e);
+                TUI.HandleException(e);
             }
         }
 
@@ -303,7 +304,7 @@ namespace TUIPlugin
                 if (args.Touch.State == TouchState.Begin && player != null && args.CanTouch == false)
                 {
                     args.Touch.Session.Enabled = false;
-                    TUI.TUI.TrySetLockForObject(args.Node, args.Touch);
+                    TUI.TrySetLockForObject(args.Node, args.Touch);
                     player.SendErrorMessage("You do not have access to this interface.");
                 }
             }
@@ -381,11 +382,11 @@ namespace TUIPlugin
         {
             TSPlayer player = args.Touch.Player();
             player.SendWarningMessage("You are holding mouse for too long.");
-            TUI.TUI.Hooks.Log.Invoke(new LogArgs($"TUI: Touch too long ({player.Name}).", LogType.Info));
+            TUI.Hooks.Log.Invoke(new LogArgs($"TUI: Touch too long ({player.Name}).", LogType.Info));
             player.SendData(PacketTypes.ProjectileDestroy, null, args.Session.ProjectileID, player.Index);
             Touch simulatedEndTouch = args.Touch.SimulatedEndTouch();
             simulatedEndTouch.Undo = true;
-            TUI.TUI.Touched(args.UserIndex, simulatedEndTouch);
+            TUI.Touched(args.UserIndex, simulatedEndTouch);
             playerDesignState[args.UserIndex] = DesignState.Waiting;
         }
 
@@ -420,7 +421,7 @@ namespace TUIPlugin
                 }
                 catch (Exception e)
                 {
-                    TUI.TUI.HandleException(args.Node, new Exception("Can't create FAKE sign", e));
+                    TUI.HandleException(args.Node, new Exception("Can't create FAKE sign", e));
                 }
             }
         }
@@ -463,7 +464,7 @@ namespace TUIPlugin
                     Console.WriteLine(id);
                 }
                 else
-                    TUI.TUI.HandleException(args.Node, new Exception("Can't create Main.chest chest."));
+                    TUI.HandleException(args.Node, new Exception("Can't create Main.chest chest."));
             }
             else
             {
@@ -481,7 +482,7 @@ namespace TUIPlugin
                 }
                 catch (Exception e)
                 {
-                    TUI.TUI.HandleException(args.Node, new Exception("Can't create FAKE chest", e));
+                    TUI.HandleException(args.Node, new Exception("Can't create FAKE chest", e));
                 }
             }
         }
@@ -589,7 +590,7 @@ namespace TUIPlugin
         {
             try
             {
-                foreach (RootVisualObject root in TUI.TUI.GetRoots())
+                foreach (RootVisualObject root in TUI.GetRoots())
                 {
                     (int x, int y) = root.AbsoluteXY();
                     int sx = x - RegionAreaX;
@@ -618,7 +619,7 @@ namespace TUIPlugin
             }
             catch (Exception e)
             {
-                TUI.TUI.HandleException(e);
+                TUI.HandleException(e);
             }
         }
 
@@ -631,7 +632,7 @@ namespace TUIPlugin
             found = null;
             List<RootVisualObject> foundRoots = new List<RootVisualObject>();
             string lowerName = name.ToLower();
-            foreach (RootVisualObject root in TUI.TUI.GetRoots())
+            foreach (RootVisualObject root in TUI.GetRoots())
             {
                 if (root.Name == name)
                 {
@@ -672,7 +673,7 @@ namespace TUIPlugin
                 {
                     if (!PaginationTools.TryParsePageNumber(args.Parameters, 1, args.Player, out int page))
                         return;
-                    List<string> lines = PaginationTools.BuildLinesFromTerms(TUI.TUI.GetRoots());
+                    List<string> lines = PaginationTools.BuildLinesFromTerms(TUI.GetRoots());
                     PaginationTools.SendPage(args.Player, page, lines, new PaginationTools.Settings()
                     {
                         HeaderFormat = "TUI interfaces ({0}/{1}):",
@@ -719,7 +720,7 @@ namespace TUIPlugin
                     }
 
                     int x = args.Player.TileX, y = args.Player.TileY;
-                    TUI.TUI.SetXYWH(root, x, y, root.Width, root.Height);
+                    TUI.SetXYWH(root, x, y, root.Width, root.Height);
                     args.Player.SendSuccessMessage($"Moved interface '{root.Name}' to ({x},{y}).");
                     break;
                 }
@@ -766,7 +767,7 @@ namespace TUIPlugin
                         return;
                     }
 
-                    TUI.TUI.SetXYWH(root, x, y, width, height);
+                    TUI.SetXYWH(root, x, y, width, height);
                     args.Player.SendSuccessMessage("Set position and size " +
                         $"of interface '{root.Name}' to {root.XYWH()}.");
                     break;

@@ -1,5 +1,5 @@
 ﻿using TShockAPI;
-using TUI.Base;
+using TerrariaUI.Base;
 
 namespace TUIPlugin
 {
