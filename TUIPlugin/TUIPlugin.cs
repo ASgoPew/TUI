@@ -11,7 +11,6 @@ using TerrariaApi.Server;
 using TShockAPI;
 using TUI.Base;
 using TUI.Hooks.Args;
-using TUI.Widgets;
 using TUI.Widgets.Data;
 using TUI.Widgets.Media;
 

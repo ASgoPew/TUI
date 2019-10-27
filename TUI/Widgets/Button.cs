@@ -136,8 +136,15 @@ namespace TUI.Widgets
                     if (blinking)
                         Task.Delay(ButtonStyle.BlinkDelay).ContinueWith(_ =>
                         {
-                            lock (ButtonLocker)
-                                TryEndBlink(blinkStyle, 2);
+                            try
+                            {
+                                lock (ButtonLocker)
+                                    TryEndBlink(blinkStyle, 2);
+                            }
+                            catch (Exception e)
+                            {
+                                TUI.HandleException(this, e);
+                            }
                         });
                 }
             }
