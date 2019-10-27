@@ -78,7 +78,10 @@ namespace TerrariaUI.Widgets
         /// </summary>
         public Label(int x, int y, int width, int height, string text, UIConfiguration configuration = null,
                 LabelStyle style = null, Action<VisualObject, Touch> callback = null)
-            : base(x, y, width, height, configuration, style ?? new LabelStyle(), callback)
+            : base(x, y, width, height, configuration ?? new UIConfiguration()
+            {
+                UseBegin = false
+            }, style ?? new LabelStyle(), callback)
         {
             RawText = text ?? throw new ArgumentNullException(nameof(text));
         }
