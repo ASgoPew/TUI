@@ -100,7 +100,7 @@ namespace TerrariaUI.Widgets
             {
                 Input.Temp = temp;
                 if (draw)
-                    ApplyTiles().Draw();
+                    ApplyThis().Draw();
             }
         }
 

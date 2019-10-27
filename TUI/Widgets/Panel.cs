@@ -141,11 +141,18 @@ namespace TerrariaUI.Widgets
             if (x == X && y == Y)
                 return;
             if (UsesDefaultMainProvider)
-                Clear().Draw().SetXY(x, y).Update().Apply().Draw();
+                Clear()
+                .Draw(toEveryone: true)
+                .SetXY(x, y)
+                .Update()
+                .Apply()
+                .Draw(toEveryone: true);
             else
             {
                 int oldX = X, oldY = Y;
-                SetXY(x, y).Draw(oldX - x, oldY - y).Draw();
+                SetXY(x, y)
+                .Draw(oldX - x, oldY - y, toEveryone: true)
+                .Draw(toEveryone: true);
             }
         }
 

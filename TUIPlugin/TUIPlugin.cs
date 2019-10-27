@@ -318,14 +318,23 @@ namespace TUIPlugin
             VisualObject node = args.Node;
 
             ulong currentApplyCounter = node.Root.ApplyCounter;
-            HashSet<int> players = args.PlayerIndex == -1
-                ? new HashSet<int>(node.Root.Players)
-                : new HashSet<int>() { args.PlayerIndex };
-            players.Remove(args.ExceptPlayerIndex);
-            // Remove players that already received lastest version of interface
-            players.RemoveWhere(p =>
-                node.Root.PlayerApplyCounter.TryGetValue(p, out ulong applyCounter)
-                && currentApplyCounter == applyCounter);
+            HashSet<int> players = null;
+            if (args.ToEveryone)
+            {
+                // Sending to everyone who has ever seen this interface
+                players = node.Root.PlayerApplyCounter.Keys.ToHashSet();
+            }
+            else
+            {
+                players = args.PlayerIndex == -1
+                    ? new HashSet<int>(node.Root.Players)
+                    : new HashSet<int>() { args.PlayerIndex };
+                players.Remove(args.ExceptPlayerIndex);
+                // Remove players that already received lastest version of interface
+                players.RemoveWhere(p =>
+                    node.Root.PlayerApplyCounter.TryGetValue(p, out ulong applyCounter)
+                    && currentApplyCounter == applyCounter);
+            }
             if (players.Count == 0)
                 return;
 

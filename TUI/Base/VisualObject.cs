@@ -1102,11 +1102,7 @@ namespace TerrariaUI.Base
             #endregion
             #region ApplyTiles
 
-            /// <summary>
-            /// Apply tiles and walls for this node.
-            /// </summary>
-            /// <returns>this</returns>
-            public VisualObject ApplyTiles()
+            private VisualObject ApplyTiles()
             {
                 lock (Locker)
                 {
@@ -1191,8 +1187,11 @@ namespace TerrariaUI.Base
         /// <param name="exceptPlayerIndex">Index of user to ignore on sending</param>
         /// <param name="forceSection">Whether to send with SendTileSquare or with SendSection, SendTileSquare (false) by default</param>
         /// <param name="frame">Whether to send SectionFrame if sending with SendSection</param>
+        /// <param name="toEveryone">Whether to draw it to everyone who has ever seen this interface</param>
         /// <returns>this</returns>
-        public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1, int playerIndex = -1, int exceptPlayerIndex = -1, bool? forceSection = null, bool frame = true)
+        public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1,
+            int playerIndex = -1, int exceptPlayerIndex = -1, bool? forceSection = null, bool frame = true,
+            bool toEveryone = false)
         {
 #if DEBUG
             if (Root == null)
@@ -1201,7 +1200,8 @@ namespace TerrariaUI.Base
 
             bool realForceSection = forceSection ?? ForceSection;
             (int ax, int ay) = AbsoluteXY();
-            TUI.DrawRect(this, ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height, realForceSection, playerIndex, exceptPlayerIndex, frame);
+            TUI.DrawRect(this, ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height,
+                realForceSection, playerIndex, exceptPlayerIndex, frame, toEveryone);
             return this;
         }
 
@@ -1249,8 +1249,15 @@ namespace TerrariaUI.Base
         /// <returns>this</returns>
         public VisualObject Clear()
         {
-            foreach ((int x, int y) in Points)
-                Tile(x, y)?.ClearEverything();
+            lock (Locker)
+            {
+                // Mark changes to be drawn
+                if (Root is RootVisualObject root)
+                    root.ApplyCounter++;
+
+                foreach ((int x, int y) in Points)
+                    Tile(x, y)?.ClearEverything();
+            }
             return this;
         }
 

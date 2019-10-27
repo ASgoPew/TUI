@@ -462,9 +462,12 @@ namespace TerrariaUI
         #endregion
         #region DrawRect
 
-        public static void DrawRect(VisualObject node, int x, int y, int width, int height, bool forcedSection, int playerIndex = -1, int exceptPlayerIndex = -1, bool frame = true)
+        public static void DrawRect(VisualObject node, int x, int y, int width, int height,
+            bool forcedSection, int playerIndex = -1, int exceptPlayerIndex = -1, bool frame = true,
+            bool toEveryone = false)
         {
-            Hooks.Draw.Invoke(new DrawArgs(node, x, y, width, height, forcedSection, playerIndex, exceptPlayerIndex, frame));
+            Hooks.Draw.Invoke(new DrawArgs(node, x, y, width, height, forcedSection, playerIndex,
+                exceptPlayerIndex, frame, toEveryone));
         }
 
         #endregion
