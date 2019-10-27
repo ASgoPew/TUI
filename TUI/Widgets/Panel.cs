@@ -174,11 +174,20 @@ namespace TerrariaUI.Widgets
             if (width == Width && height == Height)
                 return;
             if (UsesDefaultMainProvider)
-                Clear().Draw(frame: false).SetWH(width, height).Update().Apply().Draw();
+                Clear()
+                .Draw(frame: false, toEveryone: true)
+                .SetWH(width, height)
+                .Update()
+                .Apply()
+                .Draw(toEveryone: true);
             else
             {
                 int oldWidth = Width, oldHeight = Height;
-                SetWH(width, height).Update().Apply().Draw(0, 0, oldWidth, oldHeight, frame: false).Draw();
+                SetWH(width, height)
+                .Update()
+                .Apply()
+                .Draw(0, 0, oldWidth, oldHeight, frame: false, toEveryone: true)
+                .Draw(toEveryone: true);
             }
         }
 
