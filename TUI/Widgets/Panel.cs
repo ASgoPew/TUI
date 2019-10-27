@@ -2,6 +2,7 @@
 using System.IO;
 using TUI.Base;
 using TUI.Base.Style;
+using TUI.Hooks.Args;
 
 namespace TUI.Widgets
 {
@@ -91,6 +92,7 @@ namespace TUI.Widgets
 
         #endregion
         #region ReadDataNative
+
         protected override void DBReadNative(BinaryReader br)
         {
             int x = br.ReadInt32();
@@ -101,8 +103,9 @@ namespace TUI.Widgets
                 SetXYWH(x, y, width, height);
             else
             {
-                TUI.Hooks.Log.Invoke(new Hooks.Args.LogArgs($"{FullName} can't be placed at {x},{y}: map is too small", Hooks.Args.LogType.Warning));
-                SetXYWH(0, 0, width, height);
+                TUI.Log(this, $"Panel can't be placed at {x},{y}: map is too small", LogType.Warning);
+                //SetXYWH(0, 0, width, height);
+                Disable();
             }
         }
 

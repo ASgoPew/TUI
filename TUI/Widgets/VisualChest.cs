@@ -100,7 +100,7 @@ namespace TUI.Widgets
             TUI.Hooks.UpdateChest.Invoke(args);
             if (args.Chest == null)
             {
-                TUI.Hooks.Log.Invoke(new LogArgs("Can't create new chest.", LogType.Error));
+                TUI.Log(this, "Can't create new chest.", LogType.Error);
                 return;
             }
             Chest = args.Chest;

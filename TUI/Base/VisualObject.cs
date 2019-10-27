@@ -1050,8 +1050,10 @@ namespace TUI.Base
             public VisualObject Apply()
             {
 #if DEBUG
+                if (Root == null)
+                    TUI.Throw(this, "Applying before Update().");
                 if (!CalculateActive())
-                    throw new InvalidOperationException("Trying to call Apply() an not active object.");
+                    TUI.Throw(this, "Applying inactive object.");
 #endif
 
                 lock (Locker)
@@ -1192,11 +1194,13 @@ namespace TUI.Base
         /// <returns>this</returns>
         public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1, int playerIndex = -1, int exceptPlayerIndex = -1, bool? forceSection = null, bool frame = true)
         {
+#if DEBUG
+            if (Root == null)
+                TUI.Throw(this, "Drawing before Update().");
+#endif
+
             bool realForceSection = forceSection ?? ForceSection;
             (int ax, int ay) = AbsoluteXY();
-#if DEBUG
-            Console.WriteLine($"Draw ({Name}): {ax + dx}, {ay + dy}, {(width >= 0 ? width : Width)}, {(height >= 0 ? height : Height)}: {realForceSection}");
-#endif
             TUI.DrawRect(this, ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height, realForceSection, playerIndex, exceptPlayerIndex, frame);
             return this;
         }

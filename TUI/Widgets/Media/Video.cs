@@ -75,7 +75,7 @@ namespace TUI.Widgets
             ImageData[] images = ImageData.Load(VideoStyle.Path);
             if (images.Length == 0)
             {
-                TUI.Hooks.Log.Invoke(new LogArgs("Invalid video folder: " + VideoStyle.Path, LogType.Error));
+                TUI.Log(this, "Invalid video folder: " + VideoStyle.Path, LogType.Error);
                 VideoStyle.Path = null;
                 return;
             }

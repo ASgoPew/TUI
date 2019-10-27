@@ -14,7 +14,7 @@ namespace TUI.Hooks
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                TUI.HandleException(e);
             }
         }
         public void Clear()

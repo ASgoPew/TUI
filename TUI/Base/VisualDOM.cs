@@ -573,15 +573,8 @@ namespace TUI.Base
             foreach (VisualObject child in ChildrenFromTop)
                 child.Load();
 
-            try
-            {
-                LoadThisNative();
-                Configuration.Custom.Load?.Invoke(this as VisualObject);
-            }
-            catch (Exception e)
-            {
-                TUI.Hooks.Log.Invoke(new Hooks.Args.LogArgs("TUI Load Exception: " + e.ToString(), Hooks.Args.LogType.Error));
-            }
+            LoadThisNative();
+            Configuration.Custom.Load?.Invoke(this as VisualObject);
         }
 
         #endregion
@@ -615,15 +608,8 @@ namespace TUI.Base
             foreach (VisualObject child in ChildrenFromTop)
                 child.Dispose();
 
-            try
-            {
-                DisposeThisNative();
-                Configuration.Custom.Dispose?.Invoke(this as VisualObject);
-            }
-            catch (Exception e)
-            {
-                TUI.Hooks.Log.Invoke(new Hooks.Args.LogArgs("TUI Dispose Exception: " + e.ToString(), Hooks.Args.LogType.Error));
-            }
+            DisposeThisNative();
+            Configuration.Custom.Dispose?.Invoke(this as VisualObject);
         }
 
         #endregion

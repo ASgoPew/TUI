@@ -12,11 +12,7 @@ C:\Users\ASgo\documents\visual studio 2017\Projects\TUI\TUI\obj\Debug\TUI.csproj
 C:\Users\ASgo\documents\visual studio 2017\Projects\TUI\TUI\obj\Debug\TUI.csproj.CopyComplete
 C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\TUI.dll
 C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\TUI.pdb
-C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\System.ValueTuple.dll
-C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\System.ValueTuple.xml
 C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.csprojAssemblyReference.cache
-C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.csproj.CoreCompileInputs.cache
-C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.csproj.CopyComplete
 C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.dll
 C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.pdb
 C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\TUI.xml

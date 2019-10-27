@@ -134,7 +134,7 @@ namespace TUI.Widgets
             TUI.Hooks.UpdateSign.Invoke(args);
             if (args.Sign == null)
             {
-                TUI.Hooks.Log.Invoke(new LogArgs("Can't create new sign.", LogType.Error));
+                TUI.Log(this, "Can't create new sign.", LogType.Error);
                 return;
             }
             Sign = args.Sign;

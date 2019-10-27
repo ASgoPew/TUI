@@ -59,35 +59,41 @@ namespace TUIPlugin
 
         public override void Initialize()
         {
-            FakesEnabled = ServerApi.Plugins.Count(p => p.Plugin.Name == "FakeManager") > 0;
+            try
+            {
+                FakesEnabled = ServerApi.Plugins.Count(p => p.Plugin.Name == "FakeManager") > 0;
 
-            ServerApi.Hooks.GamePostInitialize.Register(this, OnGamePostInitialize, Int32.MinValue);
-            ServerApi.Hooks.ServerConnect.Register(this, OnServerConnect);
-            ServerApi.Hooks.ServerLeave.Register(this, OnServerLeave);
-            ServerApi.Hooks.NetGetData.Register(this, OnGetData, 100);
-            GetDataHandlers.NewProjectile += OnNewProjectile;
-            TUI.TUI.Hooks.CanTouch.Event += OnCanTouch;
-            TUI.TUI.Hooks.Draw.Event += OnDraw;
-            TUI.TUI.Hooks.TouchCancel.Event += OnTouchCancel;
-            TUI.TUI.Hooks.UpdateSign.Event += OnUpdateSign;
-            TUI.TUI.Hooks.RemoveSign.Event += OnRemoveSign;
-            TUI.TUI.Hooks.UpdateChest.Event += OnUpdateChest;
-            TUI.TUI.Hooks.RemoveChest.Event += OnRemoveChest;
-            TUI.TUI.Hooks.Log.Event += OnLog;
-            TUI.TUI.Hooks.Database.Event += OnDatabase;
-            RegionTimer.Elapsed += OnRegionTimer;
-            RegionTimer.Start();
+                ServerApi.Hooks.GamePostInitialize.Register(this, OnGamePostInitialize, Int32.MinValue);
+                ServerApi.Hooks.ServerConnect.Register(this, OnServerConnect);
+                ServerApi.Hooks.ServerLeave.Register(this, OnServerLeave);
+                ServerApi.Hooks.NetGetData.Register(this, OnGetData, 100);
+                GetDataHandlers.NewProjectile += OnNewProjectile;
+                TUI.TUI.Hooks.CanTouch.Event += OnCanTouch;
+                TUI.TUI.Hooks.Draw.Event += OnDraw;
+                TUI.TUI.Hooks.TouchCancel.Event += OnTouchCancel;
+                TUI.TUI.Hooks.UpdateSign.Event += OnUpdateSign;
+                TUI.TUI.Hooks.RemoveSign.Event += OnRemoveSign;
+                //TUI.TUI.Hooks.UpdateChest.Event += OnUpdateChest;
+                //TUI.TUI.Hooks.RemoveChest.Event += OnRemoveChest;
+                TUI.TUI.Hooks.Log.Event += OnLog;
+                TUI.TUI.Hooks.Database.Event += OnDatabase;
+                RegionTimer.Elapsed += OnRegionTimer;
 
-            Commands.ChatCommands.AddRange(CommandList);
+                Commands.ChatCommands.AddRange(CommandList);
 
-            if (!ImageData.Readers.ContainsKey(".dat"))
-                ImageData.Readers.Add(".dat", ReadWorldEdit);
-            if (!ImageData.Readers.ContainsKey(".TEditSch"))
-                ImageData.Readers.Add(".TEditSch", ReadTEdit);
+                if (!ImageData.Readers.ContainsKey(".dat"))
+                    ImageData.Readers.Add(".dat", ReadWorldEdit);
+                if (!ImageData.Readers.ContainsKey(".TEditSch"))
+                    ImageData.Readers.Add(".TEditSch", ReadTEdit);
 
-            Database.ConnectDB();
+                Database.ConnectDB();
 
-            TUI.TUI.Initialize(255, Main.maxTilesX, Main.maxTilesY);
+                TUI.TUI.Initialize(255, Main.maxTilesX, Main.maxTilesY);
+            }
+            catch (Exception e)
+            {
+                TUI.TUI.HandleException(e);
+            }
         }
 
         #endregion
@@ -97,29 +103,37 @@ namespace TUIPlugin
         {
             if (disposing)
             {
-                TUI.TUI.Dispose();
+                try
+                {
+                    RegionTimer.Stop();
 
-                ServerApi.Hooks.ServerConnect.Deregister(this, OnServerConnect);
-                ServerApi.Hooks.ServerLeave.Deregister(this, OnServerLeave);
-                ServerApi.Hooks.NetGetData.Deregister(this, OnGetData);
-                TShockAPI.GetDataHandlers.NewProjectile -= OnNewProjectile;
-                TUI.TUI.Hooks.CanTouch.Event -= OnCanTouch;
-                TUI.TUI.Hooks.Draw.Event -= OnDraw;
-                TUI.TUI.Hooks.TouchCancel.Event -= OnTouchCancel;
-                TUI.TUI.Hooks.UpdateSign.Event -= OnUpdateSign;
-                TUI.TUI.Hooks.RemoveSign.Event -= OnRemoveSign;
-                TUI.TUI.Hooks.UpdateChest.Event -= OnUpdateChest;
-                TUI.TUI.Hooks.RemoveChest.Event -= OnRemoveChest;
-                TUI.TUI.Hooks.Log.Event -= OnLog;
-                TUI.TUI.Hooks.Database.Event -= OnDatabase;
-                RegionTimer.Elapsed -= OnRegionTimer;
-                RegionTimer.Stop();
+                    TUI.TUI.Dispose();
 
-                foreach (Command cmd in CommandList)
-                    Commands.ChatCommands.Remove(cmd);
+                    ServerApi.Hooks.ServerConnect.Deregister(this, OnServerConnect);
+                    ServerApi.Hooks.ServerLeave.Deregister(this, OnServerLeave);
+                    ServerApi.Hooks.NetGetData.Deregister(this, OnGetData);
+                    TShockAPI.GetDataHandlers.NewProjectile -= OnNewProjectile;
+                    TUI.TUI.Hooks.CanTouch.Event -= OnCanTouch;
+                    TUI.TUI.Hooks.Draw.Event -= OnDraw;
+                    TUI.TUI.Hooks.TouchCancel.Event -= OnTouchCancel;
+                    TUI.TUI.Hooks.UpdateSign.Event -= OnUpdateSign;
+                    TUI.TUI.Hooks.RemoveSign.Event -= OnRemoveSign;
+                    TUI.TUI.Hooks.UpdateChest.Event -= OnUpdateChest;
+                    TUI.TUI.Hooks.RemoveChest.Event -= OnRemoveChest;
+                    TUI.TUI.Hooks.Log.Event -= OnLog;
+                    TUI.TUI.Hooks.Database.Event -= OnDatabase;
+                    RegionTimer.Elapsed -= OnRegionTimer;
 
-                ImageData.Readers.Remove(".dat");
-                ImageData.Readers.Remove(".TEditSch");
+                    foreach (Command cmd in CommandList)
+                        Commands.ChatCommands.Remove(cmd);
+
+                    ImageData.Readers.Remove(".dat");
+                    ImageData.Readers.Remove(".TEditSch");
+                }
+                catch (Exception e)
+                {
+                    TUI.TUI.HandleException(e);
+                }
             }
             base.Dispose(disposing);
         }
@@ -130,10 +144,19 @@ namespace TUIPlugin
 
         private void OnGamePostInitialize(EventArgs args)
         {
-            TUI.TUI.Load();
-            TUI.TUI.Update();
-            TUI.TUI.Apply();
-            TUI.TUI.Draw();
+            try
+            {
+                TUI.TUI.Load();
+                TUI.TUI.Update();
+                TUI.TUI.Apply();
+                TUI.TUI.Draw();
+
+                RegionTimer.Start();
+            }
+            catch (Exception e)
+            {
+                TUI.TUI.HandleException(new Exception("Failed to load, update, apply and draw TUI", e));
+            }
         }
 
         #endregion
@@ -141,8 +164,15 @@ namespace TUIPlugin
 
         private static void OnServerConnect(ConnectEventArgs args)
         {
-            playerDesignState[args.Who] = DesignState.Waiting;
-            TUI.TUI.InitializePlayer(args.Who);
+            try
+            {
+                playerDesignState[args.Who] = DesignState.Waiting;
+                TUI.TUI.InitializePlayer(args.Who);
+            }
+            catch (Exception e)
+            {
+                TUI.TUI.HandleException(e);
+            }
         }
 
         #endregion
@@ -150,7 +180,14 @@ namespace TUIPlugin
 
         private static void OnServerLeave(LeaveEventArgs args)
         {
-            TUI.TUI.RemovePlayer(args.Who);
+            try
+            {
+                TUI.TUI.RemovePlayer(args.Who);
+            }
+            catch (Exception e)
+            {
+                TUI.TUI.HandleException(e);
+            }
         }
 
         #endregion
@@ -158,48 +195,56 @@ namespace TUIPlugin
 
         private static void OnGetData(GetDataEventArgs args)
         {
-            if (args.Handled)
-                return;
-            if (args.MsgID == PacketTypes.MassWireOperation)
+            try
             {
-                using (MemoryStream ms = new MemoryStream(args.Msg.readBuffer, args.Index, args.Length))
-                using (BinaryReader br = new BinaryReader(ms))
-                {
-                    short sx = br.ReadInt16();
-                    short sy = br.ReadInt16();
-                    short ex = br.ReadInt16();
-                    short ey = br.ReadInt16();
-                    byte designStateByte = br.ReadByte();
-                    TSPlayer player = TShock.Players[args.Msg.whoAmI];
-                    byte prefix;
-                    if (player?.TPlayer != null && player.TPlayer.inventory[player.TPlayer.selectedItem].netID == ItemID.WireKite)
-                        prefix = player.TPlayer.inventory[player.TPlayer.selectedItem].prefix;
-                    else
-                        return;
+                if (args.Handled)
+                    return;
 
-                    TUI.TUI.Touched(player.Index, new Touch(ex, ey, TouchState.End, prefix, designStateByte));
-                    args.Handled = TUI.TUI.EndTouchHandled(player.Index);
-                    playerDesignState[player.Index] = DesignState.Waiting;
-                }
-            }
-            else if (args.MsgID == PacketTypes.ProjectileDestroy)
-            {
-                using (MemoryStream ms = new MemoryStream(args.Msg.readBuffer, args.Index, args.Length))
-                using (BinaryReader br = new BinaryReader(ms))
+                if (args.MsgID == PacketTypes.MassWireOperation)
                 {
-                    short projectileID = br.ReadInt16();
-                    byte owner = br.ReadByte();
-                    if (owner != args.Msg.whoAmI)
-                        return;
-                    Touch previousTouch = TUI.TUI.Session[owner].PreviousTouch;
-                    if (TUI.TUI.Session[owner].ProjectileID == projectileID && previousTouch != null && previousTouch.State != TouchState.End)
+                    using (MemoryStream ms = new MemoryStream(args.Msg.readBuffer, args.Index, args.Length))
+                    using (BinaryReader br = new BinaryReader(ms))
                     {
-                        Touch simulatedEndTouch = previousTouch.SimulatedEndTouch();
-                        simulatedEndTouch.Undo = true;
-                        TUI.TUI.Touched(owner, simulatedEndTouch);
-                        playerDesignState[owner] = DesignState.Waiting;
+                        short sx = br.ReadInt16();
+                        short sy = br.ReadInt16();
+                        short ex = br.ReadInt16();
+                        short ey = br.ReadInt16();
+                        byte designStateByte = br.ReadByte();
+                        TSPlayer player = TShock.Players[args.Msg.whoAmI];
+                        byte prefix;
+                        if (player?.TPlayer != null && player.TPlayer.inventory[player.TPlayer.selectedItem].netID == ItemID.WireKite)
+                            prefix = player.TPlayer.inventory[player.TPlayer.selectedItem].prefix;
+                        else
+                            return;
+
+                        TUI.TUI.Touched(player.Index, new Touch(ex, ey, TouchState.End, prefix, designStateByte));
+                        args.Handled = TUI.TUI.EndTouchHandled(player.Index);
+                        playerDesignState[player.Index] = DesignState.Waiting;
                     }
                 }
+                else if (args.MsgID == PacketTypes.ProjectileDestroy)
+                {
+                    using (MemoryStream ms = new MemoryStream(args.Msg.readBuffer, args.Index, args.Length))
+                    using (BinaryReader br = new BinaryReader(ms))
+                    {
+                        short projectileID = br.ReadInt16();
+                        byte owner = br.ReadByte();
+                        if (owner != args.Msg.whoAmI)
+                            return;
+                        Touch previousTouch = TUI.TUI.Session[owner].PreviousTouch;
+                        if (TUI.TUI.Session[owner].ProjectileID == projectileID && previousTouch != null && previousTouch.State != TouchState.End)
+                        {
+                            Touch simulatedEndTouch = previousTouch.SimulatedEndTouch();
+                            simulatedEndTouch.Undo = true;
+                            TUI.TUI.Touched(owner, simulatedEndTouch);
+                            playerDesignState[owner] = DesignState.Waiting;
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                TUI.TUI.HandleException(e);
             }
         }
 
@@ -208,12 +253,12 @@ namespace TUIPlugin
 
         private static void OnNewProjectile(object sender, GetDataHandlers.NewProjectileEventArgs args)
         {
-            TSPlayer player = TShock.Players[args.Owner];
-            if (args.Handled || args.Type != 651 || player?.TPlayer == null)
-                return;
-
             try
             {
+                TSPlayer player = TShock.Players[args.Owner];
+                if (args.Handled || args.Type != 651 || player?.TPlayer == null)
+                    return;
+
                 byte prefix;
 
                 if (player.TPlayer.inventory[player.TPlayer.selectedItem].netID == ItemID.WireKite)
@@ -242,7 +287,7 @@ namespace TUIPlugin
             }
             catch (Exception e)
             {
-                TShock.Log.ConsoleError(e.ToString());
+                TUI.TUI.HandleException(e);
             }
         }
 
@@ -270,20 +315,25 @@ namespace TUIPlugin
 
         private static void OnDraw(DrawArgs args)
         {
-            if (args.Node.Root == null)
-                return;
+            VisualObject node = args.Node;
 
-            ulong currentApplyCounter = args.Node.Root.ApplyCounter;
+            ulong currentApplyCounter = node.Root.ApplyCounter;
             HashSet<int> players = args.PlayerIndex == -1
-                ? args.Node.Root.Players
+                ? new HashSet<int>(node.Root.Players)
                 : new HashSet<int>() { args.PlayerIndex };
             players.Remove(args.ExceptPlayerIndex);
             // Remove players that already received lastest version of interface
             players.RemoveWhere(p =>
-                args.Node.Root.PlayerApplyCounter.TryGetValue(p, out ulong applyCounter)
+                node.Root.PlayerApplyCounter.TryGetValue(p, out ulong applyCounter)
                 && currentApplyCounter == applyCounter);
             if (players.Count == 0)
                 return;
+
+#if DEBUG
+            Console.WriteLine($"Draw ({node.Name} -> " +
+                string.Join(",", players.Select(i => TShock.Players[i]?.Name)) +
+                $"): {args.X}, {args.Y}, {args.Width}, {args.Height}: {args.ForcedSection}");
+#endif
 
             // Yes, we are converting HashSet<int> to NetworkText to pass it to NetMessage.SendData for FakeManager...
             Terraria.Localization.NetworkText playerList = FakesEnabled
@@ -322,7 +372,7 @@ namespace TUIPlugin
 
             // Mark that these players received lastest version of interface
             foreach (int player in players)
-                args.Node.Root.PlayerApplyCounter[player] = currentApplyCounter;
+                node.Root.PlayerApplyCounter[player] = currentApplyCounter;
         }
 
         #endregion
@@ -371,7 +421,7 @@ namespace TUIPlugin
                 }
                 catch (Exception e)
                 {
-                    TShock.Log.ConsoleError("Can't create FAKE sign: " + e);
+                    TUI.TUI.HandleException(args.Node, new Exception("Can't create FAKE sign", e));
                 }
             }
         }
@@ -414,7 +464,7 @@ namespace TUIPlugin
                     Console.WriteLine(id);
                 }
                 else
-                    TShock.Log.ConsoleError("Can't create Main.chest chest.");
+                    TUI.TUI.HandleException(args.Node, new Exception("Can't create Main.chest chest."));
             }
             else
             {
@@ -432,7 +482,7 @@ namespace TUIPlugin
                 }
                 catch (Exception e)
                 {
-                    TShock.Log.ConsoleError("Can't create FAKE chest: " + e);
+                    TUI.TUI.HandleException(args.Node, new Exception("Can't create FAKE chest", e));
                 }
             }
         }
@@ -460,15 +510,46 @@ namespace TUIPlugin
 
         private static void OnLog(LogArgs args)
         {
-            args.Text = "TUI: " + args.Text;
-            if (args.Type == LogType.Success)
-                TShock.Log.ConsoleInfo(args.Text);
-            else if (args.Type == LogType.Info)
-                TShock.Log.ConsoleInfo(args.Text);
-            else if (args.Type == LogType.Warning)
-                TShock.Log.ConsoleError(args.Text);
-            else if (args.Type == LogType.Error)
-                TShock.Log.ConsoleError(args.Text);
+            args.Text = $"TUI{(args.Node != null ? $" ({args.Node.FullName})" : "")}: {args.Text}";
+            if (TShock.Log is ILog log)
+            {
+                switch (args.Type)
+                {
+                    case LogType.Success:
+                        log.ConsoleInfo(args.Text);
+                        break;
+                    case LogType.Info:
+                        log.ConsoleInfo(args.Text);
+                        break;
+                    case LogType.Warning:
+                        log.ConsoleError(args.Text);
+                        break;
+                    case LogType.Error:
+                        log.ConsoleError(args.Text);
+                        break;
+                }
+            }
+            else
+            {
+                ConsoleColor oldColor = Console.ForegroundColor;
+                switch (args.Type)
+                {
+                    case LogType.Success:
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        break;
+                    case LogType.Info:
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        break;
+                    case LogType.Warning:
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        break;
+                    case LogType.Error:
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        break;
+                }
+                Console.WriteLine(args.Text);
+                Console.ForegroundColor = oldColor;
+            }
         }
 
         #endregion
@@ -505,33 +586,40 @@ namespace TUIPlugin
         
         #region OnRegionTimer
 
-        private void OnRegionTimer(object sender, ElapsedEventArgs e)
+        private void OnRegionTimer(object sender, ElapsedEventArgs args)
         {
-            foreach (RootVisualObject root in TUI.TUI.GetRoots())
+            try
             {
-                (int x, int y) = root.AbsoluteXY();
-                int sx = x - RegionAreaX;
-                int sy = y - RegionAreaY;
-                int ex = x + RegionAreaX + root.Width - 1;
-                int ey = y + RegionAreaY + root.Height - 1;
-                foreach (TSPlayer plr in TShock.Players)
+                foreach (RootVisualObject root in TUI.TUI.GetRoots())
                 {
-                    // plr?.Active != true check won't work since broadcast is set to true
-                    // after setting player.active.
-                    // Sequence:
-                    // 1. player.Spawn() <=> player.active = true
-                    // 2. NetMessage.greetPlayer(...) - invokes a hook that can freeze the thread
-                    // 3. buffer.broadcast = true
-                    if (plr == null || !NetMessage.buffer[plr.Index].broadcast)
-                        continue;
-                    int tx = plr.TileX, ty = plr.TileY;
-                    if ((tx >= sx) && (tx <= ex) && (ty >= sy) && (ty <= ey))
-                        root.Players.Add(plr.Index);
-                    else
-                        root.Players.Remove(plr.Index);
-                }
+                    (int x, int y) = root.AbsoluteXY();
+                    int sx = x - RegionAreaX;
+                    int sy = y - RegionAreaY;
+                    int ex = x + RegionAreaX + root.Width - 1;
+                    int ey = y + RegionAreaY + root.Height - 1;
+                    foreach (TSPlayer plr in TShock.Players)
+                    {
+                        // plr?.Active != true check won't work since broadcast is set to true
+                        // after setting player.active.
+                        // Sequence:
+                        // 1. player.Spawn() <=> player.active = true
+                        // 2. NetMessage.greetPlayer(...) - invokes a hook that can freeze the thread
+                        // 3. buffer.broadcast = true
+                        if (plr == null || !NetMessage.buffer[plr.Index].broadcast)
+                            continue;
+                        int tx = plr.TileX, ty = plr.TileY;
+                        if ((tx >= sx) && (tx <= ex) && (ty >= sy) && (ty <= ey))
+                            root.Players.Add(plr.Index);
+                        else
+                            root.Players.Remove(plr.Index);
+                    }
 
-                root.Draw();
+                    root.Draw();
+                }
+            }
+            catch (Exception e)
+            {
+                TUI.TUI.HandleException(e);
             }
         }
 
@@ -968,16 +1056,5 @@ namespace TUIPlugin
         #endregion
 
         #endregion
-    }
-
-    public class TUIChest : Chest
-    {
-        public VisualChest Node { get; internal set; }
-
-        public override string ToString()
-        {
-            // Update Node.Items here?????????????????????????? LMAAAAAO
-            return base.ToString();
-        }
     }
 }

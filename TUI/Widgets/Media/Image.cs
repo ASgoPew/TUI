@@ -57,7 +57,7 @@ namespace TUI.Widgets
                 ImageData[] images = ImageData.Load(Path);
                 if (images.Length != 1)
                 {
-                    TUI.Hooks.Log.Invoke(new LogArgs("File not found or path is a folder: " + Path, LogType.Error));
+                    TUI.Log(this, "File not found or path is a folder: " + Path, LogType.Error);
                     Path = null;
                     return;
                 }

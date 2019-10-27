@@ -41,8 +41,7 @@ namespace TUIPlugin
                 }
                 catch (MySqlException e)
                 {
-                    TUI.TUI.Hooks.Log.Invoke(new TUI.Hooks.Args.LogArgs(e.ToString(),
-                        TUI.Hooks.Args.LogType.Error));
+                    TUI.TUI.HandleException(e);
                     throw new Exception("MySQL not setup correctly.");
                 }
             }
@@ -91,8 +90,7 @@ namespace TUIPlugin
             }
             catch (Exception e)
             {
-                TUI.TUI.Hooks.Log.Invoke(new TUI.Hooks.Args.LogArgs(e.ToString(),
-                    TUI.Hooks.Args.LogType.Error));
+                TUI.TUI.HandleException(e);
                 success = false;
             }
             finally
@@ -121,8 +119,7 @@ namespace TUIPlugin
             }
             catch (Exception e)
             {
-                TUI.TUI.Hooks.Log.Invoke(new TUI.Hooks.Args.LogArgs(e.ToString(),
-                    TUI.Hooks.Args.LogType.Error));
+                TUI.TUI.HandleException(new Exception($"TUI.Database.GetData(key:{key})", e));
             }
             finally
             {
@@ -146,8 +143,7 @@ namespace TUIPlugin
             }
             catch (Exception e)
             {
-                TUI.TUI.Hooks.Log.Invoke(new TUI.Hooks.Args.LogArgs(e.ToString(),
-                    TUI.Hooks.Args.LogType.Error));
+                TUI.TUI.HandleException(new Exception($"TUI.Database.SetData(key:{key}, ...)", e));
             }
             finally
             {
@@ -176,8 +172,8 @@ namespace TUIPlugin
             }
             catch (Exception e)
             {
-                TUI.TUI.Hooks.Log.Invoke(new TUI.Hooks.Args.LogArgs(e.ToString(),
-                    TUI.Hooks.Args.LogType.Error));
+                TUI.TUI.HandleException(new Exception(
+                    $"TUI.Database.GetData(user:{user}, key:{key}, ...)", e));
             }
             finally
             {
@@ -201,8 +197,8 @@ namespace TUIPlugin
             }
             catch (Exception e)
             {
-                TUI.TUI.Hooks.Log.Invoke(new TUI.Hooks.Args.LogArgs(e.ToString(),
-                    TUI.Hooks.Args.LogType.Error));
+                TUI.TUI.HandleException(new Exception(
+                    $"TUI.Database.SetData(user:{user}, key:{key}, ...)", e));
             }
             finally
             {

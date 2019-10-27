@@ -55,8 +55,15 @@ namespace TUI
             {
                 Active = true;
 
-                foreach (VisualObject Child in Child)
-                    Child.Load();
+                foreach (VisualObject child in Child)
+                    try
+                    {
+                        child.Load();
+                    }
+                    catch (Exception e)
+                    {
+                        HandleException(child, e);
+                    }
             }
 
             Hooks.Load.Invoke(new LoadArgs(MaxPlayers));
@@ -405,8 +412,15 @@ namespace TUI
         {
             lock (Child)
                 foreach (RootVisualObject child in Child)
-                    if (child.Enabled)
-                        child.Update();
+                    try
+                    {
+                        if (child.Enabled)
+                            child.Update();
+                    }
+                    catch (Exception e)
+                    {
+                        HandleException(child, e);
+                    }
         }
 
         #endregion
@@ -416,8 +430,15 @@ namespace TUI
         {
             lock (Child)
                 foreach (RootVisualObject child in Child)
-                    if (child.Active)
-                        child.Apply();
+                    try
+                    {
+                        if (child.Active)
+                            child.Apply();
+                    }
+                    catch (Exception e)
+                    {
+                        HandleException(child, e);
+                    }
         }
 
         #endregion
@@ -427,8 +448,15 @@ namespace TUI
         {
             lock (Child)
                 foreach (RootVisualObject child in Child)
-                    if (child.Active)
-                        child.Draw();
+                    try
+                    {
+                        if (child.Active)
+                            child.Draw();
+                    }
+                    catch (Exception e)
+                    {
+                        HandleException(child, e);
+                    }
         }
 
         #endregion
@@ -502,6 +530,37 @@ namespace TUI
 
         public static void UDBRemove(int user, string key) =>
             Hooks.Database.Invoke(new DatabaseArgs(DatabaseActionType.Remove, key, null, user));
+
+        #endregion
+
+        #region Exceptions
+
+        public static void HandleException(Exception e) =>
+            Log(e.ToString(), LogType.Error);
+
+        public static void HandleException(VisualObject node, Exception e) =>
+            Log(node, e.ToString(), LogType.Error);
+
+        public static void Throw(string text)
+        {
+            Log(text, LogType.Error);
+            throw new Exception(text);
+        }
+
+        public static void Throw(VisualObject node, string text)
+        {
+            Log(node, text, LogType.Error);
+            throw new Exception(text);
+        }
+
+        #endregion
+        #region Log
+
+        public static void Log(string text, LogType logType = LogType.Info) =>
+            Hooks.Log.Invoke(new LogArgs(text, logType));
+
+        public static void Log(VisualObject node, string text, LogType logType = LogType.Info) =>
+            Hooks.Log.Invoke(new LogArgs(node, text, logType));
 
         #endregion
     }
