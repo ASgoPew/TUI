@@ -25,8 +25,6 @@ namespace TerrariaUI
         public const short FakeSignSTileHeader = 29728;
         private static List<RootVisualObject> Child = new List<RootVisualObject>();
         private static Timer Timer;
-        //private static object Locker = new object();
-        //internal static List<VisualObject> ObjectsToLoad = new List<VisualObject>();
         public static bool Active { get; set; } = false;
 
         #endregion
@@ -148,7 +146,10 @@ namespace TerrariaUI
                 Child.Insert(index, root);
 
                 if (Active)
+                {
                     root.Load();
+                    root.Update().Apply().Draw();
+                }
             }
             return root;
         }
@@ -159,7 +160,10 @@ namespace TerrariaUI
         public static void Destroy(RootVisualObject obj)
         {
             lock (Child)
+            {
                 Child.Remove(obj);
+                obj.Dispose();
+            }
         }
 
         #endregion
