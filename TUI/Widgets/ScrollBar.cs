@@ -143,7 +143,7 @@ namespace TerrariaUI.Widgets
                 Empty1.SetWH(Width - Slider.Width, _Width);
                 Empty2.SetWH(limit, _Width);
             }
-            ForceSection = Parent.ForceSection;
+            DrawWithSection = Parent.DrawWithSection;
             switch (Parent.Configuration.Layout.Direction)
             {
                 case Direction.Left:

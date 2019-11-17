@@ -10,10 +10,10 @@ namespace TerrariaUI.Hooks.Args
         public int Y { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
-        public bool ForcedSection { get; set; }
+        public bool DrawWithSection { get; set; }
         public int PlayerIndex { get; set; }
         public int ExceptPlayerIndex { get; set; }
-        public bool Frame { get; set; }
+        public bool FrameSection { get; set; }
         public bool ToEveryone { get; set; }
 
         public DrawArgs(VisualObject node, int x, int y, int width, int height, bool forcedSection,
@@ -24,10 +24,10 @@ namespace TerrariaUI.Hooks.Args
             Y = y;
             Width = width;
             Height = height;
-            ForcedSection = forcedSection;
+            DrawWithSection = forcedSection;
             PlayerIndex = playerIndex;
             ExceptPlayerIndex = exceptPlayerIndex;
-            Frame = frame;
+            FrameSection = frame;
             ToEveryone = toEveryone;
         }
     }

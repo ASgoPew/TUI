@@ -222,13 +222,13 @@ namespace TerrariaUI.Widgets
             {
                 for (int y = 0; y < Height; y++)
                     Tile(0, y)?.wallColor(blinkColor);
-                Draw(-Height + 1, 0, Height, Height, forceSection: false);
+                Draw(-Height + 1, 0, Height, Height, drawWithSection: false);
             }
             else if (blinkStyle == ButtonBlinkStyle.Right)
             {
                 for (int y = 0; y < Height; y++)
                     Tile(Width - 1, y)?.wallColor(blinkColor);
-                Draw(Width - 1, 0, Height, Height, forceSection: false);
+                Draw(Width - 1, 0, Height, Height, drawWithSection: false);
             }
         }
 

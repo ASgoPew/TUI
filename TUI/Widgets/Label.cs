@@ -115,7 +115,7 @@ namespace TerrariaUI.Widgets
             if (string.IsNullOrWhiteSpace(text))
                 return;
             int lineH = 2 + (int)style.TextUnderline;
-            ForceSection = false;
+            DrawWithSection = false;
             Indent indent = style.TextIndent;
             Alignment alignment = style.TextAlignment;
             Side side = style.TextSide;
@@ -180,7 +180,7 @@ namespace TerrariaUI.Widgets
 								    tile.color(style.TextUnderlineColor);
                                 tile.inActive(style.InActive ?? false);
                             }
-                        ForceSection = true;
+                        DrawWithSection = true;
                         charX += 2;
                     }
 				    else

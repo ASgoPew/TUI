@@ -28,7 +28,11 @@ namespace TerrariaUI.Base
         /// <summary>
         /// Objects draw with SentTileSquare by default. Set this field to force drawing this object with SendSection.
         /// </summary>
-        public bool ForceSection { get; set; } = false;
+        public bool DrawWithSection { get; set; } = false;
+        /// <summary>
+        /// Frame the section if <see cref="DrawWithSection"/> is set. True by default.
+        /// </summary>
+        public bool FrameSection { get; set; } = true;
         /// <summary>
         /// X coordinate relative to tile provider. Sets in Update() and PulseType.PositionChanged. Used in Tile() function.
         /// </summary>
@@ -1159,14 +1163,14 @@ namespace TerrariaUI.Base
             {
                 lock (Locker)
                 {
-                    bool forceSection = ForceSection;
+                    bool forceSection = DrawWithSection;
                     foreach (VisualObject child in ChildrenFromBottom)
                         if (child.Active)
                         {
                             child.Apply();
-                            forceSection = forceSection || child.ForceSection;
+                            forceSection = forceSection || child.DrawWithSection;
                         }
-                    ForceSection = forceSection;
+                    DrawWithSection = forceSection;
                 }
                 return this;
             }
@@ -1185,23 +1189,24 @@ namespace TerrariaUI.Base
         /// <param name="height">Drawing rectangle height, -1 for object.Height</param>
         /// <param name="playerIndex">Index of user to send to, -1 for all players</param>
         /// <param name="exceptPlayerIndex">Index of user to ignore on sending</param>
-        /// <param name="forceSection">Whether to send with SendTileSquare or with SendSection, SendTileSquare (false) by default</param>
-        /// <param name="frame">Whether to send SectionFrame if sending with SendSection</param>
+        /// <param name="drawWithSection">Whether to send with SendTileSquare or with SendSection, SendTileSquare (false) by default</param>
+        /// <param name="frameSection">Whether to send SectionFrame if sending with SendSection</param>
         /// <param name="toEveryone">Whether to draw it to everyone who has ever seen this interface</param>
         /// <returns>this</returns>
         public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1,
-            int playerIndex = -1, int exceptPlayerIndex = -1, bool? forceSection = null, bool frame = true,
-            bool toEveryone = false)
+            int playerIndex = -1, int exceptPlayerIndex = -1, bool? drawWithSection = null,
+            bool? frameSection = null, bool toEveryone = false)
         {
 #if DEBUG
             if (Root == null)
                 TUI.Throw(this, "Drawing before Update().");
 #endif
 
-            bool realForceSection = forceSection ?? ForceSection;
+            bool realDrawWithSection = drawWithSection ?? DrawWithSection;
+            bool realFrame = frameSection ?? FrameSection;
             (int ax, int ay) = AbsoluteXY();
             TUI.DrawRect(this, ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height,
-                realForceSection, playerIndex, exceptPlayerIndex, frame, toEveryone);
+                realDrawWithSection, playerIndex, exceptPlayerIndex, realFrame, toEveryone);
             return this;
         }
 

@@ -350,14 +350,14 @@ namespace TUIPlugin
                 : null;
 
             int size = Math.Max(args.Width, args.Height);
-            if (size >= 50 || args.ForcedSection)
+            if (size >= 50 || args.DrawWithSection)
             {
                 if (FakesEnabled)
                     NetMessage.SendData(10, -1, -1, playerList, args.X, args.Y, args.Width, args.Height);
                 else
                     foreach (int i in players)
                         NetMessage.SendData(10, i, -1, null, args.X, args.Y, args.Width, args.Height);
-                if (args.Frame)
+                if (args.FrameSection)
                 {
                     int lowX = Netplay.GetSectionX(args.X);
                     int highX = Netplay.GetSectionX(args.X + args.Width - 1);

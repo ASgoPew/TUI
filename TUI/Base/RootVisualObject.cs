@@ -187,7 +187,7 @@ namespace TerrariaUI.Base
             PopUpBackground.Add(popup);
             if (cancelCallback != null)
                 PopUpCancelCallbacks[popup] = cancelCallback;
-            PopUpBackground.ForceSection = ForceSection;
+            PopUpBackground.DrawWithSection = DrawWithSection;
             PopUpBackground.Select(popup).Enable();
             Update();
             PopUpBackground.Apply().Draw();

@@ -76,7 +76,7 @@ namespace TerrariaUI.Widgets
         public ItemRack(int x, int y, ItemRackStyle style = null, Action<VisualObject, Touch> callback = null)
             : base(x, y, 3, 3, new UIConfiguration(), style ?? new ItemRackStyle(), callback)
         {
-            ForceSection = true;
+            DrawWithSection = true;
         }
 
         #endregion

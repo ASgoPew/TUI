@@ -175,7 +175,7 @@ namespace TerrariaUI.Widgets
                 return;
             if (UsesDefaultMainProvider)
                 Clear()
-                .Draw(frame: false, toEveryone: true)
+                .Draw(frameSection: false, toEveryone: true)
                 .SetWH(width, height)
                 .Update()
                 .Apply()
@@ -186,7 +186,7 @@ namespace TerrariaUI.Widgets
                 SetWH(width, height)
                 .Update()
                 .Apply()
-                .Draw(0, 0, oldWidth, oldHeight, frame: false, toEveryone: true)
+                .Draw(0, 0, oldWidth, oldHeight, frameSection: false, toEveryone: true)
                 .Draw(toEveryone: true);
             }
         }
