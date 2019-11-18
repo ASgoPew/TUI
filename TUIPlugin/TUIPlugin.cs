@@ -341,7 +341,7 @@ namespace TUIPlugin
 #if DEBUG
             Console.WriteLine($"Draw ({node.Name} -> " +
                 string.Join(",", players.Select(i => TShock.Players[i]?.Name)) +
-                $"): {args.X}, {args.Y}, {args.Width}, {args.Height}: {args.ForcedSection}");
+                $"): {args.X}, {args.Y}, {args.Width}, {args.Height}: {args.DrawWithSection}");
 #endif
 
             // Yes, we are converting HashSet<int> to NetworkText to pass it to NetMessage.SendData for FakeManager...
@@ -733,6 +733,45 @@ namespace TUIPlugin
                     args.Player.SendSuccessMessage($"Moved interface '{root.Name}' to ({x},{y}).");
                     break;
                 }
+                case "enable":
+                {
+                    if (args.Parameters.Count < 2
+                        || args.Parameters.Count > 3)
+                    {
+                        args.Player.SendErrorMessage("/tui enable \"interface name\" [-confirm]");
+                        return;
+                    }
+                    if (!FindRoot(args.Parameters[1], args.Player, out RootVisualObject root))
+                        return;
+
+                    if (root.UsesDefaultMainProvider
+                        && args.Parameters.Last().ToLower() != "-confirm")
+                    {
+                        args.Player.SendErrorMessage($"Interface '{root.Name}' will be drawn on main map.\n" +
+                            $"Type '/tui enable \"{root.Name}\" -confirm' " +
+                            "to confirm the interface activation.");
+                        return;
+                    }
+
+                    root.Enable();
+                    args.Player.SendSuccessMessage($"Enabled interface '{root.Name}'.");
+                    break;
+                }
+                case "disable":
+                {
+                    if (args.Parameters.Count < 2
+                        || args.Parameters.Count > 3)
+                    {
+                        args.Player.SendErrorMessage("/tui disable \"interface name\"");
+                        return;
+                    }
+                    if (!FindRoot(args.Parameters[1], args.Player, out RootVisualObject root))
+                        return;
+
+                    root.Disable();
+                    args.Player.SendSuccessMessage($"Disabled interface '{root.Name}'.");
+                    break;
+                }
                 default:
                 {
                     if (arg0 == null || arg0.ToLower() == "help")
@@ -741,6 +780,8 @@ namespace TUIPlugin
                         args.Player.SendInfoMessage("/tui \"interface name\" [<x> <y> [<width> <height>]]");
                         args.Player.SendInfoMessage("/tui tp \"interface name\"");
                         args.Player.SendInfoMessage("/tui tphere \"interface name\" [-confirm]");
+                        args.Player.SendInfoMessage("/tui enable \"interface name\" [-confirm]");
+                        args.Player.SendInfoMessage("/tui disable \"interface name\"");
                         args.Player.SendInfoMessage("/tui list [page]");
                         return;
                     }
