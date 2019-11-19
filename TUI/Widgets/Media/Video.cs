@@ -57,7 +57,7 @@ namespace TerrariaUI.Widgets
 
         #region Constructor
 
-        public Video(int x, int y, UIConfiguration configuration = null, UIStyle style = null,
+        public Video(int x, int y, UIConfiguration configuration = null, VideoStyle style = null,
                 Action<VisualObject, Touch> callback = null)
             : base(x, y, 8, 5, configuration, style, callback)
         {
