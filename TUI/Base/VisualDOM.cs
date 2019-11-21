@@ -53,7 +53,7 @@ namespace TerrariaUI.Base
         /// </summary>
         public bool Enabled { get; set; } = true;
         /// <summary>
-        /// Whether the object is visible. Object becomes invisible when it is outside of bounds of layout.
+        /// Whether the object is visible. Object becomes invisible e.g. when it is outside of bounds of layout.
         /// </summary>
         public bool Visible { get; protected internal set; } = true;
         /// <summary>
@@ -293,6 +293,22 @@ namespace TerrariaUI.Base
                 child.Dispose();
 
                 return this as VisualObject;
+            }
+
+            #endregion
+            #region RemoveAll
+
+            /// <summary>
+            /// Removes all child objects. Calls Dispose() on removed objects so you can't use
+            /// these objects anymore.
+            /// </summary>
+            public void RemoveAll()
+            {
+                lock (Child)
+                {
+                    foreach (VisualObject child in Child.ToList())
+                        Remove(child);
+                }
             }
 
             #endregion
