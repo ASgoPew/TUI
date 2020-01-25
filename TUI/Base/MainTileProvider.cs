@@ -28,17 +28,22 @@ namespace TerrariaUI.Base
                         if (modules.Length == 0)
                             continue;
                         TileField = modules[0]?.GetType("Terraria.Main")?.GetField("tile");
-                        Tile = TileField?.GetValue(null);
+                        break;
                     }
                 }
             }
-            if (Tile == null)
+            if (TileField == null)
                 throw new Exception("Can't find OTAPI");
         }
 
         public object this[int x, int y]
         {
-            get => Tile[x, y];
+            get
+            {
+                if (Tile == null)
+                    Tile = TileField?.GetValue(null);
+                return Tile[x, y];
+            }
             set => Tile[x, y] = value;
         }
 
