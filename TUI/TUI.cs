@@ -363,7 +363,7 @@ namespace TerrariaUI
                 Child.Insert(index - 1, root);
 
                 if (!root.UsesDefaultMainProvider)
-                    root.Provider.Collection.SetTop(root.Provider.Key);
+                    root.Provider.SetTop();
 
                 return true;
             }

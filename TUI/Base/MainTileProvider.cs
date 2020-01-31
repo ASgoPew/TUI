@@ -47,12 +47,17 @@ namespace TerrariaUI.Base
             set => Tile[x, y] = value;
         }
 
-        public void SetXYWH(int x, int y, int width, int height)
+        public void SetXYWH(int x, int y, int width, int height, bool Draw = true)
         { }
 
-        public void SetEnabled(bool enabled)
+        public void Enable()
         {
-            Enabled = enabled;
+            Enabled = true;
+        }
+
+        public void Disable()
+        {
+            Enabled = false;
         }
 
         public void Update()

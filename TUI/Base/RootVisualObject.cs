@@ -82,7 +82,7 @@ namespace TerrariaUI.Base
         {
             if (x < 0 || y < 0 || x >= Width || y >= Height)
                 throw new ArgumentOutOfRangeException($"{FullName}: Invalid tile x or y.");
-            return Provider[ProviderX + x, ProviderY + y];
+            return Provider?[ProviderX + x, ProviderY + y];
         }
 
         #endregion
@@ -92,7 +92,7 @@ namespace TerrariaUI.Base
         {
             base.SetXYWH(x, y, width, height);
             // MainTileProvider ignores this SetXYWH
-            Provider.SetXYWH(x, y, width, height);
+            Provider.SetXYWH(x, y, width, height, false);
             TUI.Hooks.SetXYWH.Invoke(new SetXYWHArgs(this, x, y, width, height));
             return this;
         }
@@ -105,7 +105,7 @@ namespace TerrariaUI.Base
             if (!Enabled)
             {
                 Enabled = true;
-                Provider.SetEnabled(true);
+                Provider.Enable(false);
                 TUI.Hooks.Enabled.Invoke(new EnabledArgs(this, true));
             }
             return this;
@@ -119,7 +119,7 @@ namespace TerrariaUI.Base
             if (Enabled)
             {
                 Enabled = false;
-                Provider.SetEnabled(false);
+                Provider.Disable(false);
                 TUI.Hooks.Enabled.Invoke(new EnabledArgs(this, false));
             }
             return this;

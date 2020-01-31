@@ -400,12 +400,12 @@ namespace TUIPlugin
         }
 
         #endregion
-        #region OnCreateSign
+        #region OnUpdateSign
 
         private static void OnUpdateSign(UpdateSignArgs args)
         {
             dynamic provider = (args.Node.Root ?? args.Node.GetRoot()).Provider;
-            if (provider.GetType().Name != "FakeTileRectangle")
+            if (provider is MainTileProvider)
             {
                 Main.tile[args.X, args.Y] = new Tile() { type = 55, frameX = 0, frameY = 0 };
                 int id = Sign.ReadSign(args.X, args.Y);
@@ -418,15 +418,9 @@ namespace TUIPlugin
             }
             else
             {
-                Sign sign = new Sign()
-                {
-                    x = args.X,
-                    y = args.Y
-                };
                 try
                 {
-                    provider.AddSign(sign, false);
-                    args.Sign = sign;
+                    args.Sign = provider.AddSign(args.X, args.Y, "");
                 }
                 catch (Exception e)
                 {
@@ -441,19 +435,19 @@ namespace TUIPlugin
         private static void OnRemoveSign(RemoveSignArgs args)
         {
             dynamic provider = (args.Node.Root ?? args.Node.GetRoot()).Provider;
-            if (provider.GetType().Name != "FakeTileRectangle")
+            if (provider is MainTileProvider)
                 Sign.KillSign(args.Sign.x, args.Sign.y);
             else
-                provider.RemoveSign(args.Sign);
+                provider.RemoveEntity(args.Sign);
         }
 
         #endregion
-        #region OnCreateChest
+        #region OnUpdateChest
 
         private static void OnUpdateChest(UpdateChestArgs args)
         {
             dynamic provider = (args.Node.Root ?? args.Node.GetRoot()).Provider;
-            if (provider.GetType().Name != "FakeTileRectangle")
+            if (provider is MainTileProvider)
             {
                 Main.tile[args.X, args.Y] = new Tile() { type = 21, sTileHeader = 32, frameX = 0, frameY = 0 };
                 Main.tile[args.X + 1, args.Y] = new Tile() { type = 21, sTileHeader = 32, frameX = 18, frameY = 0 };
@@ -477,17 +471,9 @@ namespace TUIPlugin
             }
             else
             {
-                Chest chest = new Chest()
-                {
-                    x = args.X,
-                    y = args.Y
-                };
-                for (int i = 0; i < 40; i++)
-                    chest.item[i] = new Item();
                 try
                 {
-                    provider.AddChest(chest, false);
-                    args.Chest = chest;
+                    args.Chest = provider.AddChest(args.X, args.Y);
                 }
                 catch (Exception e)
                 {
@@ -502,7 +488,7 @@ namespace TUIPlugin
         private static void OnRemoveChest(RemoveChestArgs args)
         {
             dynamic provider = (args.Node.Root ?? args.Node.GetRoot()).Provider;
-            if (provider.GetType().Name != "FakeTileRectangle")
+            if (provider is MainTileProvider)
             {
                 int chestX = args.Chest.x;
                 int chestY = args.Chest.y;
@@ -511,7 +497,7 @@ namespace TUIPlugin
                         Main.chest[i] = null;
             }
             else
-                provider.RemoveChest(args.Chest);
+                provider.RemoveEntity(args.Chest);
         }
 
         #endregion
