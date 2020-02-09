@@ -7,7 +7,8 @@ namespace TerrariaUI.Hooks
     {
         public Hook<LoadArgs> Load = new Hook<LoadArgs>();
         public Hook<EventArgs> Dispose = new Hook<EventArgs>();
-        public Hook<DrawArgs> Draw = new Hook<DrawArgs>();
+        public Hook<DrawObjectArgs> DrawObject = new Hook<DrawObjectArgs>();
+        public Hook<DrawRectangleArgs> DrawRectangle = new Hook<DrawRectangleArgs>();
         public Hook<SetXYWHArgs> SetXYWH = new Hook<SetXYWHArgs>();
         public Hook<SetTopArgs> SetTop = new Hook<SetTopArgs>();
         public Hook<EnabledArgs> Enabled = new Hook<EnabledArgs>();

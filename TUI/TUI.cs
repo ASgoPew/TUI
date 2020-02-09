@@ -464,14 +464,24 @@ namespace TerrariaUI
         }
 
         #endregion
-        #region DrawRect
+        #region DrawObject
 
-        public static void DrawRect(VisualObject node, int x, int y, int width, int height,
+        internal static void DrawObject(VisualObject node, int x, int y, int width, int height,
             bool drawWithSection, int playerIndex = -1, int exceptPlayerIndex = -1, bool frameSection = true,
             bool toEveryone = false)
         {
-            Hooks.Draw.Invoke(new DrawArgs(node, x, y, width, height, drawWithSection, playerIndex,
-                exceptPlayerIndex, frameSection, toEveryone));
+            Hooks.DrawObject.Invoke(new DrawObjectArgs(node, x, y, width, height, drawWithSection,
+                playerIndex, exceptPlayerIndex, frameSection, toEveryone));
+        }
+
+        #endregion
+        #region DrawRectangle
+
+        public static void DrawRectangle(int x, int y, int width, int height, bool drawWithSection,
+            int playerIndex = -1, int exceptPlayerIndex = -1, bool frameSection = true)
+        {
+            Hooks.DrawRectangle.Invoke(new DrawRectangleArgs(x, y, width, height, drawWithSection,
+                playerIndex, exceptPlayerIndex, frameSection));
         }
 
         #endregion

@@ -3,9 +3,8 @@ using TerrariaUI.Base;
 
 namespace TerrariaUI.Hooks.Args
 {
-    public class DrawArgs : EventArgs
+    public class DrawRectangleArgs : EventArgs
     {
-        public VisualObject Node { get; set; }
         public int X { get; set; }
         public int Y { get; set; }
         public int Width { get; set; }
@@ -14,12 +13,10 @@ namespace TerrariaUI.Hooks.Args
         public int PlayerIndex { get; set; }
         public int ExceptPlayerIndex { get; set; }
         public bool FrameSection { get; set; }
-        public bool ToEveryone { get; set; }
 
-        public DrawArgs(VisualObject node, int x, int y, int width, int height, bool forcedSection,
-            int playerIndex, int exceptPlayerIndex, bool frame, bool toEveryone)
+        public DrawRectangleArgs(int x, int y, int width, int height, bool forcedSection,
+            int playerIndex, int exceptPlayerIndex, bool frame)
         {
-            Node = node;
             X = x;
             Y = y;
             Width = width;
@@ -28,7 +25,6 @@ namespace TerrariaUI.Hooks.Args
             PlayerIndex = playerIndex;
             ExceptPlayerIndex = exceptPlayerIndex;
             FrameSection = frame;
-            ToEveryone = toEveryone;
         }
     }
 }

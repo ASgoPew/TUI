@@ -56,6 +56,7 @@
     <Compile Include="Base\Style\FullSize.cs" />
     <Compile Include="Base\UIDefault.cs" />
     <Compile Include="Base\VisualContainer.cs" />
+    <Compile Include="Hooks\Args\DrawRectangleArgs.cs" />
     <Compile Include="Hooks\Args\UpdateChestArgs.cs" />
     <Compile Include="Hooks\Args\DatabaseArgs.cs" />
     <Compile Include="Hooks\Args\LogArgs.cs" />
@@ -63,7 +64,7 @@
     <Compile Include="Hooks\Args\RemoveSignArgs.cs" />
     <Compile Include="Hooks\Args\UpdateSignArgs.cs" />
     <Compile Include="Hooks\Args\CanTouchArgs.cs" />
-    <Compile Include="Hooks\Args\DrawArgs.cs" />
+    <Compile Include="Hooks\Args\DrawObjectArgs.cs" />
     <Compile Include="Hooks\Args\EnabledArgs.cs" />
     <Compile Include="Base\GridCell.cs" />
     <Compile Include="Hooks\Args\InitializeArgs.cs" />

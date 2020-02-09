@@ -390,12 +390,12 @@ namespace TerrariaUI.Base
 
         #region Pulse
 
-            /// <summary>
-            /// Send specified signal to all sub-tree including this node.
-            /// </summary>
-            /// <param name="type">Type of signal</param>
-            /// <returns>this</returns>
-            public virtual VisualObject Pulse(PulseType type)
+        /// <summary>
+        /// Send specified signal to all sub-tree including this node.
+        /// </summary>
+        /// <param name="type">Type of signal</param>
+        /// <returns>this</returns>
+        public virtual VisualObject Pulse(PulseType type)
             {
                 // Pulse event handling related to this node
                 PulseThis(type);
@@ -1084,7 +1084,7 @@ namespace TerrariaUI.Base
                 {
                     // Mark changes to be drawn
                     if (Root is RootVisualObject root)
-                        root.ApplyCounter++;
+                        root.RequestDrawChanges();
 
                     // Overridable apply function
                     ApplyThisNative();
@@ -1205,7 +1205,7 @@ namespace TerrariaUI.Base
             bool realDrawWithSection = drawWithSection ?? DrawWithSection;
             bool realFrame = frameSection ?? FrameSection;
             (int ax, int ay) = AbsoluteXY();
-            TUI.DrawRect(this, ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height,
+            TUI.DrawObject(this, ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height,
                 realDrawWithSection, playerIndex, exceptPlayerIndex, realFrame, toEveryone);
             return this;
         }
@@ -1258,7 +1258,7 @@ namespace TerrariaUI.Base
             {
                 // Mark changes to be drawn
                 if (Root is RootVisualObject root)
-                    root.ApplyCounter++;
+                    root.RequestDrawChanges();
 
                 foreach ((int x, int y) in Points)
                     Tile(x, y)?.ClearEverything();

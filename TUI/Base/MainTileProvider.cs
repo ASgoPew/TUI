@@ -50,14 +50,22 @@ namespace TerrariaUI.Base
         public void SetXYWH(int x, int y, int width, int height, bool Draw = true)
         { }
 
-        public void Enable()
+        public void Enable(bool draw = true)
         {
-            Enabled = true;
+            if (!Enabled)
+            {
+                Enabled = true;
+                TUI.DrawRectangle(X, Y, Width, Height, true, -1, -1, true);
+            }
         }
 
-        public void Disable()
+        public void Disable(bool draw = true)
         {
-            Enabled = false;
+            if (Enabled)
+            {
+                Enabled = false;
+                TUI.DrawRectangle(X, Y, Width, Height, true, -1, -1, true);
+            }
         }
 
         public void Update()

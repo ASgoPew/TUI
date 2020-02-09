@@ -104,7 +104,7 @@ namespace TerrariaUI.Base
         {
             if (!Enabled)
             {
-                Enabled = true;
+                base.Enable();
                 Provider.Enable(false);
                 TUI.Hooks.Enabled.Invoke(new EnabledArgs(this, true));
             }
@@ -118,14 +118,24 @@ namespace TerrariaUI.Base
         {
             if (Enabled)
             {
-                Enabled = false;
+                base.Disable();
                 Provider.Disable(false);
+                if (Provider is MainTileProvider)
+                    Clear();
                 TUI.Hooks.Enabled.Invoke(new EnabledArgs(this, false));
             }
             return this;
         }
 
         #endregion
+
+        #region RequestDrawChanges
+
+        public void RequestDrawChanges() =>
+            ApplyCounter++;
+
+        #endregion
+
         #region UpdateThisNative
 
         protected override void UpdateThisNative()

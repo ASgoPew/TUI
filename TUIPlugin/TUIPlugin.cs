@@ -61,7 +61,7 @@ namespace TUIPlugin
         {
             try
             {
-                FakesEnabled = ServerApi.Plugins.Count(p => p.Plugin.Name == "FakeManager") > 0;
+                FakesEnabled = ServerApi.Plugins.Count(p => p.Plugin.Name == "FakeProvider") > 0;
 
                 ServerApi.Hooks.GamePostInitialize.Register(this, OnGamePostInitialize, Int32.MinValue);
                 ServerApi.Hooks.ServerConnect.Register(this, OnServerConnect);
@@ -69,7 +69,8 @@ namespace TUIPlugin
                 ServerApi.Hooks.NetGetData.Register(this, OnGetData, 100);
                 GetDataHandlers.NewProjectile += OnNewProjectile;
                 TUI.Hooks.CanTouch.Event += OnCanTouch;
-                TUI.Hooks.Draw.Event += OnDraw;
+                TUI.Hooks.DrawObject.Event += OnDrawObject;
+                TUI.Hooks.DrawRectangle.Event += OnDrawRectangle;
                 TUI.Hooks.TouchCancel.Event += OnTouchCancel;
                 TUI.Hooks.UpdateSign.Event += OnUpdateSign;
                 TUI.Hooks.RemoveSign.Event += OnRemoveSign;
@@ -114,7 +115,8 @@ namespace TUIPlugin
                     ServerApi.Hooks.NetGetData.Deregister(this, OnGetData);
                     GetDataHandlers.NewProjectile -= OnNewProjectile;
                     TUI.Hooks.CanTouch.Event -= OnCanTouch;
-                    TUI.Hooks.Draw.Event -= OnDraw;
+                    TUI.Hooks.DrawObject.Event -= OnDrawObject;
+                    TUI.Hooks.DrawRectangle.Event -= OnDrawRectangle;
                     TUI.Hooks.TouchCancel.Event -= OnTouchCancel;
                     TUI.Hooks.UpdateSign.Event -= OnUpdateSign;
                     TUI.Hooks.RemoveSign.Event -= OnRemoveSign;
@@ -311,9 +313,9 @@ namespace TUIPlugin
         }
 
         #endregion
-        #region OnDraw
+        #region OnDrawObject
 
-        private static void OnDraw(DrawArgs args)
+        private static void OnDrawObject(DrawObjectArgs args)
         {
             VisualObject node = args.Node;
 
@@ -335,6 +337,7 @@ namespace TUIPlugin
                     node.Root.PlayerApplyCounter.TryGetValue(p, out ulong applyCounter)
                     && currentApplyCounter == applyCounter);
             }
+
             if (players.Count == 0)
                 return;
 
@@ -382,6 +385,30 @@ namespace TUIPlugin
             // Mark that these players received lastest version of interface
             foreach (int player in players)
                 node.Root.PlayerApplyCounter[player] = currentApplyCounter;
+        }
+
+        #endregion
+        #region OnDrawRectangle
+
+        private static void OnDrawRectangle(DrawRectangleArgs args)
+        {
+            int size = Math.Max(args.Width, args.Height);
+            if (size >= 50 || args.DrawWithSection)
+            {
+                NetMessage.SendData(10, args.PlayerIndex, args.ExceptPlayerIndex, null,
+                    args.X, args.Y, args.Width, args.Height);
+                if (args.FrameSection)
+                {
+                    int lowX = Netplay.GetSectionX(args.X);
+                    int highX = Netplay.GetSectionX(args.X + args.Width - 1);
+                    int lowY = Netplay.GetSectionY(args.Y);
+                    int highY = Netplay.GetSectionY(args.Y + args.Height - 1);
+                    NetMessage.SendData(11, args.PlayerIndex, args.ExceptPlayerIndex, null,
+                        lowX, lowY, highX, highY);
+                }
+            }
+            else
+                NetMessage.SendData(20, args.PlayerIndex, args.ExceptPlayerIndex, null, size, args.X, args.Y);
         }
 
         #endregion
@@ -740,6 +767,8 @@ namespace TUIPlugin
                     }
 
                     root.Enable();
+                    root.RequestDrawChanges();
+                    root.Draw();
                     args.Player.SendSuccessMessage($"Enabled interface '{root.Name}'.");
                     break;
                 }
@@ -755,6 +784,10 @@ namespace TUIPlugin
                         return;
 
                     root.Disable();
+                    if (root.Provider is MainTileProvider)
+                        root.Clear();
+                    root.RequestDrawChanges();
+                    root.Draw();
                     args.Player.SendSuccessMessage($"Disabled interface '{root.Name}'.");
                     break;
                 }

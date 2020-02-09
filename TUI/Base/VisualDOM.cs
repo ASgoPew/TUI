@@ -39,7 +39,7 @@ namespace TerrariaUI.Base
         /// <summary>
         /// Root of the interface tree. Null before first <see cref="VisualObject.Update"/> call. Use <see cref="GetRoot"/> to calculate manually.
         /// </summary>
-        public RootVisualObject Root { get; set; }
+        public RootVisualObject Root { get; protected set; }
         /// <summary>
         /// True once the object was loaded. See <see cref="LoadThisNative"/>.
         /// </summary>
@@ -51,7 +51,7 @@ namespace TerrariaUI.Base
         /// <summary>
         /// Whether the object is enabled. Disabled objects are invisible, you can't touch them and they don't receive updates.
         /// </summary>
-        public bool Enabled { get; set; } = true;
+        public bool Enabled { get; private set; } = true;
         /// <summary>
         /// Whether the object is visible. Object becomes invisible e.g. when it is outside of bounds of layout.
         /// </summary>
