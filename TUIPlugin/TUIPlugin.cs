@@ -767,8 +767,12 @@ namespace TUIPlugin
                     }
 
                     root.Enable();
-                    root.RequestDrawChanges();
+                    if (root.Provider is MainTileProvider)
+                        root.Update().Apply();
+                    else
+                        root.RequestDrawChanges();
                     root.Draw();
+
                     args.Player.SendSuccessMessage($"Enabled interface '{root.Name}'.");
                     break;
                 }
@@ -786,8 +790,10 @@ namespace TUIPlugin
                     root.Disable();
                     if (root.Provider is MainTileProvider)
                         root.Clear();
-                    root.RequestDrawChanges();
+                    else
+                        root.RequestDrawChanges();
                     root.Draw();
+
                     args.Player.SendSuccessMessage($"Disabled interface '{root.Name}'.");
                     break;
                 }
@@ -809,8 +815,13 @@ namespace TUIPlugin
 
                     if (args.Parameters.Count == 1)
                     {
-                        args.Player.SendInfoMessage("Position and size " +
-                            $"of interface '{root.Name}': {root.XYWH()}");
+                        string provider_text = root.Provider is MainTileProvider
+                            ? nameof(MainTileProvider)
+                            : $"{root.Provider.Name} ({root.Provider.GetType().Name})";
+                        args.Player.SendInfoMessage(
+$@"Interface '{root.Name}':
+Position and size: {root.XYWH()}
+Provider: {provider_text}");
                         return;
                     }
 
