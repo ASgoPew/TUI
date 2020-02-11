@@ -683,7 +683,6 @@ namespace TUIPlugin
         }
 
         #endregion
-
         #region TUICommand
 
         public static void TUICommand(CommandArgs args)
@@ -797,59 +796,74 @@ namespace TUIPlugin
                     args.Player.SendSuccessMessage($"Disabled interface '{root.Name}'.");
                     break;
                 }
-                default:
+                case "info":
                 {
-                    if (arg0 == null || arg0.ToLower() == "help")
+                    if (args.Parameters.Count != 2)
                     {
-                        args.Player.SendSuccessMessage("/tui subcommands:");
-                        args.Player.SendInfoMessage("/tui \"interface name\" [<x> <y> [<width> <height>]]");
-                        args.Player.SendInfoMessage("/tui tp \"interface name\"");
-                        args.Player.SendInfoMessage("/tui tphere \"interface name\" [-confirm]");
-                        args.Player.SendInfoMessage("/tui enable \"interface name\" [-confirm]");
-                        args.Player.SendInfoMessage("/tui disable \"interface name\"");
-                        args.Player.SendInfoMessage("/tui list [page]");
+                        args.Player.SendErrorMessage("/tui info \"interface name\"");
                         return;
                     }
-                    if (!FindRoot(args.Parameters[0], args.Player, out RootVisualObject root))
+                    if (!FindRoot(args.Parameters[1], args.Player, out RootVisualObject root))
                         return;
 
-                    if (args.Parameters.Count == 1)
-                    {
-                        string provider_text = root.Provider is MainTileProvider
+                    string provider_text = root.Provider is MainTileProvider
                             ? nameof(MainTileProvider)
                             : $"{root.Provider.Name} ({root.Provider.GetType().Name})";
-                        args.Player.SendInfoMessage(
-$@"Interface '{root.Name}':
+                    args.Player.SendInfoMessage(
+$@"Interface '{root.Name}'
 Position and size: {root.XYWH()}
-Provider: {provider_text}");
+Enabled: {root.Enabled}
+Tile provider: {provider_text}
+Apply counter: {root.ApplyCounter}");
+                    break;
+                }
+                case "xywh":
+                {
+                    if (args.Parameters.Count != 4 && args.Parameters.Count != 6)
+                    {
+                        args.Player.SendErrorMessage("/tui xywh \"interface name\" <x> <y> [<width> <height>]");
                         return;
                     }
+                    if (!FindRoot(args.Parameters[1], args.Player, out RootVisualObject root))
+                        return;
 
-                    if (!int.TryParse(args.Parameters[1], out int x)
-                        || !int.TryParse(args.Parameters[2], out int y)
+                    if (!int.TryParse(args.Parameters[2], out int x)
+                        || !int.TryParse(args.Parameters[3], out int y)
                         || x < 0 || y < 0 || x >= Main.maxTilesX || y >= Main.maxTilesY)
                     {
                         args.Player.SendErrorMessage("Invalid coordinates " +
-                            $"'{args.Parameters[1]},{args.Parameters[2]}'.");
+                            $"'{args.Parameters[2]},{args.Parameters[3]}'.");
                         return;
                     }
 
                     int width = root.Width;
                     int height = root.Height;
-                    if (args.Parameters.Count == 5
-                        && (!int.TryParse(args.Parameters[3], out width)
-                        || !int.TryParse(args.Parameters[4], out height)
+                    if (args.Parameters.Count == 6
+                        && (!int.TryParse(args.Parameters[4], out width)
+                        || !int.TryParse(args.Parameters[5], out height)
                         || width < 0 || x + width >= Main.maxTilesX
                         || height < 0 || y + height >= Main.maxTilesY))
                     {
                         args.Player.SendErrorMessage("Invalid size " +
-                            $"'{args.Parameters[3]},{args.Parameters[4]}'.");
+                            $"'{args.Parameters[4]},{args.Parameters[5]}'.");
                         return;
                     }
 
                     TUI.SetXYWH(root, x, y, width, height);
                     args.Player.SendSuccessMessage("Set position and size " +
                         $"of interface '{root.Name}' to {root.XYWH()}.");
+                    break;
+                }
+                default:
+                {
+                    args.Player.SendSuccessMessage("/tui subcommands:");
+                    args.Player.SendInfoMessage("/tui info \"interface name\"");
+                    args.Player.SendInfoMessage("/tui xywh \"interface name\" <x> <y> [<width> <height>]");
+                    args.Player.SendInfoMessage("/tui tp \"interface name\"");
+                    args.Player.SendInfoMessage("/tui tphere \"interface name\" [-confirm]");
+                    args.Player.SendInfoMessage("/tui enable \"interface name\" [-confirm]");
+                    args.Player.SendInfoMessage("/tui disable \"interface name\"");
+                    args.Player.SendInfoMessage("/tui list [page]");
                     break;
                 }
             }
