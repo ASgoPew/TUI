@@ -136,7 +136,7 @@ namespace TerrariaUI.Base
                 int saveX = child.X, saveY = child.Y;
                 if (child.Active && child.Contains(touch))
                 {
-                    touch.MoveBack(saveX, saveY);
+                    touch.Move(-saveX, -saveY);
                     if (child.Touched(touch))
                     {
                         if (Configuration.Ordered && child.Orderable && SetTop(child))

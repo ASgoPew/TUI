@@ -319,7 +319,7 @@ namespace TUIPlugin
         {
             VisualObject node = args.Node;
 
-            ulong currentApplyCounter = node.Root.ApplyCounter;
+            ulong currentApplyCounter = node.Root.DrawState;
             HashSet<int> players = null;
             if (args.ToEveryone)
             {
@@ -690,6 +690,7 @@ namespace TUIPlugin
             string arg0 = args.Parameters.ElementAtOrDefault(0);
             switch (arg0?.ToLower())
             {
+                case "l":
                 case "list":
                 {
                     if (!PaginationTools.TryParsePageNumber(args.Parameters, 1, args.Player, out int page))
@@ -741,10 +742,11 @@ namespace TUIPlugin
                     }
 
                     int x = args.Player.TileX, y = args.Player.TileY;
-                    TUI.SetXYWH(root, x, y, root.Width, root.Height);
+                    root.SetXY(x, y, true);
                     args.Player.SendSuccessMessage($"Moved interface '{root.Name}' to ({x},{y}).");
                     break;
                 }
+                case "e":
                 case "enable":
                 {
                     if (args.Parameters.Count < 2
@@ -775,6 +777,7 @@ namespace TUIPlugin
                     args.Player.SendSuccessMessage($"Enabled interface '{root.Name}'.");
                     break;
                 }
+                case "d":
                 case "disable":
                 {
                     if (args.Parameters.Count < 2
@@ -796,6 +799,7 @@ namespace TUIPlugin
                     args.Player.SendSuccessMessage($"Disabled interface '{root.Name}'.");
                     break;
                 }
+                case "i":
                 case "info":
                 {
                     if (args.Parameters.Count != 2)
@@ -814,7 +818,7 @@ $@"Interface '{root.Name}'
 Position and size: {root.XYWH()}
 Enabled: {root.Enabled}
 Tile provider: {provider_text}
-Apply counter: {root.ApplyCounter}");
+Apply counter: {root.DrawState}");
                     break;
                 }
                 case "xywh":
@@ -849,7 +853,7 @@ Apply counter: {root.ApplyCounter}");
                         return;
                     }
 
-                    TUI.SetXYWH(root, x, y, width, height);
+                    root.SetXYWH(x, y, width, height, true);
                     args.Player.SendSuccessMessage("Set position and size " +
                         $"of interface '{root.Name}' to {root.XYWH()}.");
                     break;

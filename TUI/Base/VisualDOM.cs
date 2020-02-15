@@ -485,7 +485,7 @@ namespace TerrariaUI.Base
             /// <param name="width">New width</param>
             /// <param name="height">New height</param>
             /// <returns>this</returns>
-            public virtual VisualObject SetXYWH(int x, int y, int width, int height)
+            public virtual VisualObject SetXYWH(int x, int y, int width, int height, bool draw = true)
             {
                 X = x;
                 Y = y;
@@ -494,16 +494,16 @@ namespace TerrariaUI.Base
                 return this as VisualObject;
             }
 
-            public VisualObject SetXYWH((int x, int y, int width, int height) data) =>
-                SetXYWH(data.x, data.y, data.width, data.height);
-            public VisualObject SetXY(int x, int y) =>
-                SetXYWH(x, y, Width, Height);
-            public VisualObject SetXY((int x, int y) pair) =>
-                SetXYWH(pair.x, pair.y, Width, Height);
-            public VisualObject SetWH(int width, int height) =>
-                SetXYWH(X, Y, width, height);
-            public VisualObject SetWH((int width, int height) pair) =>
-                SetXYWH(X, Y, pair.width, pair.height);
+            public VisualObject SetXYWH((int x, int y, int width, int height) data, bool draw = true) =>
+                SetXYWH(data.x, data.y, data.width, data.height, draw);
+            public VisualObject SetXY(int x, int y, bool draw = true) =>
+                SetXYWH(x, y, Width, Height, draw);
+            public VisualObject SetXY((int x, int y) pair, bool draw = true) =>
+                SetXYWH(pair.x, pair.y, Width, Height, draw);
+            public VisualObject SetWH(int width, int height, bool draw = true) =>
+                SetXYWH(X, Y, width, height, draw);
+            public VisualObject SetWH((int width, int height) pair, bool draw = true) =>
+                SetXYWH(X, Y, pair.width, pair.height, draw);
 
             #endregion
             #region Move
@@ -514,17 +514,8 @@ namespace TerrariaUI.Base
             /// <param name="dx">X coordinate delta</param>
             /// <param name="dy">Y coordinate delta</param>
             /// <returns>this</returns>
-            public virtual VisualObject Move(int dx, int dy) =>
-                SetXYWH(X + dx, Y + dy, Width, Height);
-
-            /// <summary>
-            /// Inverse function for <see cref="Move(int, int)"/>.
-            /// </summary>
-            /// <param name="dx">X coordinate delta</param>
-            /// <param name="dy">Y coordinate delta</param>
-            /// <returns>this</returns>
-            public virtual VisualObject MoveBack(int dx, int dy) =>
-                SetXYWH(X - dx, Y - dy, Width, Height);
+            public virtual VisualObject Move(int dx, int dy, bool draw = true) =>
+                SetXY(X + dx, Y + dy, draw);
 
             #endregion
             #region Contains, Intersecting

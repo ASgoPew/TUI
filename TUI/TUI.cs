@@ -210,22 +210,6 @@ namespace TerrariaUI
         }
 
         #endregion
-        #region SetXYWH
-
-        public static void SetXYWH(RootVisualObject root, int x, int y, int width, int height)
-        {
-            if (root is Widgets.Panel panel)
-            {
-                panel.Drag(x, y);
-                if (width != panel.Width || height != panel.Height)
-                    panel.Resize(width, height);
-                panel.Update().Apply().Draw();
-            }
-            else
-                root.Clear().Draw().SetXYWH(x, y, width, height).Update().Apply().Draw();
-        }
-
-        #endregion
 
         #region Touched
 
@@ -295,7 +279,7 @@ namespace TerrariaUI
             VisualObject o = touch.Session.Acquired;
             (int saveX, int saveY) = o.AbsoluteXY();
 
-            touch.MoveBack(saveX, saveY);
+            touch.Move(-saveX, -saveY);
             bool inside = touch.Intersecting(0, 0, o.Width, o.Height);
 
             if (o.Active && inside)
@@ -321,7 +305,7 @@ namespace TerrariaUI
                     if (o.Active && o.Contains(touch) && o.Players.Contains(touch.Session.PlayerIndex))
                     {
                         insideUI = true;
-                        touch.MoveBack(saveX, saveY);
+                        touch.Move(-saveX, -saveY);
                         if (o.Touched(touch))
                         {
                             if (SetTop(o))

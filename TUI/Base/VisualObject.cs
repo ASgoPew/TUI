@@ -234,15 +234,31 @@ namespace TerrariaUI.Base
         /// <param name="width">New width</param>
         /// <param name="height">New height</param>
         /// <returns>this</returns>
-        public override VisualObject SetXYWH(int x, int y, int width, int height)
+        public override VisualObject SetXYWH(int x, int y, int width, int height, bool draw)
         {
+            width = Math.Max(width, Configuration.Grid?.MinWidth ?? 1);
+            height = Math.Max(height, Configuration.Grid?.MinHeight ?? 1);
+
             int oldX = X, oldY = Y, oldWidth = Width, oldHeight = Height;
             if (oldX != x || oldY != y || oldWidth != width || oldHeight != height)
             {
-                base.SetXYWH(x, y, width, height);
+                base.SetXYWH(x, y, width, height, draw);
                 Pulse(PulseType.PositionChanged);
+                if (draw)
+                    DrawReposition(oldX, oldY, oldWidth, oldHeight);
             }
+
             return this;
+        }
+
+        #endregion
+        #region DrawReposition
+
+        public virtual void DrawReposition(int oldX, int oldY, int oldWidth, int oldHeight)
+        {
+            if (oldWidth != Width || oldHeight != Height)
+                Update();
+            Parent.Apply().Draw();
         }
 
         #endregion
@@ -378,6 +394,15 @@ namespace TerrariaUI.Base
                 throw new Exception("Layout is not set for this object: " + FullName);
 
             Configuration.Layout.LayoutOffset = value;
+            return this;
+        }
+
+        #endregion
+        #region RequestDrawChanges
+
+        public VisualObject RequestDrawChanges()
+        {
+            Root.DrawState++;
             return this;
         }
 
@@ -597,7 +622,7 @@ namespace TerrariaUI.Base
             {
                 foreach (VisualObject child in ChildrenFromTop)
                 {
-                    child.SetWH(child.UpdateSizeNative());
+                    child.SetWH(child.UpdateSizeNative(), false);
                     if (child.Configuration.FullSize != FullSize.None)
                         child.UpdateFullSize();
                 }
@@ -635,11 +660,11 @@ namespace TerrariaUI.Base
                 int newHeight = Parent.Height - newY - indent.Down;
 
                 if (fullSize == FullSize.Both)
-                    SetXYWH(newX, newY, newWidth, newHeight);
+                    SetXYWH(newX, newY, newWidth, newHeight, false);
                 else if (fullSize == FullSize.Horizontal)
-                    SetXYWH(newX, Y, newWidth, Height);
+                    SetXYWH(newX, Y, newWidth, Height, false);
                 else if (fullSize == FullSize.Vertical)
-                    SetXYWH(X, newY, Width, newHeight);
+                    SetXYWH(X, newY, Width, newHeight, false);
             }
 
             #endregion
@@ -673,7 +698,7 @@ namespace TerrariaUI.Base
                     else
                         y = (int)Math.Floor((Height - indent.Up - indent.Down - child.Height) / 2f) + indent.Up;
 
-                    child.SetXY(x, y);
+                    child.SetXY(x, y, false);
                 }
             }
 
@@ -787,7 +812,7 @@ namespace TerrariaUI.Base
                     else
                         child.Visible = Intersecting(resultX, resultY, child.Width, child.Height, 0, 0, Width, Height);
 
-                    child.SetXY(resultX, resultY);
+                    child.SetXY(resultX, resultY, false);
                     //Console.WriteLine($"Layout: {child.FullName}, {child.XYWH()}");
 
                     if (k == layoutChild.Count - 1)
@@ -877,8 +902,7 @@ namespace TerrariaUI.Base
                     for (int j = 0; j < lineSizes.Length; j++)
                     {
                         (int lineX, int lineSize) = Configuration.Grid.ResultingLines[j];
-                        Grid[i, j]?.SetXYWH(columnX, lineX, columnSize, lineSize);
-                        //Console.WriteLine($"Grid: {cell.FullName}, {cell.XYWH()}");
+                        Grid[i, j]?.SetXYWH(columnX, lineX, columnSize, lineSize, false);
                     }
                 }
             }
@@ -1083,8 +1107,7 @@ namespace TerrariaUI.Base
                 lock (Locker)
                 {
                     // Mark changes to be drawn
-                    if (Root is RootVisualObject root)
-                        root.RequestDrawChanges();
+                    RequestDrawChanges();
 
                     // Overridable apply function
                     ApplyThisNative();
@@ -1257,8 +1280,7 @@ namespace TerrariaUI.Base
             lock (Locker)
             {
                 // Mark changes to be drawn
-                if (Root is RootVisualObject root)
-                    root.RequestDrawChanges();
+                RequestDrawChanges();
 
                 foreach ((int x, int y) in Points)
                     Tile(x, y)?.ClearEverything();
@@ -1303,13 +1325,13 @@ namespace TerrariaUI.Base
 
         #region Database
 
-            #region DBRead
+        #region DBRead
 
-            /// <summary>
-            /// Read data from database using overridable DBReadNative method
-            /// </summary>
-            /// <returns>true if read is successful</returns>
-            public bool DBRead()
+        /// <summary>
+        /// Read data from database using overridable DBReadNative method
+        /// </summary>
+        /// <returns>true if read is successful</returns>
+        public bool DBRead()
             {
                 byte[] data = TUI.DBGet(FullName);
                 if (data != null)

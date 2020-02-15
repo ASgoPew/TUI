@@ -33,7 +33,7 @@ namespace TerrariaUI.Widgets
             buttonStyle.TriggerStyle = ButtonTriggerStyle.TouchEnd;
             Button = AddToLayout(new Button(0, 0, 14, 4, "ok", null, buttonStyle,
                 ((self, touch) => self.Root.HidePopUp()))) as Button;
-            SetWH(0, Label.Height + Button.Height);
+            SetWH(0, Label.Height + Button.Height, false);
             SetFullSize(FullSize.Horizontal);
         }
 

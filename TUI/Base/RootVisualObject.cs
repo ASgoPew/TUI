@@ -45,7 +45,7 @@ namespace TerrariaUI.Base
         /// <summary>
         /// Counter of Apply() calls. Interface won't redraw to user if ApplyCounter hasn't changed.
         /// </summary>
-        public ulong ApplyCounter { get; protected internal set; }
+        public ulong DrawState { get; protected internal set; }
         protected VisualContainer PopUpBackground { get; set; }
         protected Dictionary<VisualObject, Action<VisualObject>> PopUpCancelCallbacks =
             new Dictionary<VisualObject, Action<VisualObject>>();
@@ -88,12 +88,21 @@ namespace TerrariaUI.Base
         #endregion
         #region SetXYWH
 
-        public override VisualObject SetXYWH(int x, int y, int width, int height)
+        public override VisualObject SetXYWH(int x, int y, int width, int height, bool draw)
         {
-            base.SetXYWH(x, y, width, height);
-            // MainTileProvider ignores this SetXYWH
-            Provider.SetXYWH(x, y, width, height, false);
-            TUI.Hooks.SetXYWH.Invoke(new SetXYWHArgs(this, x, y, width, height));
+            width = Math.Max(width, Configuration.Grid?.MinWidth ?? 1);
+            height = Math.Max(height, Configuration.Grid?.MinHeight ?? 1);
+
+            if (x != X || y != Y || width != Width || height != Height)
+            {
+                if (UsesDefaultMainProvider && draw)
+                    Clear();
+
+                // MainTileProvider ignores this SetXYWH
+                Provider.SetXYWH(x, y, width, height, false);
+                base.SetXYWH(x, y, width, height, draw);
+                TUI.Hooks.SetXYWH.Invoke(new SetXYWHArgs(this, x, y, width, height, draw));
+            }
             return this;
         }
 
@@ -128,11 +137,18 @@ namespace TerrariaUI.Base
         }
 
         #endregion
+        #region DrawReposition
 
-        #region RequestDrawChanges
-
-        public void RequestDrawChanges() =>
-            ApplyCounter++;
+        public override void DrawReposition(int oldX, int oldY, int oldWidth, int oldHeight)
+        {
+            RequestDrawChanges();
+            Draw(oldX - X, oldY - Y, oldWidth, oldHeight, toEveryone: true);
+            if (UsesDefaultMainProvider || oldWidth != Width || oldHeight != Height)
+                Update().Apply();
+            else
+                RequestDrawChanges();
+            Draw(toEveryone: true);
+        }
 
         #endregion
 

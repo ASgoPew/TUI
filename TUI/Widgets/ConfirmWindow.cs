@@ -70,7 +70,7 @@ namespace TerrariaUI.Widgets
                 }))) as Button;
 
             Callback = CancelCallback;
-            Container.SetWH(0, Label.Height + yesno.Height);
+            Container.SetWH(0, Label.Height + yesno.Height, false);
         }
 
         #endregion

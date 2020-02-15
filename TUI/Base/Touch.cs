@@ -124,7 +124,7 @@ namespace TerrariaUI.Base
                 return (X + dx, Y + dy, Width, Height);
             }
 
-            public Touch SetXYWH(int x, int y, int width = -1, int height = -1)
+            public Touch SetXYWH(int x, int y, int width = -1, int height = -1, bool draw = true)
             {
                 X = x;
                 Y = y;
@@ -136,17 +136,10 @@ namespace TerrariaUI.Base
             #endregion
             #region Move
 
-            public Touch Move(int dx, int dy)
+            public Touch Move(int dx, int dy, bool draw = true)
             {
                 X += dx;
                 Y += dy;
-                return this;
-            }
-
-            public Touch MoveBack(int dx, int dy)
-            {
-                X -= dx;
-                Y -= dy;
                 return this;
             }
 

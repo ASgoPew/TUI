@@ -10,14 +10,16 @@ namespace TerrariaUI.Hooks.Args
         public int Y { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
+        public bool Draw { get; set; }
 
-        public SetXYWHArgs(RootVisualObject root, int x, int y, int width, int height)
+        public SetXYWHArgs(RootVisualObject root, int x, int y, int width, int height, bool draw)
         {
             Root = root;
             X = x;
             Y = y;
             Width = width;
             Height = height;
+            Draw = draw;
         }
     }
 }

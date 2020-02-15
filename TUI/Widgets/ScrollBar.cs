@@ -121,9 +121,9 @@ namespace TerrariaUI.Widgets
                     Slider.Enable();
                     Configuration.UseBegin = true;
                 }
-                Slider.SetWH(_Width, size);
-                Empty1.SetWH(_Width, Height - Slider.Height);
-                Empty2.SetWH(_Width, limit);
+                Slider.SetWH(_Width, size, false);
+                Empty1.SetWH(_Width, Height - Slider.Height, false);
+                Empty2.SetWH(_Width, limit, false);
             }
             else
             {
@@ -139,9 +139,9 @@ namespace TerrariaUI.Widgets
                     Slider.Enable();
                     Configuration.UseBegin = true;
                 }
-                Slider.SetWH(size, _Width);
-                Empty1.SetWH(Width - Slider.Width, _Width);
-                Empty2.SetWH(limit, _Width);
+                Slider.SetWH(size, _Width, false);
+                Empty1.SetWH(Width - Slider.Width, _Width, false);
+                Empty2.SetWH(limit, _Width, false);
             }
             DrawWithSection = Parent.DrawWithSection;
             switch (Parent.Configuration.Layout.Direction)

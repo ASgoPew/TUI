@@ -27,7 +27,7 @@ namespace TerrariaUI.Widgets
 
         public PanelDrag DragObject { get; set; }
         public PanelResize ResizeObject { get; set; }
-        internal bool SaveDataNow { get; set; } = false;
+        internal bool SaveDataNow { get; set; } = true;
 
         #endregion
 
@@ -53,7 +53,15 @@ namespace TerrariaUI.Widgets
             if (resize != null)
                 ResizeObject = Add(resize) as PanelResize;
 
-            DBRead();
+            try
+            {
+                DBRead();
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
+                SavePanel();
+            }
         }
 
         /// <summary>
@@ -72,21 +80,36 @@ namespace TerrariaUI.Widgets
         { }
 
         #endregion
-        #region SetXYWH
+        #region DrawReposition
 
-        public override VisualObject SetXYWH(int x, int y, int width, int height)
+        public override void DrawReposition(int oldX, int oldY, int oldWidth, int oldHeight)
         {
-            int oldX = X, oldY = Y, oldWidth = Width, oldHeight = Height;
-            if (oldX != x || oldY != y || oldWidth != width || oldHeight != height)
-            {
-                base.SetXYWH(x, y, width, height);
-#if DEBUG
-                Console.WriteLine($"{FullName}.SetXYWH({x}, {y}, {width}, {height}){(SaveDataNow ? " SAVING" : "")}");
-#endif
-                if (SaveDataNow)
-                    SavePanel();
-                SaveDataNow = false;
-            }
+            base.DrawReposition(oldX, oldY, oldWidth, oldHeight);
+            if (SaveDataNow)
+                SavePanel();
+        }
+
+        #endregion
+        #region Enable
+
+        public override VisualObject Enable()
+        {
+            bool old = Enabled;
+            base.Enable();
+            if (old != Enabled)
+                SavePanel();
+            return this;
+        }
+
+        #endregion
+        #region Disable
+
+        public override VisualObject Disable()
+        {
+            bool old = Enabled;
+            base.Disable();
+            if (old != Enabled)
+                SavePanel();
             return this;
         }
 
@@ -100,13 +123,19 @@ namespace TerrariaUI.Widgets
             int width = br.ReadInt32();
             int height = br.ReadInt32();
             if (x + width < TUI.MaxTilesX && y + height < TUI.MaxTilesY)
-                SetXYWH(x, y, width, height);
+            {
+                SetXYWH(x, y, width, height, false);
+            }
             else
             {
                 TUI.Log(this, $"Panel can't be placed at {x},{y}: map is too small", LogType.Warning);
                 //SetXYWH(0, 0, width, height);
                 Disable();
+                return;
             }
+            bool enabled = br.ReadBoolean();
+            if (!enabled)
+                Disable();
         }
 
         #endregion
@@ -118,6 +147,7 @@ namespace TerrariaUI.Widgets
             bw.Write((int)Y);
             bw.Write((int)Width);
             bw.Write((int)Height);
+            bw.Write((bool)Enabled);
         }
 
         #endregion
@@ -129,67 +159,6 @@ namespace TerrariaUI.Widgets
         /// </summary>
         public void SavePanel() =>
             DBWrite();
-
-        #endregion
-        #region Drag
-
-        /// <summary>
-        /// Change panel position.
-        /// </summary>
-        public void Drag(int x, int y)
-        {
-            if (x == X && y == Y)
-                return;
-            if (UsesDefaultMainProvider)
-                Clear()
-                .Draw(toEveryone: true)
-                .SetXY(x, y)
-                .Update()
-                .Apply()
-                .Draw(toEveryone: true);
-            else
-            {
-                int oldX = X, oldY = Y;
-                SetXY(x, y)
-                .Draw(oldX - x, oldY - y, toEveryone: true)
-                .Draw(toEveryone: true);
-            }
-        }
-
-        #endregion
-        #region Resize
-
-        /// <summary>
-        /// Change panel size.
-        /// </summary>
-        public void Resize(int width, int height)
-        {
-            GridConfiguration grid = Configuration.Grid;
-            int minWidth = grid?.MinWidth ?? 1;
-            int minHeight = grid?.MinHeight ?? 1;
-            if (width < minWidth)
-                width = minWidth;
-            if (height < minHeight)
-                height = minHeight;
-            if (width == Width && height == Height)
-                return;
-            if (UsesDefaultMainProvider)
-                Clear()
-                .Draw(frameSection: false, toEveryone: true)
-                .SetWH(width, height)
-                .Update()
-                .Apply()
-                .Draw(toEveryone: true);
-            else
-            {
-                int oldWidth = Width, oldHeight = Height;
-                SetWH(width, height)
-                .Update()
-                .Apply()
-                .Draw(0, 0, oldWidth, oldHeight, frameSection: false, toEveryone: true)
-                .Draw(toEveryone: true);
-            }
-        }
 
         #endregion
     }
@@ -226,7 +195,7 @@ namespace TerrariaUI.Widgets
                     int dy = touch.AbsoluteY - touch.Session.BeginTouch.AbsoluteY;
                     Panel panel = (Panel)@this.Parent;
                     panel.SaveDataNow = ending;
-                    panel.Drag(panel.DragX + dx, panel.DragY + dy);
+                    panel.SetXY(panel.DragX + dx, panel.DragY + dy, true);
                     if (ending)
                     {
                         touch.Session[@this] = null;
@@ -270,7 +239,7 @@ namespace TerrariaUI.Widgets
                     int dh = touch.AbsoluteY - touch.Session.BeginTouch.AbsoluteY;
                     Panel panel = (Panel)@this.Parent;
                     panel.SaveDataNow = ending;
-                    panel.Resize(panel.ResizeW + dw, panel.ResizeH + dh);
+                    panel.SetWH(panel.ResizeW + dw, panel.ResizeH + dh, true);
                     if (ending)
                     {
                         touch.Session[@this] = null;

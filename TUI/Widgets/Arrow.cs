@@ -107,9 +107,9 @@ namespace TerrariaUI.Widgets
             : base(x, y, 0, 0, null, style, callback)
         {
             if (ArrowStyle.Size == ArrowSize.Small)
-                SetWH(2, 2);
+                SetWH(2, 2, false);
             else
-                SetWH(4, 4);
+                SetWH(4, 4, false);
         }
 
         #endregion
