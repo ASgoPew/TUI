@@ -83,10 +83,10 @@ namespace TerrariaUI.Widgets
             foreach (ImageData data in images)
             {
                 Image image = new Image(0, 0, data, new UIConfiguration() { UseBegin=false }, new UIStyle(Style));
-                Add(image.Disable());
+                Add(image.Disable(false));
                 Images.Add(image);
             }
-            Images[0].Enable();
+            Images[0].Enable(false);
             return;
         }
 

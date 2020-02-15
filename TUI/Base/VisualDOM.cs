@@ -325,8 +325,8 @@ namespace TerrariaUI.Base
                     throw new InvalidOperationException("Trying to Select an object that isn't a child of current VisualDOM");
 
                 foreach (VisualObject child in ChildrenFromTop)
-                    child.Disable();
-                o.Enable();
+                    child.Disable(false);
+                o.Enable(false);
 
                 return this as VisualObject;
             }
@@ -354,7 +354,7 @@ namespace TerrariaUI.Base
             public virtual VisualObject Deselect()
             {
                 foreach (VisualObject child in ChildrenFromTop)
-                    child.Enable();
+                    child.Enable(false);
 
                 return this as VisualObject;
             }
@@ -674,7 +674,7 @@ namespace TerrariaUI.Base
         /// Enables object. See <see cref="Enabled"/>.
         /// </summary>
         /// <returns>this</returns>
-        public virtual VisualObject Enable()
+        public virtual VisualObject Enable(bool draw = true)
         {
             Enabled = true;
             return this as VisualObject;
@@ -687,7 +687,7 @@ namespace TerrariaUI.Base
         /// Disables object. See <see cref="Enabled"/>.
         /// </summary>
         /// <returns>this</returns>
-        public virtual VisualObject Disable()
+        public virtual VisualObject Disable(bool draw = true)
         {
             Enabled = false;
             return this as VisualObject;

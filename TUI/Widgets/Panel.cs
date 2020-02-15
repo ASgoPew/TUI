@@ -82,7 +82,7 @@ namespace TerrariaUI.Widgets
         #endregion
         #region DrawReposition
 
-        public override void DrawReposition(int oldX, int oldY, int oldWidth, int oldHeight)
+        protected override void DrawReposition(int oldX, int oldY, int oldWidth, int oldHeight)
         {
             base.DrawReposition(oldX, oldY, oldWidth, oldHeight);
             if (SaveDataNow)
@@ -90,27 +90,21 @@ namespace TerrariaUI.Widgets
         }
 
         #endregion
-        #region Enable
+        #region DrawEnable
 
-        public override VisualObject Enable()
+        protected override void DrawEnable()
         {
-            bool old = Enabled;
-            base.Enable();
-            if (old != Enabled)
-                SavePanel();
-            return this;
+            base.DrawEnable();
+            SavePanel();
         }
 
         #endregion
-        #region Disable
+        #region DrawDisable
 
-        public override VisualObject Disable()
+        protected override void DrawDisable()
         {
-            bool old = Enabled;
-            base.Disable();
-            if (old != Enabled)
-                SavePanel();
-            return this;
+            base.DrawDisable();
+            SavePanel();
         }
 
         #endregion
@@ -130,12 +124,12 @@ namespace TerrariaUI.Widgets
             {
                 TUI.Log(this, $"Panel can't be placed at {x},{y}: map is too small", LogType.Warning);
                 //SetXYWH(0, 0, width, height);
-                Disable();
+                Disable(false);
                 return;
             }
             bool enabled = br.ReadBoolean();
             if (!enabled)
-                Disable();
+                Disable(false);
         }
 
         #endregion

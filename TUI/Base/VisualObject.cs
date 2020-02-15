@@ -201,26 +201,31 @@ namespace TerrariaUI.Base
         }
 
         #endregion
-        #region AddToLayout
+        #region Enable
 
-        /// <summary>
-        /// Add object as a child in layout. Removes child alignment and grid positioning.
-        /// </summary>
-        /// <param name="child">Object to add as a child.</param>
-        /// <param name="layer">Layer where to add the object. Null by default (don't change object layer).</param>
-        /// <returns></returns>
-        public virtual VisualObject AddToLayout(VisualObject child, int? layer = null)
+        public override VisualObject Enable(bool draw = true)
         {
-            child.Configuration.Alignment = null;
-            if (child.Cell != null)
+            if (!Enabled)
             {
-                Grid[child.Cell.Column, child.Cell.Line] = null;
-                child.Cell = null;
+                base.Enable(draw);
+                if (draw)
+                    DrawEnable();
             }
+            return this;
+        }
 
-            Add(child, layer);
-            child.Configuration.InLayout = true;
-            return child;
+        #endregion
+        #region Disable
+
+        public override VisualObject Disable(bool draw = true)
+        {
+            if (Enabled)
+            {
+                base.Disable(draw);
+                if (draw)
+                    DrawDisable();
+            }
+            return this;
         }
 
         #endregion
@@ -254,11 +259,53 @@ namespace TerrariaUI.Base
         #endregion
         #region DrawReposition
 
-        public virtual void DrawReposition(int oldX, int oldY, int oldWidth, int oldHeight)
+        protected virtual void DrawReposition(int oldX, int oldY, int oldWidth, int oldHeight)
         {
             if (oldWidth != Width || oldHeight != Height)
                 Update();
             Parent.Apply().Draw();
+        }
+
+        #endregion
+        #region DrawEnable
+
+        protected virtual void DrawEnable()
+        {
+            if (Configuration.InLayout)
+                Parent.Update().Apply().Draw();
+            else
+                Update().Apply().Draw();
+        }
+
+        #endregion
+        #region DrawDisable
+
+        protected virtual void DrawDisable()
+        {
+            Parent.Update().Apply().Draw();
+        }
+
+        #endregion
+        #region AddToLayout
+
+        /// <summary>
+        /// Add object as a child in layout. Removes child alignment and grid positioning.
+        /// </summary>
+        /// <param name="child">Object to add as a child.</param>
+        /// <param name="layer">Layer where to add the object. Null by default (don't change object layer).</param>
+        /// <returns></returns>
+        public virtual VisualObject AddToLayout(VisualObject child, int? layer = null)
+        {
+            child.Configuration.Alignment = null;
+            if (child.Cell != null)
+            {
+                Grid[child.Cell.Column, child.Cell.Line] = null;
+                child.Cell = null;
+            }
+
+            Add(child, layer);
+            child.Configuration.InLayout = true;
+            return child;
         }
 
         #endregion

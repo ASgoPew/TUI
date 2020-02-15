@@ -109,12 +109,12 @@ namespace TerrariaUI.Base
         #endregion
         #region Enable
 
-        public override VisualObject Enable()
+        public override VisualObject Enable(bool draw = true)
         {
             if (!Enabled)
             {
-                base.Enable();
                 Provider.Enable(false);
+                base.Enable(draw);
                 TUI.Hooks.Enabled.Invoke(new EnabledArgs(this, true));
             }
             return this;
@@ -123,14 +123,15 @@ namespace TerrariaUI.Base
         #endregion
         #region Disable
 
-        public override VisualObject Disable()
+        public override VisualObject Disable(bool draw = true)
         {
             if (Enabled)
             {
-                base.Disable();
-                Provider.Disable(false);
-                if (Provider is MainTileProvider)
+                if (UsesDefaultMainProvider && draw)
                     Clear();
+
+                Provider.Disable(false);
+                base.Disable(draw);
                 TUI.Hooks.Enabled.Invoke(new EnabledArgs(this, false));
             }
             return this;
@@ -139,7 +140,7 @@ namespace TerrariaUI.Base
         #endregion
         #region DrawReposition
 
-        public override void DrawReposition(int oldX, int oldY, int oldWidth, int oldHeight)
+        protected override void DrawReposition(int oldX, int oldY, int oldWidth, int oldHeight)
         {
             RequestDrawChanges();
             Draw(oldX - X, oldY - Y, oldWidth, oldHeight, toEveryone: true);
@@ -148,6 +149,22 @@ namespace TerrariaUI.Base
             else
                 RequestDrawChanges();
             Draw(toEveryone: true);
+        }
+
+        #endregion
+        #region DrawEnable
+
+        protected override void DrawEnable()
+        {
+            Update().Apply().Draw();
+        }
+
+        #endregion
+        #region DrawDisable
+
+        protected override void DrawDisable()
+        {
+            RequestDrawChanges().Draw();
         }
 
         #endregion
@@ -214,7 +231,7 @@ namespace TerrariaUI.Base
             if (cancelCallback != null)
                 PopUpCancelCallbacks[popup] = cancelCallback;
             PopUpBackground.DrawWithSection = DrawWithSection;
-            PopUpBackground.Select(popup).Enable();
+            PopUpBackground.Select(popup).Enable(false);
             Update();
             PopUpBackground.Apply().Draw();
             return PopUpBackground;
@@ -227,7 +244,7 @@ namespace TerrariaUI.Base
         {
             if (PopUpBackground != null)
             {
-                PopUpBackground.Disable();
+                PopUpBackground.Disable(false);
                 Apply().Draw();
             }
             return this;

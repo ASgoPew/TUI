@@ -112,13 +112,13 @@ namespace TerrariaUI.Widgets
                 int size = Math.Max(Height - limit, 1);
                 if (size >= Height)
                 {
-                    Slider.Disable();
+                    Slider.Disable(false);
                     Configuration.UseBegin = false;
                     return;
                 }
                 else
                 {
-                    Slider.Enable();
+                    Slider.Enable(false);
                     Configuration.UseBegin = true;
                 }
                 Slider.SetWH(_Width, size, false);
@@ -130,13 +130,13 @@ namespace TerrariaUI.Widgets
                 int size = Math.Max(Width - limit, 1);
                 if (size >= Width)
                 {
-                    Slider.Disable();
+                    Slider.Disable(false);
                     Configuration.UseBegin = false;
                     return;
                 }
                 else
                 {
-                    Slider.Enable();
+                    Slider.Enable(false);
                     Configuration.UseBegin = true;
                 }
                 Slider.SetWH(size, _Width, false);

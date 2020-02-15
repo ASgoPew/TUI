@@ -612,7 +612,7 @@ namespace TUIPlugin
         {
             try
             {
-                foreach (RootVisualObject root in TUI.GetRoots())
+                foreach (RootVisualObject root in TUI.GetRoots().Where(r => r.Enabled))
                 {
                     (int x, int y) = root.AbsoluteXY();
                     int sx = x - RegionAreaX;
@@ -747,6 +747,7 @@ namespace TUIPlugin
                     break;
                 }
                 case "e":
+                case "en":
                 case "enable":
                 {
                     if (args.Parameters.Count < 2
@@ -767,17 +768,12 @@ namespace TUIPlugin
                         return;
                     }
 
-                    root.Enable();
-                    if (root.Provider is MainTileProvider)
-                        root.Update().Apply();
-                    else
-                        root.RequestDrawChanges();
-                    root.Draw();
-
+                    root.Enable(true);
                     args.Player.SendSuccessMessage($"Enabled interface '{root.Name}'.");
                     break;
                 }
                 case "d":
+                case "dis":
                 case "disable":
                 {
                     if (args.Parameters.Count < 2
@@ -789,13 +785,7 @@ namespace TUIPlugin
                     if (!FindRoot(args.Parameters[1], args.Player, out RootVisualObject root))
                         return;
 
-                    root.Disable();
-                    if (root.Provider is MainTileProvider)
-                        root.Clear();
-                    else
-                        root.RequestDrawChanges();
-                    root.Draw();
-
+                    root.Disable(true);
                     args.Player.SendSuccessMessage($"Disabled interface '{root.Name}'.");
                     break;
                 }
@@ -818,7 +808,7 @@ $@"Interface '{root.Name}'
 Position and size: {root.XYWH()}
 Enabled: {root.Enabled}
 Tile provider: {provider_text}
-Apply counter: {root.DrawState}");
+Draw state: {root.DrawState}");
                     break;
                 }
                 case "xywh":
