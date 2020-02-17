@@ -353,7 +353,7 @@ namespace TUIPlugin
                 : null;
 
             int size = Math.Max(args.Width, args.Height);
-            if (size >= 50 || args.DrawWithSection)
+            if (size > 50 || args.DrawWithSection)
             {
                 if (FakesEnabled)
                     NetMessage.SendData(10, -1, -1, playerList, args.X, args.Y, args.Width, args.Height);

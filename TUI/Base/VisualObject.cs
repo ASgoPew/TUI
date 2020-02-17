@@ -1176,7 +1176,7 @@ namespace TerrariaUI.Base
             #endregion
             #region ApplyTiles
 
-            private VisualObject ApplyTiles()
+            public VisualObject ApplyTiles()
             {
                 lock (Locker)
                 {

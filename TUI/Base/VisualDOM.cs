@@ -263,6 +263,8 @@ namespace TerrariaUI.Base
                 child.Parent = @this;
 
                 TUI.TryToLoadChild(@this, child);
+                if (TUI.Active)
+                    child.Update();
 
                 return child;
             }
