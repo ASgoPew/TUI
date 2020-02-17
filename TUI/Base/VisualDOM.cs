@@ -175,6 +175,47 @@ namespace TerrariaUI.Base
         }
 
         #endregion
+        #region WayFromRoot
+
+        /// <summary>
+        /// Iterates over every node from root to this node.
+        /// </summary>
+        protected IEnumerable<VisualObject> WayFromRoot
+        {
+            get
+            {
+                Stack<VisualObject> stack = new Stack<VisualObject>();
+                VisualObject current = this as VisualObject;
+                while (current != null)
+                {
+                    stack.Push(current);
+                    current = current.Parent;
+                }
+                while (stack.Count > 0)
+                    yield return stack.Pop();
+            }
+        }
+
+        #endregion
+        #region WayToRoot
+
+        /// <summary>
+        /// Iterates over every node from this node to root.
+        /// </summary>
+        protected IEnumerable<VisualObject> WayToRoot
+        {
+            get
+            {
+                VisualObject current = this as VisualObject;
+                while (current != null)
+                {
+                    yield return current;
+                    current = current.Parent;
+                }
+            }
+        }
+
+        #endregion
         #region Points
 
         /// <summary>

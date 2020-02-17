@@ -46,8 +46,6 @@ namespace TerrariaUI
 
         public static void Load()
         {
-            Timer.Start();
-
             // Locking for Child and Active
             lock (Child)
             {
@@ -64,6 +62,8 @@ namespace TerrariaUI
                     }
             }
 
+            Timer.Start();
+
             Hooks.Load.Invoke(new LoadArgs(MaxPlayers));
         }
 
@@ -72,7 +72,7 @@ namespace TerrariaUI
 
         public static void Dispose()
         {
-            Hooks.Dispose.Invoke(new EventArgs());
+            Timer.Stop();
 
             // Locking for Child and Active
             lock (Child)
@@ -84,7 +84,7 @@ namespace TerrariaUI
                 Child.Clear();
             }
 
-            Timer.Stop();
+            Hooks.Dispose.Invoke(new EventArgs());
         }
 
         #endregion

@@ -48,6 +48,11 @@
         /// </summary>
         public UIStyle(UIStyle style)
         {
+            Stratify(style);
+        }
+
+        public void Stratify(UIStyle style)
+        {
             if (style.Active.HasValue)
                 this.Active = style.Active.Value;
             if (style.Tile.HasValue)

@@ -459,6 +459,18 @@ namespace TerrariaUI.Base
         public override string ToString() => FullName;
 
         #endregion
+        #region CollectStyle
+
+        public UIStyle CollectStyle(bool includeThis = true)
+        {
+            UIStyle result = new UIStyle();
+            foreach (VisualObject node in WayFromRoot)
+                if (node != this || includeThis)
+                    result.Stratify(node.Style);
+            return result;
+        }
+
+        #endregion
 
         #region Pulse
 
