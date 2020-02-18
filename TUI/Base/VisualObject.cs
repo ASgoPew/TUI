@@ -271,10 +271,11 @@ namespace TerrariaUI.Base
 
         protected virtual void DrawEnable()
         {
+            Parent.Update();
             if (Configuration.InLayout)
-                Parent.Update().Apply().Draw();
+                Parent.Apply().Draw();
             else
-                Update().Apply().Draw();
+                Apply().Draw();
         }
 
         #endregion
