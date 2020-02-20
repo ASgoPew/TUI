@@ -5,6 +5,8 @@ namespace TerrariaUI.Hooks
 {
     public class HookManager
     {
+        public Hook<CreateProviderArgs> CreateProvider = new Hook<CreateProviderArgs>();
+        public Hook<RemoveProviderArgs> RemoveProvider = new Hook<RemoveProviderArgs>();
         public Hook<LoadArgs> Load = new Hook<LoadArgs>();
         public Hook<EventArgs> Dispose = new Hook<EventArgs>();
         public Hook<DrawObjectArgs> DrawObject = new Hook<DrawObjectArgs>();

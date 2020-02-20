@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using TerrariaUI.Base.Style;
+using TerrariaUI.Hooks;
 using TerrariaUI.Hooks.Args;
 using TerrariaUI.Widgets;
 
@@ -59,7 +60,6 @@ namespace TerrariaUI.Base
         /// Basic root of user interface tree widget.
         /// </summary>
         /// <param name="name">Unique interface identifier</param>
-        /// <param name="provider">Tile provider object, default value - null (interface would
         /// be drawn on the Main.tile, tiles would be irrevocably modified).
         /// <para></para>
         /// FakeTileRectangle from [FakeManager](https://github.com/AnzhelikaO/FakeManager)
@@ -70,10 +70,24 @@ namespace TerrariaUI.Base
         {
             Configuration.UseOutsideTouches = false;
             Name = name;
-            if (provider == null)
-                Provider = new MainTileProvider();
-            else
+            if (provider != null)
                 Provider = provider;
+            else
+            {
+                var args = new CreateProviderArgs(this);
+                TUI.Hooks.CreateProvider.Invoke(args);
+                Provider = args.Provider ?? new MainTileProvider();
+            }
+        }
+
+        #endregion
+        #region DisposeThisNative
+
+        protected override void DisposeThisNative()
+        {
+            base.DisposeThisNative();
+            if (!(Provider is MainTileProvider))
+                TUI.Hooks.RemoveProvider.Invoke(new RemoveProviderArgs(Provider));
         }
 
         #endregion
@@ -328,9 +342,8 @@ namespace TerrariaUI.Base
                     y = originalY + (originalHeight - h) / 2;
 
                 SetXYWH(x, y, w, h, false);
-                node.SetXY(0, 0, false)
-                    .Apply()
-                    .Draw();
+                node.SetXY(0, 0, false);
+                Update().Apply().Draw();
 
                 DrawReposition(oldX, oldY, oldWidth, oldHeight);
 
