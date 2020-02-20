@@ -9,9 +9,6 @@ namespace TerrariaUI.Base
         T Add(T child, int? layer);
         T Remove(T child);
         void RemoveAll();
-        T Select(T child);
-        T Selected();
-        T Deselect();
         T GetRoot();
         bool IsAncestorFor(T o);
         bool SetTop(T child);

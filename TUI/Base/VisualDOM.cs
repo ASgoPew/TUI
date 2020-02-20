@@ -289,9 +289,10 @@ namespace TerrariaUI.Base
                 VisualObject @this = this as VisualObject;
                 lock (Child)
                 {
+                    if (child.Disposed)
+                        throw new InvalidOperationException("You cannot add a disposed VisualObject.");
                     if (Child.Contains(child))
                         return child;
-                        //throw new InvalidOperationException("You can't add an object that is already a child: " + child.FullName);
 
                     if (layer.HasValue)
                         child.Layer = layer.Value;
@@ -352,54 +353,6 @@ namespace TerrariaUI.Base
                     foreach (VisualObject child in Child.ToList())
                         Remove(child);
                 }
-            }
-
-            #endregion
-            #region Select
-
-            /// <summary>
-            /// Enable specified child and disable all other child objects.
-            /// </summary>
-            /// <param name="o">Child to select.</param>
-            /// <returns>this</returns>
-            public virtual VisualObject Select(VisualObject o)
-            {
-                if (!Child.Contains(o))
-                    throw new InvalidOperationException("Trying to Select an object that isn't a child of current VisualDOM");
-
-                foreach (VisualObject child in ChildrenFromTop)
-                    child.Disable(false);
-                o.Enable(false);
-
-                return this as VisualObject;
-            }
-
-            #endregion
-            #region Selected
-
-            /// <summary>
-            /// Searches for first Enabled child. See <see cref="Select(VisualObject)"/>.
-            /// </summary>
-            /// <returns>Selected child object</returns>
-            public virtual VisualObject Selected()
-            {
-                lock (Child)
-                    return Child.FirstOrDefault(c => c.Enabled);
-            }
-
-            #endregion
-            #region Deselect
-
-            /// <summary>
-            /// Enables all child objects. See <see cref="Select(VisualObject)"/>
-            /// </summary>
-            /// <returns>this</returns>
-            public virtual VisualObject Deselect()
-            {
-                foreach (VisualObject child in ChildrenFromTop)
-                    child.Enable(false);
-
-                return this as VisualObject;
             }
 
             #endregion

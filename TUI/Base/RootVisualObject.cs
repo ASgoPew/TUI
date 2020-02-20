@@ -36,19 +36,20 @@ namespace TerrariaUI.Base
         /// can be passed as a value so that interface would be drawn above the Main.tile.
         /// </summary>
         public override dynamic Provider { get; }
-        // Provider.IsPersonal for personal fakes
-        /// <summary>
-        /// 0 for Root with MainTileProvider, 1 for root with any fake provider.
-        /// </summary>
-        public override int Layer => UsesDefaultMainProvider ? 0 : 1;
-
         /// <summary>
         /// Counter of Apply() calls. Interface won't redraw to user if ApplyCounter hasn't changed.
         /// </summary>
         public ulong DrawState { get; protected internal set; }
         protected VisualContainer PopUpBackground { get; set; }
-        protected Dictionary<VisualObject, Action<VisualObject>> PopUpCancelCallbacks =
+        protected Dictionary<VisualObject, Action<VisualObject>> PopUpCancelCallbacks { get; set; } =
             new Dictionary<VisualObject, Action<VisualObject>>();
+        private Summoning Summoning { get; set; }
+
+        /// <summary>
+        /// 0 for Root with MainTileProvider, 1 for root with any fake provider.
+        /// </summary>
+        public override int Layer => UsesDefaultMainProvider ? 0 : 1;
+        public VisualObject Summoned => Summoning?.Summoned;
 
         #endregion
 
@@ -88,7 +89,7 @@ namespace TerrariaUI.Base
         #endregion
         #region SetXYWH
 
-        public override VisualObject SetXYWH(int x, int y, int width, int height, bool draw)
+        public override VisualObject SetXYWH(int x, int y, int width, int height, bool draw = true)
         {
             width = Math.Max(width, Configuration.Grid?.MinWidth ?? 1);
             height = Math.Max(height, Configuration.Grid?.MinHeight ?? 1);
@@ -144,6 +145,7 @@ namespace TerrariaUI.Base
         {
             RequestDrawChanges();
             Draw(oldX - X, oldY - Y, oldWidth, oldHeight, toEveryone: true);
+
             if (UsesDefaultMainProvider || oldWidth != Width || oldHeight != Height)
                 Update().Apply();
             else
@@ -215,7 +217,7 @@ namespace TerrariaUI.Base
                     PopUpBackground = new VisualContainer(0, 0, 0, 0, new UIConfiguration()
                         { SessionAcquire=true }, style, (self, touch) =>
                     {
-                        VisualObject selected = self.Selected();
+                        VisualObject selected = ((VisualContainer)self).Selected;
                         if (selected != null && PopUpCancelCallbacks.TryGetValue(selected, out Action<VisualObject> cancel))
                             cancel.Invoke(this);
                         else
@@ -231,7 +233,7 @@ namespace TerrariaUI.Base
             if (cancelCallback != null)
                 PopUpCancelCallbacks[popup] = cancelCallback;
             PopUpBackground.DrawWithSection = DrawWithSection;
-            PopUpBackground.Select(popup).Enable(false);
+            PopUpBackground.Select(popup, false).Enable(false);
             Update();
             PopUpBackground.Apply().Draw();
             return PopUpBackground;
@@ -275,6 +277,84 @@ namespace TerrariaUI.Base
         {
             ShowPopUp(new ConfirmWindow(text, callback, windowStyle, yesButtonStyle, noButtonStyle));
             return this;
+        }
+
+        #endregion
+        #region Summon
+
+        public RootVisualObject Summon(VisualObject node, Alignment alignment = Alignment.Center)
+        {
+            lock (Locker)
+            {
+                if (Summoning != null)
+                {
+                    if (Summoned == node)
+                        return this;
+                    if (Summoning.RemoveOnUnsummon)
+                        Remove(Summoned);
+                }
+
+                bool removeOnUnsummon = false;
+                if (!Child.Contains(node))
+                {
+                    Add(node);
+                    removeOnUnsummon = true;
+                }
+
+                (int oldX, int oldY, int oldWidth, int oldHeight) = XYWH();
+                (int originalX, int originalY, int originalWidth, int originalHeight) =
+                    (Summoning?.OldX ?? oldX, Summoning?.OldY ?? oldY,
+                    Summoning?.OldWidth ?? oldWidth, Summoning?.OldHeight ?? oldHeight);
+                Summoning = new Summoning(node, removeOnUnsummon, originalX, originalY, originalWidth, originalHeight);
+
+                Select(node, false);
+                int w = node.Width;
+                int h = node.Height;
+
+                int x;
+                if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
+                    x = originalX;
+                else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
+                    x = originalX + (originalWidth - w);
+                else
+                    x = originalX + (originalWidth - w) / 2;
+
+                int y;
+                if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
+                    y = originalY;
+                else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
+                    y = originalY + (originalHeight - h);
+                else
+                    y = originalY + (originalHeight - h) / 2;
+
+                SetXYWH(x, y, w, h, false);
+                node.SetXY(0, 0, false)
+                    .Apply()
+                    .Draw();
+
+                DrawReposition(oldX, oldY, oldWidth, oldHeight);
+
+                return this;
+            }
+        }
+
+        #endregion
+        #region Unsummon
+
+        public RootVisualObject Unsummon()
+        {
+            lock (Locker)
+            {
+                (int oldX, int oldY, int oldWidth, int oldHeight) = XYWH();
+                if (Summoning.RemoveOnUnsummon)
+                    Remove(Summoned);
+                SetXYWH(Summoning.OldX, Summoning.OldY, Summoning.OldWidth, Summoning.OldHeight, false);
+                Deselect(false);
+                DrawReposition(oldX, oldY, oldWidth, oldHeight);
+                Summoning = null;
+
+                return this;
+            }
         }
 
         #endregion

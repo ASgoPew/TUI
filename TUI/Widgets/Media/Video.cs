@@ -10,7 +10,7 @@ namespace TerrariaUI.Widgets
 {
     #region VideoStyle
 
-    public class VideoStyle : UIStyle
+    public class VideoStyle : ContainerStyle
     {
         public string Path { get; set; }
         public int Delay { get; set; } = 500;
@@ -29,7 +29,7 @@ namespace TerrariaUI.Widgets
 
     #endregion
 
-    public class Video : VisualObject
+    public class Video : VisualContainer
     {
         #region Data
 
@@ -172,7 +172,7 @@ namespace TerrariaUI.Widgets
                 return;
 
             Frame = (Frame + 1) % Images.Count;
-            Select(Images[Frame]).Update().Apply().Draw();
+            Select(Images[Frame], true);
 
             if (Frame == Images.Count - 1 && !VideoStyle.Repeat)
                 Stop();

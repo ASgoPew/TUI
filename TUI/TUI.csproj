@@ -49,11 +49,13 @@
     <Compile Include="Base\Input.cs" />
     <Compile Include="Base\InputVisualObject.cs" />
     <Compile Include="Base\Light.cs" />
+    <Compile Include="Base\Selection.cs" />
     <Compile Include="Base\Style\PaintID.cs" />
     <Compile Include="Base\PulseType.cs" />
     <Compile Include="Base\Style\Alignment.cs" />
     <Compile Include="Base\Style\Direction.cs" />
     <Compile Include="Base\Style\FullSize.cs" />
+    <Compile Include="Base\Summoning.cs" />
     <Compile Include="Base\UIDefault.cs" />
     <Compile Include="Base\VisualContainer.cs" />
     <Compile Include="Hooks\Args\DrawRectangleArgs.cs" />

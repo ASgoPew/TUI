@@ -38,6 +38,9 @@ namespace TerrariaUI.Base
     {
         #region Data
 
+        private Selection Selecting { get; set; }
+
+        public VisualObject Selected => Selecting?.Selected;
         public ContainerStyle ContainerStyle => Style as ContainerStyle;
 
         #endregion
@@ -62,6 +65,79 @@ namespace TerrariaUI.Base
         public VisualContainer(ContainerStyle style)
             : this(0, 0, 0, 0, new UIConfiguration() { UseBegin = false }, style)
         {
+        }
+
+        #endregion
+
+        #region Select
+
+        /// <summary>
+        /// Enable specified child and disable all other child objects.
+        /// </summary>
+        /// <param name="node">Child to select.</param>
+        /// <returns>this</returns>
+        public VisualContainer Select(VisualObject node, bool draw = true)
+        {
+            lock (Locker)
+            {
+                if (!Child.Contains(node))
+                    throw new InvalidOperationException("Trying to Select an object that isn't a child of current VisualDOM");
+
+                if (Selecting != null)
+                {
+                    if (Selected == node)
+                        return this;
+                    Selected.Disable(draw);
+                    Selecting.Selected = node;
+                    Selected.Enable(draw);
+                    return this;
+                }
+                Selecting = new Selection(node);
+
+                foreach (VisualObject child in ChildrenFromTop)
+                    if (child.Enabled)
+                    {
+                        child.Disable(false);
+                        Selecting.DisabledChildren.Add(child);
+                    }
+                node.Enable(false);
+
+                Update();
+                if (draw)
+                    Apply().Draw();
+            }
+
+
+            return this;
+        }
+
+        #endregion
+        #region Deselect
+
+        /// <summary>
+        /// Enables all child objects. See <see cref="Select(VisualObject)"/>
+        /// </summary>
+        /// <returns>this</returns>
+        public VisualContainer Deselect(bool draw = true)
+        {
+            lock (Locker)
+            {
+                if (Selecting == null)
+                    throw new InvalidOperationException("Trying to deselect without selecting.");
+
+                if (!Selecting.DisabledChildren.Contains(Selected))
+                    Selected.Disable(false);
+                foreach (VisualObject child in Selecting.DisabledChildren)
+                    if (Child.Contains(child) && !child.Enabled)
+                        child.Enable(false);
+                Selecting = null;
+
+                Update();
+                if (draw)
+                    Apply().Draw();
+            }
+
+            return this;
         }
 
         #endregion

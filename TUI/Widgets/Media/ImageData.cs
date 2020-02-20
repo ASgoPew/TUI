@@ -53,6 +53,8 @@ namespace TerrariaUI.Widgets.Media
                     if (image.Tiles != null)
                         images.Add(image);
                 }
+            else
+                throw new FileNotFoundException("Invalid TUI Image file or folder: " + path);
             return images.ToArray();
         }
 
