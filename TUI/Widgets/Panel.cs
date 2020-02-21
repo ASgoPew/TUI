@@ -6,6 +6,26 @@ using TerrariaUI.Hooks.Args;
 
 namespace TerrariaUI.Widgets
 {
+    #region PanelStyle
+
+    /// <summary>
+    /// Drawing styles for Button widget.
+    /// </summary>
+    public class PanelStyle : ContainerStyle
+    {
+        public bool SavePosition { get; set; } = true;
+        public bool SaveSize { get; set; } = true;
+        public bool SaveEnabled { get; set; } = true;
+
+        public PanelStyle() : base() { }
+
+        public PanelStyle(PanelStyle style)
+            : base(style)
+        {
+        }
+    }
+
+    #endregion
     enum PanelState
     {
         Moving = 0,
@@ -29,6 +49,8 @@ namespace TerrariaUI.Widgets
         public PanelResize ResizeObject { get; set; }
         internal bool SaveDataNow { get; set; } = true;
 
+        public PanelStyle PanelStyle => Style as PanelStyle;
+
         #endregion
 
         #region Constructor
@@ -44,9 +66,9 @@ namespace TerrariaUI.Widgets
         /// FakeTileRectangle from [FakeManager](https://github.com/AnzhelikaO/FakeManager)
         /// can be passed as a value so that interface would be drawn above the Main.tile.</param>
         public Panel(string name, int x, int y, int width, int height, PanelDrag drag, PanelResize resize,
-                UIConfiguration configuration = null, ContainerStyle style = null, object provider = null)
+                UIConfiguration configuration = null, PanelStyle style = null, object provider = null)
             : base(name, x, y, width, height, configuration ?? new UIConfiguration() { UseBegin = true,
-                UseMoving = true, UseEnd = true }, style, provider)
+                UseMoving = true, UseEnd = true }, style ?? new PanelStyle(), provider)
         {
             if (drag != null)
                 DragObject = Add(drag) as PanelDrag;
@@ -75,7 +97,7 @@ namespace TerrariaUI.Widgets
         /// FakeTileRectangle from [FakeManager](https://github.com/AnzhelikaO/FakeManager)
         /// can be passed as a value so that interface would be drawn above the Main.tile.</param>
         public Panel(string name, int x, int y, int width, int height, UIConfiguration configuration = null,
-                ContainerStyle style = null, object provider = null)
+                PanelStyle style = null, object provider = null)
             : this(name, x, y, width, height, new DefaultPanelDrag(), new DefaultPanelResize(), configuration, style, provider)
         { }
 
@@ -118,7 +140,12 @@ namespace TerrariaUI.Widgets
             int height = br.ReadInt32();
             if (x + width < TUI.MaxTilesX && y + height < TUI.MaxTilesY)
             {
-                SetXYWH(x, y, width, height, false);
+                if (PanelStyle.SavePosition && PanelStyle.SaveSize)
+                    SetXYWH(x, y, width, height, false);
+                else if (PanelStyle.SavePosition)
+                    SetXY(x, y, false);
+                else if (PanelStyle.SaveSize)
+                    SetWH(width, height, false);
             }
             else
             {
@@ -128,8 +155,13 @@ namespace TerrariaUI.Widgets
                 return;
             }
             bool enabled = br.ReadBoolean();
-            if (!enabled)
-                Disable(false);
+            if (PanelStyle.SaveEnabled)
+            {
+                if (Enabled && !enabled)
+                    Disable(false);
+                else if (!Enabled && enabled)
+                    Enable(false);
+            }
         }
 
         #endregion
@@ -151,8 +183,11 @@ namespace TerrariaUI.Widgets
         /// <summary>
         /// Save panel position and size
         /// </summary>
-        public void SavePanel() =>
-            DBWrite();
+        public void SavePanel()
+        {
+            if (Summoning == null)
+                DBWrite();
+        }
 
         #endregion
     }

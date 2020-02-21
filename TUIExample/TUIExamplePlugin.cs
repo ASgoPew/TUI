@@ -33,7 +33,7 @@ namespace TUIExample
 
             // Create a panel with a wall of diamond gemspark wall with black paint.
             Panel root = TUI.Create(new Panel("TestPanel", x, y, w, h, null,
-                new ContainerStyle() { Wall = WallID.DiamondGemspark, WallColor = PaintID.Black }, provider)) as Panel;
+                new PanelStyle() { Wall = WallID.DiamondGemspark, WallColor = PaintID.Black }, provider)) as Panel;
             // Create a Label widget (text display) with white characters.
             Label label1 = new Label(1, 1, 17, 2, "some text", new LabelStyle() { TextColor = PaintID.White });
             // Add to panel

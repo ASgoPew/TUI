@@ -38,7 +38,7 @@ namespace TerrariaUI.Base
     {
         #region Data
 
-        private Selection Selecting { get; set; }
+        protected Selection Selecting { get; set; }
 
         public VisualObject Selected => Selecting?.Selected;
         public ContainerStyle ContainerStyle => Style as ContainerStyle;

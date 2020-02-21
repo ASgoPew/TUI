@@ -44,7 +44,7 @@ namespace TerrariaUI.Base
         protected VisualContainer PopUpBackground { get; set; }
         protected Dictionary<VisualObject, Action<VisualObject>> PopUpCancelCallbacks { get; set; } =
             new Dictionary<VisualObject, Action<VisualObject>>();
-        private Summoning Summoning { get; set; }
+        protected Summoning Summoning { get; set; }
 
         /// <summary>
         /// 0 for Root with MainTileProvider, 1 for root with any fake provider.
@@ -304,22 +304,22 @@ namespace TerrariaUI.Base
                 {
                     if (Summoned == node)
                         return this;
-                    if (Summoning.RemoveOnUnsummon)
+                    if (!Summoning.WasChild)
                         Remove(Summoned);
                 }
 
-                bool removeOnUnsummon = false;
+                bool wasChild = true;
                 if (!Child.Contains(node))
                 {
                     Add(node);
-                    removeOnUnsummon = true;
+                    wasChild = false;
                 }
 
                 (int oldX, int oldY, int oldWidth, int oldHeight) = XYWH();
                 (int originalX, int originalY, int originalWidth, int originalHeight) =
                     (Summoning?.OldX ?? oldX, Summoning?.OldY ?? oldY,
                     Summoning?.OldWidth ?? oldWidth, Summoning?.OldHeight ?? oldHeight);
-                Summoning = new Summoning(node, removeOnUnsummon, originalX, originalY, originalWidth, originalHeight);
+                Summoning = new Summoning(node, wasChild, originalX, originalY, originalWidth, originalHeight);
 
                 Select(node, false);
                 int w = node.Width;
@@ -359,8 +359,10 @@ namespace TerrariaUI.Base
             lock (Locker)
             {
                 (int oldX, int oldY, int oldWidth, int oldHeight) = XYWH();
-                if (Summoning.RemoveOnUnsummon)
+                if (!Summoning.WasChild)
                     Remove(Summoned);
+                else
+                    Summoned.SetXY(Summoning.WasX, Summoning.WasY, false);
                 SetXYWH(Summoning.OldX, Summoning.OldY, Summoning.OldWidth, Summoning.OldHeight, false);
                 Deselect(false);
                 DrawReposition(oldX, oldY, oldWidth, oldHeight);
