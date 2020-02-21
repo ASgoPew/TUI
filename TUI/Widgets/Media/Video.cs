@@ -138,7 +138,7 @@ namespace TerrariaUI.Widgets
         #endregion
         #region UpdateSizeNative
 
-        protected override (int, int) UpdateSizeNative() =>
+        protected override (int, int) GetSizeNative() =>
             Images?.Count > 0
             //? (Images.Max(i => i.Width), Images.Max(i => i.Height))
             ? (Images[Frame].Width, Images[Frame].Height)

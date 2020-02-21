@@ -189,10 +189,9 @@ namespace TerrariaUI.Base
 
         protected override void UpdateThisNative()
         {
+            // MainTileProvider acquires Main.tile field
             Provider.Update();
-            if (!Loaded)
-                LoadThisNative();
-            UpdateSizeNative();
+            SetWH(GetSizeNative(), false);
             base.UpdateThisNative();
         }
 

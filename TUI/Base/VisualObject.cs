@@ -682,20 +682,20 @@ namespace TerrariaUI.Base
             {
                 foreach (VisualObject child in ChildrenFromTop)
                 {
-                    child.SetWH(child.UpdateSizeNative(), false);
+                    child.SetWH(child.GetSizeNative(), false);
                     if (child.Configuration.FullSize != FullSize.None)
                         child.UpdateFullSize();
                 }
             }
 
             #endregion
-            #region UpdateSizeNative
+            #region GetSizeNative
 
             /// <summary>
             /// Overridable method for determining object size depending on own data (image/text/etc size)
             /// </summary>
             /// <returns></returns>
-            protected virtual (int, int) UpdateSizeNative() => (Width, Height);
+            protected virtual (int, int) GetSizeNative() => (Width, Height);
 
             #endregion
             #region UpdateFullSize
