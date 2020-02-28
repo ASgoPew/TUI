@@ -360,8 +360,9 @@ namespace TerrariaUI.Base
                 (int oldX, int oldY, int oldWidth, int oldHeight) = XYWH();
                 if (!Summoning.WasChild)
                     Remove(Summoned);
-                else
+                else // Restoring Summoned position in parent since it was a child before summoning
                     Summoned.SetXY(Summoning.WasX, Summoning.WasY, false);
+
                 SetXYWH(Summoning.OldX, Summoning.OldY, Summoning.OldWidth, Summoning.OldHeight, false);
                 Deselect(false);
                 DrawReposition(oldX, oldY, oldWidth, oldHeight);

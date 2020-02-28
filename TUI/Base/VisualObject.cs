@@ -475,12 +475,12 @@ namespace TerrariaUI.Base
 
         #region Pulse
 
-        /// <summary>
-        /// Send specified signal to all sub-tree including this node.
-        /// </summary>
-        /// <param name="type">Type of signal</param>
-        /// <returns>this</returns>
-        public virtual VisualObject Pulse(PulseType type)
+            /// <summary>
+            /// Send specified signal to all sub-tree including this node.
+            /// </summary>
+            /// <param name="type">Type of signal</param>
+            /// <returns>this</returns>
+            public virtual VisualObject Pulse(PulseType type)
             {
                 // Pulse event handling related to this node
                 PulseThis(type);
