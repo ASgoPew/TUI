@@ -295,7 +295,8 @@ namespace TerrariaUI.Base
         /// <param name="child">Object to add as a child.</param>
         /// <param name="layer">Layer where to add the object. Null by default (don't change object layer).</param>
         /// <returns></returns>
-        public virtual VisualObject AddToLayout(VisualObject child, int? layer = null)
+        public virtual T AddToLayout<T>(T child, int? layer = null)
+            where T : VisualObject
         {
             child.Configuration.Alignment = null;
             if (child.Cell != null)

@@ -29,17 +29,17 @@ namespace TerrariaUI.Widgets
             SetFullSize(FullSize.Both);
 
             Container = Add(new VisualContainer(style ?? new ContainerStyle()
-                { Wall = 165, WallColor = 27 })) as VisualContainer;
+                { Wall = 165, WallColor = 27 }));
             Container.SetAlignmentInParent(Alignment.Center)
                 .SetFullSize(FullSize.Horizontal)
                 .SetupLayout(Alignment.Center, Direction.Down, childIndent: 0);
 
             int lines = (text?.Count(c => c == '\n') ?? 0) + 1;
             Label = Container.AddToLayout(new Label(0, 0, 0, 1 + lines * 3, text, null,
-                new LabelStyle() { TextIndent = new Indent() { Horizontal = 1, Vertical = 1 } }))
-                .SetFullSize(FullSize.Horizontal) as Label;
+                new LabelStyle() { TextIndent = new Indent() { Horizontal = 1, Vertical = 1 } }));
+            Label.SetFullSize(FullSize.Horizontal);
 
-            VisualContainer yesno = Container.AddToLayout(new VisualContainer(0, 0, 24, 4)) as VisualContainer;
+            VisualContainer yesno = Container.AddToLayout(new VisualContainer(0, 0, 24, 4));
 
             yesButtonStyle = yesButtonStyle ?? new ButtonStyle()
             {
@@ -51,9 +51,9 @@ namespace TerrariaUI.Widgets
             YesButton = yesno.Add(new Button(0, 0, 12, 4, "yes", null, yesButtonStyle,
                 ((self, touch) =>
                 {
-                    self.Root.HidePopUp();
+                    ((Panel)self.Root).HidePopUp();
                     callback.Invoke(true);
-                }))) as Button;
+                })));
 
             noButtonStyle = noButtonStyle ?? new ButtonStyle()
             {
@@ -65,9 +65,9 @@ namespace TerrariaUI.Widgets
             NoButton = yesno.Add(new Button(12, 0, 12, 4, "no", null, noButtonStyle,
                 ((self, touch) =>
                 {
-                    self.Root.HidePopUp();
+                    ((Panel)self.Root).HidePopUp();
                     callback.Invoke(false);
-                }))) as Button;
+                })));
 
             Callback = CancelCallback;
             Container.SetWH(0, Label.Height + yesno.Height, false);
@@ -76,10 +76,10 @@ namespace TerrariaUI.Widgets
         #endregion
         #region CancelCallback
 
-        private void CancelCallback(VisualObject window, Touch touch)
+        private void CancelCallback(VisualObject self, Touch touch)
         {
-            (window as ConfirmWindow).ConfirmCallback.Invoke(false);
-            window.Root.HidePopUp();
+            ((ConfirmWindow)self).ConfirmCallback.Invoke(false);
+            ((Panel)self.Root).HidePopUp();
         }
 
         #endregion

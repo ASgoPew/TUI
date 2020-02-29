@@ -284,7 +284,8 @@ namespace TerrariaUI.Base
             /// <param name="child">Object to add as a child.</param>
             /// <param name="layer">Layer to add object to. Null by default (don't change object layer).</param>
             /// <returns>Added object</returns>
-            public virtual VisualObject Add(VisualObject child, int? layer = null)
+            public virtual T Add<T>(T child, int? layer = null)
+                where T : VisualObject
             {
                 VisualObject @this = this as VisualObject;
                 lock (Child)
@@ -638,6 +639,11 @@ namespace TerrariaUI.Base
         /// <param name="index">Index in Child array</param>
         /// <returns>Child with specified index in Child array</returns>
         public virtual VisualObject GetChild(int index) => Child[index];
+
+        #endregion
+        #region HasChild
+
+        public bool HasChild(VisualObject node) => Child.Contains(node);
 
         #endregion
         #region operator[]

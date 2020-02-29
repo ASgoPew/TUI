@@ -6,7 +6,7 @@ namespace TerrariaUI.Base
     {
         T Parent { get; }
 
-        T Add(T child, int? layer);
+        U Add<U>(U child, int? layer) where U : VisualObject;
         T Remove(T child);
         void RemoveAll();
         T GetRoot();

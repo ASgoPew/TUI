@@ -14,6 +14,7 @@ using TerrariaUI.Hooks.Args;
 using TerrariaUI.Widgets.Data;
 using TerrariaUI.Widgets.Media;
 using TerrariaUI;
+using TerrariaUI.Widgets;
 
 namespace TUIPlugin
 {
@@ -848,6 +849,25 @@ Draw state: {root.DrawState}");
                         $"of interface '{root.Name}' to {root.XYWH()}.");
                     break;
                 }
+                case "reset":
+                {
+                    if (args.Parameters.Count != 2)
+                    {
+                        args.Player.SendErrorMessage("/tui reset \"interface name\"");
+                        return;
+                    }
+                    if (!FindRoot(args.Parameters[1], args.Player, out RootVisualObject root))
+                        return;
+
+                    if (root is Panel panel)
+                    {
+                        panel.HidePopUp();
+                        panel.UnsummonAll();
+                    }
+
+                    args.Player.SendSuccessMessage($"Interface '{root.Name}' was reset.");
+                    break;
+                }
                 default:
                 {
                     args.Player.SendSuccessMessage("/tui subcommands:");
@@ -857,6 +877,7 @@ Draw state: {root.DrawState}");
                     args.Player.SendInfoMessage("/tui tphere \"interface name\" [-confirm]");
                     args.Player.SendInfoMessage("/tui enable \"interface name\" [-confirm]");
                     args.Player.SendInfoMessage("/tui disable \"interface name\"");
+                    args.Player.SendInfoMessage("/tui reset \"interface name\"");
                     args.Player.SendInfoMessage("/tui list [page]");
                     break;
                 }

@@ -71,9 +71,9 @@ namespace TerrariaUI.Widgets
                 UseMoving = true, UseEnd = true }, style ?? new PanelStyle(), provider)
         {
             if (drag != null)
-                DragObject = Add(drag) as PanelDrag;
+                DragObject = Add(drag);
             if (resize != null)
-                ResizeObject = Add(resize) as PanelResize;
+                ResizeObject = Add(resize);
 
             try
             {
@@ -187,6 +187,220 @@ namespace TerrariaUI.Widgets
         {
             if (Summoning == null)
                 DBWrite();
+        }
+
+        #endregion
+
+        #region ShowPopUp
+
+        /// <summary>
+        /// Draws popup object on top of all other child objects.
+        /// </summary>
+        /// <param name="style">Style of popup background</param>
+        /// <param name="cancelCallback">Action to call when player touches popup background but not popup itself</param>
+        /// <returns>PopUpBackground</returns>
+        public virtual VisualContainer ShowPopUp(VisualObject popup, ContainerStyle style = null, Action<VisualObject> cancelCallback = null)
+        {
+            style = style ?? new ContainerStyle();
+            style.Transparent = true;
+            lock (Locker)
+            {
+                if (PopUpBackground == null)
+                {
+                    PopUpBackground = new VisualContainer(0, 0, 0, 0, new UIConfiguration()
+                    { SessionAcquire = true }, style, (self, touch) =>
+                    {
+                        VisualObject selected = ((VisualContainer)self).Selected;
+                        if (selected != null && PopUpCancelCallbacks.TryGetValue(selected, out Action<VisualObject> cancel))
+                            cancel.Invoke(this);
+                        else
+                            HidePopUp();
+                    });
+                    Add(PopUpBackground, Int32.MaxValue);
+                }
+            }
+            if (style != null)
+                PopUpBackground.Style = style;
+            PopUpBackground.SetFullSize(FullSize.Both);
+            PopUpBackground.Add(popup);
+            if (cancelCallback != null)
+                PopUpCancelCallbacks[popup] = cancelCallback;
+            PopUpBackground.DrawWithSection = DrawWithSection;
+            PopUpBackground.Select(popup, false).Enable(false);
+            Update();
+            PopUpBackground.Apply().Draw();
+            return PopUpBackground;
+        }
+
+        #endregion
+        #region HidePopUp
+
+        public virtual RootVisualObject HidePopUp()
+        {
+            if (PopUpBackground != null)
+            {
+                PopUpBackground.Disable(false);
+                Apply().Draw();
+            }
+            return this;
+        }
+
+        #endregion
+        #region Alert
+
+        /// <summary>
+        /// Show alert window with information text and "ok" button.
+        /// </summary>
+        /// <returns>this</returns>
+        public virtual RootVisualObject Alert(string text, ContainerStyle windowStyle = null, ButtonStyle okButtonStyle = null)
+        {
+            ShowPopUp(new AlertWindow(text, windowStyle, okButtonStyle));
+            return this;
+        }
+
+        #endregion
+        #region Confirm
+
+        /// <summary>
+        /// Show confirm window with information text and "yes", "no" buttons.
+        /// </summary>
+        /// <returns>this</returns>
+        public virtual RootVisualObject Confirm(string text, Action<bool> callback, ContainerStyle windowStyle = null,
+            ButtonStyle yesButtonStyle = null, ButtonStyle noButtonStyle = null)
+        {
+            ShowPopUp(new ConfirmWindow(text, callback, windowStyle, yesButtonStyle, noButtonStyle));
+            return this;
+        }
+
+        #endregion
+        #region Summon
+
+        public Panel Summon(VisualObject node, Alignment alignment = Alignment.Center,
+            bool replace = false, bool drag = false, bool resize = false)
+        {
+            lock (Locker)
+            {
+                if (Summoned == node)
+                    return this;
+
+                if (Summoning == null)
+                    Summoning = new Summoning(X, Y, Width, Height);
+                else if (replace)
+                    UnsummonNode();
+
+                SummonNode(node, alignment, drag, resize);
+                ApplySummoned();
+
+                return this;
+            }
+        }
+
+        #endregion
+        #region SummonNode
+
+        private void SummonNode(VisualObject node, Alignment alignment, bool drag, bool resize)
+        {
+            bool wasChild = HasChild(node);
+            if (!wasChild)
+                Add(node);
+            Summoning.Push(node, wasChild, alignment, drag, resize);
+            node.SetXY(0, 0, false);
+        }
+
+        #endregion
+        #region ApplySummoned
+
+        private void ApplySummoned()
+        {
+            SummoningNode summoningNode = Summoning.Top;
+            VisualObject node = summoningNode.Node;
+            Alignment alignment = summoningNode.Alignment;
+            (int oldX, int oldY, int oldWidth, int oldHeight) = XYWH();
+
+            Select(node, false);
+            if (summoningNode.Drag)
+                DragObject?.Enable(false);
+            else
+                DragObject?.Disable(false);
+            if (summoningNode.Resize)
+                ResizeObject?.Enable(false);
+            else
+                ResizeObject?.Disable(false);
+
+            int w = node.Width;
+            int h = node.Height;
+
+            int x;
+            if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
+                x = Summoning.OldX;
+            else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
+                x = Summoning.OldX + (Summoning.OldWidth - w);
+            else
+                x = Summoning.OldX + (Summoning.OldWidth - w) / 2;
+
+            int y;
+            if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
+                y = Summoning.OldY;
+            else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
+                y = Summoning.OldY + (Summoning.OldHeight - h);
+            else
+                y = Summoning.OldY + (Summoning.OldHeight - h) / 2;
+
+            SetXYWH(x, y, w, h, false);
+            Update().Apply();
+            DrawReposition(oldX, oldY, oldWidth, oldHeight);
+        }
+
+        #endregion
+        #region Unsummon
+
+        public Panel Unsummon(int levels = 1)
+        {
+            lock (Locker)
+            {
+                if (Summoning == null)
+                    return this;
+                else if (levels < 1)
+                    throw new ArgumentOutOfRangeException(nameof(levels));
+                else if (levels > Summoning.Count)
+                    levels = Summoning.Count;
+
+                (int oldX, int oldY, int oldWidth, int oldHeight) = XYWH();
+                while (levels-- > 0)
+                    UnsummonNode();
+
+                if (Summoning.Count > 0)
+                    ApplySummoned();
+                else
+                {
+                    SetXYWH(Summoning.OldX, Summoning.OldY, Summoning.OldWidth, Summoning.OldHeight, false);
+                    DragObject?.Enable(false);
+                    ResizeObject?.Enable(false);
+                    Deselect(false);
+                    DrawReposition(oldX, oldY, oldWidth, oldHeight);
+                    Summoning = null;
+                }
+
+                return this;
+            }
+        }
+
+        #endregion
+        #region UnsummonAll
+
+        public Panel UnsummonAll() =>
+            Unsummon(Int32.MaxValue);
+
+        #endregion
+        #region UnsummonNode
+
+        private void UnsummonNode()
+        {
+            SummoningNode node = Summoning.Pop();
+            if (!node.WasChild)
+                Remove(node.Node);
+            else // Restoring Summoned position in parent since it was a child before summoning
+                node.Node.SetXY(node.OldX, node.OldY, false);
         }
 
         #endregion

@@ -245,14 +245,14 @@ namespace TUIExample
             {
                 Wall = WallID.AmberGemspark,
                 WallColor = PaintID.DeepOrange
-            }, (self, touch) => node.Root.Alert("Hello world"))) as Button;
+            }, (self, touch) => ((Panel)node.Root).Alert("Hello world"))) as Button;
 
             // ConfirmWindow
             Button confirmButton = node.AddToLayout(new Button(15, 13, 20, 4, "confirm\npls", null, new ButtonStyle()
             {
                 Wall = WallID.AmberGemspark,
                 WallColor = PaintID.DeepTeal
-            }, (self, touch) => node.Root.Confirm("Very nice", value => TSPlayer.All.SendInfoMessage("Confirmed? " + value)))) as Button;
+            }, (self, touch) => ((Panel)node.Root).Confirm("Very nice", value => TSPlayer.All.SendInfoMessage("Confirmed? " + value)))) as Button;
 
             // ScrollBackground
             // <Adding a lot of widgets to layout>

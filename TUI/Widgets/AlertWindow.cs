@@ -22,8 +22,8 @@ namespace TerrariaUI.Widgets
             SetupLayout(Alignment.Center, Direction.Down, childIndent: 0);
             int lines = (text?.Count(c => c == '\n') ?? 0) + 1;
             Label = AddToLayout(new Label(0, 0, 0, 1 + lines * 3, text, null,
-                new LabelStyle() { TextIndent = new Indent() { Horizontal = 1, Vertical = 1 } }))
-                .SetFullSize(FullSize.Horizontal) as Label;
+                new LabelStyle() { TextIndent = new Indent() { Horizontal = 1, Vertical = 1 } }));
+            Label.SetFullSize(FullSize.Horizontal);
             buttonStyle = buttonStyle ?? new ButtonStyle()
             {
                 WallColor = PaintID.DeepGreen,
@@ -32,7 +32,7 @@ namespace TerrariaUI.Widgets
             };
             buttonStyle.TriggerStyle = ButtonTriggerStyle.TouchEnd;
             Button = AddToLayout(new Button(0, 0, 14, 4, "ok", null, buttonStyle,
-                ((self, touch) => self.Root.HidePopUp()))) as Button;
+                ((self, touch) => ((Panel)self.Root).HidePopUp())));
             SetWH(0, Label.Height + Button.Height, false);
             SetFullSize(FullSize.Horizontal);
         }

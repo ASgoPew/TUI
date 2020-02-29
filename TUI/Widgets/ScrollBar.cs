@@ -72,11 +72,11 @@ namespace TerrariaUI.Widgets
                     SetAlignmentInParent(Alignment.Down);
                 SetupLayout(Alignment.Left, Direction.Left, Side.Center, null, 0);
             }
-            Empty1 = AddToLayout(new Separator(0)) as Separator;
+            Empty1 = AddToLayout(new Separator(0));
             Empty1.Configuration.UseBegin = false;
             // Adding ScrollBackground with 0 layer.
-            Slider = AddToLayout(new ScrollBackground(false, true, true, ScrollAction), 0) as ScrollBackground;
-            Empty2 = AddToLayout(new Separator(0)) as Separator;
+            Slider = AddToLayout(new ScrollBackground(false, true, true, ScrollAction), 0);
+            Empty2 = AddToLayout(new Separator(0));
             Empty2.Configuration.UseBegin = false;
             Slider.SetFullSize(FullSize.None);
             Slider.Style.WallColor = ScrollBarStyle.SliderColor;
