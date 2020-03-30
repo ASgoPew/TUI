@@ -161,6 +161,8 @@ namespace TerrariaUI
         {
             lock (Child)
             {
+                if (Active)
+                    obj.Disable(true);
                 Child.Remove(obj);
                 obj.Dispose();
             }

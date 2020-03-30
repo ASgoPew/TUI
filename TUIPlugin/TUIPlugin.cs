@@ -868,6 +868,22 @@ Draw state: {root.DrawState}");
                     args.Player.SendSuccessMessage($"Interface '{root.Name}' was reset.");
                     break;
                 }
+                case "del":
+                case "delete":
+                {
+                    if (args.Parameters.Count != 3)
+                    {
+                        args.Player.SendErrorMessage("/tui delete \"interface name\" -confirm");
+                        return;
+                    }
+                    if (!FindRoot(args.Parameters[1], args.Player, out RootVisualObject root))
+                        return;
+
+                    TUI.Destroy(root);
+
+                    args.Player.SendSuccessMessage($"Interface '{root.Name}' was deleted.");
+                    break;
+                }
                 default:
                 {
                     args.Player.SendSuccessMessage("/tui subcommands:");
@@ -878,6 +894,7 @@ Draw state: {root.DrawState}");
                     args.Player.SendInfoMessage("/tui enable \"interface name\" [-confirm]");
                     args.Player.SendInfoMessage("/tui disable \"interface name\"");
                     args.Player.SendInfoMessage("/tui reset \"interface name\"");
+                    args.Player.SendInfoMessage("/tui delete \"interface name\" -confirm");
                     args.Player.SendInfoMessage("/tui list [page]");
                     break;
                 }
