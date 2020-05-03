@@ -1386,13 +1386,13 @@ namespace TerrariaUI.Base
 
         #region Database
 
-        #region DBRead
+            #region DBRead
 
-        /// <summary>
-        /// Read data from database using overridable DBReadNative method
-        /// </summary>
-        /// <returns>true if read is successful</returns>
-        public bool DBRead()
+            /// <summary>
+            /// Read data from database using overridable DBReadNative method
+            /// </summary>
+            /// <returns>true if read is successful</returns>
+            public bool DBRead()
             {
                 byte[] data = TUI.DBGet(FullName);
                 if (data != null)

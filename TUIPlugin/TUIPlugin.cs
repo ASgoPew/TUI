@@ -326,6 +326,7 @@ namespace TUIPlugin
             {
                 // Sending to everyone who has ever seen this interface
                 players = node.Root.PlayerApplyCounter.Keys.ToHashSet();
+                //TODO: Add node.Root.Players?
             }
             else
             {
@@ -466,6 +467,7 @@ namespace TUIPlugin
             if (provider is MainTileProvider)
                 Sign.KillSign(args.Sign.x, args.Sign.y);
             else
+                // TODO: No such entity in this tile provider (when doing /py reset with disabled panel but enabled provider)
                 provider.RemoveEntity(args.Sign);
         }
 
@@ -770,6 +772,8 @@ namespace TUIPlugin
                     }
 
                     root.Enable(true);
+                    if (root is Panel panel)
+                        panel.SavePanel();
                     args.Player.SendSuccessMessage($"Enabled interface '{root.Name}'.");
                     break;
                 }
@@ -787,6 +791,8 @@ namespace TUIPlugin
                         return;
 
                     root.Disable(true);
+                    if (root is Panel panel)
+                        panel.SavePanel();
                     args.Player.SendSuccessMessage($"Disabled interface '{root.Name}'.");
                     break;
                 }

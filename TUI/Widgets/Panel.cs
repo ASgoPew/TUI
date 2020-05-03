@@ -77,6 +77,7 @@ namespace TerrariaUI.Widgets
 
             try
             {
+                //TODO: MOVE TO Load()
                 DBRead();
             }
             catch (Exception e)
@@ -109,24 +110,6 @@ namespace TerrariaUI.Widgets
             base.DrawReposition(oldX, oldY, oldWidth, oldHeight);
             if (SaveDataNow)
                 SavePanel();
-        }
-
-        #endregion
-        #region DrawEnable
-
-        protected override void DrawEnable()
-        {
-            base.DrawEnable();
-            SavePanel();
-        }
-
-        #endregion
-        #region DrawDisable
-
-        protected override void DrawDisable()
-        {
-            base.DrawDisable();
-            SavePanel();
         }
 
         #endregion
