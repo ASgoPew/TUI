@@ -130,7 +130,7 @@ namespace TerrariaUI.Widgets
             CharStyle = charStyle ?? new UIStyle()
             {
                 Wall = 155,
-                WallColor = PaintID.DeepRed
+                WallColor = PaintID2.DeepRed
             };
         }
 

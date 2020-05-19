@@ -33,9 +33,9 @@ namespace TUIExample
 
             // Create a panel with a wall of diamond gemspark wall with black paint.
             Panel root = TUI.Create(new Panel("TestPanel", x, y, w, h, null,
-                new PanelStyle() { Wall = WallID.DiamondGemspark, WallColor = PaintID.Black }, provider)) as Panel;
+                new PanelStyle() { Wall = WallID.DiamondGemspark, WallColor = PaintID2.Black }, provider)) as Panel;
             // Create a Label widget (text display) with white characters.
-            Label label1 = new Label(1, 1, 17, 2, "some text", new LabelStyle() { TextColor = PaintID.White });
+            Label label1 = new Label(1, 1, 17, 2, "some text", new LabelStyle() { TextColor = PaintID2.White });
             // Add to panel
             root.Add(label1);
 
@@ -43,11 +43,11 @@ namespace TUIExample
             // The Add function returns the newly added object in the VisualObject type,
             // so adding an element can be implemented as follows:
             VisualContainer node = root.Add(
-                new VisualContainer(0, 15, w, 25, null, new ContainerStyle() { WallColor = PaintID.White })
+                new VisualContainer(0, 15, w, 25, null, new ContainerStyle() { WallColor = PaintID2.White })
             ) as VisualContainer;
             // Add a button to this container, which, when clicked, will send the clicker to the chat.
             /*node.Add(new Button(5, 0, 12, 4, "lol", null, new ButtonStyle()
-            { Wall = 165, WallColor = PaintID.DeepGreen }, (self, touch) =>
+            { Wall = 165, WallColor = PaintID2.DeepGreen }, (self, touch) =>
                   touch.Player().SendInfoMessage("You pressed lol button!")));*/
 
             if (false)
@@ -56,7 +56,7 @@ namespace TUIExample
                 node.SetupLayout(Alignment.Center, Direction.Right, Side.Center, null, 3, false);
                 // Add the InputLabel widget to the layout that allows you to input text.
                 node.AddToLayout(new InputLabel(0, 0, new InputLabelStyle()
-                    { TextColor = PaintID.Black, Type = InputLabelType.All, TextUnderline = LabelUnderline.None },
+                    { TextColor = PaintID2.Black, Type = InputLabelType.All, TextUnderline = LabelUnderline.None },
                     new Input<string>("000", "000")));
                 // Add to the layout one more ItemRack widget that corresponds to the Weapon rack: displaying an item
                 // on a 3x3 rack. By clicking displays the relative and absolute coordinates of this click.
@@ -68,7 +68,7 @@ namespace TUIExample
                 irack1.SetText("lololo\nkekeke");
                 // Finally, add the slider to the layout.
                 node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle()
-                    { Wall = WallID.AmberGemsparkOff, WallColor = PaintID.White }));
+                    { Wall = WallID.AmberGemsparkOff, WallColor = PaintID2.White }));
             }
 
             if (false)
@@ -80,18 +80,18 @@ namespace TUIExample
                     new ISize[] { new Relative(50), new Relative(50) }, // Размеры линий
                     null, true);
                 // In the top left cell (at the intersection of the first column and the first line), set the background color to orange.
-                node[0, 0].Style.WallColor = PaintID.DeepOrange;
+                node[0, 0].Style.WallColor = PaintID2.DeepOrange;
                 // At the top right, we put a sapphire (blue) wall without paint.
                 node[1, 0].Style.Wall = WallID.SapphireGemspark;
-                node[1, 0].Style.WallColor = PaintID.None;
+                node[1, 0].Style.WallColor = PaintID2.None;
                 // In the bottom left cell, you can place the Label widget with the SandStoneSlab block.
                 // Although the coordinates and sizes are specified as 0, they will automatically be
                 // set, since the object is in the Grid.
                 node[0, 1] = new Label(0, 0, 0, 0, "testing", null, new LabelStyle()
                 {
                     Tile = TileID.SandStoneSlab,
-                    TileColor = PaintID.Red,
-                    TextColor = PaintID.Black
+                    TileColor = PaintID2.Red,
+                    TextColor = PaintID2.Black
                 });
             }
 
@@ -104,7 +104,7 @@ namespace TUIExample
                 // Add a button that draws the grid by pressing, and hides it when released.
                 node.Add(new Button(3, 3, 10, 4, "show", null, new ButtonStyle()
                 {
-                    WallColor = PaintID.DeepBlue,
+                    WallColor = PaintID2.DeepBlue,
                     BlinkStyle = ButtonBlinkStyle.Full,
                     TriggerStyle = ButtonTriggerStyle.Both
                 }, (self, touch) =>
@@ -119,7 +119,7 @@ namespace TUIExample
             if (false)
             {
                 // Add a label and immediately set Alignment.DownRight with indent 3 blocks to the right and 1 below.
-                node.Add(new Label(0, 0, 16, 6, "test", new LabelStyle() { WallColor = PaintID.DeepPink }))
+                node.Add(new Label(0, 0, 16, 6, "test", new LabelStyle() { WallColor = PaintID2.DeepPink }))
                     .SetAlignmentInParent(Alignment.DownRight, new ExternalIndent() { Right = 3, Down = 1 });
             }
 
@@ -135,27 +135,27 @@ namespace TUIExample
             VisualObject obj = node.AddToLayout(new VisualObject(5, 5, 8, 4, null, new UIStyle()
             {
                 Wall = WallID.AmethystGemspark,
-                WallColor = PaintID.DeepPurple
+                WallColor = PaintID2.DeepPurple
             }, (self, touch) =>
                 TSPlayer.All.SendInfoMessage($"Relative: ({touch.X}, {touch.Y}); Absolute: ({touch.AbsoluteX}, {touch.AbsoluteY})")));
 
             // VisualContainer
             //VisualContainer node2 = node.Add(
-            //    new VisualContainer(5, 5, 20, 10, null, new ContainerStyle() { WallColor = PaintID.Black })
+            //    new VisualContainer(5, 5, 20, 10, null, new ContainerStyle() { WallColor = PaintID2.Black })
             //) as VisualContainer;
 
             // Label
             Label label = node.AddToLayout(new Label(15, 5, 19, 4, "some text", new LabelStyle()
             {
-                WallColor = PaintID.DeepLime,
-                TextColor = PaintID.DeepRed
+                WallColor = PaintID2.DeepLime,
+                TextColor = PaintID2.DeepRed
             })) as Label;
 
             // Button
             Button button = node.AddToLayout(new Button(15, 5, 12, 4, "lol", null, new ButtonStyle()
             {
-                WallColor = PaintID.DeepGreen,
-                BlinkColor = PaintID.Shadow,
+                WallColor = PaintID2.DeepGreen,
+                BlinkColor = PaintID2.Shadow,
                 TriggerStyle = ButtonTriggerStyle.TouchEnd
             }, (self, touch) => touch.Player().SendInfoMessage("You released lol button!"))) as Button;
 
@@ -163,9 +163,9 @@ namespace TUIExample
             Slider slider = node.AddToLayout(new Slider(15, 5, 10, 2, new SliderStyle()
             {
                 Wall = WallID.EmeraldGemspark,
-                WallColor = PaintID.White,
-                SeparatorColor = PaintID.Black,
-                UsedColor = PaintID.DeepOrange
+                WallColor = PaintID2.White,
+                SeparatorColor = PaintID2.Black,
+                UsedColor = PaintID2.DeepOrange
             }, new Input<int>(0, 0, (self, value, playerIndex) =>
                 TShock.Players[playerIndex].SendInfoMessage("Slider value: " + value)))) as Slider;
 
@@ -173,8 +173,8 @@ namespace TUIExample
             Checkbox checkbox = node.AddToLayout(new Checkbox(15, 5, 2, new CheckboxStyle()
             {
                 Wall = WallID.EmeraldGemspark,
-                WallColor = PaintID.White,
-                CheckedColor = PaintID.DeepRed
+                WallColor = PaintID2.White,
+                CheckedColor = PaintID2.DeepRed
             }, new Input<bool>(false, false, (self, value, playerIndex) =>
                 TSPlayer.All.SendInfoMessage("Checkbox value: " + value)))) as Checkbox;
 
@@ -182,7 +182,7 @@ namespace TUIExample
             Separator separator = node.AddToLayout(new Separator(6, new UIStyle()
             {
                 Wall = 156,
-                WallColor = PaintID.DeepRed
+                WallColor = PaintID2.DeepRed
             })) as Separator;
 
             // InputLabel
@@ -190,8 +190,8 @@ namespace TUIExample
             {
                 Type = InputLabelType.All,
                 TextUnderline = LabelUnderline.Underline,
-                TextColor = PaintID.DeepRed,
-                TextUnderlineColor = PaintID.Black // Этот параметр из LabelStyle
+                TextColor = PaintID2.DeepRed,
+                TextUnderlineColor = PaintID2.Black // Этот параметр из LabelStyle
             }, new Input<string>("12345", "12345", (self, value, playerIndex) =>
                 TSPlayer.All.SendInfoMessage("InputLabel value: " + value)))) as InputLabel;
 
@@ -221,11 +221,11 @@ namespace TUIExample
                 new Checkbox(0, 0, 2, new CheckboxStyle()
                 {
                     Wall = WallID.AmberGemspark,
-                    WallColor = PaintID.White,
-                    CheckedColor = PaintID.DeepRed
+                    WallColor = PaintID2.White,
+                    CheckedColor = PaintID2.DeepRed
                 }), 15, 5, 20, 2, "check me", new LabelStyle()
                 {
-                    TextColor = PaintID.Shadow,
+                    TextColor = PaintID2.Shadow,
                     TextAlignment = Alignment.Left
                 }, new ExternalIndent() { Right = 1 })) as FormField;
 
@@ -237,21 +237,21 @@ namespace TUIExample
             {
                 Path = "Media\\Animation-1",
                 Delay = 100,
-                TileColor = PaintID.DeepTeal
+                TileColor = PaintID2.DeepTeal
             }, (self, touch) => (self as Video).ToggleStart())) as Video;
 
             // AlertWindow
             Button alertButton = node.AddToLayout(new Button(15, 10, 16, 4, "alert", null, new ButtonStyle()
             {
                 Wall = WallID.AmberGemspark,
-                WallColor = PaintID.DeepOrange
+                WallColor = PaintID2.DeepOrange
             }, (self, touch) => ((Panel)node.Root).Alert("Hello world"))) as Button;
 
             // ConfirmWindow
             Button confirmButton = node.AddToLayout(new Button(15, 13, 20, 4, "confirm\npls", null, new ButtonStyle()
             {
                 Wall = WallID.AmberGemspark,
-                WallColor = PaintID.DeepTeal
+                WallColor = PaintID2.DeepTeal
             }, (self, touch) => ((Panel)node.Root).Confirm("Very nice", value => TSPlayer.All.SendInfoMessage("Confirmed? " + value)))) as Button;
 
             // ScrollBackground
@@ -266,7 +266,7 @@ namespace TUIExample
             // Arrow
             Arrow arrow = node.AddToLayout(new Arrow(15, 5, new ArrowStyle()
             {
-                TileColor = PaintID.DeepBlue,
+                TileColor = PaintID2.DeepBlue,
                 Direction = Direction.Left
             })) as Arrow;
         }

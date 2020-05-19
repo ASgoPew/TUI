@@ -1,6 +1,6 @@
 ﻿namespace TerrariaUI.Base.Style
 {
-    public static class PaintID
+    public static class PaintID2
     {
         public const byte None = 0;
         public const byte Red = 1;

@@ -26,9 +26,9 @@ namespace TerrariaUI.Widgets
             Label.SetFullSize(FullSize.Horizontal);
             buttonStyle = buttonStyle ?? new ButtonStyle()
             {
-                WallColor = PaintID.DeepGreen,
+                WallColor = PaintID2.DeepGreen,
                 BlinkStyle = ButtonBlinkStyle.Full,
-                BlinkColor = PaintID.White
+                BlinkColor = PaintID2.White
             };
             buttonStyle.TriggerStyle = ButtonTriggerStyle.TouchEnd;
             Button = AddToLayout(new Button(0, 0, 14, 4, "ok", null, buttonStyle,

@@ -675,7 +675,7 @@ namespace TUIPlugin
             else if (foundRoots.Count > 1)
             {
                 if (player != null)
-                    TShock.Utils.SendMultipleMatchError(player, foundRoots);
+                    player.SendMultipleMatchError(foundRoots);
                 return false;
             }
             else

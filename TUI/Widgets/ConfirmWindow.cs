@@ -43,9 +43,9 @@ namespace TerrariaUI.Widgets
 
             yesButtonStyle = yesButtonStyle ?? new ButtonStyle()
             {
-                WallColor = PaintID.DeepGreen,
+                WallColor = PaintID2.DeepGreen,
                 BlinkStyle = ButtonBlinkStyle.Full,
-                BlinkColor = PaintID.White
+                BlinkColor = PaintID2.White
             };
             yesButtonStyle.TriggerStyle = ButtonTriggerStyle.TouchEnd;
             YesButton = yesno.Add(new Button(0, 0, 12, 4, "yes", null, yesButtonStyle,
@@ -57,9 +57,9 @@ namespace TerrariaUI.Widgets
 
             noButtonStyle = noButtonStyle ?? new ButtonStyle()
             {
-                WallColor = PaintID.DeepRed,
+                WallColor = PaintID2.DeepRed,
                 BlinkStyle = ButtonBlinkStyle.Full,
-                BlinkColor = PaintID.White
+                BlinkColor = PaintID2.White
             };
             noButtonStyle.TriggerStyle = ButtonTriggerStyle.TouchEnd;
             NoButton = yesno.Add(new Button(12, 0, 12, 4, "no", null, noButtonStyle,
