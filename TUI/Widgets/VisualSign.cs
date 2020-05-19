@@ -13,7 +13,7 @@ namespace TerrariaUI.Widgets
         #region Data
 
         protected string RawText { get; set; }
-        protected dynamic Sign { get; set; }
+        public dynamic Sign { get; set; }
 
         #endregion
 

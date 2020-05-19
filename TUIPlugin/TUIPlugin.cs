@@ -449,7 +449,7 @@ namespace TUIPlugin
             {
                 try
                 {
-                    args.Sign = provider.AddSign(args.X, args.Y, "");
+                    args.Sign = provider.AddSign(args.X - provider.X, args.Y - provider.Y, "");
                 }
                 catch (Exception e)
                 {
@@ -503,7 +503,7 @@ namespace TUIPlugin
             {
                 try
                 {
-                    args.Chest = provider.AddChest(args.X, args.Y);
+                    args.Chest = provider.AddChest(args.X - provider.X, args.Y - provider.Y);
                 }
                 catch (Exception e)
                 {

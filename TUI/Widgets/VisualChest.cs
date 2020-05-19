@@ -14,7 +14,7 @@ namespace TerrariaUI.Widgets
         #region Data
         
         protected ItemData[] Items { get; set; }
-        protected dynamic Chest { get; set; }
+        public dynamic Chest { get; set; }
 
         #endregion
 
