@@ -913,6 +913,7 @@ Draw state: {root.DrawState}");
 
         private void ReadWorldEdit(string path, ImageData image)
         {
+            //TODO: 1.4
             using (FileStream fs = File.Open(path, FileMode.Open))
             using (GZipStream zs = new GZipStream(fs, CompressionMode.Decompress))
             using (BufferedStream bs = new BufferedStream(zs, 1048576))
@@ -936,6 +937,7 @@ Draw state: {root.DrawState}");
                     image.Signs = signs;
                     for (int i = 0; i < signCount; i++)
                         signs.Add(ReadSign(br));
+                    //TODO: Chests, entities???
                 }
                 catch (EndOfStreamException) { }
             }
@@ -984,6 +986,7 @@ Draw state: {root.DrawState}");
 
         private void ReadTEdit(string path, ImageData image)
         {
+            //TODO: 1.4
             using (FileStream fs = File.OpenRead(path))
             using (BinaryReader br = new BinaryReader(fs))
             {
