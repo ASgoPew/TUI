@@ -926,9 +926,11 @@ namespace TUI.Base
                         notZeroSizes++;
                 }
                 if (absoluteSum > absoluteSize)
-                    throw new ArgumentException($"{FullName} (UpdateGrid): absolute {sizeName} is more than object {sizeName}: {FullName}");
+                    throw new ArgumentException(
+                        $"{FullName} (UpdateGrid): absolute {sizeName} ({absoluteSum}) is more than object {sizeName} ({absoluteSize}): {FullName}");
                 if (relativeSum > 100)
-                    throw new ArgumentException($"{FullName} (UpdateGrid): relative {sizeName} is more than 100: {FullName}");
+                    throw new ArgumentException(
+                        $"{FullName} (UpdateGrid): relative {sizeName} ({relativeSum}) is more than 100: {FullName}");
 
                 // Now calculating actual column/line sizes
                 int relativeSize = absoluteSize - absoluteSum - middleIndent * (notZeroSizes - 1) - startIndent - endIndent;
