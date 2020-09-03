@@ -75,8 +75,8 @@ namespace TUIPlugin
                 TUI.Hooks.TouchCancel.Event += OnTouchCancel;
                 TUI.Hooks.UpdateSign.Event += OnUpdateSign;
                 TUI.Hooks.RemoveSign.Event += OnRemoveSign;
-                //TUI.TUI.Hooks.UpdateChest.Event += OnUpdateChest;
-                //TUI.TUI.Hooks.RemoveChest.Event += OnRemoveChest;
+                TUI.Hooks.UpdateChest.Event += OnUpdateChest;
+                TUI.Hooks.RemoveChest.Event += OnRemoveChest;
                 TUI.Hooks.Log.Event += OnLog;
                 TUI.Hooks.Database.Event += OnDatabase;
                 RegionTimer.Elapsed += OnRegionTimer;
@@ -444,6 +444,8 @@ namespace TUIPlugin
                     // Console.WriteLine($"{args.Node.FullName} OnCreateSign: {id} ({args.X}, {args.Y})");
                     args.Sign = Main.sign[id];
                 }
+                else
+                    TUI.HandleException(args.Node, new Exception("TUIPlugin: Can't create Main.sign sign."));
             }
             else
             {
@@ -453,7 +455,7 @@ namespace TUIPlugin
                 }
                 catch (Exception e)
                 {
-                    TUI.HandleException(args.Node, new Exception("Can't create FAKE sign", e));
+                    TUI.HandleException(args.Node, new Exception("TUIPlugin: Can't create FAKE sign", e));
                 }
             }
         }
@@ -486,7 +488,6 @@ namespace TUIPlugin
                 int id = Chest.FindChest(args.X, args.Y);
                 if (id < 0)
                 {
-                    Console.WriteLine($"CREATING NEW AT {args.X}, {args.Y}");
                     id = Chest.CreateChest(args.X, args.Y);
                 }
                 if (id >= 0)
@@ -497,7 +498,7 @@ namespace TUIPlugin
                     Console.WriteLine(id);
                 }
                 else
-                    TUI.HandleException(args.Node, new Exception("Can't create Main.chest chest."));
+                    TUI.HandleException(args.Node, new Exception("TUIPlugin: Can't create Main.chest chest."));
             }
             else
             {
@@ -507,7 +508,7 @@ namespace TUIPlugin
                 }
                 catch (Exception e)
                 {
-                    TUI.HandleException(args.Node, new Exception("Can't create FAKE chest", e));
+                    TUI.HandleException(args.Node, new Exception("TUIPlugin: Can't create FAKE chest", e));
                 }
             }
         }
@@ -914,32 +915,39 @@ Draw state: {root.DrawState}");
         private void ReadWorldEdit(string path, ImageData image)
         {
             //TODO: 1.4
-            using (FileStream fs = File.Open(path, FileMode.Open))
-            using (GZipStream zs = new GZipStream(fs, CompressionMode.Decompress))
-            using (BufferedStream bs = new BufferedStream(zs, 1048576))
-            using (BinaryReader br = new BinaryReader(bs))
+            try
             {
-                br.ReadInt32();
-                br.ReadInt32();
-                int w = br.ReadInt32();
-                int h = br.ReadInt32();
-                image.Width = w;
-                image.Height = h;
-                ITile[,] tiles = new ITile[w, h];
-                for (int i = 0; i < w; i++)
-                    for (int j = 0; j < h; j++)
-                        tiles[i, j] = ReadTile(br);
-                image.Tiles = tiles;
-                try
+                using (FileStream fs = File.Open(path, FileMode.Open))
+                using (GZipStream zs = new GZipStream(fs, CompressionMode.Decompress))
+                using (BufferedStream bs = new BufferedStream(zs, 1048576))
+                using (BinaryReader br = new BinaryReader(bs))
                 {
-                    int signCount = br.ReadInt32();
-                    List<SignData> signs = new List<SignData>();
-                    image.Signs = signs;
-                    for (int i = 0; i < signCount; i++)
-                        signs.Add(ReadSign(br));
-                    //TODO: Chests, entities???
+                    br.ReadInt32();
+                    br.ReadInt32();
+                    int w = br.ReadInt32();
+                    int h = br.ReadInt32();
+                    image.Width = w;
+                    image.Height = h;
+                    ITile[,] tiles = new ITile[w, h];
+                    for (int i = 0; i < w; i++)
+                        for (int j = 0; j < h; j++)
+                            tiles[i, j] = ReadTile(br);
+                    image.Tiles = tiles;
+                    try
+                    {
+                        int signCount = br.ReadInt32();
+                        List<SignData> signs = new List<SignData>();
+                        image.Signs = signs;
+                        for (int i = 0; i < signCount; i++)
+                            signs.Add(ReadSign(br));
+                        //TODO: Chests, entities???
+                    }
+                    catch (EndOfStreamException) { }
                 }
-                catch (EndOfStreamException) { }
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
             }
         }
 
@@ -987,17 +995,24 @@ Draw state: {root.DrawState}");
         private void ReadTEdit(string path, ImageData image)
         {
             //TODO: 1.4
-            using (FileStream fs = File.OpenRead(path))
-            using (BinaryReader br = new BinaryReader(fs))
+            try
             {
-                br.ReadString();
-                br.ReadUInt32();
-                int w = br.ReadInt32(), h = br.ReadInt32();
-                image.Width = w;
-                image.Height = h;
-                image.Tiles = ReadTiles(br, w, h);
-                ReadChests(br);
-                image.Signs = ReadSigns(br);
+                using (FileStream fs = File.OpenRead(path))
+                using (BinaryReader br = new BinaryReader(fs))
+                {
+                    br.ReadString();
+                    br.ReadUInt32();
+                    int w = br.ReadInt32(), h = br.ReadInt32();
+                    image.Width = w;
+                    image.Height = h;
+                    image.Tiles = ReadTiles(br, w, h);
+                    ReadChests(br);
+                    image.Signs = ReadSigns(br);
+                }
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
             }
         }
 

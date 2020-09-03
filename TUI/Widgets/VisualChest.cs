@@ -100,7 +100,7 @@ namespace TerrariaUI.Widgets
             TUI.Hooks.UpdateChest.Invoke(args);
             if (args.Chest == null)
             {
-                TUI.Log(this, "Can't create new chest.", LogType.Error);
+                TUI.Log(this, "VisualChest: no chest object received.", LogType.Error);
                 return;
             }
             Chest = args.Chest;

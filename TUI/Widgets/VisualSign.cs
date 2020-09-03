@@ -89,7 +89,7 @@ namespace TerrariaUI.Widgets
             TUI.Hooks.UpdateSign.Invoke(args);
             if (args.Sign == null)
             {
-                TUI.Log(this, "Can't create new sign.", LogType.Error);
+                TUI.Log(this, "VisualSign: no sign object received.", LogType.Error);
                 return;
             }
             Sign = args.Sign;
