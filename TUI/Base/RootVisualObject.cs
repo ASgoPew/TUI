@@ -68,7 +68,6 @@ namespace TerrariaUI.Base
                 UIConfiguration configuration = null, ContainerStyle style = null, object provider = null)
             : base(x, y, width, height, configuration ?? new UIConfiguration() { UseBegin=true, UseMoving=true, UseEnd=true }, style)
         {
-            Configuration.UseOutsideTouches = false;
             Name = name;
             if (provider != null)
                 Provider = provider;
