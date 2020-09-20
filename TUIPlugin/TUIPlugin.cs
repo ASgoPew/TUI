@@ -319,6 +319,8 @@ namespace TUIPlugin
         private static void OnDrawObject(DrawObjectArgs args)
         {
             VisualObject node = args.Node;
+            if (node.Root == null)
+                return;
 
             ulong currentApplyCounter = node.Root.DrawState;
             HashSet<int> players = null;

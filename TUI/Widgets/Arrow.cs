@@ -104,7 +104,7 @@ namespace TerrariaUI.Widgets
         /// Widget for drawing arrow in one of directions.
         /// </summary>
         public Arrow(int x, int y, ArrowStyle style = null, Action<VisualObject, Touch> callback = null)
-            : base(x, y, 0, 0, null, style, callback)
+            : base(x, y, 0, 0, null, style ?? new ArrowStyle(), callback)
         {
             if (ArrowStyle.Size == ArrowSize.Small)
                 SetWH(2, 2, false);

@@ -53,7 +53,8 @@ namespace TerrariaUI.Widgets
         #region Constructor
 
         public Slider(int x, int y, int width, int height, SliderStyle style = null, Input<int> input = null)
-            : base(x, y, width, height, new UIConfiguration() { UseMoving = true, UseEnd = true, UseOutsideTouches = true }, style)
+            : base(x, y, width, height, new UIConfiguration() { UseMoving = true, UseEnd = true,
+                UseOutsideTouches = true }, style ?? new SliderStyle())
         {
             Input = input ?? new Input<int>(0, 0, null);
 
