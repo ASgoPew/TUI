@@ -44,13 +44,11 @@ namespace TerrariaUI.Base
         protected VisualContainer PopUpBackground { get; set; }
         protected Dictionary<VisualObject, Action<VisualObject>> PopUpCancelCallbacks { get; set; } =
             new Dictionary<VisualObject, Action<VisualObject>>();
-        protected Summoning Summoning { get; set; }
 
         /// <summary>
         /// 0 for Root with MainTileProvider, 1 for root with any fake provider.
         /// </summary>
         public override int Layer => UsesDefaultMainProvider ? 0 : 1;
-        public VisualObject Summoned => Summoning?.Top?.Node;
 
         #endregion
 

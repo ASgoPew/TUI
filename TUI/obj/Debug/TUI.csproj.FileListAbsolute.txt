@@ -10,12 +10,7 @@ C:\Users\ASgo\documents\visual studio 2017\Projects\TUI\TUI\bin\Debug\System.Val
 C:\Users\ASgo\documents\visual studio 2017\Projects\TUI\TUI\obj\Debug\TUI.csprojAssemblyReference.cache
 C:\Users\ASgo\documents\visual studio 2017\Projects\TUI\TUI\obj\Debug\TUI.csproj.CoreCompileInputs.cache
 C:\Users\ASgo\documents\visual studio 2017\Projects\TUI\TUI\obj\Debug\TUI.csproj.CopyComplete
-C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\TUI.dll
-C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\TUI.pdb
 C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.csprojAssemblyReference.cache
-C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.dll
-C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.pdb
-C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\TUI.xml
 E:\YandexDisk\Repos\TUI\TUI\bin\Debug\TUI.xml
 E:\YandexDisk\Repos\TUI\TUI\bin\Debug\TUI.dll
 E:\YandexDisk\Repos\TUI\TUI\bin\Debug\TUI.pdb
@@ -37,3 +32,8 @@ F:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.dll
 F:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.pdb
 F:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.csprojAssemblyReference.cache
 C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.csproj.CoreCompileInputs.cache
+C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\TUI.xml
+C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\TUI.dll
+C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\TUI.pdb
+C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.dll
+C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.pdb

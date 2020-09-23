@@ -48,8 +48,10 @@ namespace TerrariaUI.Widgets
         public PanelDrag DragObject { get; set; }
         public PanelResize ResizeObject { get; set; }
         internal bool SaveDataNow { get; set; } = true;
+        protected Summoning Summoning { get; set; }
 
         public PanelStyle PanelStyle => Style as PanelStyle;
+        public VisualObject Summoned => Summoning?.Top?.Node;
 
         #endregion
 

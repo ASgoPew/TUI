@@ -7,7 +7,7 @@
     <ProjectGuid>{64B9C632-B1D6-4DD2-A763-4437F92E1ADB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TUI</RootNamespace>
+    <RootNamespace>TerrariaUI</RootNamespace>
     <AssemblyName>TUI</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -102,6 +102,7 @@
     <Compile Include="Widgets\ConfirmWindow.cs" />
     <Compile Include="Widgets\Data\ItemData.cs" />
     <Compile Include="Widgets\Data\ChestData.cs" />
+    <Compile Include="Widgets\Dropdown.cs" />
     <Compile Include="Widgets\FormField.cs" />
     <Compile Include="Widgets\InputLabel.cs" />
     <Compile Include="Widgets\ItemRack.cs" />

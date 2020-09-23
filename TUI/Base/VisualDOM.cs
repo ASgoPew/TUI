@@ -574,11 +574,18 @@ namespace TerrariaUI.Base
                 Loaded = true;
             }
 
-            foreach (VisualObject child in ChildrenFromTop)
-                child.Load();
+            try
+            {
+                foreach (VisualObject child in ChildrenFromTop)
+                    child.Load();
 
-            LoadThisNative();
-            Configuration.Custom.Load?.Invoke(this as VisualObject);
+                LoadThisNative();
+                Configuration.Custom.Load?.Invoke(this as VisualObject);
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
+            }
         }
 
         #endregion
@@ -609,11 +616,18 @@ namespace TerrariaUI.Base
                 Disposed = true;
             }
 
-            foreach (VisualObject child in ChildrenFromTop)
-                child.Dispose();
+            try
+            {
+                foreach (VisualObject child in ChildrenFromTop)
+                    child.Dispose();
 
-            DisposeThisNative();
-            Configuration.Custom.Dispose?.Invoke(this as VisualObject);
+                DisposeThisNative();
+                Configuration.Custom.Dispose?.Invoke(this as VisualObject);
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
+            }
         }
 
         #endregion

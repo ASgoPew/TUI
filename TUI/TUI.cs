@@ -52,14 +52,7 @@ namespace TerrariaUI
                 Active = true;
 
                 foreach (VisualObject child in Child)
-                    try
-                    {
-                        child.Load();
-                    }
-                    catch (Exception e)
-                    {
-                        HandleException(child, e);
-                    }
+                    child.Load();
             }
 
             Timer.Start();
