@@ -292,7 +292,9 @@ namespace TerrariaUI.Base
                 {
                     if (child.Disposed)
                         throw new InvalidOperationException("You cannot add a disposed VisualObject.");
-                    if (Child.Contains(child))
+                    else if (child.Parent != null && child.Parent != this)
+                        throw new InvalidOperationException("You cannot add an object that was added somewhere else.");
+                    else if (Child.Contains(child))
                         return child;
 
                     if (layer.HasValue)
