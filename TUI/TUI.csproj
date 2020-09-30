@@ -97,6 +97,7 @@
     <Compile Include="Widgets\AlertWindow.cs" />
     <Compile Include="Widgets\Arrow.cs" />
     <Compile Include="Widgets\Button.cs" />
+    <Compile Include="Widgets\Canvas.cs" />
     <Compile Include="Widgets\Checkbox.cs" />
     <Compile Include="Widgets\ColorPicker.cs" />
     <Compile Include="Widgets\ConfirmWindow.cs" />
