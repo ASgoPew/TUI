@@ -356,8 +356,7 @@ namespace TUIPlugin
                 ? Terraria.Localization.NetworkText.FromLiteral(String.Concat(players.Select(p => (char)p)))
                 : null;
 
-            int size = Math.Max(args.Width, args.Height);
-            if (size > 50 || args.DrawWithSection)
+            if (args.Width * args.Height >= 2500 || args.DrawWithSection)
             {
                 if (FakesEnabled)
                     NetMessage.SendData(10, -1, -1, playerList, args.X, args.Y, args.Width, args.Height);
@@ -380,10 +379,10 @@ namespace TUIPlugin
             else
             {
                 if (FakesEnabled)
-                    NetMessage.SendData(20, -1, -1, playerList, size, args.X, args.Y);
+                    NetMessage.SendData(20, -1, -1, playerList, args.X, args.Y, args.Width, args.Height);
                 else
                     foreach (int i in players)
-                        NetMessage.SendData(20, i, -1, null, size, args.X, args.Y);
+                        NetMessage.SendData(20, i, -1, null, args.X, args.Y, args.Width, args.Height);
             }
 
             // Mark that these players received lastest version of interface
@@ -396,8 +395,7 @@ namespace TUIPlugin
 
         private static void OnDrawRectangle(DrawRectangleArgs args)
         {
-            int size = Math.Max(args.Width, args.Height);
-            if (size >= 50 || args.DrawWithSection)
+            if (args.Width * args.Height >= 2500 || args.DrawWithSection)
             {
                 NetMessage.SendData(10, args.PlayerIndex, args.ExceptPlayerIndex, null,
                     args.X, args.Y, args.Width, args.Height);
@@ -412,7 +410,7 @@ namespace TUIPlugin
                 }
             }
             else
-                NetMessage.SendData(20, args.PlayerIndex, args.ExceptPlayerIndex, null, size, args.X, args.Y);
+                NetMessage.SendData(20, args.PlayerIndex, args.ExceptPlayerIndex, null, args.X, args.Y, args.Width, args.Height);
         }
 
         #endregion
