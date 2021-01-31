@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TerrariaUI.Base;
 using TerrariaUI.Base.Style;
+using TerrariaUI.Hooks.Args;
 using TerrariaUI.Widgets;
 
 namespace TerrariaUI.Widgets
@@ -86,7 +87,28 @@ namespace TerrariaUI.Widgets
 
             if (ColorPickerStyle.CurrentAsPipet)
             {
-                // TODO
+                Current.Configuration = new UIConfiguration()
+                {
+                    UseOutsideTouches = true,
+                    UseMoving = true,
+                    UseEnd = true
+                };
+                Current.Callback = (self, touch) =>
+                {
+                    if (touch.X < 0 || touch.Y < 0 || touch.X >= Current.Width || touch.Y >= Current.Height)
+                    {
+                        GetTileArgs args = new GetTileArgs(touch.AbsoluteX, touch.AbsoluteY);
+                        TUI.Hooks.GetTile.Invoke(args);
+                        if (args.Tile != null)
+                        {
+                            byte paint = args.Tile.wallColor();
+                            if (touch.State != TouchState.End)
+                                SetTempValue(paint, true);
+                            else
+                                SetValue(paint, true, touch.PlayerIndex);
+                        }
+                    }
+                };
             }
         }
 
@@ -103,8 +125,8 @@ namespace TerrariaUI.Widgets
         {
             if (temp < 0)
                 temp = 0;
-            else if (temp > 30)
-                temp = 30;
+            else if (temp > 31)
+                temp = 31;
 
             if (Input.Temp != temp)
             {

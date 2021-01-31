@@ -73,6 +73,7 @@ namespace TUIPlugin
                 TUI.Hooks.DrawObject.Event += OnDrawObject;
                 TUI.Hooks.DrawRectangle.Event += OnDrawRectangle;
                 TUI.Hooks.TouchCancel.Event += OnTouchCancel;
+                TUI.Hooks.GetTile.Event += OnGetTile;
                 TUI.Hooks.UpdateSign.Event += OnUpdateSign;
                 TUI.Hooks.RemoveSign.Event += OnRemoveSign;
                 TUI.Hooks.UpdateChest.Event += OnUpdateChest;
@@ -119,6 +120,7 @@ namespace TUIPlugin
                     TUI.Hooks.DrawObject.Event -= OnDrawObject;
                     TUI.Hooks.DrawRectangle.Event -= OnDrawRectangle;
                     TUI.Hooks.TouchCancel.Event -= OnTouchCancel;
+                    TUI.Hooks.GetTile.Event -= OnGetTile;
                     TUI.Hooks.UpdateSign.Event -= OnUpdateSign;
                     TUI.Hooks.RemoveSign.Event -= OnRemoveSign;
                     TUI.Hooks.UpdateChest.Event -= OnUpdateChest;
@@ -426,6 +428,17 @@ namespace TUIPlugin
             simulatedEndTouch.Undo = true;
             TUI.Touched(args.UserIndex, simulatedEndTouch);
             playerDesignState[args.UserIndex] = DesignState.Waiting;
+        }
+
+        #endregion
+        #region OnGetTile
+
+        private static void OnGetTile(GetTileArgs args)
+        {
+            if (args.X < 0 || args.Y < 0 || args.X >= Main.maxTilesX || args.Y >= Main.maxTilesY)
+                return;
+
+            args.Tile = Main.tile[args.X, args.Y];
         }
 
         #endregion

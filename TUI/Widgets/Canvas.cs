@@ -116,5 +116,16 @@ namespace TerrariaUI.Widgets
         }
 
         #endregion
+        #region GetPixel
+
+        public byte GetPixel(int x, int y)
+        {
+            if (x < 0 || y < 0 || x >= Width || y >= Height)
+                throw new ArgumentOutOfRangeException();
+
+            return Paint[x, y];
+        }
+
+        #endregion
     }
 }
