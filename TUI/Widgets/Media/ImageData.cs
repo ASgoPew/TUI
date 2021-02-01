@@ -9,8 +9,8 @@ namespace TerrariaUI.Widgets.Media
     {
         #region Data
 
-        public static Dictionary<string, Action<string, ImageData>> Readers =
-            new Dictionary<string, Action<string, ImageData>>();
+        public static Dictionary<string, Func<string, bool, List<ImageData>>> Readers =
+            new Dictionary<string, Func<string, bool, List<ImageData>>>();
 
         public int Width, Height;
         public dynamic Tiles;
@@ -20,10 +20,8 @@ namespace TerrariaUI.Widgets.Media
 
         #region Constructor
 
-        public ImageData(string path)
+        public ImageData()
         {
-            if (Readers.TryGetValue(Path.GetExtension(path), out Action<string, ImageData> reader))
-                reader.Invoke(path, this);
         }
 
         #endregion
@@ -35,27 +33,61 @@ namespace TerrariaUI.Widgets.Media
         }
 
         #endregion
-        #region Load
+        #region LoadImage
 
-        public static ImageData[] Load(string path)
+        public static ImageData LoadImage(string name)
         {
-            List<ImageData> images = new List<ImageData>();
-            if (Path.HasExtension(path) && File.Exists(path))
+            if (Readers.TryGetValue(Path.GetExtension(name), out Func<string, bool, List<ImageData>> reader))
             {
-                ImageData image = new ImageData(path);
-                if (image.Tiles != null)
-                    images.Add(image);
-            }
-            else if (Directory.Exists(path))
-                foreach (string f in Directory.EnumerateFiles(path))
+                try
                 {
-                    ImageData image = new ImageData(f);
-                    if (image.Tiles != null)
-                        images.Add(image);
+                    var image = reader.Invoke(name, false);
+                    if (image.Count > 0)
+                        return image[0];
+                } catch (Exception e)
+                {
+                    TUI.HandleException(e);
                 }
-            else
-                throw new FileNotFoundException("Invalid TUI Image file or folder: " + path);
-            return images.ToArray();
+            }
+            return null;
+        }
+
+        #endregion
+        #region LoadVideo
+
+        public static List<ImageData> LoadVideo(string name)
+        {
+            List<ImageData> video = new List<ImageData>();
+            if (Directory.Exists(name))
+            {
+                foreach (string file in Directory.EnumerateFiles(name))
+                    if (Readers.TryGetValue(Path.GetExtension(file), out Func<string, bool, List<ImageData>> reader))
+                    {
+                        try
+                        {
+                            var image = reader.Invoke(file, false);
+                            if (image.Count > 0)
+                                video.Add(image[0]);
+                        }
+                        catch (Exception e)
+                        {
+                            TUI.HandleException(e);
+                        }
+                    }
+            }
+            else if (Readers.TryGetValue(Path.GetExtension(name), out Func<string, bool, List<ImageData>> reader))
+                try
+                {
+                    video = reader.Invoke(name, true);
+                }
+                catch (Exception e)
+                {
+                    TUI.HandleException(e);
+                }
+
+            if (video.Count > 0)
+                return video;
+            return null;
         }
 
         #endregion

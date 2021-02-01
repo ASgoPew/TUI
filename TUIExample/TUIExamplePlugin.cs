@@ -235,7 +235,7 @@ namespace TUIExample
             // Video
             Video video = node.AddToLayout(new Video(15, 5, null, new VideoStyle()
             {
-                Path = "Media\\Animation-1",
+                VideoName = "Media\\Animation-1",
                 Delay = 100,
                 TileColor = PaintID2.DeepTeal
             }, (self, touch) => (self as Video).ToggleStart())) as Video;

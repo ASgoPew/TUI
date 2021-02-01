@@ -12,7 +12,7 @@ namespace TerrariaUI.Widgets
 
     public class VideoStyle : ContainerStyle
     {
-        public string Path { get; set; }
+        public string VideoName { get; set; }
         public int Delay { get; set; } = 500;
         public bool Repeat { get; set; } = false;
 
@@ -21,7 +21,7 @@ namespace TerrariaUI.Widgets
         public VideoStyle(VideoStyle style)
             : base(style)
         {
-            Path = style.Path;
+            VideoName = style.VideoName;
             Delay = style.Delay;
             Repeat = style.Repeat;
         }
@@ -72,11 +72,11 @@ namespace TerrariaUI.Widgets
         {
             base.LoadThisNative();
 
-            ImageData[] images = ImageData.Load(VideoStyle.Path);
-            if (images.Length == 0)
+            List<ImageData> images = ImageData.LoadVideo(VideoStyle.VideoName);
+            if (images == null)
             {
-                TUI.Log(this, "Invalid video folder: " + VideoStyle.Path, LogType.Error);
-                VideoStyle.Path = null;
+                TUI.Log(this, "Cannot find a video: " + VideoStyle.VideoName, LogType.Error);
+                VideoStyle.VideoName = null;
                 return;
             }
             
