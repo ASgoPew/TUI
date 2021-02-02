@@ -1285,7 +1285,7 @@ namespace TerrariaUI.Base
         {
 #if DEBUG
             if (Root == null)
-                TUI.Throw(this, "Drawing before Update().");
+                TUI.Throw(this, "Drawing before Update()");
 #endif
 
             bool realDrawWithSection = drawWithSection ?? DrawWithSection;

@@ -195,8 +195,11 @@ namespace TerrariaUI.Widgets
         #endregion
         #region Blink
 
-        protected virtual void StartBlink(ButtonBlinkStyle blinkStyle) =>
+        public virtual void StartBlink(ButtonBlinkStyle blinkStyle)
+        {
+            Pressed = true;
             Blink(blinkStyle, ButtonStyle.BlinkColor);
+        }
 
         private void TryEndBlink(ButtonBlinkStyle blinkStyle, byte type)
         {
@@ -205,30 +208,35 @@ namespace TerrariaUI.Widgets
                 EndBlink(blinkStyle);
         }
 
-        protected virtual void EndBlink(ButtonBlinkStyle blinkStyle)
+        public virtual void EndBlink(ButtonBlinkStyle blinkStyle)
         {
             Pressed = false;
             Blink(blinkStyle, Style.WallColor.Value);
         }
 
-        protected virtual void Blink(ButtonBlinkStyle blinkStyle, byte blinkColor)
+        public virtual void Blink(ButtonBlinkStyle blinkStyle, byte blinkColor)
         {
             if (!CalculateActive())
                 return;
 
             if (blinkStyle == ButtonBlinkStyle.Full)
+            {
+
                 Apply().Draw();
+            }
             else if (blinkStyle == ButtonBlinkStyle.Left)
             {
                 for (int y = 0; y < Height; y++)
                     Tile(0, y)?.wallColor(blinkColor);
-                Draw(-Height + 1, 0, Height, Height, drawWithSection: false);
+                RequestDrawChanges();
+                Draw(0, 0, 1, Height, drawWithSection: false);
             }
             else if (blinkStyle == ButtonBlinkStyle.Right)
             {
                 for (int y = 0; y < Height; y++)
                     Tile(Width - 1, y)?.wallColor(blinkColor);
-                Draw(Width - 1, 0, Height, Height, drawWithSection: false);
+                RequestDrawChanges();
+                Draw(Width - 1, 0, 1, Height, drawWithSection: false);
             }
         }
 

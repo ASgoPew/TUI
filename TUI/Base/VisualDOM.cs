@@ -145,7 +145,7 @@ namespace TerrariaUI.Base
         /// <summary>
         /// Iterates over Child array starting with objects on top.
         /// </summary>
-        protected IEnumerable<VisualObject> ChildrenFromTop
+        public IEnumerable<VisualObject> ChildrenFromTop
         {
             get
             {
@@ -162,7 +162,7 @@ namespace TerrariaUI.Base
         /// <summary>
         /// Iterates over Child array starting with objects at bottom.
         /// </summary>
-        protected IEnumerable<VisualObject> ChildrenFromBottom
+        public IEnumerable<VisualObject> ChildrenFromBottom
         {
             get
             {
