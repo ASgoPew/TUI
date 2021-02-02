@@ -49,9 +49,9 @@ namespace TerrariaUI.Widgets
                 if (Dropdown == null)
                     Dropdown = new Dropdown(this);
                 panel.ShowPopUp(Dropdown);
-                Button btn = (Button)Dropdown.GetChild(0);
-                btn.StartBlink(btn.ButtonStyle.BlinkStyle);
                 touch.Session.Acquired = Dropdown;
+                Input.Temp = null;
+                SetTempValue(Values[0], true);
             }
             else
                 throw new InvalidOperationException("Dropdown is only supported in Panel widgets");
@@ -108,7 +108,20 @@ namespace TerrariaUI.Widgets
             SetText(value);
             Update();
             if (draw && Root is Panel panel)
+            {
+                int index = Values.IndexOf(value);
+                if (index >= 0)
+                {
+                    Button btn = (Button)Dropdown.GetChild(index);
+                    bool enabled = btn.Enabled;
+                    if (enabled)
+                        btn.Disable(false);
+                    btn.EndBlink(btn.ButtonStyle.BlinkStyle);
+                    if (enabled)
+                        btn.Enable(false);
+                }
                 panel.HidePopUp();
+            }
             Input.SubmitTemp(this, player);
         }
 
