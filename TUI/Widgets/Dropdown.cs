@@ -21,14 +21,11 @@ namespace TerrariaUI.Widgets
 
         #region Constructor
 
-        /// <summary>
-        /// Widget for invoking callback and blinking on touch.
-        /// </summary>
-        public DropdownButton(List<string> values, int x, int y, int width, int height, UIConfiguration configuration = null,
+        public DropdownButton(int x, int y, int width, int height, IEnumerable<string> values, UIConfiguration configuration = null,
                 ButtonStyle style = null, Input<string> input = null)
-            : base(x, y, width, height, input?.DefaultValue ?? values[0], configuration, style ?? new ButtonStyle())
+            : base(x, y, width, height, input?.DefaultValue ?? values.First(), configuration, style ?? new ButtonStyle())
         {
-            Values = values;
+            Values = values.ToList();
             Input = input ?? new Input<string>(Values[0], Values[0]);
 
             Configuration.UseBegin = true;

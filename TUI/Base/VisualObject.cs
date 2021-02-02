@@ -391,7 +391,7 @@ namespace TerrariaUI.Base
         /// <param name="horizontal">Horizontal stretching</param>
         /// <param name="vertical">Vertical stretching</param>
         /// <returns>this</returns>
-        public VisualObject SetFullSize(bool horizontal = false, bool vertical = false) =>
+        public VisualObject SetFullSize(bool horizontal = true, bool vertical = true) =>
             SetFullSize(horizontal && vertical
                 ? FullSize.Both
                 : horizontal

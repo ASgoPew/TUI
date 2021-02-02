@@ -329,5 +329,30 @@ namespace TerrariaUI.Widgets
             c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9';
 
         #endregion
+        #region FindMaxSize
+
+        public static int FindMaxWidth(IEnumerable<string> values, int emptyIndentation)
+        {
+            int max = 0;
+            foreach (var text in values)
+            {
+                int width = 0;
+                foreach (char c in text)
+                    if (c == '\n')
+                    {
+                        if (width > max)
+                            max = width;
+                        width = 0;
+                    } else if (IsStatueCharacter(c))
+                        width += 2;
+                    else
+                        width += emptyIndentation;
+                if (width > max)
+                    max = width;
+            }
+            return max;
+        }
+
+        #endregion
     }
 }
