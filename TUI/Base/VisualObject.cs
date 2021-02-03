@@ -679,7 +679,7 @@ namespace TerrariaUI.Base
             /// <summary>
             /// Updates child sizes with call of overridable child.UpdateSizeNative()
             /// </summary>
-            protected void UpdateChildSize()
+            public void UpdateChildSize()
             {
                 foreach (VisualObject child in ChildrenFromTop)
                 {

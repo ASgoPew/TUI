@@ -121,7 +121,8 @@ namespace TerrariaUI
         /// <param name="root">Root of user interface tree.
         /// <para></para>
         /// Consider using Panel widget for ability to automatically save position and size.</param>
-        public static RootVisualObject Create(RootVisualObject root)
+        public static T Create<T>(T root)
+            where T : RootVisualObject
         {
             if (!(root.Provider is MainTileProvider)
                     && (root.Width > root.Provider.Width || root.Height > root.Provider.Height))

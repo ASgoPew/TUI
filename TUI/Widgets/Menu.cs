@@ -57,17 +57,23 @@ namespace TerrariaUI.Widgets
 
         public override void Invoke(Touch touch)
         {
-            int index = touch.Y / 4 - 1;
-            if (index < 0)
-                index = 0;
-            else if (index >= Values.Count)
-                index = Values.Count - 1;
-            string value = Values[index];
+            Touch beginTouch = touch.Session.BeginTouch;
+            if (beginTouch.Object == this && Contains(beginTouch) && beginTouch.Y >= 4 && Contains(touch) && touch.Y >= 4)
+            {
+                int index = touch.Y / 4 - 1;
+                if (index < 0)
+                    index = 0;
+                else if (index >= Values.Count)
+                    index = Values.Count - 1;
+                string value = Values[index];
 
-            if (touch.State == TouchState.Begin || touch.State == TouchState.Moving)
-                SetTempValue(value, true);
-            else
-                SetValue(value, true, touch.PlayerIndex);
+                if (touch.State == TouchState.Begin || touch.State == TouchState.Moving)
+                    SetTempValue(value, true);
+                else
+                    SetValue(value, true, touch.PlayerIndex);
+            }
+            else if (Input.Temp != null)
+                SetTempValue(null, true);
         }
 
         #endregion
@@ -124,6 +130,7 @@ namespace TerrariaUI.Widgets
                 }
             }
             Input.SubmitTemp(this, player);
+            Input.Value = null;
         }
 
         #endregion
