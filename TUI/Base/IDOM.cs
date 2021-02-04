@@ -11,6 +11,7 @@ namespace TerrariaUI.Base
         void RemoveAll();
         T GetRoot();
         bool IsAncestorFor(T o);
+        U GetAncestor<U>() where U : VisualObject;
         bool SetTop(T child);
         IEnumerable<T> DescendantDFS { get; }
         IEnumerable<T> DescendantBFS { get; }

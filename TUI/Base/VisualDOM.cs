@@ -395,6 +395,23 @@ namespace TerrariaUI.Base
             }
 
             #endregion
+            #region GetAncestor
+
+            /// <summary>
+            /// Finds first ancestor of type U.
+            /// </summary>
+            /// <typeparam name="U">Type of ancestor to find.</typeparam>
+            /// <returns>First ancestor of type U or null.</returns>
+            public U GetAncestor<U>()
+                where U : VisualObject
+            {
+                VisualObject node = Parent;
+                while (node != null && !(node is U))
+                    node = node.Parent;
+                return node as U;
+            }
+
+            #endregion
             #region SetTop
 
             /// <summary>
