@@ -130,7 +130,7 @@ namespace TerrariaUI.Widgets
                 }
             }
             Input.SubmitTemp(this, player);
-            Input.Value = null;
+            Input.Temp = Input.Value = null;
         }
 
         #endregion
