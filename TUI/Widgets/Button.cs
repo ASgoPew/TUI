@@ -67,7 +67,7 @@ namespace TerrariaUI.Widgets
 
         private byte State;
         private object ButtonLocker = new object();
-        private bool Pressed = false;
+        private bool BlinkOn = false;
 
         public ButtonStyle ButtonStyle => Style as ButtonStyle;
 
@@ -122,7 +122,6 @@ namespace TerrariaUI.Widgets
             if (touch.State == TouchState.Begin)
             {
                 State = 0;
-                Pressed = true;
                 ButtonBlinkStyle blinkStyle = ButtonStyle.BlinkStyle;
                 bool blinking = blinkStyle != ButtonBlinkStyle.None && ButtonStyle.BlinkDelay > 0 && Style.WallColor != null;
                 lock (ButtonLocker)
@@ -185,7 +184,7 @@ namespace TerrariaUI.Widgets
             if (Style.WallColor != null)
             {
                 ButtonBlinkStyle blinkStyle = ButtonStyle.BlinkStyle;
-                tile.wallColor(Pressed && (blinkStyle == ButtonBlinkStyle.Full
+                tile.wallColor(BlinkOn && (blinkStyle == ButtonBlinkStyle.Full
                     || blinkStyle == ButtonBlinkStyle.Left && x == 0
                     || blinkStyle == ButtonBlinkStyle.Right && x == Width - 1)
                         ? ButtonStyle.BlinkColor : Style.WallColor.Value);
@@ -197,7 +196,7 @@ namespace TerrariaUI.Widgets
 
         public virtual void StartBlink(ButtonBlinkStyle blinkStyle)
         {
-            Pressed = true;
+            BlinkOn = true;
             Blink(blinkStyle, ButtonStyle.BlinkColor);
         }
 
@@ -206,18 +205,23 @@ namespace TerrariaUI.Widgets
             State |= type;
             if (State == 3)
                 EndBlink(blinkStyle);
+            else if (!CalculateActive())
+                BlinkOn = false;
         }
 
         public virtual void EndBlink(ButtonBlinkStyle blinkStyle)
         {
-            Pressed = false;
+            BlinkOn = false;
             Blink(blinkStyle, Style.WallColor.Value);
         }
 
         public virtual void Blink(ButtonBlinkStyle blinkStyle, byte blinkColor)
         {
             if (!CalculateActive())
+            {
+                BlinkOn = false;
                 return;
+            }
 
             if (blinkStyle == ButtonBlinkStyle.Full)
             {
