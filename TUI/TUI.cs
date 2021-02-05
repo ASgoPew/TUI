@@ -25,6 +25,8 @@ namespace TerrariaUI
         public const short FakeSignSTileHeader = 29728;
         private static List<RootVisualObject> Child = new List<RootVisualObject>();
         private static Timer Timer;
+        public static Dictionary<string, Application> Applications { get; } =
+            new Dictionary<string, Application>();
         public static bool Active { get; set; } = false;
 
         #endregion
@@ -527,6 +529,31 @@ namespace TerrariaUI
 
         public static void UDBRemove(int user, string key) =>
             Hooks.Database.Invoke(new DatabaseArgs(DatabaseActionType.Remove, key, null, user));
+
+        #endregion
+
+        #region RegisterApplication
+
+        public static void RegisterApplication(Application app)
+        {
+            if (Applications.ContainsKey(app.Name))
+                throw new ArgumentException($"Application name already used: {app.Name}");
+
+            Applications.Add(app.Name, app);
+        }
+
+        #endregion
+        #region DeregisterApplication
+
+        public static void DeregisterApplication(string name, bool destroy = true)
+        {
+            if (!Applications.TryGetValue(name, out Application app))
+                throw new KeyNotFoundException($"Application not found: {app.Name}");
+
+            if (destroy)
+                app.DestroyAll();
+            Applications.Remove(app.Name);
+        }
 
         #endregion
 

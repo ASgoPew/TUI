@@ -152,7 +152,7 @@ namespace TUIPlugin
             }
             catch (Exception e)
             {
-                TUI.HandleException(new Exception("Failed to load, update, apply and draw TUI", e));
+                TUI.HandleException(e);
             }
         }
 
@@ -675,7 +675,43 @@ namespace TUIPlugin
             }
             if (foundRoots.Count == 0)
             {
-                player?.SendErrorMessage($"Invalid panel '{name}'.");
+                player?.SendErrorMessage($"Interface '{name}' not found.");
+                return false;
+            }
+            else if (foundRoots.Count > 1)
+            {
+                if (player != null)
+                    player.SendMultipleMatchError(foundRoots);
+                return false;
+            }
+            else
+            {
+                found = foundRoots[0];
+                return true;
+            }
+        }
+
+        #endregion
+        #region FindApp
+
+        public static bool FindApp(string name, TSPlayer player, out Application found)
+        {
+            found = null;
+            List<Application> foundRoots = new List<Application>();
+            string lowerName = name.ToLower();
+            foreach (var pair in TUI.Applications)
+            {
+                if (pair.Key == name)
+                {
+                    found = pair.Value;
+                    return true;
+                }
+                else if (pair.Key.ToLower().StartsWith(lowerName))
+                    foundRoots.Add(pair.Value);
+            }
+            if (foundRoots.Count == 0)
+            {
+                player?.SendErrorMessage($"Application '{name}' not found.");
                 return false;
             }
             else if (foundRoots.Count > 1)
@@ -699,20 +735,6 @@ namespace TUIPlugin
             string arg0 = args.Parameters.ElementAtOrDefault(0);
             switch (arg0?.ToLower())
             {
-                case "l":
-                case "list":
-                {
-                    if (!PaginationTools.TryParsePageNumber(args.Parameters, 1, args.Player, out int page))
-                        return;
-                    List<string> lines = PaginationTools.BuildLinesFromTerms(TUI.GetRoots());
-                    PaginationTools.SendPage(args.Player, page, lines, new PaginationTools.Settings()
-                    {
-                        HeaderFormat = "TUI interfaces ({0}/{1}):",
-                        FooterFormat = "Type '/tui list {0}' for more.",
-                        NothingToDisplayString = "There are no TUI interfaces yet."
-                    });
-                    break;
-                }
                 case "tp":
                 case "teleport":
                 {
@@ -871,6 +893,7 @@ Draw state: {root.DrawState}");
                     if (!FindRoot(args.Parameters[1], args.Player, out RootVisualObject root))
                         return;
 
+                    root.Pulse(PulseType.Reset);
                     if (root is Panel panel)
                     {
                         panel.HidePopUp();
@@ -881,6 +904,7 @@ Draw state: {root.DrawState}");
                     break;
                 }
                 case "del":
+                case "destroy":
                 case "delete":
                 {
                     if (args.Parameters.Count != 3)
@@ -893,7 +917,95 @@ Draw state: {root.DrawState}");
 
                     TUI.Destroy(root);
 
-                    args.Player.SendSuccessMessage($"Interface '{root.Name}' was deleted.");
+                    args.Player.SendSuccessMessage($"Interface '{root.Name}' was destroyed.");
+                    break;
+                }
+                case "app":
+                case "application":
+                {
+                    if (args.Parameters.Count < 2)
+                    {
+                        args.Player.SendErrorMessage("/tui app <add/remove> \"app name\"");
+                        args.Player.SendErrorMessage("/tui app list");
+                        return;
+                    }
+                    switch (args.Parameters[1])
+                    {
+                        case "add":
+                        {
+                            if (args.Parameters.Count != 3)
+                            {
+                                args.Player.SendErrorMessage("/tui app add \"app name\"");
+                                return;
+                            }
+                            if (!FindApp(args.Parameters[2], args.Player, out Application app))
+                                return;
+
+                            app.CreateInstance(args.Player.TileX, args.Player.TileY);
+                            break;
+                        }
+                        case "remove":
+                        {
+                            if (args.Parameters.Count < 3 || args.Parameters.Count > 4)
+                            {
+                                args.Player.SendErrorMessage("/tui app remove \"app name\" [<index>/all]");
+                                return;
+                            }
+                            if (!FindApp(args.Parameters[2], args.Player, out Application app))
+                                return;
+
+                            if (args.Parameters.Count == 3)
+                            {
+                                if (!app.TryDestroy(args.Player.TileX, args.Player.TileY, out string name))
+                                    args.Player.SendErrorMessage($"There are not app instances of type '{app.Name}' at this point.");
+                                else
+                                    args.Player.SendSuccessMessage($"Removed app instance: {name}.");
+                            }
+                            else
+                            {
+                                if (args.Parameters[3].ToLower() == "all")
+                                {
+                                    app.DestroyAll();
+                                    args.Player.SendSuccessMessage($"Removed app instances of type '{app.Name}'");
+                                }
+                                else if (!Int32.TryParse(args.Parameters[3], out int index))
+                                    args.Player.SendErrorMessage($"Invalid index: {args.Parameters[3]}");
+                                else
+                                {
+                                    app.DestroyInstance(index);
+                                    args.Player.SendSuccessMessage($"Removed app instance of type '{app.Name}' with index {index}");
+                                }
+                            }
+                            break;
+                        }
+                        case "list":
+                        {
+                            if (!PaginationTools.TryParsePageNumber(args.Parameters, 2, args.Player, out int page))
+                                return;
+                            List<string> lines = PaginationTools.BuildLinesFromTerms(TUI.Applications.Values);
+                            PaginationTools.SendPage(args.Player, page, lines, new PaginationTools.Settings()
+                            {
+                                HeaderFormat = "TUI apps ({0}/{1}):",
+                                FooterFormat = "Type '/tui app list {0}' for more.",
+                                NothingToDisplayString = "There are no TUI apps yet."
+                            });
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case "l":
+                case "list":
+                {
+                    if (!PaginationTools.TryParsePageNumber(args.Parameters, 1, args.Player, out int page))
+                        return;
+                    List<string> lines = PaginationTools.BuildLinesFromTerms(TUI.GetRoots());
+                    PaginationTools.SendPage(args.Player, page, lines, new PaginationTools.Settings()
+                    {
+                        HeaderFormat = "TUI interfaces ({0}/{1}):",
+                        FooterFormat = "Type '/tui list {0}' for more.",
+                        NothingToDisplayString = "There are no TUI interfaces yet."
+                    });
                     break;
                 }
                 default:
@@ -907,6 +1019,8 @@ Draw state: {root.DrawState}");
                     args.Player.SendInfoMessage("/tui disable \"interface name\"");
                     args.Player.SendInfoMessage("/tui reset \"interface name\"");
                     args.Player.SendInfoMessage("/tui delete \"interface name\" -confirm");
+                    args.Player.SendInfoMessage("/tui app <add/remove> \"app name\"");
+                    args.Player.SendInfoMessage("/tui app list");
                     args.Player.SendInfoMessage("/tui list [page]");
                     break;
                 }
