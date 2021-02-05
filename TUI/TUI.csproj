@@ -44,8 +44,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Application.cs" />
-    <Compile Include="ApplicationSaver.cs" />
+    <Compile Include="Applications\Application.cs" />
+    <Compile Include="Applications\ApplicationSaver.cs" />
     <Compile Include="Base\CustomCallbacks.cs" />
     <Compile Include="Base\IInput.cs" />
     <Compile Include="Base\Input.cs" />
