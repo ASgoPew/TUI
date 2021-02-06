@@ -631,24 +631,31 @@ namespace TUIPlugin
             switch (args.Type)
             {
                 case DatabaseActionType.Get:
-                    //args.Value = JsonConvert.DeserializeObject(Database.GetData(args.Key), args.DataType);
-                    if (args.User.HasValue)
+                    if (args.Number.HasValue)
+                        args.Number = Database.GetNumber(args.User.Value, args.Key);
+                    else if (args.User.HasValue)
                         args.Data = Database.GetData(args.User.Value, args.Key);
                     else
                         args.Data = Database.GetData(args.Key);
                     break;
                 case DatabaseActionType.Set:
-                    //Database.SetData(args.Key, JsonConvert.SerializeObject(args.Value));
+                    if (args.Number.HasValue)
+                        Database.SetNumber(args.User.Value, args.Key, args.Number.Value);
                     if (args.User.HasValue)
                         Database.SetData(args.User.Value, args.Key, args.Data);
                     else
                         Database.SetData(args.Key, args.Data);
                     break;
                 case DatabaseActionType.Remove:
+                    if (args.Number.HasValue)
+                        Database.RemoveNumber(args.User.Value, args.Key);
                     if (args.User.HasValue)
                         Database.RemoveKey(args.User.Value, args.Key);
                     else
                         Database.RemoveKey(args.Key);
+                    break;
+                case DatabaseActionType.Select:
+                    args.Numbers = Database.SelectNumbers(args.Key, args.Ascending, args.Count, args.Offset);
                     break;
             }
         }

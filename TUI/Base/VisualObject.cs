@@ -1530,6 +1530,30 @@ namespace TerrariaUI.Base
             }
 
             #endregion
+            #region UDBGetNumber
+
+            public int? UDBGetNumber(int user) =>
+                TUI.UDBGetNumber(user, FullName);
+
+            #endregion
+            #region UDBSetNumber
+
+            public void UDBSetNumber(int user, int number) =>
+                TUI.UDBSetNumber(user, FullName, number);
+
+            #endregion
+            #region UDBRemoveNumber
+
+            public void UDBRemoveNumber(int user) =>
+                TUI.UDBRemoveNumber(user, FullName);
+
+            #endregion
+            #region UDBSelectNumbers
+
+            public List<(int user, int number)> UDBSelectNumbers(bool ascending, int count, int offset = 0) =>
+                TUI.UDBSelectNumbers(FullName, ascending, count, offset);
+
+            #endregion
 
         #endregion
     }

@@ -1,6 +1,7 @@
 ﻿using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using TerrariaUI;
@@ -11,11 +12,18 @@ namespace TUIPlugin
 {
     public static class Database
     {
-        public static string TableName = "TUIKeyValue";
-        public static string UserTableName = "TUIUserKeyValue";
+        #region Data
+
+        public const string KeyValueTableName = "TUIKeyValue";
+        public const string UserKeyValueTableName = "TUIUserKeyValue";
+        public const string UserNumberTableName = "TUIUserNumber";
         public static bool IsMySql => db.GetSqlType() == SqlType.Mysql;
 
         public static IDbConnection db;
+
+        #endregion
+
+        #region ConnectDB
 
         /// <summary>
         /// Connects the mysql/sqlite database for the plugin, creating one if the database doesn't already exist.
@@ -49,10 +57,10 @@ namespace TUIPlugin
             else
                 throw new Exception("Invalid storage type.");
 
-            var sqlCreator = new SqlTableCreator(db,
-                IsMySql
-                    ? (IQueryBuilder)new MysqlQueryCreator()
-                    : new SqliteQueryCreator());
+            //var sqlCreator = new SqlTableCreator(db,
+            //    IsMySql
+            //        ? (IQueryBuilder)new MysqlQueryCreator()
+            //        : new SqliteQueryCreator());
 
             //sqlCreator.EnsureTableStructure(new SqlTable("TUIKeyValue",
             //    new SqlColumn("Key", MySqlDbType.TinyText) { Primary=true, Unique=true },
@@ -65,6 +73,11 @@ namespace TUIPlugin
             Query($@"CREATE TABLE IF NOT EXISTS TUIKeyValue(
                         `Key` TEXT UNIQUE NOT NULL,
                         `Value` BINARY NOT NULL);
+                     CREATE TABLE IF NOT EXISTS TUIUserNumber(
+                        `User` INTEGER NOT NULL,
+                        `Key` TEXT NOT NULL,
+                        `Number` INTEGER NOT NULL,
+                        UNIQUE{(IsMySql ? " KEY" : "")} (`User`, `Key`));
                      CREATE TABLE IF NOT EXISTS TUIUserKeyValue(
                         `User` INTEGER NOT NULL,
                         `Key` TEXT NOT NULL,
@@ -76,6 +89,9 @@ namespace TUIPlugin
                 new SqlColumn("Key", MySqlDbType.TinyText) { Primary = true },
                 new SqlColumn("Value", MySqlDbType.Text)));*/
         }
+
+        #endregion
+        #region Query
 
         public static bool Query(string query)
         {
@@ -102,6 +118,10 @@ namespace TUIPlugin
             return success;
         }
 
+        #endregion
+
+        #region GetData(string key)
+
         public static byte[] GetData(string key)
         {
             db.Open();
@@ -109,7 +129,7 @@ namespace TUIPlugin
             {
                 using (IDbCommand cmd = db.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT Value FROM {0} WHERE Key='{1}'".SFormat(TableName, key);
+                    cmd.CommandText = "SELECT Value FROM {0} WHERE Key='{1}'".SFormat(KeyValueTableName, key);
                     using (IDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
@@ -130,6 +150,9 @@ namespace TUIPlugin
             return null;
         }
 
+        #endregion
+        #region SetData(string key, byte[] data)
+
         public static void SetData(string key, byte[] data)
         {
             db.Open();
@@ -137,7 +160,7 @@ namespace TUIPlugin
             {
                 using (var conn = db.CreateCommand())
                 {
-                    conn.CommandText = "REPLACE INTO {0} (Key, Value) VALUES ({1})".SFormat(TableName, $"'{key}', @data");
+                    conn.CommandText = "REPLACE INTO {0} (Key, Value) VALUES ({1})".SFormat(KeyValueTableName, $"'{key}', @data");
                     conn.AddParameter("@data", data);
                     conn.ExecuteNonQuery();
                 }
@@ -152,8 +175,15 @@ namespace TUIPlugin
             }
         }
 
+        #endregion
+        #region RemoveKey(string key)
+
         public static void RemoveKey(string key) =>
-            Query("DELETE FROM {0} WHERE Key='{1}'".SFormat(TableName, key));
+            Query("DELETE FROM {0} WHERE Key='{1}'".SFormat(KeyValueTableName, key));
+
+        #endregion
+
+        #region GetData(int user, string key)
 
         public static byte[] GetData(int user, string key)
         {
@@ -162,7 +192,7 @@ namespace TUIPlugin
             {
                 using (IDbCommand cmd = db.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT Value FROM {0} WHERE User={1} AND Key='{2}'".SFormat(UserTableName, user, key);
+                    cmd.CommandText = "SELECT Value FROM {0} WHERE User={1} AND Key='{2}'".SFormat(UserKeyValueTableName, user, key);
                     using (IDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
@@ -184,6 +214,9 @@ namespace TUIPlugin
             return null;
         }
 
+        #endregion
+        #region SetData(int user, string key, byte[] data)
+
         public static void SetData(int user, string key, byte[] data)
         {
             db.Open();
@@ -191,7 +224,7 @@ namespace TUIPlugin
             {
                 using (var conn = db.CreateCommand())
                 {
-                    conn.CommandText = "REPLACE INTO {0} (User, Key, Value) VALUES ({1})".SFormat(UserTableName, $"{user}, '{key}', @data");
+                    conn.CommandText = "REPLACE INTO {0} (User, Key, Value) VALUES ({1})".SFormat(UserKeyValueTableName, $"{user}, '{key}', @data");
                     conn.AddParameter("@data", data);
                     conn.ExecuteNonQuery();
                 }
@@ -207,7 +240,103 @@ namespace TUIPlugin
             }
         }
 
+        #endregion
+        #region RemoveKey(int user, string key)
+
         public static void RemoveKey(int user, string key) =>
-            Query("DELETE FROM {0} WHERE User={1} AND Key='{2}'".SFormat(UserTableName, user, key));
+            Query("DELETE FROM {0} WHERE User={1} AND Key='{2}'".SFormat(UserKeyValueTableName, user, key));
+
+        #endregion
+
+        #region GetNumber
+
+        public static int? GetNumber(int user, string key)
+        {
+            db.Open();
+            try
+            {
+                using (IDbCommand cmd = db.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT Number FROM {0} WHERE User={1} AND Key='{2}'".SFormat(UserNumberTableName, user, key);
+                    using (IDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                            return (int)reader["Number"];
+                        return null;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(new Exception(
+                    $"TUI.Database.GetData(user:{user}, key:{key}, ...)", e));
+            }
+            finally
+            {
+                db.Close();
+            }
+
+            return null;
+        }
+
+        #endregion
+        #region SetNumber
+
+        public static void SetNumber(int user, string key, int number)
+        {
+            db.Open();
+            try
+            {
+                using (var conn = db.CreateCommand())
+                {
+                    conn.CommandText = "REPLACE INTO {0} (User, Key, Number) VALUES ({1})".SFormat(UserNumberTableName, $"{user}, '{key}', @number");
+                    conn.AddParameter("@number", number);
+                    conn.ExecuteNonQuery();
+                }
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(new Exception(
+                    $"TUI.Database.SetData(user:{user}, key:{key}, ...)", e));
+            }
+            finally
+            {
+                db.Close();
+            }
+        }
+
+        #endregion
+        #region RemoveNumber
+
+        public static void RemoveNumber(int user, string key) =>
+            Query("DELETE FROM {0} WHERE User={1} AND Key='{2}'".SFormat(UserNumberTableName, user, key));
+
+        #endregion
+        #region SelectNumbers
+
+        public static List<(int user, int number)> SelectNumbers(string key, bool ascending, int count, int offset)
+        {
+            List<(int, int)> result = new List<(int, int)>();
+            try
+            {
+                using (QueryResult reader = db.QueryReader($"SELECT User, Number FROM {UserNumberTableName} WHERE Key=@0 ORDER BY Number {(ascending ? "ASC" : "DESC")} LIMIT @1 OFFSET @2", key, count, offset))
+                {
+                    if (reader.Read())
+                    {
+                        int user = reader.Get<int>("User");
+                        int number = reader.Get<int>("Number");
+                        result.Add((user, number));
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(new Exception(
+                    $"TUI.Database.SelectNumbers(key:{key}, ...)", e));
+            }
+            return result;
+        }
+
+        #endregion
     }
 }

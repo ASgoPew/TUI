@@ -540,6 +540,38 @@ namespace TerrariaUI
             Hooks.Database.Invoke(new DatabaseArgs(DatabaseActionType.Remove, key, null, user));
 
         #endregion
+        #region UDBGetNumber
+
+        public static int? UDBGetNumber(int user, string key)
+        {
+            DatabaseArgs args = new DatabaseArgs(DatabaseActionType.Get, key, null, user, 0);
+            Hooks.Database.Invoke(args);
+            return args.Number;
+        }
+
+        #endregion
+        #region UDBSetNumber
+
+        public static void UDBSetNumber(int user, string key, int number) =>
+            Hooks.Database.Invoke(new DatabaseArgs(DatabaseActionType.Set, key, null, user, number));
+
+        #endregion
+        #region UDBRemoveNumber
+
+        public static void UDBRemoveNumber(int user, string key) =>
+            Hooks.Database.Invoke(new DatabaseArgs(DatabaseActionType.Remove, key, null, user, 0));
+
+        #endregion
+        #region UDBSelectNumbers
+
+        public static List<(int user, int number)> UDBSelectNumbers(string key, bool ascending, int count, int offset)
+        {
+            DatabaseArgs args = new DatabaseArgs(DatabaseActionType.Remove, key, null, null, 0, ascending, count, offset);
+            Hooks.Database.Invoke(args);
+            return args.Numbers;
+        }
+
+        #endregion
 
         #region RegisterApplication
 
