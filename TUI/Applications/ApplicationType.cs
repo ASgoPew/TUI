@@ -38,7 +38,7 @@ namespace TerrariaUI
             }
         }
 
-        public ApplicationType(string name, Func<string, Application> generator, ImageData icon = null)
+        public ApplicationType(string name, Func<string, Application> generator, ImageData icon = null, bool save = true)
         {
             if (name == null)
                 throw new ArgumentNullException(nameof(name));
@@ -48,8 +48,11 @@ namespace TerrariaUI
             Name = name;
             Generator = generator;
             Icon = icon;
-            Saver = new ApplicationSaver(this);
-            Saver.DBRead();
+            if (save)
+            {
+                Saver = new ApplicationSaver(this);
+                Saver.DBRead();
+            }
         }
 
         public override string ToString() => Name;
@@ -68,7 +71,7 @@ namespace TerrariaUI
                 instance.SetXY(x - instance.Width / 2, y - instance.Height / 2, false);
                 instance.SavePanel();
                 TUI.Create(instance);
-                Saver.DBWrite();
+                Saver?.DBWrite();
             }
         }
 
@@ -95,7 +98,7 @@ namespace TerrariaUI
             {
                 TUI.Destroy(Instances[index]);
                 Instances.Remove(index);
-                Saver.DBWrite();
+                Saver?.DBWrite();
             }
         }
 

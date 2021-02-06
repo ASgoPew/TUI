@@ -95,10 +95,6 @@ namespace TerrariaUI
         /// If app is tracking a player
         /// </summary>
         public bool Tracking => ApplicationStyle.TrackingPlayer >= 0;
-        /// <summary>
-        /// Whether to save this app in database (to create it after server reboot) or not
-        /// </summary>
-        public virtual bool Save => !Tracking;
 
         #endregion
 
