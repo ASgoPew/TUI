@@ -1080,6 +1080,12 @@ Draw state: {root.DrawState}");
                             });
                             break;
                         }
+                        default:
+                        {
+                            args.Player.SendInfoMessage("/tui app <add/remove> \"app name\"");
+                            args.Player.SendInfoMessage("/tui app list");
+                            break;
+                        }
                     }
                     break;
                 }
