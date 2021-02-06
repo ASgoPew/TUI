@@ -63,6 +63,7 @@ namespace TerrariaUI
                     index++;
                 Application instance = Generator($"{Name}_{index}");
                 instance.Type = this;
+                instance.Index = index;
                 Instances[index] = instance;
                 instance.SetXY(x - instance.Width / 2, y - instance.Height / 2, false);
                 instance.SavePanel();
@@ -77,6 +78,7 @@ namespace TerrariaUI
             {
                 Application instance = Generator($"{Name}_{index}");
                 instance.Type = this;
+                instance.Index = index;
                 if (Instances.TryGetValue(index, out Application another))
                 {
                     TUI.Destroy(another);
@@ -99,12 +101,7 @@ namespace TerrariaUI
 
         public void DestroyInstance(Application app)
         {
-            lock (Locker)
-            {
-                var pair2 = Instances.FirstOrDefault(pair => pair.Value == app);
-                if (pair2.Value == app)
-                    DestroyInstance(pair2.Key);
-            }
+            DestroyInstance(app.Index);
         }
 
         public bool TryDestroy(int x, int y, out string name)

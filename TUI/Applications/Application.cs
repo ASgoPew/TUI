@@ -72,6 +72,7 @@ namespace TerrariaUI
         #region Data
 
         public ApplicationType Type { get; internal set; }
+        public int Index { get; internal set; }
         /// <summary>
         /// Time of app creation moment
         /// </summary>
