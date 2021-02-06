@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -25,9 +26,12 @@ namespace TerrariaUI
         public const short FakeSignSTileHeader = 29728;
         private static List<RootVisualObject> Child = new List<RootVisualObject>();
         private static Timer Timer;
-        public static Dictionary<string, Application> Applications { get; } =
-            new Dictionary<string, Application>();
+        public static ConcurrentDictionary<string, ApplicationType> ApplicationTypes { get; } =
+            new ConcurrentDictionary<string, ApplicationType>();
+        public static List<ConcurrentDictionary<Application, byte>> ApplicationPlayerSessions =
+            new List<ConcurrentDictionary<Application, byte>>();
         public static bool Active { get; set; } = false;
+        public const string Permission = "TUI.control";
 
         #endregion
 
@@ -41,6 +45,8 @@ namespace TerrariaUI
             Session = new UserSession[MaxPlayers];
             Timer = new Timer(5000) { AutoReset = true };
             Timer.Elapsed += OnTimerElapsed;
+            for (int i = 0; i < maxPlayers; i++)
+                ApplicationPlayerSessions.Add(new ConcurrentDictionary<Application, byte>());
         }
 
         #endregion
@@ -199,6 +205,9 @@ namespace TerrariaUI
                 Touch simulatedEndTouch = session.PreviousTouch.SimulatedEndTouch();
                 Touched(playerIndex, simulatedEndTouch);
             }
+
+            foreach (var pair in ApplicationPlayerSessions[playerIndex])
+                pair.Key.OnPlayerLeave(playerIndex);
 
             lock (Child)
                 foreach (RootVisualObject child in Child)
@@ -534,12 +543,12 @@ namespace TerrariaUI
 
         #region RegisterApplication
 
-        public static void RegisterApplication(Application app)
+        public static void RegisterApplication(ApplicationType app)
         {
-            if (Applications.ContainsKey(app.Name))
+            if (ApplicationTypes.ContainsKey(app.Name))
                 throw new ArgumentException($"Application name already used: {app.Name}");
 
-            Applications.Add(app.Name, app);
+            ApplicationTypes[app.Name] = app;
         }
 
         #endregion
@@ -547,12 +556,12 @@ namespace TerrariaUI
 
         public static void DeregisterApplication(string name, bool destroy = true)
         {
-            if (!Applications.TryGetValue(name, out Application app))
+            if (!ApplicationTypes.TryGetValue(name, out ApplicationType app))
                 throw new KeyNotFoundException($"Application not found: {app.Name}");
 
             if (destroy)
                 app.DestroyAll();
-            Applications.Remove(app.Name);
+            ApplicationTypes.TryRemove(app.Name, out _);
         }
 
         #endregion

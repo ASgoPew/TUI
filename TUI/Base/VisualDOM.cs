@@ -565,6 +565,11 @@ namespace TerrariaUI.Base
             public virtual bool Intersecting(VisualObject o) => Intersecting(o.X, o.Y, o.Width, o.Height);
 
             #endregion
+            #region CenterPosition
+
+            public (int, int) CenterPosition() => (X + Width / 2, Y + Height / 2);
+
+            #endregion
 
         #endregion
 

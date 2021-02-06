@@ -45,8 +45,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Applications\Application.cs" />
+    <Compile Include="Applications\ApplicationType.cs" />
     <Compile Include="Applications\ApplicationSaver.cs" />
-    <Compile Include="Applications\RatingApplication.cs" />
     <Compile Include="Base\CustomCallbacks.cs" />
     <Compile Include="Base\IInput.cs" />
     <Compile Include="Base\Input.cs" />

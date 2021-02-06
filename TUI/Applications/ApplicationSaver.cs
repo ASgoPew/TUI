@@ -10,11 +10,11 @@ using TerrariaUI.Base.Style;
 
 namespace TerrariaUI
 {
-    internal class ApplicationSaver : VisualObject
+    public class ApplicationSaver : VisualObject
     {
-        public Application App;
+        public ApplicationType App;
 
-        public ApplicationSaver(Application app)
+        public ApplicationSaver(ApplicationType app)
             : base(0, 0, 0, 0)
         {
             App = app;
@@ -41,9 +41,7 @@ namespace TerrariaUI
 
         protected override void DBWriteNative(BinaryWriter bw)
         {
-            bw.Write((byte)App.Instances.Count);
-            foreach (var pair in App.Instances)
-                bw.Write((int)pair.Key);
+            App.Write(bw);
         }
     }
 }

@@ -15,6 +15,8 @@ using TerrariaUI.Widgets.Data;
 using TerrariaUI.Widgets.Media;
 using TerrariaUI;
 using TerrariaUI.Widgets;
+using Microsoft.Xna.Framework;
+using TShockAPI.Hooks;
 
 namespace TUIPlugin
 {
@@ -42,7 +44,7 @@ namespace TUIPlugin
         private static Timer RegionTimer = new Timer(1000) { AutoReset = true };
         public static Command[] CommandList = new Command[]
         {
-            new Command("TUI.control", TUICommand, "tui")
+            new Command(TUI.Permission, TUICommand, "tui")
         };
 
         #endregion
@@ -68,6 +70,7 @@ namespace TUIPlugin
                 ServerApi.Hooks.ServerConnect.Register(this, OnServerConnect);
                 ServerApi.Hooks.ServerLeave.Register(this, OnServerLeave);
                 ServerApi.Hooks.NetGetData.Register(this, OnGetData, 100);
+                PlayerHooks.PlayerLogout += OnPlayerLogout;
                 GetDataHandlers.NewProjectile += OnNewProjectile;
                 TUI.Hooks.CanTouch.Event += OnCanTouch;
                 TUI.Hooks.DrawObject.Event += OnDrawObject;
@@ -111,6 +114,7 @@ namespace TUIPlugin
                     ServerApi.Hooks.ServerLeave.Deregister(this, OnServerLeave);
                     ServerApi.Hooks.NetGetData.Deregister(this, OnGetData);
                     GetDataHandlers.NewProjectile -= OnNewProjectile;
+                    PlayerHooks.PlayerLogout -= OnPlayerLogout;
                     TUI.Hooks.CanTouch.Event -= OnCanTouch;
                     TUI.Hooks.DrawObject.Event -= OnDrawObject;
                     TUI.Hooks.DrawRectangle.Event -= OnDrawRectangle;
@@ -238,6 +242,22 @@ namespace TUIPlugin
                         }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
+            }
+        }
+
+        #endregion
+        #region OnPlayerLogout
+
+        private static void OnPlayerLogout(PlayerLogoutEventArgs args)
+        {
+            try
+            {
+                foreach (var pair in TUI.ApplicationPlayerSessions[args.Player.Index])
+                    pair.Key.OnPlayerLogout(args.Player.Index);
             }
             catch (Exception e)
             {
@@ -559,6 +579,26 @@ namespace TUIPlugin
                         log.ConsoleError(args.Text);
                         break;
                 }
+                for (int i = 0; i < 255; i++)
+                {
+                    TSPlayer player = TShock.Players[i];
+                    if (player?.Active == true && player.HasPermission(TUI.Permission))
+                        switch (args.Type)
+                        {
+                            case LogType.Success:
+                                player.SendSuccessMessage(args.Text);
+                                break;
+                            case LogType.Info:
+                                player.SendInfoMessage(args.Text);
+                                break;
+                            case LogType.Warning:
+                                player.SendWarningMessage(args.Text);
+                                break;
+                            case LogType.Error:
+                                player.SendErrorMessage(args.Text);
+                                break;
+                        }
+                }
             }
             else
             {
@@ -647,6 +687,55 @@ namespace TUIPlugin
 
                     root.Draw();
                 }
+
+                foreach (var pair in TUI.ApplicationTypes)
+                    foreach (var pair2 in pair.Value.IterateInstances)
+                    {
+                        Application app = pair2.Value;
+                        (int centerX, int centerY) = app.CenterPosition();
+                        Vector2 center = new Vector2(centerX, centerY);
+                        int[] players = app.SessionPlayers;
+                        bool sessionActive = players != null;
+
+                        // Player session
+                        if (sessionActive)
+                        {
+                            // Players too far
+                            foreach (int index in players)
+                            {
+                                TSPlayer player = TShock.Players[index];
+                                if (player?.Active != true)
+                                    app.OnPlayerLeave(index);
+                                else if (index != app.ApplicationStyle.TrackingPlayer &&
+                                        Vector2.Distance(new Vector2(player.TileX, player.TileY), center) >=
+                                        app.ApplicationStyle.MaxDistance)
+                                    app.OnPlayerTooFar(index);
+                            }
+                            // Timeout
+                            if (app.PlayerSessionTimeout >= 0 &&
+                                    (DateTime.UtcNow - app.PlayerSessionCreateTime).TotalSeconds >= app.PlayerSessionTimeout)
+                                app.OnPlayerSessionTimeout();
+                        }
+                        // Lifetime
+                        if (app.ApplicationStyle.Timeout >= 0 &&
+                                (DateTime.UtcNow - app.CreateTime).TotalSeconds >= app.ApplicationStyle.Timeout)
+                            app.OnTimeout();
+                        // Tracking
+                        int trackingPlayer = app.ApplicationStyle.TrackingPlayer;
+                        if (trackingPlayer >= 0)
+                        {
+                            TSPlayer player = TShock.Players[trackingPlayer];
+                            if (player?.Active != true)
+                            {
+                                app.OnPlayerLeave(trackingPlayer);
+                                app.ApplicationStyle.TrackingPlayer = -1;
+                            }
+                            else if (Vector2.Distance(new Vector2(player.TileX, player.TileY), center) >=
+                                    app.ApplicationStyle.TrackingDistance
+                                    && (app.ApplicationStyle.TrackInMotion || player.TPlayer.velocity.Length() < 0.1f))
+                                app.TrackingTeleport(player.TileX, player.TileY);
+                        }
+                    }
             }
             catch (Exception e)
             {
@@ -692,14 +781,14 @@ namespace TUIPlugin
         }
 
         #endregion
-        #region FindApp
+        #region FindAppType
 
-        public static bool FindApp(string name, TSPlayer player, out Application found)
+        public static bool FindAppType(string name, TSPlayer player, out ApplicationType found)
         {
             found = null;
-            List<Application> foundRoots = new List<Application>();
+            List<ApplicationType> foundRoots = new List<ApplicationType>();
             string lowerName = name.ToLower();
-            foreach (var pair in TUI.Applications)
+            foreach (var pair in TUI.ApplicationTypes)
             {
                 if (pair.Key == name)
                 {
@@ -938,7 +1027,7 @@ Draw state: {root.DrawState}");
                                 args.Player.SendErrorMessage("/tui app add \"app name\"");
                                 return;
                             }
-                            if (!FindApp(args.Parameters[2], args.Player, out Application app))
+                            if (!FindAppType(args.Parameters[2], args.Player, out ApplicationType app))
                                 return;
 
                             app.CreateInstance(args.Player.TileX, args.Player.TileY);
@@ -951,7 +1040,7 @@ Draw state: {root.DrawState}");
                                 args.Player.SendErrorMessage("/tui app remove \"app name\" [<index>/all]");
                                 return;
                             }
-                            if (!FindApp(args.Parameters[2], args.Player, out Application app))
+                            if (!FindAppType(args.Parameters[2], args.Player, out ApplicationType app))
                                 return;
 
                             if (args.Parameters.Count == 3)
@@ -982,7 +1071,7 @@ Draw state: {root.DrawState}");
                         {
                             if (!PaginationTools.TryParsePageNumber(args.Parameters, 2, args.Player, out int page))
                                 return;
-                            List<string> lines = PaginationTools.BuildLinesFromTerms(TUI.Applications.Values);
+                            List<string> lines = PaginationTools.BuildLinesFromTerms(TUI.ApplicationTypes.Values);
                             PaginationTools.SendPage(args.Player, page, lines, new PaginationTools.Settings()
                             {
                                 HeaderFormat = "TUI apps ({0}/{1}):",

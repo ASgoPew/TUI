@@ -155,6 +155,11 @@ namespace TerrariaUI.Base
             public bool Intersecting(Touch o) => false;
 
             #endregion
+            #region CenterPosition
+
+            public (int, int) CenterPosition() => (X, Y);
+
+            #endregion
 
         #endregion
 

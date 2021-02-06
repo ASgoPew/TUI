@@ -14,5 +14,6 @@
         bool ContainsRelative(int x, int y);
         bool Intersecting(int x, int y, int width, int height);
         bool Intersecting(T o);
+        (int x, int y) CenterPosition();
     }
 }

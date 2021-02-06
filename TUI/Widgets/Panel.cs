@@ -487,7 +487,7 @@ namespace TerrariaUI.Widgets
     public sealed class DefaultPanelDrag : PanelDrag
     {
         public DefaultPanelDrag(bool useMoving = true)
-            : base(0, 0, 1, 1, new UIConfiguration() { UseMoving=useMoving, UseEnd=true, UseOutsideTouches=true, Permission="TUI.Control" })
+            : base(0, 0, 1, 1, new UIConfiguration() { UseMoving=useMoving, UseEnd=true, UseOutsideTouches=true, Permission=TUI.Permission })
         {
         }
     }
@@ -498,7 +498,7 @@ namespace TerrariaUI.Widgets
     public sealed class DefaultPanelResize : PanelResize
     {
         public DefaultPanelResize()
-            : base(0, 0, 1, 1, new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true, Permission="TUI.Control" })
+            : base(0, 0, 1, 1, new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true, Permission=TUI.Permission })
         {
             SetAlignmentInParent(Alignment.DownRight);
         }
