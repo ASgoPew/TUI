@@ -1438,6 +1438,17 @@ namespace TerrariaUI.Base
             }
 
             #endregion
+            #region DBRemove
+
+            /// <summary>
+            /// Delete data
+            /// </summary>
+            public void DBRemove()
+            {
+                TUI.DBRemove(FullName);
+            }
+
+            #endregion
             #region DBWriteNative
 
             /// <summary>
@@ -1505,6 +1516,18 @@ namespace TerrariaUI.Base
             /// <param name="bw"></param>
             /// <param name="user"></param>
             protected virtual void UDBWriteNative(BinaryWriter bw, int user) { }
+
+            #endregion
+            #region UDBRemove
+
+            /// <summary>
+            /// Delete data
+            /// </summary>
+            /// <param name="user"></param>
+            public void UDBRemove(int user)
+            {
+                TUI.UDBRemove(user, FullName);
+            }
 
             #endregion
 
