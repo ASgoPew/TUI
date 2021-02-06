@@ -198,8 +198,16 @@ namespace TerrariaUI
         #endregion
         #region TrackingTeleportPosition
 
-        // TODO: alignment
         public virtual void TrackingTeleportNative(int playerX, int playerY)
+        {
+            (int x, int y) = PlayerAlignment(playerX, playerY);
+            SetXY(x, y, true);
+        }
+
+        #endregion
+        #region PlayerAlignment
+
+        public (int, int) PlayerAlignment(int playerX, int playerY)
         {
             Alignment alignment = ApplicationStyle.TrackAlignment;
 
@@ -218,8 +226,7 @@ namespace TerrariaUI
                 y = playerY - 2 - Height;
             else
                 y = playerY - Height / 2;
-
-            SetXY(x, y, true);
+            return (x, y);
         }
 
         #endregion
