@@ -69,6 +69,17 @@ namespace TerrariaUI.Widgets
 
                 if (touch.State == TouchState.Begin || touch.State == TouchState.Moving)
                     SetTempValue(value, true);
+                else if (touch.Undo)
+                {
+                    int childIndex = Values.IndexOf(Input.Temp);
+                    if (childIndex >= 0)
+                    {
+                        if (Title != null)
+                            childIndex++;
+                        Button btn = (Button)GetChild(childIndex);
+                        btn.EndBlink(btn.ButtonStyle.BlinkStyle);
+                    }
+                }
                 else
                     SetValue(value, true, touch.PlayerIndex);
             }
@@ -92,22 +103,8 @@ namespace TerrariaUI.Widgets
                 Input.Temp = temp;
                 if (draw)
                 {
-                    int oldIndex = Values.IndexOf(oldTemp);
-                    if (oldIndex >= 0)
-                    {
-                        if (Title != null)
-                            oldIndex++;
-                        Button oldBtn = (Button)GetChild(oldIndex);
-                        oldBtn.EndBlink(oldBtn.ButtonStyle.BlinkStyle);
-                    }
-                    int index = Values.IndexOf(temp);
-                    if (index >= 0)
-                    {
-                        if (Title != null)
-                            index++;
-                        Button btn = (Button)GetChild(index);
-                        btn.StartBlink(btn.ButtonStyle.BlinkStyle);
-                    }
+                    Blink(oldTemp, true);
+                    Blink(Input.Temp, false);
                 }
             }
         }
@@ -119,18 +116,28 @@ namespace TerrariaUI.Widgets
         {
             SetTempValue(value, false);
             if (draw)
-            {
-                int index = Values.IndexOf(value);
-                if (index >= 0)
-                {
-                    if (Title != null)
-                        index++;
-                    Button btn = (Button)GetChild(index);
-                    btn.EndBlink(btn.ButtonStyle.BlinkStyle);
-                }
-            }
+                Blink(value, true);
             Input.SubmitTemp(this, player);
             Input.Temp = Input.Value = null;
+        }
+
+        #endregion
+        #region Blink
+
+        public void Blink(string temp, bool end)
+        {
+
+            int index = Values.IndexOf(temp);
+            if (index >= 0)
+            {
+                if (Title != null)
+                    index++;
+                Button btn = (Button)GetChild(index);
+                if (end)
+                    btn.EndBlink(btn.ButtonStyle.BlinkStyle);
+                else
+                    btn.StartBlink(btn.ButtonStyle.BlinkStyle);
+            }
         }
 
         #endregion

@@ -9,7 +9,7 @@ namespace TerrariaUI.Widgets
     #region PanelStyle
 
     /// <summary>
-    /// Drawing styles for Button widget.
+    /// Drawing styles for Panel widget.
     /// </summary>
     public class PanelStyle : ContainerStyle
     {
@@ -22,6 +22,9 @@ namespace TerrariaUI.Widgets
         public PanelStyle(PanelStyle style)
             : base(style)
         {
+            SavePosition = style.SavePosition;
+            SaveSize = style.SaveSize;
+            SaveEnabled = style.SaveEnabled;
         }
     }
 
