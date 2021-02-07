@@ -13,6 +13,10 @@ namespace TerrariaUI.Base
         /// </summary>
         public Action<VisualObject> Update { get; set; }
         /// <summary>
+        /// Callback for applying custom actions on PostUpdate().
+        /// </summary>
+        public Action<VisualObject> PostUpdate { get; set; }
+        /// <summary>
         /// Callback for custom checking if user can touch this node.
         /// </summary>
         public Func<VisualObject, Touch, bool> CanTouch { get; set; }

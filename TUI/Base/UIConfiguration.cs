@@ -134,7 +134,7 @@ namespace TerrariaUI.Base
         }
 
         internal GridConfiguration(GridConfiguration gridConfiguration)
-            : this((ISize[])gridConfiguration.Columns.Clone(), (ISize[])gridConfiguration.Lines.Clone(),
+            : this((ISize[])gridConfiguration.Columns.Clone(), (ISize[])gridConfiguration.Lines.Clone(), // TODO: shallow copy doesnt help
                   new Indent(gridConfiguration.Indent))
         {
         }
