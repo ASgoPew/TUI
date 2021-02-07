@@ -1034,6 +1034,7 @@ Draw state: {root.DrawState}");
                                 return;
 
                             app.CreateInstance(args.Player.TileX, args.Player.TileY);
+                            args.Player.SendSuccessMessage($"Created new app instance: {app.Name}");
                             break;
                         }
                         case "remove":

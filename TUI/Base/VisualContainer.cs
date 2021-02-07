@@ -48,12 +48,12 @@ namespace TerrariaUI.Base
         #region Constructor
 
         public VisualContainer(int x, int y, int width, int height, UIConfiguration configuration = null, ContainerStyle style = null, Action<VisualObject, Touch> callback = null)
-            : base(x, y, width, height, configuration, style ?? new ContainerStyle(), callback)
+            : base(x, y, width, height, configuration ?? new UIConfiguration() { UseBegin = false }, style ?? new ContainerStyle(), callback)
         {
         }
 
         public VisualContainer()
-            : this(0, 0, 0, 0, new UIConfiguration() { UseBegin = false })
+            : this(0, 0, 0, 0)
         {
         }
 
@@ -63,7 +63,7 @@ namespace TerrariaUI.Base
         }
 
         public VisualContainer(ContainerStyle style)
-            : this(0, 0, 0, 0, new UIConfiguration() { UseBegin = false }, style)
+            : this(0, 0, 0, 0, null, style)
         {
         }
 

@@ -97,7 +97,7 @@ namespace TerrariaUI
         #region Constructor
 
         public Application(string name, int width, int height, ApplicationStyle style = null, object provider = null)
-            : base(name, 0, 0, width, height, null, null, null, style ?? new ApplicationStyle(), provider)
+            : base(name, 0, 0, width, height, null, style ?? new ApplicationStyle(), provider)
         {
             CreateTime = DateTime.UtcNow;
             if (Tracking && provider == null)

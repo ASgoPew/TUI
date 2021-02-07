@@ -64,7 +64,7 @@ namespace TerrariaUI.Widgets
             var list = NDBSelect(LeaderboardStyle.Ascending, LeaderboardStyle.Count, LeaderboardStyle.Offset, true);
             foreach (var lineData in list)
             {
-                VisualContainer line = new VisualContainer(0, 0, 0, 4);
+                VisualContainer line = new VisualContainer(0, 0, 0, 4, new UIConfiguration() { UseBegin = false });
                 line.SetFullSize(true, false)
                     .SetupGrid(columns: new ISize[] { new Relative(100), new Dynamic() });
                 line[0, 0] = new Label(0, 0, 0, 0, lineData.Username, new LabelStyle() { }).SetFullSize(true, true);
@@ -73,5 +73,8 @@ namespace TerrariaUI.Widgets
                 this[0, 1].AddToLayout(line);
             }
         }
+
+        public void AddFooter(VisualObject child) =>
+            this[0, 2] = child;
     }
 }
