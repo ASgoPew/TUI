@@ -21,9 +21,10 @@ namespace TerrariaUI.Hooks.Args
         public bool Ascending { get; set; }
         public int Count { get; set; }
         public int Offset { get; set; }
-        public List<(int, int)> Numbers { get; set; }
+        public bool RequestNames { get; set; }
+        public List<(int User, int Number, string Username)> Numbers { get; set; }
 
-        public DatabaseArgs(DatabaseActionType type, string key, byte[] data = null, int? user = null, int? number = null, bool ascending = true, int count = -1, int offset = -1)
+        public DatabaseArgs(DatabaseActionType type, string key, byte[] data = null, int? user = null, int? number = null, bool ascending = true, int count = -1, int offset = -1, bool requestNames = false)
         {
             Type = type;
             Key = key;
@@ -33,6 +34,7 @@ namespace TerrariaUI.Hooks.Args
             Ascending = ascending;
             Count = count;
             Offset = offset;
+            RequestNames = requestNames;
         }
     }
 }

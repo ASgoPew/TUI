@@ -540,9 +540,9 @@ namespace TerrariaUI
             Hooks.Database.Invoke(new DatabaseArgs(DatabaseActionType.Remove, key, null, user));
 
         #endregion
-        #region UDBGetNumber
+        #region NDBGet
 
-        public static int? UDBGetNumber(int user, string key)
+        public static int? NDBGet(int user, string key)
         {
             DatabaseArgs args = new DatabaseArgs(DatabaseActionType.Get, key, null, user, 0);
             Hooks.Database.Invoke(args);
@@ -550,23 +550,23 @@ namespace TerrariaUI
         }
 
         #endregion
-        #region UDBSetNumber
+        #region NDBSet
 
-        public static void UDBSetNumber(int user, string key, int number) =>
+        public static void NDBSet(int user, string key, int number) =>
             Hooks.Database.Invoke(new DatabaseArgs(DatabaseActionType.Set, key, null, user, number));
 
         #endregion
-        #region UDBRemoveNumber
+        #region NDBRemove
 
-        public static void UDBRemoveNumber(int user, string key) =>
+        public static void NDBRemove(int user, string key) =>
             Hooks.Database.Invoke(new DatabaseArgs(DatabaseActionType.Remove, key, null, user, 0));
 
         #endregion
-        #region UDBSelectNumbers
+        #region NDBSelect
 
-        public static List<(int user, int number)> UDBSelectNumbers(string key, bool ascending, int count, int offset)
+        public static List<(int User, int Number, string Username)> NDBSelect(string key, bool ascending, int count, int offset, bool requestNames)
         {
-            DatabaseArgs args = new DatabaseArgs(DatabaseActionType.Remove, key, null, null, 0, ascending, count, offset);
+            DatabaseArgs args = new DatabaseArgs(DatabaseActionType.Remove, key, null, null, 0, ascending, count, offset, requestNames);
             Hooks.Database.Invoke(args);
             return args.Numbers;
         }

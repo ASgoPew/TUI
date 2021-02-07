@@ -997,12 +997,29 @@ namespace TerrariaUI.Base
                 int notZeroSizes = 0;
                 for (int i = 0; i < sizes.Length; i++)
                 {
+                    int value;
                     ISize size = sizes[i];
-                    int value = size.Value;
-                    if (size.IsAbsolute)
-                        absoluteSum += value;
+                    if (size.IsDynamic)
+                    {
+                        int max = 0;
+                        if (sizeName == "width")
+                            for (int line = 0; line < Configuration.Grid.Lines.Count(); line++)
+                                max = Math.Max(max, this[i, line].Width);
+                        else
+                            for (int column = 0; column < Configuration.Grid.Columns.Count(); column++)
+                                max = Math.Max(max, this[column, i].Width);
+                        value = max;
+                        ((Dynamic)size).Value = value;
+                        absoluteSize += value;
+                    }
                     else
-                        relativeSum += value;
+                    {
+                        value = size.Value;
+                        if (size.IsAbsolute)
+                            absoluteSum += value;
+                        else
+                            relativeSum += value;
+                    }
                     if (value > 0)
                         notZeroSizes++;
                 }
@@ -1530,28 +1547,28 @@ namespace TerrariaUI.Base
             }
 
             #endregion
-            #region UDBGetNumber
+            #region NDBRead
 
-            public int? UDBGetNumber(int user) =>
-                TUI.UDBGetNumber(user, FullName);
-
-            #endregion
-            #region UDBSetNumber
-
-            public void UDBSetNumber(int user, int number) =>
-                TUI.UDBSetNumber(user, FullName, number);
+            public int? NDBRead(int user) =>
+                TUI.NDBGet(user, FullName);
 
             #endregion
-            #region UDBRemoveNumber
+            #region NDBWrite
 
-            public void UDBRemoveNumber(int user) =>
-                TUI.UDBRemoveNumber(user, FullName);
+            public void NDBWrite(int user, int number) =>
+                TUI.NDBSet(user, FullName, number);
 
             #endregion
-            #region UDBSelectNumbers
+            #region NDBRemove
 
-            public List<(int user, int number)> UDBSelectNumbers(bool ascending, int count, int offset = 0) =>
-                TUI.UDBSelectNumbers(FullName, ascending, count, offset);
+            public void NDBRemove(int user) =>
+                TUI.NDBRemove(user, FullName);
+
+            #endregion
+            #region NDBSelect
+
+            public List<(int User, int Number, string Username)> NDBSelect(bool ascending, int count, int offset = 0, bool requestNames = false) =>
+                TUI.NDBSelect(FullName, ascending, count, offset, requestNames);
 
             #endregion
 

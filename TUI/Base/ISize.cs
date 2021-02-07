@@ -8,6 +8,7 @@ namespace TerrariaUI.Base
 
         bool IsAbsolute { get; }
         bool IsRelative { get; }
+        bool IsDynamic { get; }
     }
     public class Absolute : ISize
     {
@@ -16,6 +17,7 @@ namespace TerrariaUI.Base
         public int Value => InternalValue;
         public bool IsAbsolute => true;
         public bool IsRelative => false;
+        public bool IsDynamic => false;
 
         public Absolute(int value)
         {
@@ -30,6 +32,7 @@ namespace TerrariaUI.Base
         int InternalValue { get; }
         public bool IsAbsolute => false;
         public bool IsRelative => true;
+        public bool IsDynamic => false;
 
         public int Value => InternalValue - 1000000;
 
@@ -42,5 +45,14 @@ namespace TerrariaUI.Base
 
             InternalValue = value + 1000000;
         }
+    }
+    public class Dynamic : ISize
+    {
+        public int Value { get; set; }
+        public bool IsAbsolute => true;
+        public bool IsRelative => false;
+        public bool IsDynamic => true;
+
+        public Dynamic() { }
     }
 }

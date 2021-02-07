@@ -655,7 +655,7 @@ namespace TUIPlugin
                         Database.RemoveKey(args.Key);
                     break;
                 case DatabaseActionType.Select:
-                    args.Numbers = Database.SelectNumbers(args.Key, args.Ascending, args.Count, args.Offset);
+                    args.Numbers = Database.SelectNumbers(args.Key, args.Ascending, args.Count, args.Offset, args.RequestNames);
                     break;
             }
         }

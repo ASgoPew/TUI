@@ -314,18 +314,33 @@ namespace TUIPlugin
         #endregion
         #region SelectNumbers
 
-        public static List<(int user, int number)> SelectNumbers(string key, bool ascending, int count, int offset)
+        public static List<(int User, int Number, string Username)> SelectNumbers(string key, bool ascending, int count, int offset, bool requestNames)
         {
-            List<(int, int)> result = new List<(int, int)>();
+            List<(int, int, string)> result = new List<(int, int, string)>();
             try
             {
-                using (QueryResult reader = db.QueryReader($"SELECT User, Number FROM {UserNumberTableName} WHERE Key=@0 ORDER BY Number {(ascending ? "ASC" : "DESC")} LIMIT @1 OFFSET @2", key, count, offset))
+                string query = requestNames ?
+$@"SELECT number.User, number.Number, user.Username
+	FROM {UserNumberTableName} AS number
+    JOIN users as user ON number.User = user.ID
+    WHERE Key=@0
+    ORDER BY Number {(ascending ? "ASC" : "DESC")}
+    LIMIT @1
+    OFFSET @2"
+: $@"SELECT User, Number
+    FROM {UserNumberTableName}
+    WHERE Key=@0
+    ORDER BY Number {(ascending ? "ASC" : "DESC")}
+    LIMIT @1
+    OFFSET @2";
+                using (QueryResult reader = db.QueryReader(query, key, count, offset))
                 {
                     if (reader.Read())
                     {
                         int user = reader.Get<int>("User");
                         int number = reader.Get<int>("Number");
-                        result.Add((user, number));
+                        string username = requestNames ? reader.Get<string>("Username") : null;
+                        result.Add((user, number, username));
                     }
                 }
             }
