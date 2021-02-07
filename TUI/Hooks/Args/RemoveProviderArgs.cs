@@ -1,5 +1,4 @@
 ﻿using System;
-using TerrariaUI.Base;
 
 namespace TerrariaUI.Hooks
 {

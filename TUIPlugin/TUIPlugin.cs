@@ -1,8 +1,6 @@
-﻿using OTAPI.Tile;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Timers;
 using Terraria;
@@ -11,8 +9,6 @@ using TerrariaApi.Server;
 using TShockAPI;
 using TerrariaUI.Base;
 using TerrariaUI.Hooks.Args;
-using TerrariaUI.Widgets.Data;
-using TerrariaUI.Widgets.Media;
 using TerrariaUI;
 using TerrariaUI.Widgets;
 using Microsoft.Xna.Framework;

@@ -1,7 +1,6 @@
 ﻿using System;
 using TerrariaUI.Base;
 using TerrariaUI.Base.Style;
-using TerrariaUI.Hooks.Args;
 using TerrariaUI.Widgets.Data;
 using TerrariaUI.Widgets.Media;
 

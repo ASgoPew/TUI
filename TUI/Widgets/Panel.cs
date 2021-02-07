@@ -2,7 +2,6 @@
 using System.IO;
 using TerrariaUI.Base;
 using TerrariaUI.Base.Style;
-using TerrariaUI.Hooks.Args;
 
 namespace TerrariaUI.Widgets
 {

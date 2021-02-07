@@ -2,10 +2,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using TerrariaUI.Base.Style;
 using TerrariaUI.Hooks;
 using TerrariaUI.Hooks.Args;
-using TerrariaUI.Widgets;
 
 namespace TerrariaUI.Base
 {

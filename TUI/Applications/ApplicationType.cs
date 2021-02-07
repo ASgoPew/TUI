@@ -2,10 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TerrariaUI.Hooks.Args;
-using TerrariaUI.Widgets;
 using TerrariaUI.Widgets.Media;
 
 namespace TerrariaUI

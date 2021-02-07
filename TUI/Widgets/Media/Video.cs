@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Timers;
 using TerrariaUI.Base;
 using TerrariaUI.Base.Style;
-using TerrariaUI.Hooks.Args;
 using TerrariaUI.Widgets.Media;
 
 namespace TerrariaUI.Widgets

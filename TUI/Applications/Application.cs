@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TerrariaUI.Base;
 using TerrariaUI.Base.Style;
-using TerrariaUI.Hooks.Args;
 using TerrariaUI.Widgets;
 
 namespace TerrariaUI
