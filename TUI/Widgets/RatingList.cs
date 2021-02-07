@@ -10,17 +10,17 @@ namespace TerrariaUI.Widgets
 {
     public class RatingList : VisualContainer
     {
+        public string Key { get; protected set; }
+
         public RatingList(int x, int y, int width, int height, string name, ContainerStyle style = null)
             : base(x, y, width, height, null, style)
         {
-            Name = name;
+            Key = name;
+            Name = $"rating_{name}";
 
-
-        }
-
-        protected override void DBReadNative(BinaryReader br)
-        {
-            
+            // HASHING NUMBERS????????
+            // Optional TUI library hashing?
+            // EnableNumberHashing(string key)
         }
     }
 }
