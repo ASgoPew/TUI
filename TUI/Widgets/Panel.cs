@@ -121,10 +121,23 @@ namespace TerrariaUI.Widgets
 
         protected override void DBReadNative(BinaryReader br)
         {
-            int x = br.ReadInt32();
-            int y = br.ReadInt32();
-            int width = br.ReadInt32();
-            int height = br.ReadInt32();
+            int x, y, width, height;
+            bool enabled;
+            try
+            {
+                x = br.ReadInt32();
+                y = br.ReadInt32();
+                width = br.ReadInt32();
+                height = br.ReadInt32();
+                enabled = br.ReadBoolean();
+            }
+            catch
+            {
+                TUI.Log($"Panel invalid database data", LogType.Warning);
+                DBWrite();
+                return;
+            }
+
             if (x + width < TUI.MaxTilesX && y + height < TUI.MaxTilesY)
             {
                 if (PanelStyle.SavePosition && PanelStyle.SaveSize)
@@ -141,7 +154,6 @@ namespace TerrariaUI.Widgets
                 Disable(false);
                 return;
             }
-            bool enabled = br.ReadBoolean();
             if (PanelStyle.SaveEnabled)
             {
                 if (Enabled && !enabled)
