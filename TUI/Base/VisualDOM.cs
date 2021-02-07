@@ -505,10 +505,14 @@ namespace TerrariaUI.Base
         /// <returns>this</returns>
         public virtual VisualObject SetXYWH(int x, int y, int width, int height, bool draw = true)
         {
+            if (width < 0)
+                throw new ArgumentException($"{nameof(width)} < 0");
+            if (height < 0)
+                throw new ArgumentException($"{nameof(height)} < 0");
             X = x;
             Y = y;
-            Width = width >= 0 ? width : Width;
-            Height = height >= 0 ? height : Height;
+            Width = width;
+            Height = height;
             return this as VisualObject;
         }
 

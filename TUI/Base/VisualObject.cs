@@ -245,8 +245,8 @@ namespace TerrariaUI.Base
         /// <returns>this</returns>
         public override VisualObject SetXYWH(int x, int y, int width, int height, bool draw)
         {
-            width = Math.Max(width, Configuration.Grid?.MinWidth ?? 1);
-            height = Math.Max(height, Configuration.Grid?.MinHeight ?? 1);
+            width = Math.Max(width, Configuration.Grid?.MinWidth ?? 0);
+            height = Math.Max(height, Configuration.Grid?.MinHeight ?? 0);
 
             int oldX = X, oldY = Y, oldWidth = Width, oldHeight = Height;
             if (oldX != x || oldY != y || oldWidth != width || oldHeight != height)
@@ -1015,7 +1015,6 @@ namespace TerrariaUI.Base
                     else
                         for (int column = 0; column < Configuration.Grid.Columns.Count(); column++)
                             max = Math.Max(max, this[column, i].Height);
-                    TUI.Log($"{FullName}: dynamic size={max}, {isWidth}");
                     try
                     {
                         throw new Exception();
