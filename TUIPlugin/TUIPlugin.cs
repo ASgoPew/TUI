@@ -641,7 +641,7 @@ namespace TUIPlugin
                 case DatabaseActionType.Set:
                     if (args.Number.HasValue)
                         Database.SetNumber(args.User.Value, args.Key, args.Number.Value);
-                    if (args.User.HasValue)
+                    else if (args.User.HasValue)
                         Database.SetData(args.User.Value, args.Key, args.Data);
                     else
                         Database.SetData(args.Key, args.Data);
@@ -649,10 +649,10 @@ namespace TUIPlugin
                 case DatabaseActionType.Remove:
                     if (args.Number.HasValue)
                         Database.RemoveNumber(args.User.Value, args.Key);
-                    if (args.User.HasValue)
+                    else if (args.User.HasValue)
                         Database.RemoveKey(args.User.Value, args.Key);
                     else
-                        Database.RemoveKey(args.Key);
+                        Database.RemoveData(args.Key);
                     break;
                 case DatabaseActionType.Select:
                     args.Numbers = Database.SelectNumbers(args.Key, args.Ascending, args.Count, args.Offset, args.RequestNames);

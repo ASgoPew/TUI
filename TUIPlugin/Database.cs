@@ -125,29 +125,19 @@ namespace TUIPlugin
 
         public static byte[] GetData(string key)
         {
-            db.Open();
             try
             {
-                using (IDbCommand cmd = db.CreateCommand())
+                using (QueryResult reader = db.QueryReader($"SELECT Value FROM {KeyValueTableName} WHERE Key=@0", key))
                 {
-                    cmd.CommandText = "SELECT Value FROM {0} WHERE Key='{1}'".SFormat(KeyValueTableName, key);
-                    using (IDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                            return (byte[])reader["Value"];
-                        return null;
-                    }
+                    if (reader.Read())
+                        return (byte[])reader.Reader.GetValue(0);
                 }
             }
             catch (Exception e)
             {
-                TUI.HandleException(new Exception($"TUI.Database.GetData(key:{key})", e));
+                TUI.HandleException(new Exception(
+                    $"TUI.Database.GetData() (key:{key})", e));
             }
-            finally
-            {
-                db.Close();
-            }
-
             return null;
         }
 
@@ -156,31 +146,32 @@ namespace TUIPlugin
 
         public static void SetData(string key, byte[] data)
         {
-            db.Open();
             try
             {
-                using (var conn = db.CreateCommand())
-                {
-                    conn.CommandText = "REPLACE INTO {0} (Key, Value) VALUES ({1})".SFormat(KeyValueTableName, $"'{key}', @data");
-                    conn.AddParameter("@data", data);
-                    conn.ExecuteNonQuery();
-                }
+                db.Query($"REPLACE INTO {KeyValueTableName} (Key, Value) VALUES (@0, @1)", key, data);
             }
             catch (Exception e)
             {
-                TUI.HandleException(new Exception($"TUI.Database.SetData(key:{key}, ...)", e));
-            }
-            finally
-            {
-                db.Close();
+                TUI.HandleException(new Exception(
+                    $"TUI.Database.SetData() (key:{key})", e));
             }
         }
 
         #endregion
         #region RemoveKey(string key)
 
-        public static void RemoveKey(string key) =>
-            Query("DELETE FROM {0} WHERE Key='{1}'".SFormat(KeyValueTableName, key));
+        public static void RemoveData(string key)
+        {
+            try
+            {
+                db.Query($"DELETE FROM {KeyValueTableName} WHERE Key=@0", key);
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(new Exception(
+                    $"TUI.Database.RemoveData() (key:{key})", e));
+            }
+        }
 
         #endregion
 
@@ -188,30 +179,19 @@ namespace TUIPlugin
 
         public static byte[] GetData(int user, string key)
         {
-            db.Open();
             try
             {
-                using (IDbCommand cmd = db.CreateCommand())
+                using (QueryResult reader = db.QueryReader($"SELECT Value FROM {UserKeyValueTableName} WHERE User=@0 AND Key=@1", user, key))
                 {
-                    cmd.CommandText = "SELECT Value FROM {0} WHERE User={1} AND Key='{2}'".SFormat(UserKeyValueTableName, user, key);
-                    using (IDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                            return (byte[])reader["Value"];
-                        return null;
-                    }
+                    if (reader.Read())
+                        return (byte[])reader.Reader.GetValue(0);
                 }
             }
             catch (Exception e)
             {
                 TUI.HandleException(new Exception(
-                    $"TUI.Database.GetData(user:{user}, key:{key}, ...)", e));
+                    $"TUI.Database.GetData(int user) (key:{key})", e));
             }
-            finally
-            {
-                db.Close();
-            }
-
             return null;
         }
 
@@ -220,32 +200,32 @@ namespace TUIPlugin
 
         public static void SetData(int user, string key, byte[] data)
         {
-            db.Open();
             try
             {
-                using (var conn = db.CreateCommand())
-                {
-                    conn.CommandText = "REPLACE INTO {0} (User, Key, Value) VALUES ({1})".SFormat(UserKeyValueTableName, $"{user}, '{key}', @data");
-                    conn.AddParameter("@data", data);
-                    conn.ExecuteNonQuery();
-                }
+                db.Query($"REPLACE INTO {UserKeyValueTableName} (User, Key, Value) VALUES (@0, @1, @2)", user, key, data);
             }
             catch (Exception e)
             {
                 TUI.HandleException(new Exception(
-                    $"TUI.Database.SetData(user:{user}, key:{key}, ...)", e));
-            }
-            finally
-            {
-                db.Close();
+                    $"TUI.Database.SetData(int user) (key:{key})", e));
             }
         }
 
         #endregion
         #region RemoveKey(int user, string key)
 
-        public static void RemoveKey(int user, string key) =>
-            Query("DELETE FROM {0} WHERE User={1} AND Key='{2}'".SFormat(UserKeyValueTableName, user, key));
+        public static void RemoveKey(int user, string key)
+        {
+            try
+            {
+                db.Query($"DELETE FROM {UserKeyValueTableName} WHERE User=@0 AND Key=@1", user, key);
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(new Exception(
+                    $"TUI.Database.RemoveData(int user) (key:{key})", e));
+            }
+        }
 
         #endregion
 
@@ -253,30 +233,19 @@ namespace TUIPlugin
 
         public static int? GetNumber(int user, string key)
         {
-            db.Open();
             try
             {
-                using (IDbCommand cmd = db.CreateCommand())
+                using (QueryResult reader = db.QueryReader($"SELECT Number FROM {UserNumberTableName} WHERE User=@0 AND Key=@1", user, key))
                 {
-                    cmd.CommandText = "SELECT Number FROM {0} WHERE User={1} AND Key='{2}'".SFormat(UserNumberTableName, user, key);
-                    using (IDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                            return (int)reader["Number"];
-                        return null;
-                    }
+                    if (reader.Read())
+                        return reader.Get<int>("Number");
                 }
             }
             catch (Exception e)
             {
                 TUI.HandleException(new Exception(
-                    $"TUI.Database.GetData(user:{user}, key:{key}, ...)", e));
+                    $"TUI.Database.GetNumber() (key:{key})", e));
             }
-            finally
-            {
-                db.Close();
-            }
-
             return null;
         }
 
@@ -285,32 +254,32 @@ namespace TUIPlugin
 
         public static void SetNumber(int user, string key, int number)
         {
-            db.Open();
             try
             {
-                using (var conn = db.CreateCommand())
-                {
-                    conn.CommandText = "REPLACE INTO {0} (User, Key, Number) VALUES ({1})".SFormat(UserNumberTableName, $"{user}, '{key}', @number");
-                    conn.AddParameter("@number", number);
-                    conn.ExecuteNonQuery();
-                }
+                db.Query($"REPLACE INTO {UserNumberTableName} (User, Key, Number) VALUES (@0, @1, @2)", user, key, number);
             }
             catch (Exception e)
             {
                 TUI.HandleException(new Exception(
-                    $"TUI.Database.SetData(user:{user}, key:{key}, ...)", e));
-            }
-            finally
-            {
-                db.Close();
+                    $"TUI.Database.SetNumber() (key:{key})", e));
             }
         }
 
         #endregion
         #region RemoveNumber
 
-        public static void RemoveNumber(int user, string key) =>
-            Query("DELETE FROM {0} WHERE User={1} AND Key='{2}'".SFormat(UserNumberTableName, user, key));
+        public static void RemoveNumber(int user, string key)
+        {
+            try
+            {
+                db.Query($"DELETE FROM {UserNumberTableName} WHERE User=@0 AND Key=@1", user, key);
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(new Exception(
+                    $"TUI.Database.RemoveNumber() (key:{key})", e));
+            }
+        }
 
         #endregion
         #region SelectNumbers
@@ -348,7 +317,7 @@ $@"SELECT number.User, number.Number, user.Username
             catch (Exception e)
             {
                 TUI.HandleException(new Exception(
-                    $"TUI.Database.SelectNumbers(key:{key}, ...)", e));
+                    $"TUI.Database.SelectNumbers() (key:{key})", e));
             }
             return result;
         }

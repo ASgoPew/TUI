@@ -3,14 +3,6 @@ using TerrariaUI.Base;
 
 namespace TerrariaUI.Hooks.Args
 {
-    public enum LogType
-    {
-        Success = 0,
-        Info,
-        Warning,
-        Error
-    }
-
     public class LogArgs : EventArgs
     {
         public string Text { get; set; }

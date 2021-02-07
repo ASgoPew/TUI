@@ -10,20 +10,20 @@ using TerrariaUI.Base.Style;
 namespace TerrariaUI.Widgets
 {
 
-    #region PanelStyle
+    #region LeaderboardStyle
 
     /// <summary>
     /// Drawing styles for RatingList widget.
     /// </summary>
-    public class RatingListStyle : ContainerStyle
+    public class LeaderboardStyle : ContainerStyle
     {
         public bool Ascending { get; set; } = true;
         public int Count { get; set; } = 5;
         public int Offset { get; set; } = 0;
 
-        public RatingListStyle() : base() { }
+        public LeaderboardStyle() : base() { }
 
-        public RatingListStyle(RatingListStyle style)
+        public LeaderboardStyle(LeaderboardStyle style)
             : base(style)
         {
         }
@@ -31,14 +31,14 @@ namespace TerrariaUI.Widgets
 
     #endregion
 
-    public class RatingList : VisualContainer
+    public class Leaderboard : VisualContainer
     {
-        public RatingListStyle RatingListStyle => Style as RatingListStyle;
+        public LeaderboardStyle LeaderboardStyle => Style as LeaderboardStyle;
 
         public string Key { get; protected set; }
 
-        public RatingList(int x, int y, int width, int height, string name, RatingListStyle style = null)
-            : base(x, y, width, height, null, style ?? new RatingListStyle())
+        public Leaderboard(int x, int y, int width, int height, string name, LeaderboardStyle style = null)
+            : base(x, y, width, height, null, style ?? new LeaderboardStyle())
         {
             Key = name;
             Name = $"rating_{name}";
@@ -53,23 +53,31 @@ namespace TerrariaUI.Widgets
             this[0, 1].Style.WallColor = PaintID2.Black;
             this[0, 1].SetupLayout(Alignment.Up, Direction.Down, Side.Center, childIndent: 0);
             this[0, 1].Add(new ScrollBackground());
+        }
 
-            var list = NDBSelect(RatingListStyle.Ascending, RatingListStyle.Count, RatingListStyle.Offset, true);
+        public static void SetLeaderboardValue(string name, int user, int number) =>
+            TUI.NDBSet(user, name, number);
+
+        public static int? GetLeaderboardValue(string name, int user) =>
+            TUI.NDBGet(user, name);
+
+        public void LoadDBData()
+        {
+            foreach (var child in this[0, 1].ChildrenFromTop)
+                if (child is Label)
+                    this[0, 1].Remove(child);
+
+            var list = NDBSelect(LeaderboardStyle.Ascending, LeaderboardStyle.Count, LeaderboardStyle.Offset, true);
             foreach (var lineData in list)
             {
                 VisualContainer line = new VisualContainer(0, 0, 0, 4);
                 line.SetFullSize(true, false)
                     .SetupGrid(columns: new ISize[] { new Relative(100), new Dynamic() });
-                line[0, 0] = new Label(0, 0, 0, 0, lineData.Username, new LabelStyle() {  }).SetFullSize(true, true);
+                line[0, 0] = new Label(0, 0, 0, 0, lineData.Username, new LabelStyle() { }).SetFullSize(true, true);
                 string number = lineData.Number.ToString();
                 line[1, 0] = new Label(0, 0, number.Length * 2 + 2, 4, number);
                 this[0, 1].AddToLayout(line);
             }
-        }
-
-        public void SetNumber(int user, int number)
-        {
-            NDBWrite(user, number);
         }
     }
 }
