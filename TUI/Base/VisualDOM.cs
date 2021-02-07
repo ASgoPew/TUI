@@ -9,32 +9,32 @@ namespace TerrariaUI.Base
     {
         #region Data
 
-            #region IDOM
+        #region IDOM
 
-            /// <summary>
-            /// List of child objects.
-            /// </summary>
-            protected List<VisualObject> Child { get; private set; } = new List<VisualObject>();
-            /// <summary>
-            /// Parent object. Null for <see cref="RootVisualObject"/>.
-            /// </summary>
-            public VisualObject Parent { get; private set; } = null;
+        /// <summary>
+        /// List of child objects.
+        /// </summary>
+        protected List<VisualObject> Child { get; private set; } = new List<VisualObject>();
+        /// <summary>
+        /// Parent object. Null for <see cref="RootVisualObject"/>.
+        /// </summary>
+        public VisualObject Parent { get; private set; } = null;
 
-            #endregion
-            #region IVisual
+        #endregion
+        #region IVisual
 
-            /// <summary>
-            /// X coordinate relative to Parent object.
-            /// </summary>
-            public int X { get; set; }
-            /// <summary>
-            /// Y coordinate relative to Parent object.
-            /// </summary>
-            public int Y { get; set; }
-            public int Width { get; set; }
-            public int Height { get; set; }
+        /// <summary>
+        /// X coordinate relative to Parent object.
+        /// </summary>
+        public int X { get; set; }
+        /// <summary>
+        /// Y coordinate relative to Parent object.
+        /// </summary>
+        public int Y { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
 
-            #endregion
+        #endregion
 
         /// <summary>
         /// Root of the interface tree. Null before first <see cref="VisualObject.Update"/> call. Use <see cref="GetRoot"/> to calculate manually.
@@ -270,307 +270,308 @@ namespace TerrariaUI.Base
 
         #region IDOM
 
-            #region InitializeDOM
+        #region InitializeDOM
 
-            internal void InitializeDOM()
+        internal void InitializeDOM() { }
+
+        #endregion
+        #region Add
+
+        /// <summary>
+        /// Adds object as a child in specified layer (0 by default). Does nothing if object is already a child.
+        /// </summary>
+        /// <param name="child">Object to add as a child.</param>
+        /// <param name="layer">Layer to add object to. Null by default (don't change object layer).</param>
+        /// <returns>Added object</returns>
+        public virtual T Add<T>(T child, int? layer = null)
+            where T : VisualObject
+        {
+            VisualObject @this = this as VisualObject;
+            lock (Child)
             {
+                if (child.Disposed)
+                    throw new InvalidOperationException("You cannot add a disposed VisualObject.");
+                else if (child.Parent != null && child.Parent != this)
+                    throw new InvalidOperationException("You cannot add an object that was added somewhere else.");
+                else if (Child.Contains(child))
+                    return child;
+
+                if (layer.HasValue)
+                    child.Layer = layer.Value;
+
+                int index = Child.Count;
+                while (index > 0 && Child[index - 1].Layer > child.Layer)
+                    index--;
+                Child.Insert(index, child);
             }
+            child.Parent = @this;
 
-            #endregion
-            #region Add
+            TUI.TryToLoadChild(@this, child);
+            if (TUI.Active)
+                child.Update();
 
-            /// <summary>
-            /// Adds object as a child in specified layer (0 by default). Does nothing if object is already a child.
-            /// </summary>
-            /// <param name="child">Object to add as a child.</param>
-            /// <param name="layer">Layer to add object to. Null by default (don't change object layer).</param>
-            /// <returns>Added object</returns>
-            public virtual T Add<T>(T child, int? layer = null)
-                where T : VisualObject
+            return child;
+        }
+
+        #endregion
+        #region Remove
+
+        /// <summary>
+        /// Removes child object. Calls Dispose() on removed object so you can't use
+        /// this object anymore.
+        /// </summary>
+        /// <param name="child">Child object to remove.</param>
+        /// <returns>this</returns>
+        public virtual VisualObject Remove(VisualObject child)
+        {
+            lock (Child)
+                if (!Child.Remove(child))
+                    throw new InvalidOperationException("You can't remove object that isn't a child.");
+
+            // Should probably update these fields in all sub-tree.
+            // Currently removed object = disposed object. You can't use it anymore.
+            //child.Parent = null;
+            //child.Root = null;
+            if (Shortcuts != null)
+                foreach (var pair in Shortcuts.Where(o => o.Value == child))
+                    Shortcuts.TryRemove(pair.Key, out object _);
+
+            child.Dispose();
+
+            return this as VisualObject;
+        }
+
+        #endregion
+        #region RemoveAll
+
+        /// <summary>
+        /// Removes all child objects. Calls Dispose() on removed objects so you can't use
+        /// these objects anymore.
+        /// </summary>
+        public void RemoveAll()
+        {
+            lock (Child)
             {
-                VisualObject @this = this as VisualObject;
-                lock (Child)
-                {
-                    if (child.Disposed)
-                        throw new InvalidOperationException("You cannot add a disposed VisualObject.");
-                    else if (child.Parent != null && child.Parent != this)
-                        throw new InvalidOperationException("You cannot add an object that was added somewhere else.");
-                    else if (Child.Contains(child))
-                        return child;
-
-                    if (layer.HasValue)
-                        child.Layer = layer.Value;
-
-                    int index = Child.Count;
-                    while (index > 0 && Child[index - 1].Layer > child.Layer)
-                        index--;
-                    Child.Insert(index, child);
-                }
-                child.Parent = @this;
-
-                TUI.TryToLoadChild(@this, child);
-                if (TUI.Active)
-                    child.Update();
-
-                return child;
+                foreach (VisualObject child in Child.ToList())
+                    Remove(child);
             }
+        }
 
-            #endregion
-            #region Remove
+        #endregion
+        #region GetRoot
 
-            /// <summary>
-            /// Removes child object. Calls Dispose() on removed object so you can't use
-            /// this object anymore.
-            /// </summary>
-            /// <param name="child">Child object to remove.</param>
-            /// <returns>this</returns>
-            public virtual VisualObject Remove(VisualObject child)
+        /// <summary>
+        /// Searches for root node (VisualObject) in hierarchy. Must be a RootVisualObject in a valid TUI tree.
+        /// </summary>
+        /// <returns>Root object</returns>
+        public VisualObject GetRoot()
+        {
+            VisualDOM node = this;
+            while (node.Parent != null)
+                node = node.Parent;
+            return node as VisualObject;
+        }
+
+        #endregion
+        #region IsAncestorFor
+
+        /// <summary>
+        /// Checks if this node is an ancestor for an object.
+        /// </summary>
+        /// <param name="child">Object to check whether current node is an ancestor for it.</param>
+        public bool IsAncestorFor(VisualObject child)
+        {
+            VisualObject node = child.Parent;
+
+            while (node != null)
             {
-                lock (Child)
-                    if (!Child.Remove(child))
-                        throw new InvalidOperationException("You can't remove object that isn't a child.");
-
-                // Should probably update these fields in all sub-tree.
-                // Currently removed object = disposed object. You can't use it anymore.
-                //child.Parent = null;
-                //child.Root = null;
-                if (Shortcuts != null)
-                    foreach (var pair in Shortcuts.Where(o => o.Value == child))
-                        Shortcuts.TryRemove(pair.Key, out object _);
-
-                child.Dispose();
-
-                return this as VisualObject;
-            }
-
-            #endregion
-            #region RemoveAll
-
-            /// <summary>
-            /// Removes all child objects. Calls Dispose() on removed objects so you can't use
-            /// these objects anymore.
-            /// </summary>
-            public void RemoveAll()
-            {
-                lock (Child)
-                {
-                    foreach (VisualObject child in Child.ToList())
-                        Remove(child);
-                }
-            }
-
-            #endregion
-            #region GetRoot
-
-            /// <summary>
-            /// Searches for root node (VisualObject) in hierarchy. Must be a RootVisualObject in a valid TUI tree.
-            /// </summary>
-            /// <returns>Root object</returns>
-            public VisualObject GetRoot()
-            {
-                VisualDOM node = this;
-                while (node.Parent != null)
-                    node = node.Parent;
-                return node as VisualObject;
-            }
-
-            #endregion
-            #region IsAncestorFor
-
-            /// <summary>
-            /// Checks if this node is an ancestor for an object.
-            /// </summary>
-            /// <param name="child">Object to check whether current node is an ancestor for it.</param>
-            public bool IsAncestorFor(VisualObject child)
-            {
-                VisualObject node = child.Parent;
-
-                while (node != null)
-                {
-                    if (this == node)
-                        return true;
-                    node = node.Parent;
-                }
-
-                return false;
-            }
-
-            #endregion
-            #region GetAncestor
-
-            /// <summary>
-            /// Finds first ancestor of type U.
-            /// </summary>
-            /// <typeparam name="U">Type of ancestor to find.</typeparam>
-            /// <returns>First ancestor of type U or null.</returns>
-            public U GetAncestor<U>()
-                where U : VisualObject
-            {
-                VisualObject node = Parent;
-                while (node != null && !(node is U))
-                    node = node.Parent;
-                return node as U;
-            }
-
-            #endregion
-            #region SetTop
-
-            /// <summary>
-            /// Places child object on top of layer. This function will be called automatically on child touch
-            /// if object is orderable. See <see cref="UIConfiguration.Ordered"/>.
-            /// </summary>
-            /// <param name="child">Child object to place on top of layer.</param>
-            /// <returns>True if child object position changed</returns>
-            public virtual bool SetTop(VisualObject child)
-            {
-                lock (Child)
-                {
-                    int previousIndex = Child.IndexOf(child);
-                    int index = previousIndex;
-                    if (index < 0)
-                        throw new InvalidOperationException("Trying to SetTop an object that isn't a child of current VisualDOM");
-                    int count = Child.Count;
-                    index++;
-                    while (index < count && Child[index].Layer <= child.Layer)
-                        index++;
-
-                    if (index == previousIndex + 1)
-                        return false;
-
-                    Child.Remove(child);
-                    Child.Insert(index - 1, child);
+                if (this == node)
                     return true;
-                }
+                node = node.Parent;
             }
 
-            #endregion
-            #region DFS, BFS
+            return false;
+        }
 
-            private void DFS(List<VisualObject> list)
-            {
-                list.Add(this as VisualObject);
-                foreach (VisualObject child in ChildrenFromTop)
-                    child.DFS(list);
-            }
+        #endregion
+        #region GetAncestor
 
-            private void BFS(List<VisualObject> list)
+        /// <summary>
+        /// Finds first ancestor of type U.
+        /// </summary>
+        /// <typeparam name="U">Type of ancestor to find.</typeparam>
+        /// <returns>First ancestor of type U or null.</returns>
+        public U GetAncestor<U>()
+            where U : VisualObject
+        {
+            VisualObject node = Parent;
+            while (node != null && !(node is U))
+                node = node.Parent;
+            return node as U;
+        }
+
+        #endregion
+        #region SetTop
+
+        /// <summary>
+        /// Places child object on top of layer. This function will be called automatically on child touch
+        /// if object is orderable. See <see cref="UIConfiguration.Ordered"/>.
+        /// </summary>
+        /// <param name="child">Child object to place on top of layer.</param>
+        /// <returns>True if child object position changed</returns>
+        public virtual bool SetTop(VisualObject child)
+        {
+            lock (Child)
             {
-                list.Add(this as VisualObject);
-                int index = 0;
-                while (index < list.Count)
-                {
-                    foreach (VisualObject o in list[index].ChildrenFromTop)
-                        list.Add(o);
+                int previousIndex = Child.IndexOf(child);
+                int index = previousIndex;
+                if (index < 0)
+                    throw new InvalidOperationException("Trying to SetTop an object that isn't a child of current VisualDOM");
+                int count = Child.Count;
+                index++;
+                while (index < count && Child[index].Layer <= child.Layer)
                     index++;
-                }
-            }
 
-            #endregion
+                if (index == previousIndex + 1)
+                    return false;
+
+                Child.Remove(child);
+                Child.Insert(index - 1, child);
+                return true;
+            }
+        }
+
+        #endregion
+        #region DFS
+
+        private void DFS(List<VisualObject> list)
+        {
+            list.Add(this as VisualObject);
+            foreach (VisualObject child in ChildrenFromTop)
+                child.DFS(list);
+        }
+
+        #endregion
+        #region BFS
+
+        private void BFS(List<VisualObject> list)
+        {
+            list.Add(this as VisualObject);
+            int index = 0;
+            while (index < list.Count)
+            {
+                foreach (VisualObject o in list[index].ChildrenFromTop)
+                    list.Add(o);
+                index++;
+            }
+        }
+
+        #endregion
 
         #endregion
         #region IVisual
 
-            #region InitializeVisual
+        #region InitializeVisual
 
-            internal void InitializeVisual(int x, int y, int width, int height)
-            {
-                X = x;
-                Y = y;
-                Width = width;
-                Height = height;
-            }
+        internal void InitializeVisual(int x, int y, int width, int height)
+        {
+            X = x;
+            Y = y;
+            Width = width;
+            Height = height;
+        }
 
-            #endregion
-            #region XYWH, SetXYWH
+        #endregion
+        #region XYWH, SetXYWH
 
-            /// <summary>
-            /// Get object position and size.
-            /// </summary>
-            /// <param name="dx">X coordinate delta</param>
-            /// <param name="dy">Y coordinate delta</param>
-            /// <returns>Tuple of values (x, y, width, height)</returns>
-            public virtual (int X, int Y, int Width, int Height) XYWH(int dx = 0, int dy = 0)
-            {
-                return (X + dx, Y + dy, Width, Height);
-            }
+        /// <summary>
+        /// Get object position and size.
+        /// </summary>
+        /// <param name="dx">X coordinate delta</param>
+        /// <param name="dy">Y coordinate delta</param>
+        /// <returns>Tuple of values (x, y, width, height)</returns>
+        public virtual (int X, int Y, int Width, int Height) XYWH(int dx = 0, int dy = 0)
+        {
+            return (X + dx, Y + dy, Width, Height);
+        }
 
-            /// <summary>
-            /// Sets object position and size.
-            /// </summary>
-            /// <param name="x">New x coordinate</param>
-            /// <param name="y">New y coordinate</param>
-            /// <param name="width">New width</param>
-            /// <param name="height">New height</param>
-            /// <returns>this</returns>
-            public virtual VisualObject SetXYWH(int x, int y, int width, int height, bool draw = true)
-            {
-                X = x;
-                Y = y;
-                Width = width >= 0 ? width : Width;
-                Height = height >= 0 ? height : Height;
-                return this as VisualObject;
-            }
+        /// <summary>
+        /// Sets object position and size.
+        /// </summary>
+        /// <param name="x">New x coordinate</param>
+        /// <param name="y">New y coordinate</param>
+        /// <param name="width">New width</param>
+        /// <param name="height">New height</param>
+        /// <returns>this</returns>
+        public virtual VisualObject SetXYWH(int x, int y, int width, int height, bool draw = true)
+        {
+            X = x;
+            Y = y;
+            Width = width >= 0 ? width : Width;
+            Height = height >= 0 ? height : Height;
+            return this as VisualObject;
+        }
 
-            public VisualObject SetXYWH((int x, int y, int width, int height) data, bool draw = true) =>
-                SetXYWH(data.x, data.y, data.width, data.height, draw);
-            public VisualObject SetXY(int x, int y, bool draw = true) =>
-                SetXYWH(x, y, Width, Height, draw);
-            public VisualObject SetXY((int x, int y) pair, bool draw = true) =>
-                SetXYWH(pair.x, pair.y, Width, Height, draw);
-            public VisualObject SetWH(int width, int height, bool draw = true) =>
-                SetXYWH(X, Y, width, height, draw);
-            public VisualObject SetWH((int width, int height) pair, bool draw = true) =>
-                SetXYWH(X, Y, pair.width, pair.height, draw);
+        public VisualObject SetXYWH((int x, int y, int width, int height) data, bool draw = true) =>
+            SetXYWH(data.x, data.y, data.width, data.height, draw);
+        public VisualObject SetXY(int x, int y, bool draw = true) =>
+            SetXYWH(x, y, Width, Height, draw);
+        public VisualObject SetXY((int x, int y) pair, bool draw = true) =>
+            SetXYWH(pair.x, pair.y, Width, Height, draw);
+        public VisualObject SetWH(int width, int height, bool draw = true) =>
+            SetXYWH(X, Y, width, height, draw);
+        public VisualObject SetWH((int width, int height) pair, bool draw = true) =>
+            SetXYWH(X, Y, pair.width, pair.height, draw);
 
-            #endregion
-            #region Move
+        #endregion
+        #region Move
 
-            /// <summary>
-            /// Move object by delta x and delta y.
-            /// </summary>
-            /// <param name="dx">X coordinate delta</param>
-            /// <param name="dy">Y coordinate delta</param>
-            /// <returns>this</returns>
-            public virtual VisualObject Move(int dx, int dy, bool draw = true) =>
-                SetXY(X + dx, Y + dy, draw);
+        /// <summary>
+        /// Move object by delta x and delta y.
+        /// </summary>
+        /// <param name="dx">X coordinate delta</param>
+        /// <param name="dy">Y coordinate delta</param>
+        /// <returns>this</returns>
+        public virtual VisualObject Move(int dx, int dy, bool draw = true) =>
+            SetXY(X + dx, Y + dy, draw);
 
-            #endregion
-            #region Contains, Intersecting
+        #endregion
+        #region Contains, Intersecting
 
-            /// <summary>
-            /// Checks if point (x, y) relative to Parent object is inside current object.
-            /// </summary>
-            /// <param name="x">X point coordinate</param>
-            /// <param name="y">Y point coordinate</param>
-            public virtual bool Contains(int x, int y) =>
-                x >= X && y >= Y && x < X + Width && y < Y + Height;
+        /// <summary>
+        /// Checks if point (x, y) relative to Parent object is inside current object.
+        /// </summary>
+        /// <param name="x">X point coordinate</param>
+        /// <param name="y">Y point coordinate</param>
+        public virtual bool Contains(int x, int y) =>
+            x >= X && y >= Y && x < X + Width && y < Y + Height;
 
-            /// <summary>
-            /// Checks if point (x, y) relative to this object is inside this object.
-            /// </summary>
-            /// <param name="x">X point coordinate</param>
-            /// <param name="y">Y point coordinate</param>
-            public virtual bool ContainsRelative(int x, int y) =>
-                x >= 0 && y >= 0 && x < Width && y < Height;
+        /// <summary>
+        /// Checks if point (x, y) relative to this object is inside this object.
+        /// </summary>
+        /// <param name="x">X point coordinate</param>
+        /// <param name="y">Y point coordinate</param>
+        public virtual bool ContainsRelative(int x, int y) =>
+            x >= 0 && y >= 0 && x < Width && y < Height;
 
-            /// <summary>
-            /// Checks if rectangle (x, y, width, height) relative to Parent object is intersecting current object.
-            /// </summary>
-            /// <param name="x">X rectangle coordinate</param>
-            /// <param name="y">Y rectangle coordinate</param>
-            /// <param name="width">Rectangle width</param>
-            /// <param name="height">Rectangle height</param>
-            public virtual bool Intersecting(int x, int y, int width, int height) =>
-                x < X + Width && X < x + width && y < Y + Height && Y < y + height;
+        /// <summary>
+        /// Checks if rectangle (x, y, width, height) relative to Parent object is intersecting current object.
+        /// </summary>
+        /// <param name="x">X rectangle coordinate</param>
+        /// <param name="y">Y rectangle coordinate</param>
+        /// <param name="width">Rectangle width</param>
+        /// <param name="height">Rectangle height</param>
+        public virtual bool Intersecting(int x, int y, int width, int height) =>
+            x < X + Width && X < x + width && y < Y + Height && Y < y + height;
 
-            public virtual bool Intersecting(VisualObject o) => Intersecting(o.X, o.Y, o.Width, o.Height);
+        public virtual bool Intersecting(VisualObject o) => Intersecting(o.X, o.Y, o.Width, o.Height);
 
-            #endregion
-            #region CenterPosition
+        #endregion
+        #region CenterPosition
 
-            public (int, int) CenterPosition() => (X + Width / 2, Y + Height / 2);
+        public (int, int) CenterPosition() => (X + Width / 2, Y + Height / 2);
 
-            #endregion
+        #endregion
 
         #endregion
 

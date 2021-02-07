@@ -76,56 +76,59 @@ namespace TerrariaUI.Base
 
         #region IDOM
 
-            #region Remove
+        #region Remove
 
-            /// <summary>
-            /// Removes child object. Calls Dispose() on removed object so you can't use
-            /// this object anymore.
-            /// </summary>
-            /// <param name="child">Child object to remove.</param>
-            /// <returns>this</returns>
-            public override VisualObject Remove(VisualObject child)
+        /// <summary>
+        /// Removes child object. Calls Dispose() on removed object so you can't use
+        /// this object anymore.
+        /// </summary>
+        /// <param name="child">Child object to remove.</param>
+        /// <returns>this</returns>
+        public override VisualObject Remove(VisualObject child)
+        {
+            base.Remove(child);
+            GridCell cell = child.Cell;
+            if (cell != null)
             {
-                base.Remove(child);
-                GridCell cell = child.Cell;
-                if (cell != null)
-                {
-                    Grid[cell.Column, cell.Line] = null;
-                    child.Cell = null;
-                }
-                if (child.Configuration.InLayout)
-                    Configuration.Layout.Objects.Remove(child);
-                return this;
+                Grid[cell.Column, cell.Line] = null;
+                child.Cell = null;
             }
+            if (child.Configuration.InLayout)
+                Configuration.Layout.Objects.Remove(child);
+            return this;
+        }
 
-            #endregion
+        #endregion
 
         #endregion
         #region Touchable
 
-            #region PostSetTop
+        #region PostSetTop
 
-            /// <summary>
-            /// Overridable function that is called when child comes on top of the layer.
-            /// <para></para>
-            /// Does Apply() and Draw() if object is intersecting at least one other child object by default.
-            /// </summary>
-            /// <param name="child">Child object that came on top of the layer</param>
-            protected override void PostSetTop(VisualObject child)
-            {
-                if (ChildIntersectingOthers(child))
-                    child.Apply().Draw();
-            }
+        /// <summary>
+        /// Overridable function that is called when child comes on top of the layer.
+        /// <para></para>
+        /// Does Apply() and Draw() if object is intersecting at least one other child object by default.
+        /// </summary>
+        /// <param name="child">Child object that came on top of the layer</param>
+        protected override void PostSetTop(VisualObject child)
+        {
+            if (ChildIntersectingOthers(child))
+                child.Apply().Draw();
+        }
 
-            private bool ChildIntersectingOthers(VisualObject o)
-            {
-                foreach (VisualObject child in ChildrenFromTop)
-                    if (child != o && child.Active && o.Intersecting(child))
-                        return true;
-                return false;
-            }
+        #endregion
+        #region ChildIntersectingOthers
 
-            #endregion
+        private bool ChildIntersectingOthers(VisualObject o)
+        {
+            foreach (VisualObject child in ChildrenFromTop)
+                if (child != o && child.Active && o.Intersecting(child))
+                    return true;
+            return false;
+        }
+
+        #endregion
 
         #endregion
 

@@ -16,20 +16,20 @@ namespace TerrariaUI.Base
     {
         #region Data
 
-            #region IVisual
+        #region IVisual
 
-            /// <summary>
-            /// Horizontal coordinate relative to left border of this object.
-            /// </summary>
-            public int X { get; set; }
-            /// <summary>
-            /// Vertical coordinate relative to top border of this object.
-            /// </summary>
-            public int Y { get; set; }
-            public int Width { get; set; }
-            public int Height { get; set; }
+        /// <summary>
+        /// Horizontal coordinate relative to left border of this object.
+        /// </summary>
+        public int X { get; set; }
+        /// <summary>
+        /// Vertical coordinate relative to top border of this object.
+        /// </summary>
+        public int Y { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
 
-            #endregion
+        #endregion
 
         /// <summary>
         /// Horizontal coordinate relative to world left border.
@@ -106,60 +106,60 @@ namespace TerrariaUI.Base
 
         #region IVisual
 
-            #region InitializeVisual
+        #region InitializeVisual
 
-            public void InitializeVisual(int x, int y, int width = 1, int height = 1)
-            {
-                X = x;
-                Y = y;
-                Width = width;
-                Height = height;
-            }
+        public void InitializeVisual(int x, int y, int width = 1, int height = 1)
+        {
+            X = x;
+            Y = y;
+            Width = width;
+            Height = height;
+        }
 
-            #endregion
-            #region XYWH
+        #endregion
+        #region XYWH
 
-            public (int X, int Y, int Width, int Height) XYWH(int dx = 0, int dy = 0)
-            {
-                return (X + dx, Y + dy, Width, Height);
-            }
+        public (int X, int Y, int Width, int Height) XYWH(int dx = 0, int dy = 0)
+        {
+            return (X + dx, Y + dy, Width, Height);
+        }
 
-            public Touch SetXYWH(int x, int y, int width = -1, int height = -1, bool draw = true)
-            {
-                X = x;
-                Y = y;
-                Width = width >= 0 ? width : Width;
-                Height = height >= 0 ? height : Height;
-                return this;
-            }
+        public Touch SetXYWH(int x, int y, int width = -1, int height = -1, bool draw = true)
+        {
+            X = x;
+            Y = y;
+            Width = width >= 0 ? width : Width;
+            Height = height >= 0 ? height : Height;
+            return this;
+        }
 
-            #endregion
-            #region Move
+        #endregion
+        #region Move
 
-            public Touch Move(int dx, int dy, bool draw = true)
-            {
-                X += dx;
-                Y += dy;
-                return this;
-            }
+        public Touch Move(int dx, int dy, bool draw = true)
+        {
+            X += dx;
+            Y += dy;
+            return this;
+        }
 
-            #endregion
-            #region Contains, Intersects
+        #endregion
+        #region Contains, Intersects
 
-            public bool Contains(int x, int y) =>
-                x >= X && y >= Y && x < X + Width && y < Y + Height;
-            public bool ContainsRelative(int x, int y) =>
-                x >= 0 && y >= 0 && x < Width && y < Height;
-            public bool Intersecting(int x, int y, int width, int height) =>
-                x < X + Width && X < x + width && y < Y + Height && Y < y + height;
-            public bool Intersecting(Touch o) => false;
+        public bool Contains(int x, int y) =>
+            x >= X && y >= Y && x < X + Width && y < Y + Height;
+        public bool ContainsRelative(int x, int y) =>
+            x >= 0 && y >= 0 && x < Width && y < Height;
+        public bool Intersecting(int x, int y, int width, int height) =>
+            x < X + Width && X < x + width && y < Y + Height && Y < y + height;
+        public bool Intersecting(Touch o) => false;
 
-            #endregion
-            #region CenterPosition
+        #endregion
+        #region CenterPosition
 
-            public (int, int) CenterPosition() => (X, Y);
+        public (int, int) CenterPosition() => (X, Y);
 
-            #endregion
+        #endregion
 
         #endregion
 
