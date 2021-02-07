@@ -182,6 +182,17 @@ namespace TerrariaUI.Base
 
         #endregion
 
+        #region UpdateThisNative
+
+        protected override void UpdateThisNative()
+        {
+            // MainTileProvider acquires Main.tile field
+            Provider.Update();
+            SetWH(GetSizeNative(), false);
+            base.UpdateThisNative();
+        }
+
+        #endregion
         #region ApplyThisNative
 
         protected override void ApplyThisNative()

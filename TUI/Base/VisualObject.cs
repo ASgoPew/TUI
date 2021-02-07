@@ -581,21 +581,6 @@ namespace TerrariaUI.Base
             /// <returns>this</returns>
             public VisualObject UpdateThis()
             {
-                // Find Root node
-                if (Root == null)
-                    Root = GetRoot() as RootVisualObject;
-                // RootVisualObject requires a provider update and size change
-                if (this is RootVisualObject root)
-                {
-                    // MainTileProvider acquires Main.tile field
-                    root.Provider.Update();
-                    SetWH(GetSizeNative(), false);
-                }
-                // Update position relative to Provider
-                (ProviderX, ProviderY) = ProviderXY();
-                // Update apply tile bounds
-                UpdateBounds();
-
                 // Overridable update method
                 UpdateThisNative();
 
@@ -611,7 +596,16 @@ namespace TerrariaUI.Base
             /// <summary>
             /// Overridable method for updates related to this node. Do not change position/size in in this method.
             /// </summary>
-            protected virtual void UpdateThisNative() { }
+            protected virtual void UpdateThisNative()
+            {
+                // Find Root node
+                if (Root == null)
+                    Root = GetRoot() as RootVisualObject;
+                // Update position relative to Provider
+                (ProviderX, ProviderY) = ProviderXY();
+                // Update apply tile bounds
+                UpdateBounds();
+            }
 
             #endregion
             #region UpdateBounds
