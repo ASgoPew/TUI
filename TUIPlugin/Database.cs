@@ -258,7 +258,7 @@ namespace TUIPlugin
                         OFFSET @2";
                 using (QueryResult reader = db.QueryReader(query, key, count, offset))
                 {
-                    if (reader.Read())
+                    while (reader.Read())
                     {
                         int user = reader.Get<int>("User");
                         int number = reader.Get<int>("Number");
