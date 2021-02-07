@@ -67,9 +67,9 @@ namespace TerrariaUI.Widgets
                 VisualContainer line = new VisualContainer(0, 0, 0, 4, new UIConfiguration() { UseBegin = false });
                 line.SetFullSize(true, false)
                     .SetupGrid(columns: new ISize[] { new Relative(100), new Dynamic() });
-                line[0, 0] = new Label(0, 0, 0, 0, lineData.Username, new LabelStyle() { }).SetFullSize(true, true);
+                line[0, 0] = new Label(0, 0, 0, 0, lineData.Username, new LabelStyle() { TextColor = PaintID2.White }).SetFullSize(true, true);
                 string number = lineData.Number.ToString();
-                line[1, 0] = new Label(0, 0, number.Length * 2 + 2, 4, number);
+                line[1, 0] = new Label(0, 0, number.Length * 2 + 2, 4, number, new LabelStyle() { TextColor = PaintID2.White });
                 this[0, 1].AddToLayout(line);
             }
         }
