@@ -581,6 +581,21 @@ namespace TerrariaUI.Base
             /// <returns>this</returns>
             public VisualObject UpdateThis()
             {
+                // Find Root node
+                if (Root == null)
+                    Root = GetRoot() as RootVisualObject;
+                // RootVisualObject requires a provider update and size change
+                if (this is RootVisualObject root)
+                {
+                    // MainTileProvider acquires Main.tile field
+                    root.Provider.Update();
+                    SetWH(GetSizeNative(), false);
+                }
+                // Update position relative to Provider
+                (ProviderX, ProviderY) = ProviderXY();
+                // Update apply tile bounds
+                UpdateBounds();
+
                 // Overridable update method
                 UpdateThisNative();
 
@@ -594,18 +609,9 @@ namespace TerrariaUI.Base
             #region UpdateThisNative
 
             /// <summary>
-            /// Overridable method for updates related to this node. Don't change position/size in in this method.
+            /// Overridable method for updates related to this node. Do not change position/size in in this method.
             /// </summary>
-            protected virtual void UpdateThisNative()
-            {
-                // Find Root node
-                if (Root == null)
-                    Root = GetRoot() as RootVisualObject;
-                // Update position relative to Provider
-                (ProviderX, ProviderY) = ProviderXY();
-                // Update apply tile bounds
-                UpdateBounds();
-            }
+            protected virtual void UpdateThisNative() { }
 
             #endregion
             #region UpdateBounds
@@ -975,25 +981,22 @@ namespace TerrariaUI.Base
             {
                 Indent indent = Configuration.Grid.Indent ?? UIDefault.Indent;
                 CalculateSizes(Configuration.Grid.Columns, Width, indent.Left, indent.Horizontal, indent.Right,
-                    ref Configuration.Grid.ResultingColumns, ref Configuration.Grid.MinWidth, "width");
+                    ref Configuration.Grid.ResultingColumns, ref Configuration.Grid.MinWidth, true);
                 CalculateSizes(Configuration.Grid.Lines, Height, indent.Up, indent.Vertical, indent.Down,
-                    ref Configuration.Grid.ResultingLines, ref Configuration.Grid.MinHeight, "height");
+                    ref Configuration.Grid.ResultingLines, ref Configuration.Grid.MinHeight, false);
             }
 
             #endregion
             #region CalculateSizes
 
-            private void CalculateSizes(ISize[] sizes, int absoluteSize, int startIndent, int middleIndent, int endIndent, ref (int Position, int Size)[] resulting, ref int minSize, string sizeName)
+            private void CalculateSizes(ISize[] sizes, int absoluteSize, int startIndent, int middleIndent, int endIndent, ref (int Position, int Size)[] resulting, ref int minSize, bool isWidth)
             {
-                // Initializing min size
-                minSize = startIndent + endIndent;
-                int defaultMinSize = minSize;
-
                 // Initializing resulting array
                 resulting = new (int, int)[sizes.Length];
 
-                // First calculating absolute and relative sum
-                int absoluteSum = 0, relativeSum = 0;
+                // First calculating absolute, relative sums and the number of non-zero sizes
+                int absoluteSum = 0;
+                int relativeSum = 0;
                 int notZeroSizes = 0;
                 for (int i = 0; i < sizes.Length; i++)
                 {
@@ -1002,15 +1005,15 @@ namespace TerrariaUI.Base
                     if (size.IsDynamic)
                     {
                         int max = 0;
-                        if (sizeName == "width")
+                        if (isWidth)
                             for (int line = 0; line < Configuration.Grid.Lines.Count(); line++)
                                 max = Math.Max(max, this[i, line].Width);
                         else
                             for (int column = 0; column < Configuration.Grid.Columns.Count(); column++)
-                                max = Math.Max(max, this[column, i].Width);
+                                max = Math.Max(max, this[column, i].Height);
                         value = max;
                         ((Dynamic)size).Value = value;
-                        absoluteSize += value;
+                        absoluteSum += value;
                     }
                     else
                     {
@@ -1023,64 +1026,76 @@ namespace TerrariaUI.Base
                     if (value > 0)
                         notZeroSizes++;
                 }
-                if (absoluteSum > absoluteSize)
+                // Every non-zero size pair means that the middleIndent between them is a must have
+                minSize = startIndent + (notZeroSizes - 1) * middleIndent + endIndent;
+
+                // Checking if absolute sizes sum is not more than object allowed size
+                int absoluteSpace = absoluteSize - minSize;
+                if (absoluteSpace < absoluteSum)
+                {
+                    string sizeName = isWidth ? "width" : "height";
                     throw new ArgumentException(
-                        $"{FullName} (UpdateGrid): absolute {sizeName} ({absoluteSum}) is more than object {sizeName} ({absoluteSize}): {FullName}");
+                        $"{FullName} (UpdateGrid): absolute {sizeName} ({absoluteSum}) is more than {sizeName} allowed space ({absoluteSpace}), (object {sizeName}: {absoluteSize}): {FullName}");
+                }
+                // Checking if relative sizes sum is not more than 100%
                 if (relativeSum > 100)
+                {
+                    string sizeName = isWidth ? "width" : "height";
                     throw new ArgumentException(
                         $"{FullName} (UpdateGrid): relative {sizeName} ({relativeSum}) is more than 100: {FullName}");
+                }
 
                 // Now calculating actual column/line sizes
-                int relativeSize = absoluteSize - absoluteSum - middleIndent * (notZeroSizes - 1) - startIndent - endIndent;
-                // ???
-                if (relativeSize < 0)
-                    relativeSize = 0;
-                int relativeSizeUsed = 0;
+                int relativeSpace = absoluteSpace - absoluteSize;
+                int relativeSpaceUsed = 0;
                 List<(int, float)> descendingFractionalPart = new List<(int, float)>();
-                int sizeCounter = startIndent;
                 for (int i = 0; i < sizes.Length; i++)
                 {
                     ISize size = sizes[i];
-                    float sizeValue = size.IsAbsolute
-                        ? size.Value
-                        : size.Value * relativeSize / 100f;
-                    int realSize = (int)Math.Floor(sizeValue);
-                    resulting[i] = (0, realSize);
-
-                    if (realSize == 0)
+                    if (size.Value == 0)
                         continue;
 
+                    int realSize;
                     if (size.IsRelative)
                     {
-                        relativeSizeUsed += realSize;
-                        InsertSort(descendingFractionalPart, i, sizeValue);
+                        realSize = (int)Math.Floor(size.Value * relativeSpace / 100f);
+                        relativeSpaceUsed += realSize;
+                        InsertSort(descendingFractionalPart, i, size.Value * relativeSpace / 100f);
                     }
                     else
-                        minSize += realSize + middleIndent;
-                    sizeCounter += realSize + middleIndent;
+                    {
+                        realSize = size.Value;
+                        minSize += realSize;
+                        if (i < sizes.Length - 1)
+                            minSize += middleIndent;
+                    }
+                        
+                    resulting[i] = (0, realSize);
                 }
-                if (minSize > defaultMinSize)
-                    minSize -= middleIndent;
-                if (minSize == 0)
+
+                // Now we have a final minSize
+                if (minSize < 1)
                     minSize = 1;
 
                 // There could be some unused relative size left since we are calculating relative size with Math.Floor
-                // Adding +1 to relative sizes with the largest fractional parts.
+                // Adding +1 to relative sizes with the largest fractional parts
                 int j = 0;
-                int sizeLeft = relativeSize - relativeSizeUsed;
-                while (sizeLeft > 0 && j < descendingFractionalPart.Count)
+                int sizeLeft = relativeSpace - relativeSpaceUsed;
+                while (sizeLeft > 0)
                 {
                     resulting[descendingFractionalPart[j++].Item1].Size++;
+                    if (j >= descendingFractionalPart.Count - 1)
+                        j = 0;
                     sizeLeft--;
                 }
 
-                // Here the sizes are already calculated finally. Calculating positions.
-                sizeCounter = startIndent;
+                // Here the sizes are already calculated finally, calculating positions
+                int sizeCounter = startIndent;
                 for (int i = 0; i < sizes.Length; i++)
                 {
-                    int columnSize = resulting[i].Size;
                     resulting[i].Position = sizeCounter;
-                    if (columnSize != 0)
+                    int columnSize = resulting[i].Size;
+                    if (columnSize > 0)
                         sizeCounter += columnSize + middleIndent;
                 }
             }

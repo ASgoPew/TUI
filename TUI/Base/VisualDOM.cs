@@ -104,6 +104,7 @@ namespace TerrariaUI.Base
         public virtual bool Orderable => true;
 
         #endregion
+
         #region DescendantDFS
 
         /// <summary>
