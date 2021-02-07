@@ -48,17 +48,28 @@ namespace TerrariaUI.Widgets
             // EnableNumberHashing(string key)
 
             SetupGrid(lines: new ISize[] { new Absolute(4), new Relative(100), new Dynamic() });
-            this[0, 0] = new Label(0, 0, Width, 4, Key);
+            this[0, 0] = new Label(0, 0, Width, 4, Key, new LabelStyle() { Wall = 155 });
+            this[0, 1].Style.Wall = 155;
+            this[0, 1].Style.WallColor = PaintID2.Black;
             this[0, 1].SetupLayout(Alignment.Up, Direction.Down, Side.Center, childIndent: 0);
+            this[0, 1].Add(new ScrollBackground());
 
             var list = NDBSelect(RatingListStyle.Ascending, RatingListStyle.Count, RatingListStyle.Offset, true);
             foreach (var lineData in list)
             {
-                VisualContainer line = new VisualContainer();
-                line.SetupGrid(columns: new ISize[] { new Relative(100), new Dynamic() });
+                VisualContainer line = new VisualContainer(0, 0, 0, 4);
+                line.SetFullSize(true, false)
+                    .SetupGrid(columns: new ISize[] { new Relative(100), new Dynamic() });
                 line[0, 0] = new Label(0, 0, 0, 0, lineData.Username, new LabelStyle() {  }).SetFullSize(true, true);
+                string number = lineData.Number.ToString();
+                line[1, 0] = new Label(0, 0, number.Length * 2 + 2, 4, number);
                 this[0, 1].AddToLayout(line);
             }
+        }
+
+        public void SetNumber(int user, int number)
+        {
+            NDBWrite(user, number);
         }
     }
 }

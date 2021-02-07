@@ -566,7 +566,7 @@ namespace TerrariaUI
 
         public static List<(int User, int Number, string Username)> NDBSelect(string key, bool ascending, int count, int offset, bool requestNames)
         {
-            DatabaseArgs args = new DatabaseArgs(DatabaseActionType.Remove, key, null, null, 0, ascending, count, offset, requestNames);
+            DatabaseArgs args = new DatabaseArgs(DatabaseActionType.Select, key, null, null, 0, ascending, count, offset, requestNames);
             Hooks.Database.Invoke(args);
             return args.Numbers;
         }

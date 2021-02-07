@@ -14,6 +14,7 @@ namespace TUIPlugin
     {
         #region Data
 
+        public const string UserTableName = "Users";
         public const string KeyValueTableName = "TUIKeyValue";
         public const string UserKeyValueTableName = "TUIUserKeyValue";
         public const string UserNumberTableName = "TUIUserNumber";
@@ -32,7 +33,7 @@ namespace TUIPlugin
         {
             if (TShock.Config.StorageType.ToLower() == "sqlite")
                 db = new SqliteConnection(string.Format("uri=file://{0},Version=3",
-                    Path.Combine(TShock.SavePath, "TUIKeyValue.sqlite")));
+                    Path.Combine(TShock.SavePath, "tshock.sqlite")));
             else if (TShock.Config.StorageType.ToLower() == "mysql")
             {
                 try
@@ -322,7 +323,7 @@ namespace TUIPlugin
                 string query = requestNames ?
 $@"SELECT number.User, number.Number, user.Username
 	FROM {UserNumberTableName} AS number
-    JOIN users as user ON number.User = user.ID
+    JOIN {UserTableName} as user ON number.User = user.ID
     WHERE Key=@0
     ORDER BY Number {(ascending ? "ASC" : "DESC")}
     LIMIT @1
