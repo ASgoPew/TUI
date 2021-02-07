@@ -599,11 +599,17 @@ namespace TerrariaUI.Base
                 Loaded = true;
             }
 
+            LoadThis();
+            LoadChild();
+        }
+
+        #endregion
+        #region LoadThis
+
+        private void LoadThis()
+        {
             try
             {
-                foreach (VisualObject child in ChildrenFromTop)
-                    child.Load();
-
                 LoadThisNative();
                 Configuration.Custom.Load?.Invoke(this as VisualObject);
             }
@@ -627,6 +633,15 @@ namespace TerrariaUI.Base
         protected virtual void LoadThisNative() { }
 
         #endregion
+        #region LoadChild
+
+        public void LoadChild()
+        {
+            foreach (VisualObject child in ChildrenFromTop)
+                child.Load();
+        }
+
+        #endregion
         #region Dispose
 
         /// <summary>
@@ -641,11 +656,17 @@ namespace TerrariaUI.Base
                 Disposed = true;
             }
 
+            DisposeThis();
+            DisposeChild();
+        }
+
+        #endregion
+        #region DisposeThis
+
+        private void DisposeThis()
+        {
             try
             {
-                foreach (VisualObject child in ChildrenFromTop)
-                    child.Dispose();
-
                 DisposeThisNative();
                 Configuration.Custom.Dispose?.Invoke(this as VisualObject);
             }
@@ -667,6 +688,15 @@ namespace TerrariaUI.Base
         /// All child objects would be already disposed at the moment of calling this function.
         /// </summary>
         protected virtual void DisposeThisNative() { }
+
+        #endregion
+        #region DisposeChild
+
+        private void DisposeChild()
+        {
+            foreach (VisualObject child in ChildrenFromTop)
+                child.Dispose();
+        }
 
         #endregion
 

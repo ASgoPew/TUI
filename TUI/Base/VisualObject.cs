@@ -501,11 +501,18 @@ namespace TerrariaUI.Base
             /// <returns>this</returns>
             public VisualObject PulseThis(PulseType type)
             {
-                // Overridable pulse handling method
-                PulseThisNative(type);
+                try
+                {
+                    // Overridable pulse handling method
+                    PulseThisNative(type);
 
-                // Custom pulse handler
-                Configuration.Custom.Pulse?.Invoke(this, type);
+                    // Custom pulse handler
+                    Configuration.Custom.Pulse?.Invoke(this, type);
+                }
+                catch (Exception e)
+                {
+                    TUI.HandleException(e);
+                }
                 return this;
             }
 
@@ -581,11 +588,18 @@ namespace TerrariaUI.Base
             /// <returns>this</returns>
             public VisualObject UpdateThis()
             {
-                // Overridable update method
-                UpdateThisNative();
+                try
+                {
+                    // Overridable update method
+                    UpdateThisNative();
 
-                // Custom update callback
-                Configuration.Custom.Update?.Invoke(this);
+                    // Custom update callback
+                    Configuration.Custom.Update?.Invoke(this);
+                }
+                catch (Exception e)
+                {
+                    TUI.HandleException(e);
+                }
 
                 return this;
             }
@@ -1198,11 +1212,18 @@ namespace TerrariaUI.Base
                     // Mark changes to be drawn
                     RequestDrawChanges();
 
-                    // Overridable apply function
-                    ApplyThisNative();
+                    try
+                    {
+                        // Overridable apply function
+                        ApplyThisNative();
 
-                    // Custom apply callback
-                    Configuration.Custom.Apply?.Invoke(this);
+                        // Custom apply callback
+                        Configuration.Custom.Apply?.Invoke(this);
+                    }
+                    catch (Exception e)
+                    {
+                        TUI.HandleException(e);
+                    }
                 }
                 return this;
             }
@@ -1220,6 +1241,7 @@ namespace TerrariaUI.Base
 
             public VisualObject ApplyTiles()
             {
+                // Default style tile changes
                 lock (Locker)
                 {
                     if (!Style.CustomApplyTile && Style.Active == null && Style.InActive == null
@@ -1287,7 +1309,7 @@ namespace TerrariaUI.Base
                 return this;
             }
 
-        #endregion
+            #endregion
 
         #endregion
         #region Draw
