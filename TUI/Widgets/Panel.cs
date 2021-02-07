@@ -131,7 +131,7 @@ namespace TerrariaUI.Widgets
                 height = br.ReadInt32();
                 enabled = br.ReadBoolean();
             }
-            catch
+            catch (EndOfStreamException)
             {
                 TUI.Log($"Panel invalid database data", LogType.Warning);
                 DBWrite();

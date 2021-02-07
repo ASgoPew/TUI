@@ -35,7 +35,7 @@ namespace TerrariaUI.Widgets
             : base(x, y, width, height, null, style ?? new LeaderboardStyle())
         {
             Key = name;
-            Name = $"rating_{name}";
+            Name = $"leaderboard_{name}";
 
             // HASHING NUMBERS????????
             // Optional TUI library hashing?
@@ -50,10 +50,10 @@ namespace TerrariaUI.Widgets
         }
 
         public static void SetLeaderboardValue(string name, int user, int number) =>
-            TUI.NDBSet(user, name, number);
+            TUI.NDBSet(user, $"leaderboard_{name}", number);
 
         public static int? GetLeaderboardValue(string name, int user) =>
-            TUI.NDBGet(user, name);
+            TUI.NDBGet(user, $"leaderboard_{name}");
 
         public void LoadDBData()
         {

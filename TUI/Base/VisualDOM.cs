@@ -308,7 +308,10 @@ namespace TerrariaUI.Base
 
             TUI.TryToLoadChild(@this, child);
             if (TUI.Active)
+            {
+                @this.UpdateChildPositioning();
                 child.Update();
+            }
 
             return child;
         }

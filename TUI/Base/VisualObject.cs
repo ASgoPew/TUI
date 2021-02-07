@@ -1011,10 +1011,10 @@ namespace TerrariaUI.Base
                     int max = 0;
                     if (isWidth)
                         for (int line = 0; line < Configuration.Grid.Lines.Count(); line++)
-                            max = Math.Max(max, this[i, line].Width);
+                            max = Math.Max(max, this[i, line]?.Width ?? 0);
                     else
                         for (int column = 0; column < Configuration.Grid.Columns.Count(); column++)
-                            max = Math.Max(max, this[column, i].Height);
+                            max = Math.Max(max, this[column, i]?.Height ?? 0);
                     try
                     {
                         throw new Exception();
