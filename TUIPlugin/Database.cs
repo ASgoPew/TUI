@@ -58,65 +58,27 @@ namespace TUIPlugin
             else
                 throw new Exception("Invalid storage type.");
 
-            //var sqlCreator = new SqlTableCreator(db,
-            //    IsMySql
-            //        ? (IQueryBuilder)new MysqlQueryCreator()
-            //        : new SqliteQueryCreator());
-
-            //sqlCreator.EnsureTableStructure(new SqlTable("TUIKeyValue",
-            //    new SqlColumn("Key", MySqlDbType.TinyText) { Primary=true, Unique=true },
-            //    new SqlColumn("Value", MySqlDbType.Text)));
-
-            //sqlCreator.EnsureTableStructure(new SqlTable("TUIKeyValue",
-                //new SqlColumn("Key", MySqlDbType.TinyText) { Primary = true, Unique = true },
-                //new SqlColumn("Value", MySqlDbType.Binary)));
-
-            Query($@"CREATE TABLE IF NOT EXISTS TUIKeyValue(
+            try
+            {
+                db.Query(
+                    $@"CREATE TABLE IF NOT EXISTS TUIKeyValue(
                         `Key` TEXT UNIQUE NOT NULL,
                         `Value` BINARY NOT NULL);
-                     CREATE TABLE IF NOT EXISTS TUIUserNumber(
+                    CREATE TABLE IF NOT EXISTS TUIUserNumber(
                         `User` INTEGER NOT NULL,
                         `Key` TEXT NOT NULL,
                         `Number` INTEGER NOT NULL,
                         UNIQUE{(IsMySql ? " KEY" : "")} (`User`, `Key`));
-                     CREATE TABLE IF NOT EXISTS TUIUserKeyValue(
+                    CREATE TABLE IF NOT EXISTS TUIUserKeyValue(
                         `User` INTEGER NOT NULL,
                         `Key` TEXT NOT NULL,
                         `Value` BINARY NOT NULL,
                         UNIQUE{(IsMySql ? " KEY" : "")} (`User`, `Key`))");
-
-            /*sqlCreator.EnsureTableStructure(new SqlTable("TUIUserKeyValue",
-                new SqlColumn("Key", MySqlDbType.TinyText) { Primary = true },
-                new SqlColumn("Key", MySqlDbType.TinyText) { Primary = true },
-                new SqlColumn("Value", MySqlDbType.Text)));*/
-        }
-
-        #endregion
-        #region Query
-
-        public static bool Query(string query)
-        {
-            bool success = true;
-            db.Open();
-            try
-            {
-                using (var conn = db.CreateCommand())
-                {
-                    conn.CommandText = query;
-                    conn.ExecuteNonQuery();
-                }
             }
             catch (Exception e)
             {
-                TUI.HandleException(e);
-                success = false;
+                TUI.HandleException(new Exception($"TUI.Database.ConnectDB()", e));
             }
-            finally
-            {
-                db.Close();
-            }
-
-            return success;
         }
 
         #endregion
@@ -135,8 +97,7 @@ namespace TUIPlugin
             }
             catch (Exception e)
             {
-                TUI.HandleException(new Exception(
-                    $"TUI.Database.GetData() (key:{key})", e));
+                TUI.HandleException(new Exception($"TUI.Database.GetData() (key:{key})", e));
             }
             return null;
         }
@@ -152,8 +113,7 @@ namespace TUIPlugin
             }
             catch (Exception e)
             {
-                TUI.HandleException(new Exception(
-                    $"TUI.Database.SetData() (key:{key})", e));
+                TUI.HandleException(new Exception($"TUI.Database.SetData() (key:{key})", e));
             }
         }
 
@@ -168,8 +128,7 @@ namespace TUIPlugin
             }
             catch (Exception e)
             {
-                TUI.HandleException(new Exception(
-                    $"TUI.Database.RemoveData() (key:{key})", e));
+                TUI.HandleException(new Exception($"TUI.Database.RemoveData() (key:{key})", e));
             }
         }
 
@@ -189,8 +148,7 @@ namespace TUIPlugin
             }
             catch (Exception e)
             {
-                TUI.HandleException(new Exception(
-                    $"TUI.Database.GetData(int user) (key:{key})", e));
+                TUI.HandleException(new Exception($"TUI.Database.GetData(int user) (key:{key})", e));
             }
             return null;
         }
@@ -206,8 +164,7 @@ namespace TUIPlugin
             }
             catch (Exception e)
             {
-                TUI.HandleException(new Exception(
-                    $"TUI.Database.SetData(int user) (key:{key})", e));
+                TUI.HandleException(new Exception($"TUI.Database.SetData(int user) (key:{key})", e));
             }
         }
 
@@ -222,8 +179,7 @@ namespace TUIPlugin
             }
             catch (Exception e)
             {
-                TUI.HandleException(new Exception(
-                    $"TUI.Database.RemoveData(int user) (key:{key})", e));
+                TUI.HandleException(new Exception($"TUI.Database.RemoveData(int user) (key:{key})", e));
             }
         }
 
@@ -243,8 +199,7 @@ namespace TUIPlugin
             }
             catch (Exception e)
             {
-                TUI.HandleException(new Exception(
-                    $"TUI.Database.GetNumber() (key:{key})", e));
+                TUI.HandleException(new Exception($"TUI.Database.GetNumber() (key:{key})", e));
             }
             return null;
         }
@@ -260,8 +215,7 @@ namespace TUIPlugin
             }
             catch (Exception e)
             {
-                TUI.HandleException(new Exception(
-                    $"TUI.Database.SetNumber() (key:{key})", e));
+                TUI.HandleException(new Exception($"TUI.Database.SetNumber() (key:{key})", e));
             }
         }
 
@@ -276,8 +230,7 @@ namespace TUIPlugin
             }
             catch (Exception e)
             {
-                TUI.HandleException(new Exception(
-                    $"TUI.Database.RemoveNumber() (key:{key})", e));
+                TUI.HandleException(new Exception($"TUI.Database.RemoveNumber() (key:{key})", e));
             }
         }
 
@@ -290,19 +243,19 @@ namespace TUIPlugin
             try
             {
                 string query = requestNames ?
-$@"SELECT number.User, number.Number, user.Username
-	FROM {UserNumberTableName} AS number
-    JOIN {UserTableName} as user ON number.User = user.ID
-    WHERE Key=@0
-    ORDER BY Number {(ascending ? "ASC" : "DESC")}
-    LIMIT @1
-    OFFSET @2"
-: $@"SELECT User, Number
-    FROM {UserNumberTableName}
-    WHERE Key=@0
-    ORDER BY Number {(ascending ? "ASC" : "DESC")}
-    LIMIT @1
-    OFFSET @2";
+                    $@"SELECT number.User, number.Number, user.Username
+	                    FROM {UserNumberTableName} AS number
+                        JOIN {UserTableName} as user ON number.User = user.ID
+                        WHERE Key=@0
+                        ORDER BY Number {(ascending ? "ASC" : "DESC")}
+                        LIMIT @1
+                        OFFSET @2"
+                    : $@"SELECT User, Number
+                        FROM {UserNumberTableName}
+                        WHERE Key=@0
+                        ORDER BY Number {(ascending ? "ASC" : "DESC")}
+                        LIMIT @1
+                        OFFSET @2";
                 using (QueryResult reader = db.QueryReader(query, key, count, offset))
                 {
                     if (reader.Read())
@@ -316,8 +269,7 @@ $@"SELECT number.User, number.Number, user.Username
             }
             catch (Exception e)
             {
-                TUI.HandleException(new Exception(
-                    $"TUI.Database.SelectNumbers() (key:{key})", e));
+                TUI.HandleException(new Exception($"TUI.Database.SelectNumbers() (key:{key})", e));
             }
             return result;
         }
