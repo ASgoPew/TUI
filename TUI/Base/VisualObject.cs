@@ -173,13 +173,14 @@ namespace TerrariaUI.Base
 
                     if (Grid[column, line] != null)
                         Remove(Grid[column, line]);
-                    Grid[column, line] = Add(value);
                     value.Cell = new GridCell(column, line);
+                    Grid[column, line] = Add(value);
                 }
                 else
                 {
-                    Remove(Grid[column, line]);
+                    VisualObject child = Grid[column, line];
                     Grid[column, line] = null;
+                    Remove(child);
                 }
             }
         }
@@ -1014,6 +1015,12 @@ namespace TerrariaUI.Base
                     else
                         for (int column = 0; column < Configuration.Grid.Columns.Count(); column++)
                             max = Math.Max(max, this[column, i].Height);
+                    TUI.Log($"{FullName}: dynamic size={max}, {isWidth}");
+                    try
+                    {
+                        throw new Exception();
+                    }
+                    catch { }
                     value = max;
                     ((Dynamic)size).Value = value;
                     absoluteSum += value;
