@@ -30,11 +30,11 @@ namespace TerrariaUI.Base
     public class Relative : ISize
     {
         int InternalValue { get; }
+
+        public int Value => InternalValue;
         public bool IsAbsolute => false;
         public bool IsRelative => true;
         public bool IsDynamic => false;
-
-        public int Value => InternalValue - 1000000;
 
         public Relative(int value)
         {
@@ -43,7 +43,7 @@ namespace TerrariaUI.Base
             else if (value > 100)
                 throw new ArgumentException("Relative size more than 100 in grid");
 
-            InternalValue = value + 1000000;
+            InternalValue = value;
         }
     }
     public class Dynamic : ISize

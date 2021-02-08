@@ -970,10 +970,18 @@ namespace TerrariaUI.Base
             for (int i = 0; i < columnSizes.Length; i++)
             {
                 (int columnX, int columnSize) = Configuration.Grid.ResultingColumns[i];
+                if (columnSizes[i].IsDynamic)
+                    columnSize = -1;
                 for (int j = 0; j < lineSizes.Length; j++)
                 {
                     (int lineX, int lineSize) = Configuration.Grid.ResultingLines[j];
-                    Grid[i, j]?.SetXYWH(columnX, lineX, columnSize, lineSize, false);
+                    if (lineSizes[j].IsDynamic)
+                        lineSize = -1;
+                    VisualObject cell = Grid[i, j];
+                    if (cell == null)
+                        continue;
+                    cell.SetXYWH(columnX, lineX, columnSize == -1 ? cell.Width : columnSize,
+                        lineSize == -1 ? cell.Height : lineSize, false);
                 }
             }
         }
@@ -1015,11 +1023,6 @@ namespace TerrariaUI.Base
                     else
                         for (int column = 0; column < Configuration.Grid.Columns.Count(); column++)
                             max = Math.Max(max, this[column, i]?.Height ?? 0);
-                    try
-                    {
-                        throw new Exception();
-                    }
-                    catch { }
                     value = max;
                     ((Dynamic)size).Value = value;
                     absoluteSum += value;
