@@ -31,6 +31,7 @@ namespace TUIPlugin
         /// </summary>
         public static void ConnectDB()
         {
+            Console.WriteLine($"TUI ========================================================================\n{TShock.Config.StorageType.ToLower()}");
             if (TShock.Config.StorageType.ToLower() == "sqlite")
                 db = new SqliteConnection(string.Format("uri=file://{0},Version=3",
                     Path.Combine(TShock.SavePath, "tshock.sqlite")));
@@ -62,18 +63,18 @@ namespace TUIPlugin
             {
                 db.Query(
                     $@"CREATE TABLE IF NOT EXISTS TUIKeyValue(
-                        `Key` TEXT UNIQUE NOT NULL,
-                        `Value` BINARY NOT NULL);
+                        `Identifier` {(IsMySql ? "VARCHAR(256)" : "TEXT")} UNIQUE NOT NULL,
+                        `Value` BLOB NOT NULL);
                     CREATE TABLE IF NOT EXISTS TUIUserNumber(
                         `User` INTEGER NOT NULL,
-                        `Key` TEXT NOT NULL,
+                        `Identifier` {(IsMySql ? "VARCHAR(256)" : "TEXT")} NOT NULL,
                         `Number` INTEGER NOT NULL,
-                        UNIQUE{(IsMySql ? " KEY" : "")} (`User`, `Key`));
+                        UNIQUE{(IsMySql ? " KEY" : "")} (`User`, `Identifier`));
                     CREATE TABLE IF NOT EXISTS TUIUserKeyValue(
                         `User` INTEGER NOT NULL,
-                        `Key` TEXT NOT NULL,
-                        `Value` BINARY NOT NULL,
-                        UNIQUE{(IsMySql ? " KEY" : "")} (`User`, `Key`))");
+                        `Identifier` {(IsMySql ? "VARCHAR(256)" : "TEXT")} NOT NULL,
+                        `Value` BLOB NOT NULL,
+                        UNIQUE{(IsMySql ? " KEY" : "")} (`User`, `Identifier`))");
             }
             catch (Exception e)
             {
@@ -89,7 +90,7 @@ namespace TUIPlugin
         {
             try
             {
-                using (QueryResult reader = db.QueryReader($"SELECT Value FROM {KeyValueTableName} WHERE Key=@0", key))
+                using (QueryResult reader = db.QueryReader($"SELECT Value FROM {KeyValueTableName} WHERE Identifier=@0", key))
                 {
                     if (reader.Read())
                         return (byte[])reader.Reader.GetValue(0);
@@ -109,7 +110,7 @@ namespace TUIPlugin
         {
             try
             {
-                db.Query($"REPLACE INTO {KeyValueTableName} (Key, Value) VALUES (@0, @1)", key, data);
+                db.Query($"REPLACE INTO {KeyValueTableName} (Identifier, Value) VALUES (@0, @1)", key, data);
             }
             catch (Exception e)
             {
@@ -124,7 +125,7 @@ namespace TUIPlugin
         {
             try
             {
-                db.Query($"DELETE FROM {KeyValueTableName} WHERE Key=@0", key);
+                db.Query($"DELETE FROM {KeyValueTableName} WHERE Identifier=@0", key);
             }
             catch (Exception e)
             {
@@ -140,7 +141,7 @@ namespace TUIPlugin
         {
             try
             {
-                using (QueryResult reader = db.QueryReader($"SELECT Value FROM {UserKeyValueTableName} WHERE User=@0 AND Key=@1", user, key))
+                using (QueryResult reader = db.QueryReader($"SELECT Value FROM {UserKeyValueTableName} WHERE User=@0 AND Identifier=@1", user, key))
                 {
                     if (reader.Read())
                         return (byte[])reader.Reader.GetValue(0);
@@ -160,7 +161,7 @@ namespace TUIPlugin
         {
             try
             {
-                db.Query($"REPLACE INTO {UserKeyValueTableName} (User, Key, Value) VALUES (@0, @1, @2)", user, key, data);
+                db.Query($"REPLACE INTO {UserKeyValueTableName} (User, Identifier, Value) VALUES (@0, @1, @2)", user, key, data);
             }
             catch (Exception e)
             {
@@ -175,7 +176,7 @@ namespace TUIPlugin
         {
             try
             {
-                db.Query($"DELETE FROM {UserKeyValueTableName} WHERE User=@0 AND Key=@1", user, key);
+                db.Query($"DELETE FROM {UserKeyValueTableName} WHERE User=@0 AND Identifier=@1", user, key);
             }
             catch (Exception e)
             {
@@ -191,7 +192,7 @@ namespace TUIPlugin
         {
             try
             {
-                using (QueryResult reader = db.QueryReader($"SELECT Number FROM {UserNumberTableName} WHERE User=@0 AND Key=@1", user, key))
+                using (QueryResult reader = db.QueryReader($"SELECT Number FROM {UserNumberTableName} WHERE User=@0 AND Identifier=@1", user, key))
                 {
                     if (reader.Read())
                         return reader.Get<int>("Number");
@@ -211,7 +212,7 @@ namespace TUIPlugin
         {
             try
             {
-                db.Query($"REPLACE INTO {UserNumberTableName} (User, Key, Number) VALUES (@0, @1, @2)", user, key, number);
+                db.Query($"REPLACE INTO {UserNumberTableName} (User, Identifier, Number) VALUES (@0, @1, @2)", user, key, number);
             }
             catch (Exception e)
             {
@@ -226,7 +227,7 @@ namespace TUIPlugin
         {
             try
             {
-                db.Query($"DELETE FROM {UserNumberTableName} WHERE User=@0 AND Key=@1", user, key);
+                db.Query($"DELETE FROM {UserNumberTableName} WHERE User=@0 AND Identifier=@1", user, key);
             }
             catch (Exception e)
             {
@@ -246,13 +247,13 @@ namespace TUIPlugin
                     $@"SELECT number.User, number.Number, user.Username
 	                    FROM {UserNumberTableName} AS number
                         JOIN {UserTableName} as user ON number.User = user.ID
-                        WHERE Key=@0
+                        WHERE Identifier=@0
                         ORDER BY Number {(ascending ? "ASC" : "DESC")}
                         LIMIT @1
                         OFFSET @2"
                     : $@"SELECT User, Number
                         FROM {UserNumberTableName}
-                        WHERE Key=@0
+                        WHERE Identifier=@0
                         ORDER BY Number {(ascending ? "ASC" : "DESC")}
                         LIMIT @1
                         OFFSET @2";

@@ -50,6 +50,7 @@ namespace TUIPlugin
         public TUIPlugin(Main game)
             : base(game)
         {
+            // ????????????????????????
             Order = -1000;
         }
 
@@ -82,8 +83,6 @@ namespace TUIPlugin
                 RegionTimer.Elapsed += OnRegionTimer;
 
                 Commands.ChatCommands.AddRange(CommandList);
-
-                Database.ConnectDB();
 
                 TUI.Initialize(255, Main.maxTilesX, Main.maxTilesY);
             }
@@ -141,6 +140,7 @@ namespace TUIPlugin
 
         private void OnGamePostInitialize(EventArgs args)
         {
+            Database.ConnectDB();
             try
             {
                 TUI.Load(Main.worldID);
