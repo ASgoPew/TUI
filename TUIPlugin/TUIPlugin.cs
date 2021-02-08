@@ -40,7 +40,7 @@ namespace TUIPlugin
         private static Timer RegionTimer = new Timer(1000) { AutoReset = true };
         public static Command[] CommandList = new Command[]
         {
-            new Command(TUI.Permission, TUICommand, "tui")
+            new Command(TUI.ControlPermission, TUICommand, "tui")
         };
 
         #endregion
@@ -143,7 +143,7 @@ namespace TUIPlugin
         {
             try
             {
-                TUI.Load();
+                TUI.Load(Main.worldID);
                 TUI.Update();
                 TUI.Apply();
                 TUI.Draw();
@@ -578,7 +578,7 @@ namespace TUIPlugin
                 for (int i = 0; i < 255; i++)
                 {
                     TSPlayer player = TShock.Players[i];
-                    if (player?.Active == true && player.HasPermission(TUI.Permission))
+                    if (player?.Active == true && player.HasPermission(TUI.ControlPermission))
                         switch (args.Type)
                         {
                             case LogType.Success:

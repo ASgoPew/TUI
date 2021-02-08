@@ -35,9 +35,9 @@ namespace TerrariaUI.Widgets
             : base(x, y, width, height, null, style ?? new LeaderboardStyle())
         {
             Key = name;
-            Name = $"leaderboard_{name}";
+            Name = GetDBKey(name);
 
-            // HASHING NUMBERS????????
+            // TODO: HASHING NUMBERS????????
             // Optional TUI library hashing?
             // EnableNumberHashing(string key)
 
@@ -49,11 +49,13 @@ namespace TerrariaUI.Widgets
             this[0, 1].Add(new ScrollBackground());
         }
 
+        public static string GetDBKey(string name) => $"Leaderboard_{name}";
+
         public static void SetLeaderboardValue(string name, int user, int number) =>
-            TUI.NDBSet(user, $"leaderboard_{name}", number);
+            TUI.NDBSet(user, GetDBKey(name), number);
 
         public static int? GetLeaderboardValue(string name, int user) =>
-            TUI.NDBGet(user, $"leaderboard_{name}");
+            TUI.NDBGet(user, GetDBKey(name));
 
         public void LoadDBData()
         {

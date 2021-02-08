@@ -97,7 +97,7 @@ namespace TerrariaUI.Base
         /// <summary>
         /// Object is Active when it is Enabled and Visible (see <see cref="Enabled"/>, <see cref="Visible"/>)
         /// </summary>
-        public virtual bool Active => Enabled && Visible;
+        public virtual bool Active => Enabled && Visible && !Disposed;
         /// <summary>
         /// Overridable property for disabling ability to be ordered in Parent's Child array.
         /// </summary>

@@ -110,13 +110,13 @@ namespace TerrariaUI.Widgets
 
         protected override void LoadThisNative()
         {
-            DBRead();
+            UDBRead(TUI.WorldID);
         }
 
         #endregion
-        #region DBReadNative
+        #region UDBReadNative
 
-        protected override void DBReadNative(BinaryReader br)
+        protected override void UDBReadNative(BinaryReader br, int id)
         {
             int x, y, width, height;
             bool enabled;
@@ -161,9 +161,9 @@ namespace TerrariaUI.Widgets
         }
 
         #endregion
-        #region DBWriteNative
+        #region UDBWriteNative
 
-        protected override void DBWriteNative(BinaryWriter bw)
+        protected override void UDBWriteNative(BinaryWriter bw, int id)
         {
             bw.Write((int)X);
             bw.Write((int)Y);
@@ -182,7 +182,7 @@ namespace TerrariaUI.Widgets
         public void SavePanel()
         {
             if (Summoning == null)
-                DBWrite();
+                UDBWrite(TUI.WorldID);
         }
 
         #endregion
@@ -495,7 +495,7 @@ namespace TerrariaUI.Widgets
     public sealed class DefaultPanelDrag : PanelDrag
     {
         public DefaultPanelDrag(bool useMoving = true)
-            : base(0, 0, 1, 1, new UIConfiguration() { UseMoving=useMoving, UseEnd=true, UseOutsideTouches=true, Permission=TUI.Permission })
+            : base(0, 0, 1, 1, new UIConfiguration() { UseMoving=useMoving, UseEnd=true, UseOutsideTouches=true, Permission=TUI.ControlPermission })
         {
         }
     }
@@ -506,7 +506,7 @@ namespace TerrariaUI.Widgets
     public sealed class DefaultPanelResize : PanelResize
     {
         public DefaultPanelResize()
-            : base(0, 0, 1, 1, new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true, Permission=TUI.Permission })
+            : base(0, 0, 1, 1, new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true, Permission=TUI.ControlPermission })
         {
             SetAlignmentInParent(Alignment.DownRight);
         }

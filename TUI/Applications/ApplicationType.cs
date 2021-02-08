@@ -45,11 +45,10 @@ namespace TerrariaUI
             Generator = generator;
             Icon = icon;
             if (save)
-            {
                 Saver = new ApplicationSaver(this);
-                Saver.DBRead();
-            }
         }
+
+        public void Load() => Saver?.UDBRead(TUI.WorldID);
 
         public override string ToString() => Name;
 
@@ -67,7 +66,7 @@ namespace TerrariaUI
                 instance.SetXY(x - instance.Width / 2, y - instance.Height / 2, false);
                 instance.SavePanel();
                 TUI.Create(instance);
-                Saver?.DBWrite();
+                Saver?.UDBWrite(TUI.WorldID);
             }
         }
 
@@ -94,7 +93,7 @@ namespace TerrariaUI
             {
                 TUI.Destroy(Instances[index]);
                 Instances.Remove(index);
-                Saver?.DBWrite();
+                Saver?.UDBWrite(TUI.WorldID);
             }
         }
 

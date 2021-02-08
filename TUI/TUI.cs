@@ -17,21 +17,23 @@ namespace TerrariaUI
     {
         #region Data
 
-        public static int MaxPlayers;
-        public static int MaxTilesX;
-        public static int MaxTilesY;
-        public static HookManager Hooks = new HookManager();
-        public static UserSession[] Session = new UserSession[MaxPlayers];
+        public const string ControlPermission = "TUI.control";
+
+        public static int MaxPlayers { get; private set; }
+        public static int MaxTilesX { get; private set; }
+        public static int MaxTilesY { get; private set; }
+        public static int WorldID { get; private set; }
+        public static HookManager Hooks { get; } = new HookManager();
+        public static UserSession[] Session { get; private set; }
         public static int MaxHoldTouchMilliseconds = 30000;
-        public const short FakeSignSTileHeader = 29728;
-        private static List<RootVisualObject> Child = new List<RootVisualObject>();
-        private static Timer Timer;
+        public static bool Active { get; private set; } = false;
         public static ConcurrentDictionary<string, ApplicationType> ApplicationTypes { get; } =
             new ConcurrentDictionary<string, ApplicationType>();
-        public static List<ConcurrentDictionary<Application, byte>> ApplicationPlayerSessions =
+        public static List<ConcurrentDictionary<Application, byte>> ApplicationPlayerSessions { get; } =
             new List<ConcurrentDictionary<Application, byte>>();
-        public static bool Active { get; set; } = false;
-        public const string Permission = "TUI.control";
+
+        private static List<RootVisualObject> Child = new List<RootVisualObject>();
+        private static Timer Timer;
 
         #endregion
 
@@ -52,8 +54,13 @@ namespace TerrariaUI
         #endregion
         #region Load
 
-        public static void Load()
+        public static void Load(int worldID)
         {
+            WorldID = worldID;
+
+            foreach (var pair in ApplicationTypes)
+                pair.Value.Load();
+
             // Locking for Child and Active
             lock (Child)
             {
