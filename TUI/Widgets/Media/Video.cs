@@ -167,7 +167,7 @@ namespace TerrariaUI.Widgets
 
         protected virtual void Next(object sender, ElapsedEventArgs args)
         {
-            if (Root == null || Root.Players.Count == 0 || !Active)
+            if (Root == null || Root.Players.Count == 0 || !CalculateActive())
                 return;
 
             Frame = (Frame + 1) % Images.Count;
