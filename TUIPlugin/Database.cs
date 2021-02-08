@@ -31,7 +31,6 @@ namespace TUIPlugin
         /// </summary>
         public static void ConnectDB()
         {
-            Console.WriteLine($"TUI ========================================================================\n{TShock.Config.StorageType.ToLower()}");
             if (TShock.Config.StorageType.ToLower() == "sqlite")
                 db = new SqliteConnection(string.Format("uri=file://{0},Version=3",
                     Path.Combine(TShock.SavePath, "tshock.sqlite")));
