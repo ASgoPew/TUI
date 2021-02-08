@@ -635,8 +635,6 @@ namespace TerrariaUI.Base
         /// <para></para>
         /// Guaranteed that the call will happen only once and that it would be at
         /// a moment when game would be already initialized (on/after GamePostInitialize).
-        /// <para></para>
-        /// All child objects would be already loaded at the moment of calling this function.
         /// </summary>
         protected virtual void LoadThisNative() { }
 
@@ -692,8 +690,6 @@ namespace TerrariaUI.Base
         /// <para></para>
         /// Guaranteed that the call would happen only once and that it would only happen
         /// in case object was already loaded with Load().
-        /// <para></para>
-        /// All child objects would be already disposed at the moment of calling this function.
         /// </summary>
         protected virtual void DisposeThisNative() { }
 

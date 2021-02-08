@@ -78,17 +78,6 @@ namespace TerrariaUI.Widgets
                 DragObject = Add(drag);
             if (resize != null)
                 ResizeObject = Add(resize);
-
-            try
-            {
-                //TODO: MOVE TO Load()
-                DBRead();
-            }
-            catch (Exception e)
-            {
-                TUI.HandleException(e);
-                SavePanel();
-            }
         }
 
         /// <summary>
@@ -117,7 +106,15 @@ namespace TerrariaUI.Widgets
         }
 
         #endregion
-        #region ReadDataNative
+        #region LoadThisNative
+
+        protected override void LoadThisNative()
+        {
+            DBRead();
+        }
+
+        #endregion
+        #region DBReadNative
 
         protected override void DBReadNative(BinaryReader br)
         {
@@ -164,7 +161,7 @@ namespace TerrariaUI.Widgets
         }
 
         #endregion
-        #region WriteDataNative
+        #region DBWriteNative
 
         protected override void DBWriteNative(BinaryWriter bw)
         {

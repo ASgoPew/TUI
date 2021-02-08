@@ -1462,8 +1462,16 @@ namespace TerrariaUI.Base
                 using (MemoryStream ms = new MemoryStream(data))
                 using (BinaryReader br = new BinaryReader(ms))
                 {
-                    DBReadNative(br);
-                    Configuration.Custom.DBRead?.Invoke(this, br);
+                    try
+                    {
+                        DBReadNative(br);
+                        Configuration.Custom.DBRead?.Invoke(this, br);
+                    }
+                    catch (Exception e)
+                    {
+                        TUI.HandleException(e);
+                        return false;
+                    }
                 }
                 return true;
             }
@@ -1490,12 +1498,29 @@ namespace TerrariaUI.Base
             using (MemoryStream ms = new MemoryStream())
             using (BinaryWriter bw = new BinaryWriter(ms))
             {
-                DBWriteNative(bw);
-                Configuration.Custom.DBWrite?.Invoke(this, bw);
+                try
+                {
+                    DBWriteNative(bw);
+                    Configuration.Custom.DBWrite?.Invoke(this, bw);
+                }
+                catch (Exception e)
+                {
+                    TUI.HandleException(e);
+                    return;
+                }
                 byte[] data = ms.ToArray();
                 TUI.DBSet(FullName, data);
             }
         }
+
+        #endregion
+        #region DBWriteNative
+
+        /// <summary>
+        /// Overridable method for writing to BinaryWriter for data to be stored in database
+        /// </summary>
+        /// <param name="bw"></param>
+        protected virtual void DBWriteNative(BinaryWriter bw) { }
 
         #endregion
         #region DBRemove
@@ -1507,15 +1532,6 @@ namespace TerrariaUI.Base
         {
             TUI.DBRemove(FullName);
         }
-
-        #endregion
-        #region DBWriteNative
-
-        /// <summary>
-        /// Overridable method for writing to BinaryWriter for data to be stored in database
-        /// </summary>
-        /// <param name="bw"></param>
-        protected virtual void DBWriteNative(BinaryWriter bw) { }
 
         #endregion
         #region UDBRead
@@ -1532,8 +1548,16 @@ namespace TerrariaUI.Base
                 using (MemoryStream ms = new MemoryStream(data))
                 using (BinaryReader br = new BinaryReader(ms))
                 {
-                    UDBReadNative(br, user);
-                    Configuration.Custom.UDBRead?.Invoke(this, br, user);
+                    try
+                    {
+                        UDBReadNative(br, user);
+                        Configuration.Custom.UDBRead?.Invoke(this, br, user);
+                    }
+                    catch (Exception e)
+                    {
+                        TUI.HandleException(e);
+                        return false;
+                    }
                 }
                 return true;
             }
@@ -1560,8 +1584,16 @@ namespace TerrariaUI.Base
             using (MemoryStream ms = new MemoryStream())
             using (BinaryWriter bw = new BinaryWriter(ms))
             {
-                UDBWriteNative(bw, user);
-                Configuration.Custom.UDBWrite?.Invoke(this, bw, user);
+                try
+                {
+                    UDBWriteNative(bw, user);
+                    Configuration.Custom.UDBWrite?.Invoke(this, bw, user);
+                }
+                catch (Exception e)
+                {
+                    TUI.HandleException(e);
+                    return;
+                }
                 byte[] data = ms.ToArray();
                 TUI.UDBSet(user, FullName, data);
             }
