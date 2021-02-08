@@ -42,9 +42,9 @@ namespace TerrariaUI.Widgets
             // EnableNumberHashing(string key)
 
             SetupGrid(lines: new ISize[] { new Absolute(4), new Relative(100), new Dynamic() });
-            this[0, 0] = new Label(0, 0, Width, 4, Key, new LabelStyle() { Wall = 155 });
+            this[0, 0] = new Label(0, 0, Width, 4, Key, new LabelStyle() { Wall = 154, WallColor = 27 });
             this[0, 1].Style.Wall = 155;
-            this[0, 1].Style.WallColor = PaintID2.Black;
+            //this[0, 1].Style.WallColor = PaintID2.Black;
             this[0, 1].SetupLayout(Alignment.Up, Direction.Down, Side.Center, childIndent: 0);
             this[0, 1].Add(new ScrollBackground());
         }
@@ -64,14 +64,22 @@ namespace TerrariaUI.Widgets
                     this[0, 1].Remove(child);
 
             var list = NDBSelect(LeaderboardStyle.Ascending, LeaderboardStyle.Count, LeaderboardStyle.Offset, true);
-            foreach (var lineData in list)
+            for (int i = 0; i < list.Count; i++)
             {
+                var lineData = list[i];
                 VisualContainer line = new VisualContainer(0, 0, 0, 4, new UIConfiguration() { UseBegin = false });
                 line.SetFullSize(true, false)
                     .SetupGrid(columns: new ISize[] { new Relative(100), new Dynamic() });
-                line[0, 0] = new Label(0, 0, 0, 0, lineData.Username, new LabelStyle() { TextColor = PaintID2.White }).SetFullSize(true, true);
+                byte color = i == 0
+                    ? PaintID2.DeepYellow
+                    : i == 1
+                        ? PaintID2.Gray
+                        : i == 2
+                            ? PaintID2.Brown
+                            : PaintID2.Black;
+                line[0, 0] = new Label(0, 0, 0, 0, lineData.Username, new LabelStyle() { TextColor = color }).SetFullSize(true, true);
                 string number = lineData.Number.ToString();
-                line[1, 0] = new Label(0, 0, number.Length * 2 + 2, 4, number, new LabelStyle() { TextColor = PaintID2.White });
+                line[1, 0] = new Label(0, 0, number.Length * 2 + 2, 4, number, new LabelStyle() { TextColor = PaintID2.Black });
                 this[0, 1].AddToLayout(line);
             }
         }
