@@ -140,9 +140,10 @@ namespace TUIPlugin
 
         private void OnGamePostInitialize(EventArgs args)
         {
-            Database.ConnectDB();
             try
             {
+                Database.ConnectDB();
+
                 TUI.Load(Main.worldID);
                 TUI.Update();
                 TUI.Apply();
