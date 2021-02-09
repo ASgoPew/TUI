@@ -343,7 +343,6 @@ namespace TerrariaUI
 
         public static bool SetTop(RootVisualObject root)
         {
-            Console.WriteLine("TUI4");
             lock (Child)
             {
                 int previousIndex = Child.IndexOf(root);
@@ -373,17 +372,12 @@ namespace TerrariaUI
 
         public static void PostSetTop(RootVisualObject child)
         {
-            Console.WriteLine("TUI1");
             // Should not apply if intersecting objects have different tile provider
             (bool intersects, bool needsApply) = ChildIntersectingOthers(child);
             if (intersects)
             {
-                Console.WriteLine("TUI2");
                 if (needsApply)
-                {
-                    Console.WriteLine("TUI3");
                     child.Apply();
-                }
                 else
                     child.RequestDrawChanges();
                 child.Draw();
