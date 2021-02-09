@@ -67,7 +67,7 @@ namespace TerrariaUI.Base
         /// <summary>
         /// Locker for locking node related operations.
         /// </summary>
-        protected object Locker { get; set; } = new object();
+        internal object Locker { get; set; } = new object();
         /// <summary>
         /// Runtime storage for node related data.
         /// </summary>
