@@ -85,6 +85,7 @@ namespace TerrariaUI
         /// App player session time until stopping, in seconds
         /// </summary>
         public int PlayerSessionTimeout { get; protected set; } = -1;
+        private object PlayerSessionLocker = new object();
 
         public ApplicationStyle ApplicationStyle => Style as ApplicationStyle;
         /// <summary>
@@ -107,31 +108,38 @@ namespace TerrariaUI
         #endregion
         #region StartPlayerSession
 
+        bool StartingPlayerSession = false;
         public void StartPlayerSession(IEnumerable<int> players, int timeout = -1)
         {
-            lock (Locker)
+            lock (PlayerSessionLocker)
             {
-                if (SessionPlayers != null)
-                {
-                    TUI.Log($"Application ({Name}) is trying to start player session when it has already started.", LogType.Warning);
+                if (StartingPlayerSession || EndingPlayerSession)
                     return;
-                }
-
-                SessionPlayers = players.ToArray();
-                foreach (int player in SessionPlayers)
-                    TUI.ApplicationPlayerSessions[player].TryAdd(this, 0);
-                PlayerSessionCreateTime = DateTime.UtcNow;
-                PlayerSessionTimeout = timeout;
-
-                try
-                {
-                    StartPlayerSessionNative();
-                }
-                catch (Exception e)
-                {
-                    TUI.HandleException(e);
-                }
+                StartingPlayerSession = true;
             }
+
+            if (SessionPlayers != null)
+            {
+                TUI.Log($"Application ({Name}) is trying to start player session when it has already started.", LogType.Warning);
+                return;
+            }
+
+            SessionPlayers = players.ToArray();
+            foreach (int player in SessionPlayers)
+                TUI.ApplicationPlayerSessions[player].TryAdd(this, 0);
+            PlayerSessionCreateTime = DateTime.UtcNow;
+            PlayerSessionTimeout = timeout;
+
+            try
+            {
+                StartPlayerSessionNative();
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
+            }
+
+            StartingPlayerSession = false;
         }
 
         #endregion
@@ -142,30 +150,37 @@ namespace TerrariaUI
         #endregion
         #region EndPlayerSession
 
+        bool EndingPlayerSession = false;
         public void EndPlayerSession()
         {
-            lock (Locker)
+            lock (PlayerSessionLocker)
             {
-                if (SessionPlayers == null)
-                {
-                    TUI.Log($"Application ({Name}) is trying to end player session when it has already ended.", LogType.Warning);
+                if (StartingPlayerSession || EndingPlayerSession)
                     return;
-                }
-
-                try
-                {
-                    EndPlayerSessionNative();
-                }
-                catch (Exception e)
-                {
-                    TUI.HandleException(e);
-                }
-
-                PlayerSessionTimeout = -1;
-                foreach (int player in SessionPlayers)
-                    TUI.ApplicationPlayerSessions[player].TryRemove(this, out _);
-                SessionPlayers = null;
+                EndingPlayerSession = true;
             }
+
+            if (SessionPlayers == null)
+            {
+                TUI.Log($"Application ({Name}) is trying to end player session when it has already ended.", LogType.Warning);
+                return;
+            }
+
+            try
+            {
+                EndPlayerSessionNative();
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
+            }
+
+            PlayerSessionTimeout = -1;
+            foreach (int player in SessionPlayers)
+                TUI.ApplicationPlayerSessions[player].TryRemove(this, out _);
+            SessionPlayers = null;
+
+            EndingPlayerSession = false;
         }
 
         #endregion
