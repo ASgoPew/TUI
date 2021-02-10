@@ -111,8 +111,19 @@ namespace TerrariaUI.Base
         /// Checks if specified touch can press this object or one of child objects in sub-tree.
         /// </summary>
         /// <param name="touch">Touch to check</param>
-        public bool CanTouch(Touch touch) =>
-            CanTouchNative(touch) && Configuration.Custom.CanTouch?.Invoke(this as VisualObject, touch) != false;
+        public bool CanTouch(Touch touch)
+        {
+            bool result = false;
+            try
+            {
+                result = CanTouchNative(touch) && Configuration.Custom.CanTouch?.Invoke(this as VisualObject, touch) != false;
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
+            }
+            return result;
+        }
 
         #endregion
         #region CanTouchNative
@@ -152,11 +163,26 @@ namespace TerrariaUI.Base
         #endregion
         #region PostSetTop
 
+        private void PostSetTop(VisualObject o)
+        {
+            try
+            {
+                PostSetTopNative(o);
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
+            }
+        }
+
+        #endregion
+        #region PostSetTopNative
+
         /// <summary>
         /// Overridable function that is called when object comes on top of the layer.
         /// </summary>
         /// <param name="o"></param>
-        protected virtual void PostSetTop(VisualObject o) { }
+        protected virtual void PostSetTopNative(VisualObject o) { }
 
         #endregion
         #region CanTouchThis
@@ -182,7 +208,14 @@ namespace TerrariaUI.Base
 
             TrySetLock(touch);
 
-            Invoke(touch);
+            try
+            {
+                Invoke(touch);
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
+            }
 
             if (Configuration.SessionAcquire)
                 touch.Session.Acquired = @this;

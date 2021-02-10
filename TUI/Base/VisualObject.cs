@@ -111,7 +111,7 @@ namespace TerrariaUI.Base
         /// Does Apply() and Draw() if object is intersecting at least one other child object by default.
         /// </summary>
         /// <param name="child">Child object that came on top of the layer</param>
-        protected override void PostSetTop(VisualObject child)
+        protected override void PostSetTopNative(VisualObject child)
         {
             if (ChildIntersectingOthers(child))
                 child.Apply().Draw();
