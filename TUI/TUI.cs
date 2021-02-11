@@ -418,7 +418,7 @@ namespace TerrariaUI
                 foreach (RootVisualObject child in Child)
                     try
                     {
-                        if (child.Enabled)
+                        if (child.Active)
                             child.Update();
                     }
                     catch (Exception e)
@@ -482,6 +482,17 @@ namespace TerrariaUI
         {
             Hooks.DrawRectangle.Invoke(new DrawRectangleArgs(x, y, width, height, drawWithSection,
                 playerIndex, exceptPlayerIndex, frameSection));
+        }
+
+        #endregion
+        #region RequestDrawChanges
+
+        public static void RequestDrawChanges()
+        {
+            lock (Child)
+                foreach (RootVisualObject child in Child)
+                    if (child.Active && !(child.Provider is MainTileProvider))
+                        child.RequestDrawChanges();
         }
 
         #endregion

@@ -197,7 +197,7 @@ namespace TerrariaUI.Base
         public virtual dynamic Tile(int x, int y)
         {
             if (x < 0 || y < 0 || x >= Width || y >= Height)
-                throw new ArgumentOutOfRangeException($"{FullName}: Invalid tile x or y.");
+                return null;
             ExternalIndent bounds = Bounds;
             if (x < bounds.Left || x >= Width - bounds.Right || y < bounds.Up || y >= Height - bounds.Down)
                 return null;
@@ -455,7 +455,8 @@ namespace TerrariaUI.Base
 
         public VisualObject RequestDrawChanges()
         {
-            Root.DrawState++;
+            if (Root is RootVisualObject root)
+                root.DrawState++;
             return this;
         }
 

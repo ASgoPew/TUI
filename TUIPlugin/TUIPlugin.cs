@@ -13,6 +13,7 @@ using TerrariaUI;
 using TerrariaUI.Widgets;
 using Microsoft.Xna.Framework;
 using TShockAPI.Hooks;
+using OTAPI;
 
 namespace TUIPlugin
 {
@@ -69,6 +70,8 @@ namespace TUIPlugin
                 ServerApi.Hooks.NetGetData.Register(this, OnGetData, 100);
                 PlayerHooks.PlayerLogout += OnPlayerLogout;
                 GetDataHandlers.NewProjectile += OnNewProjectile;
+                if (FakesEnabled)
+                    Hooks.World.IO.PostSaveWorld += OnPostSaveWorld;
                 TUI.Hooks.CanTouch.Event += OnCanTouch;
                 TUI.Hooks.DrawObject.Event += OnDrawObject;
                 TUI.Hooks.DrawRectangle.Event += OnDrawRectangle;
@@ -105,11 +108,14 @@ namespace TUIPlugin
 
                     TUI.Dispose();
 
+                    ServerApi.Hooks.GamePostInitialize.Deregister(this, OnGamePostInitialize);
                     ServerApi.Hooks.ServerConnect.Deregister(this, OnServerConnect);
                     ServerApi.Hooks.ServerLeave.Deregister(this, OnServerLeave);
                     ServerApi.Hooks.NetGetData.Deregister(this, OnGetData);
-                    GetDataHandlers.NewProjectile -= OnNewProjectile;
                     PlayerHooks.PlayerLogout -= OnPlayerLogout;
+                    GetDataHandlers.NewProjectile -= OnNewProjectile;
+                    if (FakesEnabled)
+                        Hooks.World.IO.PostSaveWorld -= OnPostSaveWorld;
                     TUI.Hooks.CanTouch.Event -= OnCanTouch;
                     TUI.Hooks.DrawObject.Event -= OnDrawObject;
                     TUI.Hooks.DrawRectangle.Event -= OnDrawRectangle;
@@ -303,6 +309,14 @@ namespace TUIPlugin
             {
                 TUI.HandleException(e);
             }
+        }
+
+        #endregion
+        #region OnPostSaveWorld
+
+        private static void OnPostSaveWorld(bool Cloud, bool ResetTime)
+        {
+            TUI.RequestDrawChanges();
         }
 
         #endregion
@@ -865,9 +879,10 @@ namespace TUIPlugin
                         return;
                     }
 
-                    int x = args.Player.TileX, y = args.Player.TileY;
+                    int x = args.Player.TileX - root.Width / 2;
+                    int y = args.Player.TileY - root.Height / 2;
                     root.SetXY(x, y, true);
-                    args.Player.SendSuccessMessage($"Moved interface '{root.Name}' to ({x},{y}).");
+                    args.Player.SendSuccessMessage($"Moved interface '{root.Name}' successfully.");
                     break;
                 }
                 case "e":
