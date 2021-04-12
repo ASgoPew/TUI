@@ -344,11 +344,12 @@ namespace TUIPlugin
         private static void OnDrawObject(DrawObjectArgs args)
         {
             VisualObject node = args.Node;
-            HashSet<int> players = node.OutdatedPlayers(args.PlayerIndex, args.ExceptPlayerIndex,
-                                                        args.ToEveryone);
+            if (node.Root == null)
+                return;
 
-            node.Root.PreDrawObject(args, players);
+            node.Root.PreDrawObject(args);
 
+            HashSet<int> players = node.OutdatedPlayers(args.PlayerIndex, args.ExceptPlayerIndex, args.ToEveryone);
             if (players == null || players.Count == 0)
                 return;
 

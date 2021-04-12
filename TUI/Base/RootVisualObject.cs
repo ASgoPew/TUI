@@ -210,8 +210,7 @@ namespace TerrariaUI.Base
 
         /// <summary> Called just before a widget in this interface tree is drawn. Self-inclusive. </summary>
         /// <param name="args"> The arguments that were passed to the draw event. </param>
-        /// <param name="players"> The players that will see the widget being drawn. </param>
-        public virtual void PreDrawObject(DrawObjectArgs args, HashSet<int> players) { }
+        public virtual void PreDrawObject(DrawObjectArgs args) { }
 
         /// <summary> Called just after a widget in this interface tree is drawn. Self-inclusive. </summary>
         /// <param name="args"> The arguments that were passed to the draw event. </param>
