@@ -206,5 +206,19 @@ namespace TerrariaUI.Base
         }
 
         #endregion
+
+        #region ChildCallbacks
+
+        /// <summary> Called just before a widget in this interface tree is drawn. Self-inclusive. </summary>
+        public virtual void PreDraw(VisualObject node, int dx, int dy, int width, int height,
+            int playerIndex, int exceptPlayerIndex, bool? drawWithSection, bool? frameSection,
+            bool toEveryone) { }
+
+        /// <summary> Called just after a widget in this interface tree is drawn. Self-inclusive. </summary>
+        public virtual void PostDraw(VisualObject node, int dx, int dy, int width, int height,
+            int playerIndex, int exceptPlayerIndex, bool? drawWithSection, bool? frameSection,
+            bool toEveryone) { }
+
+        #endregion
     }
 }
