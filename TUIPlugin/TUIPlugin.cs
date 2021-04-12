@@ -298,7 +298,7 @@ namespace TUIPlugin
                     playerDesignState[args.Owner] = DesignState.Moving;
                     //args.Handled = true;
                 }
-		        else
+                else
                 {
                     int tileX = (int)Math.Floor((args.Position.X + 5) / 16);
                     int tileY = (int)Math.Floor((args.Position.Y + 5) / 16);
@@ -344,30 +344,10 @@ namespace TUIPlugin
         private static void OnDrawObject(DrawObjectArgs args)
         {
             VisualObject node = args.Node;
-            if (node.Root == null)
-                return;
+            HashSet<int> players = node.OutdatedPlayers(args.PlayerIndex, args.ExceptPlayerIndex,
+                                                        args.ToEveryone);
 
-            ulong currentApplyCounter = node.Root.DrawState;
-            HashSet<int> players = null;
-            if (args.ToEveryone)
-            {
-                // Sending to everyone who has ever seen this interface
-                players = node.Root.PlayerApplyCounter.Keys.ToHashSet();
-                //TODO: Add node.Root.Players?
-            }
-            else
-            {
-                players = args.PlayerIndex == -1
-                    ? new HashSet<int>(node.Root.Players)
-                    : new HashSet<int>() { args.PlayerIndex };
-                players.Remove(args.ExceptPlayerIndex);
-                // Remove players that already received lastest version of interface
-                players.RemoveWhere(p =>
-                    node.Root.PlayerApplyCounter.TryGetValue(p, out ulong applyCounter)
-                    && currentApplyCounter == applyCounter);
-            }
-
-            if (players.Count == 0)
+            if (players == null || players.Count == 0)
                 return;
 
 #if DEBUG
@@ -412,7 +392,7 @@ namespace TUIPlugin
 
             // Mark that these players received lastest version of interface
             foreach (int player in players)
-                node.Root.PlayerApplyCounter[player] = currentApplyCounter;
+                node.Root.PlayerApplyCounter[player] = node.Root.DrawState;
         }
 
         #endregion
@@ -672,7 +652,7 @@ namespace TUIPlugin
         }
 
         #endregion
-        
+
         #region OnRegionTimer
 
         private void OnRegionTimer(object sender, ElapsedEventArgs args)

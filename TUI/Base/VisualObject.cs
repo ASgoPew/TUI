@@ -1325,6 +1325,46 @@ namespace TerrariaUI.Base
         #endregion
 
         #endregion
+        #region OutdatedPlayers
+
+        /// <summary>
+        /// Returns the players that have not yet recieved the latest version of this interface.
+        /// </summary>
+        /// <remarks>
+        /// Returns <see langword="null"/> if called before the first call to <see cref="Update"/> on this
+        /// widget.
+        /// </remarks>
+        public HashSet<int> OutdatedPlayers(int playerIndex = -1, int exceptPlayerIndex = -1,
+            bool toEveryone = false)
+        {
+            if (Root == null)
+                return null;
+
+            ulong currentApplyCounter = Root.DrawState;
+            HashSet<int> players = null;
+            if (toEveryone)
+            {
+                // Sending to everyone who has ever seen this interface
+                players = Root.PlayerApplyCounter.Keys.ToHashSet();
+                //TODO: Add Root.Players?
+            }
+            else
+            {
+                players = playerIndex == -1
+                    ? new HashSet<int>(Root.Players)
+                    : new HashSet<int>() { playerIndex };
+                players.Remove(exceptPlayerIndex);
+
+                // Remove players that already received latest version of interface
+                players.RemoveWhere(p =>
+                    Root.PlayerApplyCounter.TryGetValue(p, out ulong applyCounter)
+                    && currentApplyCounter == applyCounter);
+            }
+
+            return players;
+        }
+
+        #endregion
         #region Draw
 
         /// <summary>

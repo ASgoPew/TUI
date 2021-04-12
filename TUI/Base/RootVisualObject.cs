@@ -206,7 +206,6 @@ namespace TerrariaUI.Base
         }
 
         #endregion
-
         #region ChildCallbacks
 
         /// <summary> Called just before a widget in this interface tree is drawn. Self-inclusive. </summary>
