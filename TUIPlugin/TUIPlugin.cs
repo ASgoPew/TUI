@@ -347,6 +347,8 @@ namespace TUIPlugin
             HashSet<int> players = node.OutdatedPlayers(args.PlayerIndex, args.ExceptPlayerIndex,
                                                         args.ToEveryone);
 
+            node.Root.PreDrawObject(args, players);
+
             if (players == null || players.Count == 0)
                 return;
 
@@ -393,6 +395,8 @@ namespace TUIPlugin
             // Mark that these players received lastest version of interface
             foreach (int player in players)
                 node.Root.PlayerApplyCounter[player] = node.Root.DrawState;
+
+            node.Root.PostDrawObject(args, players);
         }
 
         #endregion

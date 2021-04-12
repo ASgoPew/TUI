@@ -206,17 +206,17 @@ namespace TerrariaUI.Base
         }
 
         #endregion
-        #region ChildCallbacks
+        #region PrePostCallbacks
 
         /// <summary> Called just before a widget in this interface tree is drawn. Self-inclusive. </summary>
-        public virtual void PreDraw(VisualObject node, int dx, int dy, int width, int height,
-            int playerIndex, int exceptPlayerIndex, bool? drawWithSection, bool? frameSection,
-            bool toEveryone) { }
+        /// <param name="args"> The arguments that were passed to the draw event. </param>
+        /// <param name="players"> The players that will see the widget being drawn. </param>
+        public virtual void PreDrawObject(DrawObjectArgs args, HashSet<int> players) { }
 
         /// <summary> Called just after a widget in this interface tree is drawn. Self-inclusive. </summary>
-        public virtual void PostDraw(VisualObject node, int dx, int dy, int width, int height,
-            int playerIndex, int exceptPlayerIndex, bool? drawWithSection, bool? frameSection,
-            bool toEveryone) { }
+        /// <param name="args"> The arguments that were passed to the draw event. </param>
+        /// <param name="players"> The players that saw the widget being drawn. </param>
+        public virtual void PostDrawObject(DrawObjectArgs args, HashSet<int> players) { }
 
         #endregion
     }

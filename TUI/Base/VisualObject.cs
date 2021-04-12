@@ -1389,17 +1389,11 @@ namespace TerrariaUI.Base
                 TUI.Throw(this, "Drawing before Update()");
 #endif
 
-            Root.PreDraw(this, dx, dy, width, height, playerIndex, exceptPlayerIndex,
-                drawWithSection, frameSection, toEveryone);
-
             bool realDrawWithSection = drawWithSection ?? DrawWithSection;
             bool realFrame = frameSection ?? FrameSection;
             (int ax, int ay) = AbsoluteXY();
             TUI.DrawObject(this, ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height,
                 realDrawWithSection, playerIndex, exceptPlayerIndex, realFrame, toEveryone);
-
-            Root.PostDraw(this, dx, dy, width, height, playerIndex, exceptPlayerIndex,
-                drawWithSection, frameSection, toEveryone);
 
             return this;
         }
