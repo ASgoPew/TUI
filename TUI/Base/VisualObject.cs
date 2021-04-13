@@ -481,12 +481,23 @@ namespace TerrariaUI.Base
 
         #region Pulse
 
-        /// <summary>
-        /// Send specified signal to all sub-tree including this node.
-        /// </summary>
-        /// <param name="type">Type of signal</param>
-        /// <returns>this</returns>
-        public virtual VisualObject Pulse(PulseType type)
+        /// <summary> Send specified signal to all sub-tree including this node. </summary>
+        /// <param name="type"> Type of signal </param>
+        /// <returns> this </returns>
+        public VisualObject Pulse(PulseType type)
+        {
+            Root?.PrePulseObject(this, type);
+
+            VisualObject result = PulseNative(type);
+
+            Root?.PostPulseObject(this, type);
+
+            return result;
+        }
+
+        #region PulseNative
+
+        public virtual VisualObject PulseNative(PulseType type)
         {
             // Pulse event handling related to this node
             PulseThis(type);
@@ -497,6 +508,7 @@ namespace TerrariaUI.Base
             return this;
         }
 
+        #endregion
         #region PulseThis
 
         /// <summary>
@@ -564,12 +576,12 @@ namespace TerrariaUI.Base
         #endregion
         #region Update
 
-        /// <summary>
-        /// Updates the node and the child sub-tree.
-        /// </summary>
-        /// <returns>this</returns>
+        /// <summary> Updates the node and the child sub-tree. </summary>
+        /// <returns> this </returns>
         public VisualObject Update()
         {
+            Root?.PreUpdateObject(this);
+
             // Updates related to this node
             UpdateThis();
 
@@ -581,6 +593,8 @@ namespace TerrariaUI.Base
 
             // Updates related to this node and dependant on child updates
             PostUpdateThis();
+
+            Root?.PostUpdateObject(this);
 
             return this;
         }
@@ -1202,11 +1216,15 @@ namespace TerrariaUI.Base
 
             lock (Locker)
             {
+                Root?.PreApplyObject(this);
+
                 // Applying related to this node
                 ApplyThis();
 
                 // Recursive Apply call
                 ApplyChild();
+
+                Root?.PostApplyObject(this);
             }
 
             return this;
