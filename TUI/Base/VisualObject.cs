@@ -1325,6 +1325,7 @@ namespace TerrariaUI.Base
         #endregion
 
         #endregion
+
         #region OutdatedPlayers
 
         /// <summary>
@@ -1334,8 +1335,16 @@ namespace TerrariaUI.Base
         /// Returns <see langword="null"/> if called before the first call to <see cref="Update"/> on this
         /// widget.
         /// </remarks>
-        public HashSet<int> OutdatedPlayers(int playerIndex = -1, int exceptPlayerIndex = -1,
-            bool toEveryone = false)
+        /// <param name="playerIndex">
+        /// If not -1 and <paramref name="toEveryone"/> is <see langword="false"/>, excludes all players except this one.
+        /// </param>
+        /// <param name="exceptPlayerIndex">
+        /// If not -1 and <paramref name="toEveryone"/> is <see langword="false"/>, excludes this player.
+        /// </param>
+        /// <param name="toEveryone">
+        /// If <see langword="true"/>, includes all players who have ever seen this interface.
+        /// </param>
+        public HashSet<int> OutdatedPlayers(int playerIndex = -1, int exceptPlayerIndex = -1, bool toEveryone = false)
         {
             if (Root == null)
                 return null;
@@ -1367,33 +1376,32 @@ namespace TerrariaUI.Base
         #endregion
         #region Draw
 
-        /// <summary>
-        /// Sends SendTileSquare/SendSection packet to clients.
-        /// </summary>
-        /// <param name="dx">X coordinate delta</param>
-        /// <param name="dy">Y coordinate delta</param>
-        /// <param name="width">Drawing rectangle width, -1 for object.Width</param>
-        /// <param name="height">Drawing rectangle height, -1 for object.Height</param>
-        /// <param name="playerIndex">Index of user to send to, -1 for all players</param>
-        /// <param name="exceptPlayerIndex">Index of user to ignore on sending</param>
-        /// <param name="drawWithSection">Whether to send with SendTileSquare or with SendSection, SendTileSquare (false) by default</param>
-        /// <param name="frameSection">Whether to send SectionFrame if sending with SendSection</param>
-        /// <param name="toEveryone">Whether to draw it to everyone who has ever seen this interface</param>
-        /// <returns>this</returns>
-        public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1,
-            int playerIndex = -1, int exceptPlayerIndex = -1, bool? drawWithSection = null,
-            bool? frameSection = null, bool toEveryone = false)
+        /// <summary> Sends SendTileSquare/SendSection packet to clients. </summary>
+        /// <param name="dx"> X coordinate delta </param>
+        /// <param name="dy"> Y coordinate delta </param>
+        /// <param name="width"> Drawing rectangle width, -1 for object.Width </param>
+        /// <param name="height"> Drawing rectangle height, -1 for object.Height </param>
+        /// <param name="targetPlayers">
+        /// Players to send to. If <see langword="null"/>, defaults to the result of <see cref="OutdatedPlayers(int, int, bool)"/>.
+        /// </param>
+        /// <param name="drawWithSection"> Whether to send with SendTileSquare or with SendSection, SendTileSquare (false) by default </param>
+        /// <param name="frameSection"> Whether to send SectionFrame if sending with SendSection </param>
+        /// <returns> this </returns>
+        public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1, HashSet<int> targetPlayers = null,
+            bool? drawWithSection = null, bool? frameSection = null)
         {
 #if DEBUG
             if (Root == null)
                 TUI.Throw(this, "Drawing before Update()");
 #endif
+            if (targetPlayers == null)
+                targetPlayers = OutdatedPlayers();
 
             bool realDrawWithSection = drawWithSection ?? DrawWithSection;
             bool realFrame = frameSection ?? FrameSection;
             (int ax, int ay) = AbsoluteXY();
-            TUI.DrawObject(this, ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height,
-                realDrawWithSection, playerIndex, exceptPlayerIndex, realFrame, toEveryone);
+            TUI.DrawObject(this, targetPlayers, ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height,
+                realDrawWithSection, realFrame);
 
             return this;
         }
@@ -1401,15 +1409,14 @@ namespace TerrariaUI.Base
         #endregion
         #region DrawPoints
 
-        /// <summary>
-        /// Draw list of points related to this node.
-        /// </summary>
-        /// <param name="points">List of points</param>
-        /// <param name="userIndex">Index of user to send to, -1 for all users</param>
-        /// <param name="exceptUserIndex">Index of user to ignore on sending</param>
-        /// <param name="forceSection">Whether to send with SendTileSquare or with SendSection, SendTileSquare (false) by default</param>
-        /// <returns>this</returns>
-        public virtual VisualObject DrawPoints(IEnumerable<(int, int)> points, int userIndex = -1, int exceptUserIndex = -1, bool? forceSection = null)
+        /// <summary> Draw list of points related to this node. </summary>
+        /// <param name="points"> List of points </param>
+        /// <param name="targetPlayers">
+        /// Players to send to. If <see langword="null"/>, defaults to the result of <see cref="OutdatedPlayers(int, int, bool)"/>.
+        /// </param>
+        /// <param name="drawWithSection"> Whether to send with SendTileSquare or with SendSection, SendTileSquare (false) by default </param>
+        /// <returns> this </returns>
+        public virtual VisualObject DrawPoints(IEnumerable<(int, int)> points, HashSet<int> targetPlayers = null, bool? drawWithSection = null)
         {
             List<(int, int)> list = points.ToList();
             if (list.Count == 0)
@@ -1430,7 +1437,7 @@ namespace TerrariaUI.Base
                     maxY = y;
             }
 
-            return Draw(minX, minY, maxX - minX + 1, maxY - minY + 1, userIndex, exceptUserIndex, forceSection);
+            return Draw(minX, minY, maxX - minX + 1, maxY - minY + 1, targetPlayers, drawWithSection);
         }
 
         #endregion

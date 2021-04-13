@@ -153,13 +153,13 @@ namespace TerrariaUI.Base
         protected override void DrawReposition(int oldX, int oldY, int oldWidth, int oldHeight)
         {
             RequestDrawChanges();
-            Draw(oldX - X, oldY - Y, oldWidth, oldHeight, toEveryone: true);
+            Draw(oldX - X, oldY - Y, oldWidth, oldHeight, OutdatedPlayers(toEveryone: true));
 
             if (UsesDefaultMainProvider || oldWidth != Width || oldHeight != Height)
                 Update().Apply();
             else
                 RequestDrawChanges();
-            Draw(toEveryone: true);
+            Draw(targetPlayers: OutdatedPlayers(toEveryone: true));
         }
 
         #endregion
@@ -209,13 +209,12 @@ namespace TerrariaUI.Base
         #region PrePostCallbacks
 
         /// <summary> Called just before a widget in this interface tree is drawn. Self-inclusive. </summary>
-        /// <param name="args"> The arguments that were passed to the draw event. </param>
+        /// <param name="args"> The arguments that will be passed to the draw event. </param>
         public virtual void PreDrawObject(DrawObjectArgs args) { }
 
         /// <summary> Called just after a widget in this interface tree is drawn. Self-inclusive. </summary>
         /// <param name="args"> The arguments that were passed to the draw event. </param>
-        /// <param name="players"> The players that saw the widget being drawn. </param>
-        public virtual void PostDrawObject(DrawObjectArgs args, HashSet<int> players) { }
+        public virtual void PostDrawObject(DrawObjectArgs args) { }
 
         #endregion
     }

@@ -466,12 +466,13 @@ namespace TerrariaUI
         #endregion
         #region DrawObject
 
-        internal static void DrawObject(VisualObject node, int x, int y, int width, int height,
-            bool drawWithSection, int playerIndex = -1, int exceptPlayerIndex = -1, bool frameSection = true,
-            bool toEveryone = false)
+        internal static void DrawObject(VisualObject node, HashSet<int> targetPlayers, int x, int y, int width, int height,
+            bool drawWithSection, bool frameSection = true)
         {
-            Hooks.DrawObject.Invoke(new DrawObjectArgs(node, x, y, width, height, drawWithSection,
-                playerIndex, exceptPlayerIndex, frameSection, toEveryone));
+            var args = new DrawObjectArgs(node, targetPlayers, x, y, width, height, drawWithSection, frameSection);
+            node.Root?.PreDrawObject(args);
+            Hooks.DrawObject.Invoke(args);
+            node.Root?.PostDrawObject(args);
         }
 
         #endregion

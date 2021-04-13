@@ -344,13 +344,8 @@ namespace TUIPlugin
         private static void OnDrawObject(DrawObjectArgs args)
         {
             VisualObject node = args.Node;
-            if (node.Root == null)
-                return;
-
-            node.Root.PreDrawObject(args);
-
-            HashSet<int> players = node.OutdatedPlayers(args.PlayerIndex, args.ExceptPlayerIndex, args.ToEveryone);
-            if (players == null || players.Count == 0)
+            HashSet<int> players = args.TargetPlayers;
+            if (players.Count == 0)
                 return;
 
 #if DEBUG
@@ -361,7 +356,7 @@ namespace TUIPlugin
 
             // Yes, we are converting HashSet<int> to NetworkText to pass it to NetMessage.SendData for FakeManager...
             Terraria.Localization.NetworkText playerList = FakesEnabled
-                ? Terraria.Localization.NetworkText.FromLiteral(String.Concat(players.Select(p => (char)p)))
+                ? Terraria.Localization.NetworkText.FromLiteral(string.Concat(players.Select(p => (char) p)))
                 : null;
 
             if (args.Width * args.Height >= 2500 || args.DrawWithSection)
@@ -393,11 +388,9 @@ namespace TUIPlugin
                         NetMessage.SendData(20, i, -1, null, args.X, args.Y, args.Width, args.Height);
             }
 
-            // Mark that these players received lastest version of interface
+            // Mark that these players received latest version of interface
             foreach (int player in players)
                 node.Root.PlayerApplyCounter[player] = node.Root.DrawState;
-
-            node.Root.PostDrawObject(args, players);
         }
 
         #endregion
