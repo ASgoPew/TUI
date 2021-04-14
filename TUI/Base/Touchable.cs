@@ -10,12 +10,13 @@ namespace TerrariaUI.Base
 
         internal Locked Locked { get; set; }
         internal ConcurrentDictionary<int, Locked> PersonalLocked { get; set; } = new ConcurrentDictionary<int, Locked>();
+
         /// <summary>
         /// Function to call on touching this object with the grand design.
         /// </summary>
         public Action<VisualObject, Touch> Callback { get; set; }
 
-        public bool Contains(Touch touch) => Contains(touch.X, touch.Y);
+        public virtual bool Contains(Touch touch) => Contains(touch.X, touch.Y);
 
         #endregion
 
@@ -43,6 +44,7 @@ namespace TerrariaUI.Base
 
             if (IsLocked(touch))
                 return true;
+
             if (!CanTouch(touch))
                 return !touch.Session.Enabled;
 

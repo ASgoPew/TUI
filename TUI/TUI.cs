@@ -238,9 +238,11 @@ namespace TerrariaUI
                 if (touch.State == TouchState.Begin && previous != null
                         && (previous.State == TouchState.Begin || previous.State == TouchState.Moving))
                     throw new InvalidOperationException();
+
                 if ((touch.State == TouchState.Moving || touch.State == TouchState.End)
                         && (previous == null || previous.State == TouchState.End))
                     throw new InvalidOperationException();
+
                 if (touch.State == TouchState.Moving && touch.AbsoluteX == previous.AbsoluteX && touch.AbsoluteY == previous.AbsoluteY)
                     return session.Used;
 
@@ -298,6 +300,7 @@ namespace TerrariaUI
 
             if (o.Active && inside)
                 insideUI = true;
+
             if (o.Active && (inside || o.Configuration.UseOutsideTouches))
                 if (o.Touched(touch))
                     return true;
@@ -312,6 +315,7 @@ namespace TerrariaUI
         public static bool TouchedChild(Touch touch, ref bool insideUI)
         {
             lock (Child)
+            {
                 for (int i = Child.Count - 1; i >= 0; i--)
                 {
                     RootVisualObject o = Child[i];
@@ -329,6 +333,7 @@ namespace TerrariaUI
                         touch.Move(saveX, saveY);
                     }
                 }
+            }
             return false;
         }
 
