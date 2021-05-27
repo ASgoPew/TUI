@@ -153,13 +153,13 @@ namespace TerrariaUI.Base
         protected override void DrawReposition(int oldX, int oldY, int oldWidth, int oldHeight)
         {
             RequestDrawChanges();
-            Draw(oldX - X, oldY - Y, oldWidth, oldHeight, toEveryone: true);
+            Draw(oldX - X, oldY - Y, oldWidth, oldHeight, OutdatedPlayers(toEveryone: true));
 
             if (UsesDefaultMainProvider || oldWidth != Width || oldHeight != Height)
                 Update().Apply();
             else
                 RequestDrawChanges();
-            Draw(toEveryone: true);
+            Draw(targetPlayers: OutdatedPlayers(toEveryone: true));
         }
 
         #endregion
@@ -205,6 +205,54 @@ namespace TerrariaUI.Base
 #endif
         }
 
+        #endregion
+        #region PrePostCallbacks
+        #region Pulse
+
+        /// <summary> Called just before a widget in this interface tree is pulsed. Self-inclusive. </summary>
+        /// <param name="widget"> The widget that will be pulsed. </param>
+        /// <param name="type"> The type of signal that will be pulsed. </param>
+        public virtual void PrePulseObject(VisualObject widget, PulseType type) { }
+
+        /// <summary> Called just after a widget in this interface tree was pulsed. Self-inclusive. </summary>
+        /// <param name="widget"> The widget that was pulsed. </param>
+        /// <param name="type"> The type of signal that was pulsed. </param>
+        public virtual void PostPulseObject(VisualObject widget, PulseType type) { }
+
+        #endregion
+        #region Update
+
+        /// <summary> Called just before a widget in this interface tree is updated. Self-inclusive. </summary>
+        /// <param name="widget"> The widget that will be updated. </param>
+        public virtual void PreUpdateObject(VisualObject widget) { }
+
+        /// <summary> Called just after a widget in this interface tree was updated. Self-inclusive. </summary>
+        /// <param name="widget"> The widget that was updated. </param>
+        public virtual void PostUpdateObject(VisualObject widget) { }
+
+        #endregion
+        #region Apply
+
+        /// <summary> Called just before a widget in this interface tree is applied. Self-inclusive. </summary>
+        /// <param name="widget"> The widget that will be applied. </param>
+        public virtual void PreApplyObject(VisualObject widget) { }
+
+        /// <summary> Called just after a widget in this interface tree was applied. Self-inclusive. </summary>
+        /// <param name="widget"> The widget that was applied. </param>
+        public virtual void PostApplyObject(VisualObject widget) { }
+
+        #endregion
+        #region Draw
+
+        /// <summary> Called just before a widget in this interface tree is drawn. Self-inclusive. </summary>
+        /// <param name="args"> The arguments that will be passed to the draw event. </param>
+        public virtual void PreDrawObject(DrawObjectArgs args) { }
+
+        /// <summary> Called just after a widget in this interface tree is drawn. Self-inclusive. </summary>
+        /// <param name="args"> The arguments that were passed to the draw event. </param>
+        public virtual void PostDrawObject(DrawObjectArgs args) { }
+
+        #endregion
         #endregion
     }
 }

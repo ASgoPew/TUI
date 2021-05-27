@@ -67,7 +67,7 @@ namespace TerrariaUI.Base
         /// </summary>
         public bool Undo { get; set; }
         /// <summary>
-        /// Prefix of the touching grand desing
+        /// Prefix of the touching grand design
         /// </summary>
         public byte Prefix { get; private set; }
         private byte StateByte { get; set; }
