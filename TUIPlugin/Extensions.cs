@@ -19,8 +19,9 @@ namespace TUIPlugin
             float dy = -16 * 4f;
             for (int i = 0; i < count; i++)
             {
-                int p = Projectile.NewProjectile(player.TPlayer.position.X + beginX + i * dx,
-                    player.TPlayer.position.Y + dy, 0f, -8f, type, 0, (float)0);
+                int p = Projectile.NewProjectile(Projectile.GetNoneSource(),
+                    player.TPlayer.position.X + beginX + i * dx, player.TPlayer.position.Y + dy, 0f, -8f,
+                    type, 0, (float)0);
                 Main.projectile[p].Kill();
             }
         }

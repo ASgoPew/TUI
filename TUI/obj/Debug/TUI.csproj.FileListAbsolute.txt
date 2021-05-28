@@ -37,3 +37,10 @@ C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\TUI.dll
 C:\Users\ASgo\Documents\GitHub\TUI\TUI\bin\Debug\TUI.pdb
 C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.dll
 C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.pdb
+C:\Users\Zachary Fahey\Documents\GitHub\TUI\TUI\bin\Debug\TUI.xml
+C:\Users\Zachary Fahey\Documents\GitHub\TUI\TUI\bin\Debug\TUI.dll
+C:\Users\Zachary Fahey\Documents\GitHub\TUI\TUI\bin\Debug\TUI.pdb
+C:\Users\Zachary Fahey\Documents\GitHub\TUI\TUI\obj\Debug\TUI.csprojAssemblyReference.cache
+C:\Users\Zachary Fahey\Documents\GitHub\TUI\TUI\obj\Debug\TUI.csproj.CoreCompileInputs.cache
+C:\Users\Zachary Fahey\Documents\GitHub\TUI\TUI\obj\Debug\TUI.dll
+C:\Users\Zachary Fahey\Documents\GitHub\TUI\TUI\obj\Debug\TUI.pdb

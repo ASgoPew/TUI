@@ -31,22 +31,22 @@ namespace TUIPlugin
         /// </summary>
         public static void ConnectDB()
         {
-            if (TShock.Config.StorageType.ToLower() == "sqlite")
+            if (TShock.Config.Settings.StorageType.ToLower() == "sqlite")
                 db = new SqliteConnection(string.Format("uri=file://{0},Version=3",
                     Path.Combine(TShock.SavePath, "tshock.sqlite")));
-            else if (TShock.Config.StorageType.ToLower() == "mysql")
+            else if (TShock.Config.Settings.StorageType.ToLower() == "mysql")
             {
                 try
                 {
-                    var host = TShock.Config.MySqlHost.Split(':');
+                    var host = TShock.Config.Settings.MySqlHost.Split(':');
                     db = new MySqlConnection
                     {
                         ConnectionString = string.Format("Server={0}; Port={1}; Database={2}; Uid={3}; Pwd={4}",
                             host[0],
                             host.Length == 1 ? "3306" : host[1],
-                            TShock.Config.MySqlDbName,
-                            TShock.Config.MySqlUsername,
-                            TShock.Config.MySqlPassword)
+                            TShock.Config.Settings.MySqlDbName,
+                            TShock.Config.Settings.MySqlUsername,
+                            TShock.Config.Settings.MySqlPassword)
                     };
                 }
                 catch (MySqlException e)
