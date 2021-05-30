@@ -414,6 +414,25 @@ namespace TerrariaUI.Base
         }
 
         #endregion
+        #region GetChild
+
+        public VisualObject GetChild(int index) => Child[index];
+
+        public T GetChild<T>()
+            where T : VisualObject
+        {
+            foreach (var child in ChildrenFromTop)
+                if (child is T)
+                    return child as T;
+            return null;
+        }
+
+        #endregion
+        #region HasChild
+
+        public bool HasChild(VisualObject node) => Child.Contains(node);
+
+        #endregion
         #region SetTop
 
         /// <summary>
@@ -704,21 +723,6 @@ namespace TerrariaUI.Base
 
         #endregion
 
-        #region GetChild
-
-        /// <summary>
-        /// DEBUG function. Get child object by index in Child array.
-        /// </summary>
-        /// <param name="index">Index in Child array</param>
-        /// <returns>Child with specified index in Child array</returns>
-        public virtual VisualObject GetChild(int index) => Child[index];
-
-        #endregion
-        #region HasChild
-
-        public bool HasChild(VisualObject node) => Child.Contains(node);
-
-        #endregion
         #region operator[]
 
         /// <summary>
