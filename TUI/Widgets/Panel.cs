@@ -248,11 +248,8 @@ namespace TerrariaUI.Widgets
         /// Show alert window with information text and "ok" button.
         /// </summary>
         /// <returns>this</returns>
-        public virtual RootVisualObject Alert(string text, ContainerStyle windowStyle = null, ButtonStyle okButtonStyle = null)
-        {
+        public virtual VisualContainer Alert(string text, ContainerStyle windowStyle = null, ButtonStyle okButtonStyle = null) =>
             ShowPopUp(new AlertWindow(text, windowStyle, okButtonStyle));
-            return this;
-        }
 
         #endregion
         #region Confirm
@@ -261,12 +258,9 @@ namespace TerrariaUI.Widgets
         /// Show confirm window with information text and "yes", "no" buttons.
         /// </summary>
         /// <returns>this</returns>
-        public virtual RootVisualObject Confirm(string text, Action<bool> callback, ContainerStyle windowStyle = null,
-            ButtonStyle yesButtonStyle = null, ButtonStyle noButtonStyle = null)
-        {
+        public virtual VisualContainer Confirm(string text, Action<bool> callback, ContainerStyle windowStyle = null,
+                ButtonStyle yesButtonStyle = null, ButtonStyle noButtonStyle = null) =>
             ShowPopUp(new ConfirmWindow(text, callback, windowStyle, yesButtonStyle, noButtonStyle));
-            return this;
-        }
 
         #endregion
         #region Summon
