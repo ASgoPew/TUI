@@ -200,13 +200,14 @@ namespace TerrariaUI.Base
 #endif
             base.ApplyThisNative();
 #if DEBUG
-            Console.WriteLine($"Apply ({Name}): {sw.ElapsedMilliseconds}");
+            TUI.Log($"Apply ({Name}): {sw.ElapsedMilliseconds}");
             sw.Stop();
 #endif
         }
 
         #endregion
         #region PrePostCallbacks
+
         #region Pulse
 
         /// <summary> Called just before a widget in this interface tree is pulsed. Self-inclusive. </summary>
@@ -253,6 +254,7 @@ namespace TerrariaUI.Base
         public virtual void PostDrawObject(DrawObjectArgs args) { }
 
         #endregion
+
         #endregion
     }
 }

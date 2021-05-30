@@ -277,7 +277,7 @@ namespace TerrariaUI
 #if DEBUG
                 long elapsed = sw.ElapsedMilliseconds;
                 sw.Stop();
-                Console.WriteLine($"Touch ({touch.X},{touch.Y}): {touch.State} ({touch.Object}); elapsed: {elapsed}");
+                Log($"Touch ({touch.X},{touch.Y}): {touch.State} ({touch.Object}); elapsed: {elapsed}");
 #endif
 
                 session.Count++;

@@ -349,7 +349,7 @@ namespace TUIPlugin
                 return;
 
 #if DEBUG
-            Console.WriteLine($"Draw ({node.Name} -> " +
+            TUI.Log($"Draw ({node.Name} -> " +
                 string.Join(",", players.Select(i => TShock.Players[i]?.Name)) +
                 $"): {args.X}, {args.Y}, {args.Width}, {args.Height}: {args.DrawWithSection}");
 #endif

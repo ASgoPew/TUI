@@ -1212,6 +1212,7 @@ namespace TerrariaUI.Base
                 TUI.Throw(this, "Applying before Update().");
             if (!CalculateActive())
                 TUI.Throw(this, "Applying inactive object.");
+            //TUI.Log($"Apply ({FullName})");
 #endif
 
             lock (Locker)
