@@ -929,8 +929,9 @@ $@"Interface '{root.Name}'
 Position and size: {root.XYWH()}
 Enabled: {root.Enabled}
 Tile provider: {provider_text}
-Observers: {string.Join(",", root.Observers.Where(observer => TShock.Players[observer]?.Active == true)
-    .Select(observer => TShock.Players[observer]?.Name))}
+Layer: {root.Layer}
+Observers: {(root.Observers != null ? string.Join(",", root.Observers.Where(observer => TShock.Players[observer]?.Active == true)
+    .Select(observer => TShock.Players[observer]?.Name)) : "all")}
 Draw state: {root.DrawState}");
                     break;
                 }
@@ -994,10 +995,12 @@ Draw state: {root.DrawState}");
                 case "del":
                 case "destroy":
                 case "delete":
+                case "rm":
+                case "remove":
                 {
                     if (args.Parameters.Count != 3)
                     {
-                        args.Player.SendErrorMessage("/tui delete \"interface name\" -confirm");
+                        args.Player.SendErrorMessage("/tui remove \"interface name\" -confirm");
                         return;
                     }
                     if (!FindRoot(args.Parameters[1], args.Player, out RootVisualObject root))
@@ -1128,7 +1131,7 @@ Draw state: {root.DrawState}");
                     args.Player.SendInfoMessage("/tui enable \"interface name\" [-confirm]");
                     args.Player.SendInfoMessage("/tui disable \"interface name\"");
                     args.Player.SendInfoMessage("/tui reset \"interface name\"");
-                    args.Player.SendInfoMessage("/tui delete \"interface name\" -confirm");
+                    args.Player.SendInfoMessage("/tui remove \"interface name\" -confirm");
                     args.Player.SendInfoMessage("/tui app <add/remove> \"app name\"");
                     args.Player.SendInfoMessage("/tui app list");
                     args.Player.SendInfoMessage("/tui list [page]");

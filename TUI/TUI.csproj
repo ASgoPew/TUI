@@ -101,6 +101,7 @@
     <Compile Include="TUI.cs" />
     <Compile Include="Widgets\AlertWindow.cs" />
     <Compile Include="Widgets\Arrow.cs" />
+    <Compile Include="Widgets\BackgroundHandler.cs" />
     <Compile Include="Widgets\Button.cs" />
     <Compile Include="Widgets\Canvas.cs" />
     <Compile Include="Widgets\Checkbox.cs" />

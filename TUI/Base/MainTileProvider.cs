@@ -31,9 +31,9 @@ namespace TerrariaUI.Base
                         break;
                     }
                 }
+                if (TileField == null)
+                    throw new Exception("Can't find OTAPI");
             }
-            if (TileField == null)
-                throw new Exception("Can't find OTAPI");
         }
 
         public object this[int x, int y]

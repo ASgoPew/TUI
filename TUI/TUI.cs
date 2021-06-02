@@ -333,7 +333,7 @@ namespace TerrariaUI
                         touch.Move(-saveX, -saveY);
                         if (o.Touched(touch))
                         {
-                            if (SetTop(o))
+                            if (o.Orderable && SetTop(o))
                                 PostSetTop(o);
                             return true;
                         }
@@ -395,6 +395,7 @@ namespace TerrariaUI
                     child.Apply();
                 else
                     child.RequestDrawChanges();
+                TUI.Log("Intersecting");
                 child.Draw();
             }
         }
@@ -406,10 +407,12 @@ namespace TerrariaUI
         {
             bool intersects = false;
             foreach (RootVisualObject child in Child)
-                if (child != o && child.Active && o.Intersecting(child))
+                if (child != o && child.Active && child.Orderable && o.Intersecting(child))
                 {
                     intersects = true;
-                    if (o.Provider == child.Provider)
+                    dynamic provider1 = o.Provider;
+                    dynamic provider2 = child.Provider;
+                    if (provider1.GetType() == provider2.GetType() && provider1 == provider2)
                         return (true, true);
                 }
             return (intersects, false);
