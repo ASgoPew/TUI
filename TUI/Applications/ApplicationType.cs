@@ -66,7 +66,8 @@ namespace TerrariaUI
                 instance.SetXY(x - instance.Width / 2, y - instance.Height / 2, false);
                 instance.SavePanel();
                 TUI.Create(instance);
-                Saver?.UDBWrite(TUI.WorldID);
+                if (!instance.Personal)
+                    Saver?.UDBWrite(TUI.WorldID);
             }
         }
 
@@ -91,9 +92,11 @@ namespace TerrariaUI
         {
             lock (Locker)
             {
-                TUI.Destroy(Instances[index]);
+                Application instance = Instances[index];
+                TUI.Destroy(instance);
                 Instances.Remove(index);
-                Saver?.UDBWrite(TUI.WorldID);
+                if (!instance.Personal)
+                    Saver?.UDBWrite(TUI.WorldID);
             }
         }
 
@@ -129,8 +132,9 @@ namespace TerrariaUI
         {
             lock (Locker)
             {
-                bw.Write((byte)Instances.Count);
-                foreach (var pair in Instances)
+                var instances = Instances.Where(instance => !instance.Value.Personal);
+                bw.Write((byte)instances.Count());
+                foreach (var pair in instances)
                     bw.Write((int)pair.Key);
             }
         }

@@ -111,7 +111,8 @@ namespace TerrariaUI.Widgets
 
         protected override void LoadThisNative()
         {
-            UDBRead(TUI.WorldID);
+            if (!Personal)
+                UDBRead(TUI.WorldID);
         }
 
         #endregion
@@ -182,7 +183,7 @@ namespace TerrariaUI.Widgets
         /// </summary>
         public void SavePanel()
         {
-            if (Summoning == null)
+            if (Summoning == null && !Personal)
                 UDBWrite(TUI.WorldID);
         }
 

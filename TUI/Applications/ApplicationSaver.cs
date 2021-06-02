@@ -15,7 +15,7 @@ namespace TerrariaUI
             Name = $"ApplicationSaver_{App.Name}";
         }
 
-        protected override void UDBReadNative(BinaryReader br, int id)
+        protected override void UDBReadNative(BinaryReader br, int worldID)
         {
             try
             {
@@ -33,7 +33,7 @@ namespace TerrariaUI
             }
         }
 
-        protected override void UDBWriteNative(BinaryWriter bw, int id)
+        protected override void UDBWriteNative(BinaryWriter bw, int worldID)
         {
             App.Write(bw);
         }
