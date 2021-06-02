@@ -217,7 +217,7 @@ namespace TerrariaUI
                 pair.Key.OnPlayerLeave(playerIndex);
 
             lock (Child)
-                foreach (RootVisualObject child in Child)
+                foreach (RootVisualObject child in Child.ToArray())
                 {
                     if (child.Personal && child.Observers.Contains(playerIndex) && child is Application app)
                         app.OnObserverLeave(playerIndex);

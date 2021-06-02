@@ -929,6 +929,8 @@ $@"Interface '{root.Name}'
 Position and size: {root.XYWH()}
 Enabled: {root.Enabled}
 Tile provider: {provider_text}
+Observers: {string.Join(",", root.Observers.Where(observer => TShock.Players[observer]?.Active == true)
+    .Select(observer => TShock.Players[observer]?.Name))}
 Draw state: {root.DrawState}");
                     break;
                 }

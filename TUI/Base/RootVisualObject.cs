@@ -27,6 +27,7 @@ namespace TerrariaUI.Base
         /// List of players who can see this interface if personal, null otherwise.
         /// </summary>
         public HashSet<int> Observers { get; } = new HashSet<int>();
+
         /// <summary>
         /// Unique interface root identifier.
         /// </summary>
@@ -47,6 +48,10 @@ namespace TerrariaUI.Base
         protected Dictionary<VisualObject, Action<VisualObject>> PopUpCancelCallbacks { get; set; } =
             new Dictionary<VisualObject, Action<VisualObject>>();
 
+        /// <summary>
+        /// Personal interface can be seen by only specified players.
+        /// </summary>
+        public bool Personal => Observers != null;
         /// <summary>
         /// 0 for Root with MainTileProvider, 1 for root with any fake provider.
         /// </summary>

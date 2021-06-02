@@ -50,10 +50,6 @@ namespace TerrariaUI.Base
         /// Overridable field for disabling ability to be ordered in Parent's Child array.
         /// </summary>
         public override bool Orderable => !Configuration.InLayout;
-        /// <summary>
-        /// Personal interface can be seen by only specified players.
-        /// </summary>
-        public bool Personal => Root.Observers != null;
 
         private string _Name;
         /// <summary>
