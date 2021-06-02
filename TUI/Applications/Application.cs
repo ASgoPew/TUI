@@ -97,8 +97,8 @@ namespace TerrariaUI
 
         #region Constructor
 
-        public Application(string name, int width, int height, ApplicationStyle style = null, object provider = null)
-            : base(name, 0, 0, width, height, null, style ?? new ApplicationStyle(), provider)
+        public Application(string name, int width, int height, ApplicationStyle style = null, object provider = null, HashSet<int> observers = null)
+            : base(name, 0, 0, width, height, null, style ?? new ApplicationStyle(), provider, observers)
         {
             CreateTime = DateTime.UtcNow;
             if (Tracking && provider == null)
@@ -275,6 +275,30 @@ namespace TerrariaUI
         #region OnPlayerLeaveNative
 
         protected virtual void OnPlayerLeaveNative(int player) => EndPlayerSession();
+
+        #endregion
+        #region OnObserverLeave
+
+        public void OnObserverLeave(int player)
+        {
+            try
+            {
+                OnObserverLeaveNative(player);
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
+            }
+        }
+
+        #endregion
+        #region OnObserverLeaveNative
+
+        protected virtual void OnObserverLeaveNative(int player)
+        {
+            if (Observers.Count == 1)
+                Type.DestroyInstance(this);
+        }
 
         #endregion
         #region OnPlayerLogout

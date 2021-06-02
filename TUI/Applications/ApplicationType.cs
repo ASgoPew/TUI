@@ -9,7 +9,7 @@ namespace TerrariaUI
     public class ApplicationType
     {
         public string Name { get; protected set; }
-        public Func<string, Application> Generator { get; protected set; }
+        public Func<string, HashSet<int>, Application> Generator { get; protected set; }
         protected Dictionary<int, Application> Instances { get; set; } = new Dictionary<int, Application>();
         protected ApplicationSaver Saver;
         protected object Locker = new object();
@@ -34,7 +34,7 @@ namespace TerrariaUI
             }
         }
 
-        public ApplicationType(string name, Func<string, Application> generator, ImageData icon = null, bool save = true)
+        public ApplicationType(string name, Func<string, HashSet<int>, Application> generator, ImageData icon = null, bool save = true)
         {
             if (name == null)
                 throw new ArgumentNullException(nameof(name));
@@ -52,14 +52,14 @@ namespace TerrariaUI
 
         public override string ToString() => Name;
 
-        public void CreateInstance(int x, int y)
+        public void CreateInstance(int x, int y, HashSet<int> observers = null)
         {
             lock (Locker)
             {
                 int index = 0;
                 while (Instances.ContainsKey(index))
                     index++;
-                Application instance = Generator($"{Name}_{index}");
+                Application instance = Generator($"{Name}_{index}", observers);
                 instance.Type = this;
                 instance.Index = index;
                 Instances[index] = instance;
@@ -74,7 +74,7 @@ namespace TerrariaUI
         {
             lock (Locker)
             {
-                Application instance = Generator($"{Name}_{index}");
+                Application instance = Generator($"{Name}_{index}", null);
                 instance.Type = this;
                 instance.Index = index;
                 if (Instances.TryGetValue(index, out Application another))

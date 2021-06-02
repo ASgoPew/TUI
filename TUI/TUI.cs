@@ -218,7 +218,11 @@ namespace TerrariaUI
 
             lock (Child)
                 foreach (RootVisualObject child in Child)
+                {
+                    if (child.Personal && child.Observers.Contains(playerIndex) && child is Application app)
+                        app.OnObserverLeave(playerIndex);
                     child.Players.Remove(playerIndex);
+                }
 
             Session[playerIndex] = null;
         }

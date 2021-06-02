@@ -1031,6 +1031,21 @@ Draw state: {root.DrawState}");
                             args.Player.SendSuccessMessage($"Created new app instance: {app.Name}");
                             break;
                         }
+                        case "private":
+                        {
+                            if (args.Parameters.Count != 3)
+                            {
+                                args.Player.SendErrorMessage("/tui app private \"app name\"");
+                                return;
+                            }
+                            if (!FindAppType(args.Parameters[2], args.Player, out ApplicationType app))
+                                return;
+
+                            app.CreateInstance(args.Player.TileX, args.Player.TileY,
+                                new HashSet<int>() { args.Player.Index });
+                            args.Player.SendSuccessMessage($"Created new private app instance: {app.Name}");
+                            break;
+                        }
                         case "remove":
                         {
                             if (args.Parameters.Count < 3 || args.Parameters.Count > 4)
