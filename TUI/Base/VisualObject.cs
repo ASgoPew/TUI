@@ -1418,7 +1418,9 @@ namespace TerrariaUI.Base
                 TUI.Throw(this, "Drawing before Update()");
 #endif
             if (targetPlayers == null)
-                targetPlayers = Root.Observers ?? OutdatedPlayers();
+                targetPlayers = OutdatedPlayers();
+            if (Root.Observers is HashSet<int> observers)
+                targetPlayers = targetPlayers.Where(player => observers.Contains(player)).ToHashSet();
 
             bool realDrawWithSection = drawWithSection ?? DrawWithSection;
             bool realFrame = frameSection ?? FrameSection;
