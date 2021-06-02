@@ -30,7 +30,7 @@ namespace TUIPlugin
         #region Data
 
         public override string Author => "ASgo & Anzhelika";
-        public override string Description => "Plugin conntion to TUI library";
+        public override string Description => "Plugin connection to TUI library";
         public override string Name => "TUIPlugin";
         public override Version Version => new Version(0, 1, 0, 0);
 
@@ -72,6 +72,7 @@ namespace TUIPlugin
                 GetDataHandlers.NewProjectile += OnNewProjectile;
                 if (FakesEnabled)
                     Hooks.World.IO.PostSaveWorld += OnPostSaveWorld;
+                TUI.Hooks.LoadRoot.Event += OnLoadRoot;
                 TUI.Hooks.CanTouch.Event += OnCanTouch;
                 TUI.Hooks.DrawObject.Event += OnDrawObject;
                 TUI.Hooks.DrawRectangle.Event += OnDrawRectangle;
@@ -116,6 +117,7 @@ namespace TUIPlugin
                     GetDataHandlers.NewProjectile -= OnNewProjectile;
                     if (FakesEnabled)
                         Hooks.World.IO.PostSaveWorld -= OnPostSaveWorld;
+                    TUI.Hooks.LoadRoot.Event -= OnLoadRoot;
                     TUI.Hooks.CanTouch.Event -= OnCanTouch;
                     TUI.Hooks.DrawObject.Event -= OnDrawObject;
                     TUI.Hooks.DrawRectangle.Event -= OnDrawRectangle;
@@ -321,6 +323,35 @@ namespace TUIPlugin
 
         #endregion
 
+        #region OnLoadRoot
+
+        private static void OnLoadRoot(LoadRootArgs args)
+        {
+            RootVisualObject root = args.Root;
+            (int x, int y) = root.AbsoluteXY();
+            int sx = x - RegionAreaX;
+            int sy = y - RegionAreaY;
+            int ex = x + RegionAreaX + root.Width - 1;
+            int ey = y + RegionAreaY + root.Height - 1;
+            foreach (TSPlayer plr in TShock.Players)
+            {
+                // plr?.Active != true check won't work since broadcast is set to true
+                // after setting player.active.
+                // Sequence:
+                // 1. player.Spawn() <=> player.active = true
+                // 2. NetMessage.greetPlayer(...) - invokes a hook that can freeze the thread
+                // 3. buffer.broadcast = true
+                if (plr == null || !NetMessage.buffer[plr.Index].broadcast)
+                    continue;
+                int tx = plr.TileX, ty = plr.TileY;
+                if ((tx >= sx) && (tx <= ex) && (ty >= sy) && (ty <= ey))
+                    root.Players.Add(plr.Index);
+                else
+                    root.Players.Remove(plr.Index);
+            }
+        }
+
+        #endregion
         #region OnCanTouch
 
         private static void OnCanTouch(CanTouchArgs args)

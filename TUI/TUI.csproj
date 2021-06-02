@@ -62,6 +62,7 @@
     <Compile Include="Base\UIDefault.cs" />
     <Compile Include="Base\VisualContainer.cs" />
     <Compile Include="Hooks\Args\GetTileArgs.cs" />
+    <Compile Include="Hooks\Args\LoadRootArgs.cs" />
     <Compile Include="Hooks\Args\RemoveProviderArgs.cs" />
     <Compile Include="Hooks\Args\DrawRectangleArgs.cs" />
     <Compile Include="Hooks\Args\UpdateChestArgs.cs" />
@@ -74,7 +75,7 @@
     <Compile Include="Hooks\Args\DrawObjectArgs.cs" />
     <Compile Include="Hooks\Args\EnabledArgs.cs" />
     <Compile Include="Base\GridCell.cs" />
-    <Compile Include="Hooks\Args\InitializeArgs.cs" />
+    <Compile Include="Hooks\Args\LoadArgs.cs" />
     <Compile Include="Hooks\Args\TouchCancelArgs.cs" />
     <Compile Include="Hooks\Args\CreateProviderArgs.cs" />
     <Compile Include="Hooks\Hook.cs" />

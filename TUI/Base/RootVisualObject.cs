@@ -192,6 +192,15 @@ namespace TerrariaUI.Base
 
         #endregion
 
+        #region LoadThisNative
+
+        protected override void LoadThisNative()
+        {
+            base.LoadThisNative();
+            TUI.Hooks.LoadRoot.Invoke(new LoadRootArgs(this));
+        }
+
+        #endregion
         #region UpdateThisNative
 
         protected override void UpdateThisNative()

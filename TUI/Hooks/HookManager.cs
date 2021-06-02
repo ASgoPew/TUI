@@ -8,6 +8,7 @@ namespace TerrariaUI.Hooks
         public Hook<CreateProviderArgs> CreateProvider = new Hook<CreateProviderArgs>();
         public Hook<RemoveProviderArgs> RemoveProvider = new Hook<RemoveProviderArgs>();
         public Hook<LoadArgs> Load = new Hook<LoadArgs>();
+        public Hook<LoadRootArgs> LoadRoot = new Hook<LoadRootArgs>();
         public Hook<EventArgs> Dispose = new Hook<EventArgs>();
         public Hook<DrawObjectArgs> DrawObject = new Hook<DrawObjectArgs>();
         public Hook<DrawRectangleArgs> DrawRectangle = new Hook<DrawRectangleArgs>();
