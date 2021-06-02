@@ -24,6 +24,10 @@ namespace TerrariaUI.Base
         /// </summary>
         public HashSet<int> Players { get; } = new HashSet<int>();
         /// <summary>
+        /// List of players who can see this interface if personal, null otherwise.
+        /// </summary>
+        public HashSet<int> Observers { get; } = new HashSet<int>();
+        /// <summary>
         /// Unique interface root identifier.
         /// </summary>
         public override string Name { get; set; }
@@ -61,7 +65,7 @@ namespace TerrariaUI.Base
         /// FakeTileRectangle from [FakeManager](https://github.com/AnzhelikaO/FakeManager)
         /// can be passed as a value so that interface would be drawn above the Main.tile.</param>
         public RootVisualObject(string name, int x, int y, int width, int height,
-                UIConfiguration configuration = null, ContainerStyle style = null, object provider = null)
+                UIConfiguration configuration = null, ContainerStyle style = null, object provider = null, HashSet<int> observers = null)
             : base(x, y, width, height, configuration ?? new UIConfiguration() { UseBegin=true, UseMoving=true, UseEnd=true }, style)
         {
             Name = name;
@@ -73,6 +77,9 @@ namespace TerrariaUI.Base
                 TUI.Hooks.CreateProvider.Invoke(args);
                 Provider = args.Provider ?? new MainTileProvider();
             }
+            Observers = observers;
+            if (Personal && Provider is MainTileProvider)
+                throw new NotSupportedException("Personal UI is not supported with MainTileProvider.");
         }
 
         #endregion

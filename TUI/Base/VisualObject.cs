@@ -50,6 +50,10 @@ namespace TerrariaUI.Base
         /// Overridable field for disabling ability to be ordered in Parent's Child array.
         /// </summary>
         public override bool Orderable => !Configuration.InLayout;
+        /// <summary>
+        /// Personal interface can be seen by only specified players.
+        /// </summary>
+        public bool Personal => Root.Observers != null;
 
         private string _Name;
         /// <summary>
@@ -1414,7 +1418,7 @@ namespace TerrariaUI.Base
                 TUI.Throw(this, "Drawing before Update()");
 #endif
             if (targetPlayers == null)
-                targetPlayers = OutdatedPlayers();
+                targetPlayers = Root.Observers ?? OutdatedPlayers();
 
             bool realDrawWithSection = drawWithSection ?? DrawWithSection;
             bool realFrame = frameSection ?? FrameSection;

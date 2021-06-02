@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using TerrariaUI.Base;
 using TerrariaUI.Base.Style;
@@ -70,9 +71,9 @@ namespace TerrariaUI.Widgets
         /// FakeTileRectangle from [FakeManager](https://github.com/AnzhelikaO/FakeManager)
         /// can be passed as a value so that interface would be drawn above the Main.tile.</param>
         public Panel(string name, int x, int y, int width, int height, PanelDrag drag, PanelResize resize,
-                UIConfiguration configuration = null, PanelStyle style = null, object provider = null)
+                UIConfiguration configuration = null, PanelStyle style = null, object provider = null, HashSet<int> observers = null)
             : base(name, x, y, width, height, configuration ?? new UIConfiguration() { UseBegin = true,
-                UseMoving = true, UseEnd = true }, style ?? new PanelStyle(), provider)
+                UseMoving = true, UseEnd = true }, style ?? new PanelStyle(), provider, observers)
         {
             if (drag != null)
                 DragObject = Add(drag);
@@ -91,8 +92,8 @@ namespace TerrariaUI.Widgets
         /// FakeTileRectangle from [FakeManager](https://github.com/AnzhelikaO/FakeManager)
         /// can be passed as a value so that interface would be drawn above the Main.tile.</param>
         public Panel(string name, int x, int y, int width, int height, UIConfiguration configuration = null,
-                PanelStyle style = null, object provider = null)
-            : this(name, x, y, width, height, new DefaultPanelDrag(), new DefaultPanelResize(), configuration, style, provider)
+                PanelStyle style = null, object provider = null, HashSet<int> observers = null)
+            : this(name, x, y, width, height, new DefaultPanelDrag(), new DefaultPanelResize(), configuration, style, provider, observers)
         { }
 
         #endregion

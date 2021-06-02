@@ -320,7 +320,10 @@ namespace TerrariaUI
                 {
                     RootVisualObject o = Child[i];
                     int saveX = o.X, saveY = o.Y;
-                    if (o.Active && o.Contains(touch) && o.Players.Contains(touch.Session.PlayerIndex))
+                    if (o.Active
+                        && o.Contains(touch)
+                        && o.Players.Contains(touch.Session.PlayerIndex)
+                        && (!o.Personal || o.Observers.Contains(touch.PlayerIndex)))
                     {
                         insideUI = true;
                         touch.Move(-saveX, -saveY);
@@ -348,6 +351,9 @@ namespace TerrariaUI
 
         public static bool SetTop(RootVisualObject root)
         {
+            if (root.Personal)
+                return false;
+
             lock (Child)
             {
                 int previousIndex = Child.IndexOf(root);
