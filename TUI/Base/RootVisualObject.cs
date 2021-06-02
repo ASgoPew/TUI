@@ -69,6 +69,7 @@ namespace TerrariaUI.Base
             : base(x, y, width, height, configuration ?? new UIConfiguration() { UseBegin=true, UseMoving=true, UseEnd=true }, style)
         {
             Name = name;
+            Observers = observers; // we have to initialize this field before trying to create provider
             if (provider != null)
                 Provider = provider;
             else
@@ -77,7 +78,6 @@ namespace TerrariaUI.Base
                 TUI.Hooks.CreateProvider.Invoke(args);
                 Provider = args.Provider ?? new MainTileProvider();
             }
-            Observers = observers;
             if (Personal && Provider is MainTileProvider)
                 throw new NotSupportedException("Personal UI is not supported with MainTileProvider.");
         }

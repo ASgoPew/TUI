@@ -52,13 +52,17 @@ namespace TUIPlusFakeProvider
                 return;
 
             RootVisualObject root = args.Root;
-            args.Provider = FakeProviderAPI.CreateTileProvider(root.Name, root.X, root.Y,
-                root.Width, root.Height, root.Layer);
+            if (root.Personal)
+                args.Provider = FakeProviderAPI.CreatePersonalTileProvider(root.Name, root.Observers,
+                    root.X, root.Y, root.Width, root.Height, root.Layer);
+            else
+                args.Provider = FakeProviderAPI.CreateTileProvider(root.Name,
+                    root.X, root.Y, root.Width, root.Height, root.Layer);
         }
 
         private void OnRemoveProvider(RemoveProviderArgs args)
         {
-            if (args.Provider is INamedTileCollection provider)
+            if (args.Provider is FakeProvider.TileProvider provider)
                 FakeProviderAPI.Tile.Remove(provider.Name);
         }
     }
