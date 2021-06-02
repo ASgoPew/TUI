@@ -390,7 +390,7 @@ namespace TerrariaUI
         }
 
         #endregion
-        #region ChildInterSectingOthers
+        #region ChildIntersectingOthers
 
         public static (bool intersects, bool needsApply) ChildIntersectingOthers(RootVisualObject o)
         {
@@ -399,9 +399,7 @@ namespace TerrariaUI
                 if (child != o && child.Active && o.Intersecting(child))
                 {
                     intersects = true;
-                    dynamic provider1 = o.Provider.Tile;
-                    dynamic provider2 = child.Provider.Tile;
-                    if (provider1.GetType() == provider2.GetType() && provider1 == provider2)
+                    if (o.Provider == child.Provider)
                         return (true, true);
                 }
             return (intersects, false);
