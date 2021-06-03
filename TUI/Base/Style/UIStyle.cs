@@ -66,5 +66,31 @@
             if (style.InActive.HasValue)
                 this.InActive = style.InActive.Value;
         }
+
+        public ushort? SimilarWall()
+        {
+            switch (Wall)
+            {
+                case 153:
+                    return 154;
+                case 154:
+                case 156:
+                case 164:
+                case 165:
+                case 166:
+                    return 153;
+                case 157:
+                    return 158;
+                case 158:
+                case 159:
+                case 160:
+                case 161:
+                case 162:
+                case 163:
+                    return 157;
+                default:
+                    return Wall;
+            }
+        }
     }
 }

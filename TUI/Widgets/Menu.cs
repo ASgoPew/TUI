@@ -20,7 +20,7 @@ namespace TerrariaUI.Widgets
         #region Constructor
 
         public Menu(int x, int y, IEnumerable<string> values, ButtonStyle style1 = null, ButtonStyle style2 = null,
-            string title = null, LabelStyle labelStyle = null, Input<string> input = null)
+            string title = null, LabelStyle titleStyle = null, Input<string> input = null)
             : base(x, y, 0, 0, new UIConfiguration()
             {
                 UseMoving = true,
@@ -32,13 +32,14 @@ namespace TerrariaUI.Widgets
             Input = input ?? new Input<string>(Values[0], Values[0]);
             Title = title;
 
-            style1 = style1 ?? new ButtonStyle() { Wall = 155, WallColor = PaintID2.Black };
-            style2 = style2 ?? style1;
-            labelStyle = labelStyle ?? style1;
+            style1 = style1 ?? new ButtonStyle() { Wall = 153, WallColor = PaintID2.Gray, TextColor = PaintID2.Shadow };
+            style2 = style2 ?? new ButtonStyle(style1) { Wall = style1.SimilarWall() };
+            titleStyle = titleStyle ?? new LabelStyle(style1) { Wall = style1.SimilarWall(),
+                WallColor = PaintID2.White, TextColor = PaintID2.Shadow };
 
             SetupLayout(Alignment.Center, Direction.Down, Side.Center, null, 0);
             if (Title != null)
-                AddToLayout(new Label(0, 0, 0, 4, Title, labelStyle)).SetFullSize(true, false);
+                AddToLayout(new Label(0, 0, 0, 4, Title, titleStyle)).SetFullSize(true, false);
             int i = 0;
             foreach (var value in values)
                 AddToLayout(new Button(0, 0, 0, 4, value, style: i++ % 2 == 0 ? style1 : style2))
@@ -47,7 +48,7 @@ namespace TerrariaUI.Widgets
 
             int width = Label.FindMaxWidth(values, style1.TextIndent.Horizontal) + 6;
             if (Title != null)
-                width = Math.Max(width, Label.FindMaxWidth(new string[] { Title }, labelStyle.TextIndent.Horizontal) + 2);
+                width = Math.Max(width, Label.FindMaxWidth(new string[] { Title }, titleStyle.TextIndent.Horizontal) + 2);
             int height = 4 * values.Count();
             if (Title != null)
                 height += 4;

@@ -225,8 +225,10 @@ namespace TerrariaUI.Widgets
 
             if (blinkStyle == ButtonBlinkStyle.Full)
             {
-
-                Apply().Draw();
+                foreach (var point in Points)
+                    Tile(point.Item1, point.Item2)?.wallColor(blinkColor);
+                RequestDrawChanges();
+                Draw();
             }
             else if (blinkStyle == ButtonBlinkStyle.Left)
             {
