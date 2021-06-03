@@ -80,7 +80,7 @@ namespace TerrariaUI.Base
             else
             {
                 var args = new CreateProviderArgs(this);
-                TUI.Hooks.CreateProvider.Invoke(args);
+                TUI.Hooks.CreateProvider.Invoke(args); // fake or personal fake is root.Observers is not null
                 Provider = args.Provider ?? new MainTileProvider();
             }
             if (Personal && Provider is MainTileProvider)

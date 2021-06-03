@@ -24,7 +24,7 @@ namespace TerrariaUI
         public static int MaxTilesY { get; private set; }
         public static int WorldID { get; private set; }
         public static HookManager Hooks { get; } = new HookManager();
-        public static UserSession[] Session { get; private set; }
+        public static PlayerSession[] Session { get; private set; }
         public static int MaxHoldTouchMilliseconds = 30000;
         public static bool Active { get; private set; } = false;
         public static ConcurrentDictionary<string, ApplicationType> ApplicationTypes { get; } =
@@ -44,7 +44,7 @@ namespace TerrariaUI
             MaxPlayers = maxPlayers;
             MaxTilesX = maxTilesX;
             MaxTilesY = maxTilesY;
-            Session = new UserSession[MaxPlayers];
+            Session = new PlayerSession[MaxPlayers];
             Timer = new Timer(5000) { AutoReset = true };
             Timer.Elapsed += OnTimerElapsed;
             for (int i = 0; i < maxPlayers; i++)
@@ -115,7 +115,7 @@ namespace TerrariaUI
         {
             for (int i = 0; i < Session.Length; i++)
             {
-                UserSession session = Session[i];
+                PlayerSession session = Session[i];
                 if (session != null)
                 {
                     Touch previous = session.PreviousTouch;
@@ -170,6 +170,9 @@ namespace TerrariaUI
         {
             lock (Child)
             {
+                if (obj is Application app)
+                    app.Type.DisposeInstance(app);
+
                 if (Active)
                     obj.Disable(true);
                 Child.Remove(obj);
@@ -195,7 +198,7 @@ namespace TerrariaUI
         public static void InitializePlayer(int playerIndex)
         {
             lock (Session)
-                Session[playerIndex] = new UserSession(playerIndex);
+                Session[playerIndex] = new PlayerSession(playerIndex);
         }
 
         #endregion
@@ -203,7 +206,7 @@ namespace TerrariaUI
 
         public static void RemovePlayer(int playerIndex)
         {
-            UserSession session = Session[playerIndex];
+            PlayerSession session = Session[playerIndex];
             if (session == null)
                 return;
 
@@ -213,16 +216,20 @@ namespace TerrariaUI
                 Touched(playerIndex, simulatedEndTouch);
             }
 
-            foreach (var pair in ApplicationPlayerSessions[playerIndex])
-                pair.Key.OnPlayerLeave(playerIndex);
-
             lock (Child)
                 foreach (RootVisualObject child in Child.ToArray())
                 {
-                    if (child.Personal && child.Observers.Contains(playerIndex) && child is Application app)
-                        app.OnObserverLeave(playerIndex);
+                    if (child.Personal && child.Observers.Contains(playerIndex))
+                    {
+                        child.Observers.Remove(playerIndex);
+                        if (child is Application app)
+                            app.OnObserverLeave(playerIndex);
+                    }
                     child.Players.Remove(playerIndex);
                 }
+
+            foreach (var pair in ApplicationPlayerSessions[playerIndex])
+                pair.Key.OnPlayerLeave(playerIndex);
 
             Session[playerIndex] = null;
         }
@@ -233,7 +240,7 @@ namespace TerrariaUI
 
         public static bool Touched(int playerIndex, Touch touch)
         {
-            UserSession session = Session[playerIndex];
+            PlayerSession session = Session[playerIndex];
             touch.SetSession(session);
 
             lock (session)
@@ -625,12 +632,12 @@ namespace TerrariaUI
 
         public static void DeregisterApplication(string name, bool destroy = true)
         {
-            if (!ApplicationTypes.TryGetValue(name, out ApplicationType app))
-                throw new KeyNotFoundException($"Application not found: {app.Name}");
+            if (!ApplicationTypes.TryGetValue(name, out ApplicationType appType))
+                throw new KeyNotFoundException($"Application not found: {appType.Name}");
 
             if (destroy)
-                app.DestroyAll();
-            ApplicationTypes.TryRemove(app.Name, out _);
+                appType.DestroyAll();
+            ApplicationTypes.TryRemove(appType.Name, out _);
         }
 
         #endregion

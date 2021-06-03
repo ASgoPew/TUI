@@ -46,7 +46,7 @@ namespace TerrariaUI.Base
         /// <summary>
         /// UserSession object of user who is touching.
         /// </summary>
-        public UserSession Session { get; internal set; }
+        public PlayerSession Session { get; internal set; }
         /// <summary>
         /// Number of touch counting from TouchState.Begin.
         /// </summary>
@@ -179,7 +179,7 @@ namespace TerrariaUI.Base
         #endregion
         #region SetSession
 
-        public void SetSession(UserSession session)
+        public void SetSession(PlayerSession session)
         {
             Session = session;
             TouchSessionIndex = Session.TouchSessionIndex;

@@ -162,7 +162,7 @@ namespace TerrariaUI
 
             if (SessionPlayers == null)
             {
-                TUI.Log($"Application ({Name}) is trying to end player session when it has already ended.", LogType.Warning);
+                //TUI.Log($"Application ({Name}) is trying to end player session when it has already ended.", LogType.Warning);
                 return;
             }
 
@@ -254,27 +254,7 @@ namespace TerrariaUI
         #endregion
         #region OnTimeoutNative
 
-        protected virtual void OnTimeoutNative() => Type.DestroyInstance(this);
-
-        #endregion
-        #region OnPlayerLeave
-
-        public void OnPlayerLeave(int player)
-        {
-            try
-            {
-                OnPlayerLeaveNative(player);
-            }
-            catch (Exception e)
-            {
-                TUI.HandleException(e);
-            }
-        }
-
-        #endregion
-        #region OnPlayerLeaveNative
-
-        protected virtual void OnPlayerLeaveNative(int player) => EndPlayerSession();
+        protected virtual void OnTimeoutNative() => TUI.Destroy(this);
 
         #endregion
         #region OnObserverLeave
@@ -296,9 +276,29 @@ namespace TerrariaUI
 
         protected virtual void OnObserverLeaveNative(int player)
         {
-            if (Observers.Count == 1)
-                Type.DestroyInstance(this);
+            if (Observers.Count == 0)
+                TUI.Destroy(this);
         }
+
+        #endregion
+        #region OnPlayerLeave
+
+        public void OnPlayerLeave(int player)
+        {
+            try
+            {
+                OnPlayerLeaveNative(player);
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
+            }
+        }
+
+        #endregion
+        #region OnPlayerLeaveNative
+
+        protected virtual void OnPlayerLeaveNative(int player) => EndPlayerSession();
 
         #endregion
         #region OnPlayerLogout

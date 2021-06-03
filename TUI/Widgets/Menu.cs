@@ -19,7 +19,7 @@ namespace TerrariaUI.Widgets
 
         #region Constructor
 
-        public Menu(int x, int y, IEnumerable<string> values, ButtonStyle style1, ButtonStyle style2 = null,
+        public Menu(int x, int y, IEnumerable<string> values, ButtonStyle style1 = null, ButtonStyle style2 = null,
             string title = null, LabelStyle labelStyle = null, Input<string> input = null)
             : base(x, y, 0, 0, new UIConfiguration()
             {
@@ -32,12 +32,16 @@ namespace TerrariaUI.Widgets
             Input = input ?? new Input<string>(Values[0], Values[0]);
             Title = title;
 
+            style1 = style1 ?? new ButtonStyle() { Wall = 155, WallColor = PaintID2.Black };
+            style2 = style2 ?? style1;
+            labelStyle = labelStyle ?? style1;
+
             SetupLayout(Alignment.Center, Direction.Down, Side.Center, null, 0);
             if (Title != null)
                 AddToLayout(new Label(0, 0, 0, 4, Title, labelStyle)).SetFullSize(true, false);
             int i = 0;
             foreach (var value in values)
-                AddToLayout(new Button(0, 0, 0, 4, value, style: i++ % 2 == 0 ? style1 : style2 ?? style1))
+                AddToLayout(new Button(0, 0, 0, 4, value, style: i++ % 2 == 0 ? style1 : style2))
                     .SetFullSize(true, false)
                     .Configuration.UseBegin = false;
 

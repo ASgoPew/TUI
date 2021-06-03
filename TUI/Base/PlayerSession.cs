@@ -6,7 +6,7 @@ namespace TerrariaUI.Base
     /// <summary>
     /// Collection of TUI related data that corresponds to a player.
     /// </summary>
-    public class UserSession
+    public class PlayerSession
     {
         /// <summary>
         /// Session enabled state: if set to false all touches up the TouchState.End would be ignored.
@@ -46,7 +46,7 @@ namespace TerrariaUI.Base
         internal bool EndTouchHandled { get; set; }
         private ConcurrentDictionary<object, object> Data { get; } = new ConcurrentDictionary<object, object>();
 
-        public UserSession(int playerIndex)
+        public PlayerSession(int playerIndex)
         {
             PlayerIndex = playerIndex;
         }

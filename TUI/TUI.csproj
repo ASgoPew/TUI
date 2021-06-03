@@ -96,7 +96,7 @@
     <Compile Include="Base\IVisual.cs" />
     <Compile Include="Base\UIConfiguration.cs" />
     <Compile Include="Base\Style\UIStyle.cs" />
-    <Compile Include="Base\UserSession.cs" />
+    <Compile Include="Base\PlayerSession.cs" />
     <Compile Include="Base\VisualDOM.cs" />
     <Compile Include="Base\VisualObject.cs" />
     <Compile Include="TUI.cs" />

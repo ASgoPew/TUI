@@ -815,7 +815,7 @@ namespace TUIPlugin
             found = null;
             List<ApplicationType> foundRoots = new List<ApplicationType>();
             string lowerName = name.ToLower();
-            foreach (var pair in TUI.ApplicationTypes)
+            foreach (var pair in TUI.ApplicationTypes.Where(pair => pair.Value.AllowManualRun))
             {
                 if (pair.Key == name)
                 {
@@ -1060,11 +1060,11 @@ Draw state: {root.DrawState}");
                                 args.Player.SendErrorMessage("/tui app add \"app name\"");
                                 return;
                             }
-                            if (!FindAppType(args.Parameters[2], args.Player, out ApplicationType app))
+                            if (!FindAppType(args.Parameters[2], args.Player, out ApplicationType appType))
                                 return;
 
-                            app.CreateInstance(args.Player.TileX, args.Player.TileY);
-                            args.Player.SendSuccessMessage($"Created new app instance: {app.Name}");
+                            appType.CreateInstance(args.Player.TileX, args.Player.TileY);
+                            args.Player.SendSuccessMessage($"Created new app instance: {appType.Name}");
                             break;
                         }
                         case "private":
@@ -1074,12 +1074,12 @@ Draw state: {root.DrawState}");
                                 args.Player.SendErrorMessage("/tui app private \"app name\"");
                                 return;
                             }
-                            if (!FindAppType(args.Parameters[2], args.Player, out ApplicationType app))
+                            if (!FindAppType(args.Parameters[2], args.Player, out ApplicationType appType))
                                 return;
 
-                            app.CreateInstance(args.Player.TileX, args.Player.TileY,
+                            appType.CreateInstance(args.Player.TileX, args.Player.TileY,
                                 new HashSet<int>() { args.Player.Index });
-                            args.Player.SendSuccessMessage($"Created new private app instance: {app.Name}");
+                            args.Player.SendSuccessMessage($"Created new private app instance: {appType.Name}");
                             break;
                         }
                         case "remove":
@@ -1089,13 +1089,13 @@ Draw state: {root.DrawState}");
                                 args.Player.SendErrorMessage("/tui app remove \"app name\" [<index>/all]");
                                 return;
                             }
-                            if (!FindAppType(args.Parameters[2], args.Player, out ApplicationType app))
+                            if (!FindAppType(args.Parameters[2], args.Player, out ApplicationType appType))
                                 return;
 
                             if (args.Parameters.Count == 3)
                             {
-                                if (!app.TryDestroy(args.Player.TileX, args.Player.TileY, out string name))
-                                    args.Player.SendErrorMessage($"There are not app instances of type '{app.Name}' at this point.");
+                                if (!appType.TryDestroy(args.Player.TileX, args.Player.TileY, out string name))
+                                    args.Player.SendErrorMessage($"There are not app instances of type '{appType.Name}' at this point.");
                                 else
                                     args.Player.SendSuccessMessage($"Removed app instance: {name}.");
                             }
@@ -1103,15 +1103,16 @@ Draw state: {root.DrawState}");
                             {
                                 if (args.Parameters[3].ToLower() == "all")
                                 {
-                                    app.DestroyAll();
-                                    args.Player.SendSuccessMessage($"Removed app instances of type '{app.Name}'");
+                                    appType.DestroyAll();
+                                    args.Player.SendSuccessMessage($"Removed app instances of type '{appType.Name}'");
                                 }
                                 else if (!Int32.TryParse(args.Parameters[3], out int index))
                                     args.Player.SendErrorMessage($"Invalid index: {args.Parameters[3]}");
                                 else
                                 {
-                                    app.DestroyInstance(index);
-                                    args.Player.SendSuccessMessage($"Removed app instance of type '{app.Name}' with index {index}");
+                                    if (appType[index] is Application app)
+                                        TUI.Destroy(app);
+                                    args.Player.SendSuccessMessage($"Removed app instance of type '{appType.Name}' with index {index}");
                                 }
                             }
                             break;
@@ -1120,7 +1121,7 @@ Draw state: {root.DrawState}");
                         {
                             if (!PaginationTools.TryParsePageNumber(args.Parameters, 2, args.Player, out int page))
                                 return;
-                            List<string> lines = PaginationTools.BuildLinesFromTerms(TUI.ApplicationTypes.Values);
+                            List<string> lines = PaginationTools.BuildLinesFromTerms(TUI.ApplicationTypes.Values.Where(appType => appType.AllowManualRun));
                             PaginationTools.SendPage(args.Player, page, lines, new PaginationTools.Settings()
                             {
                                 HeaderFormat = "TUI apps ({0}/{1}):",

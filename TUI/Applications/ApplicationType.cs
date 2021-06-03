@@ -10,6 +10,7 @@ namespace TerrariaUI
     {
         public string Name { get; protected set; }
         public Func<string, HashSet<int>, Application> Generator { get; protected set; }
+        public bool AllowManualRun { get; protected set; }
         protected Dictionary<int, Application> Instances { get; set; } = new Dictionary<int, Application>();
         protected ApplicationSaver Saver;
         protected object Locker = new object();
@@ -29,12 +30,12 @@ namespace TerrariaUI
             get
             {
                 lock (Locker)
-                    foreach (var instance in Instances)
+                    foreach (var instance in Instances.ToArray())
                         yield return instance;
             }
         }
 
-        public ApplicationType(string name, Func<string, HashSet<int>, Application> generator, ImageData icon = null, bool save = true)
+        public ApplicationType(string name, Func<string, HashSet<int>, Application> generator, bool allowManualRun, ImageData icon = null, bool save = true)
         {
             if (name == null)
                 throw new ArgumentNullException(nameof(name));
@@ -43,16 +44,27 @@ namespace TerrariaUI
 
             Name = name;
             Generator = generator;
+            AllowManualRun = allowManualRun;
             Icon = icon;
             if (save)
                 Saver = new ApplicationSaver(this);
+        }
+
+        public Application this[int index]
+        {
+            get
+            {
+                if (Instances.TryGetValue(index, out Application app))
+                    return app;
+                return null;
+            }
         }
 
         public void Load() => Saver?.UDBRead(TUI.WorldID);
 
         public override string ToString() => Name;
 
-        public void CreateInstance(int x, int y, HashSet<int> observers = null)
+        public Application CreateInstance(int x, int y, HashSet<int> observers = null)
         {
             lock (Locker)
             {
@@ -68,6 +80,7 @@ namespace TerrariaUI
                 TUI.Create(instance);
                 if (!instance.Personal)
                     Saver?.UDBWrite(TUI.WorldID);
+                return instance;
             }
         }
 
@@ -88,44 +101,35 @@ namespace TerrariaUI
             }
         }
 
-        public void DestroyInstance(int index)
+        internal void DisposeInstance(Application app)
         {
             lock (Locker)
             {
-                Application instance = Instances[index];
-                TUI.Destroy(instance);
-                Instances.Remove(index);
+                Application instance = Instances[app.Index];
+                instance.EndPlayerSession();
+                Instances.Remove(app.Index);
                 if (!instance.Personal)
                     Saver?.UDBWrite(TUI.WorldID);
             }
         }
 
-        public void DestroyInstance(Application app)
+        public void DestroyAll()
         {
-            DestroyInstance(app.Index);
+            foreach (var pair in IterateInstances.ToArray())
+                TUI.Destroy(pair.Value);
         }
 
         public bool TryDestroy(int x, int y, out string name)
         {
             name = null;
-            lock (Locker)
-            {
-                foreach (var pair in Instances)
-                    if (pair.Value.Contains(x, y))
-                    {
-                        name = pair.Value.Name;
-                        DestroyInstance(pair.Key);
-                        return true;
-                    }
-            }
+            foreach (var pair in IterateInstances)
+                if (pair.Value.Contains(x, y))
+                {
+                    name = pair.Value.Name;
+                    TUI.Destroy(pair.Value);
+                    return true;
+                }
             return false;
-        }
-
-        public void DestroyAll()
-        {
-            lock (Locker)
-                foreach (int key in Instances.Keys.ToArray())
-                    DestroyInstance(key);
         }
 
         public void Write(BinaryWriter bw)
