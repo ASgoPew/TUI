@@ -8,14 +8,16 @@ namespace TerrariaUI
 {
     public class ApplicationType
     {
+        #region Data
+
         public string Name { get; protected set; }
         public Func<string, HashSet<int>, Application> Generator { get; protected set; }
         public bool AllowManualRun { get; protected set; }
+        public ImageData Icon { get; set; } = null;
+
         protected Dictionary<int, Application> Instances { get; set; } = new Dictionary<int, Application>();
         protected ApplicationSaver Saver;
         protected object Locker = new object();
-
-        public ImageData Icon { get; set; } = null;
 
         public int InstancesCount
         {
@@ -35,6 +37,10 @@ namespace TerrariaUI
             }
         }
 
+        #endregion
+
+        #region Constructor
+
         public ApplicationType(string name, Func<string, HashSet<int>, Application> generator, bool allowManualRun, ImageData icon = null, bool save = true)
         {
             if (name == null)
@@ -50,6 +56,10 @@ namespace TerrariaUI
                 Saver = new ApplicationSaver(this);
         }
 
+        #endregion
+
+        #region operator[]
+
         public Application this[int index]
         {
             get
@@ -60,9 +70,8 @@ namespace TerrariaUI
             }
         }
 
-        public void Load() => Saver?.UDBRead(TUI.WorldID);
-
-        public override string ToString() => Name;
+        #endregion
+        #region CreateInstance
 
         public Application CreateInstance(int x, int y, HashSet<int> observers = null)
         {
@@ -84,6 +93,54 @@ namespace TerrariaUI
             }
         }
 
+        #endregion
+        #region TryDestroy
+
+        public bool TryDestroy(int x, int y, out string name)
+        {
+            name = null;
+            foreach (var pair in IterateInstances)
+                if (pair.Value.Contains(x, y))
+                {
+                    name = pair.Value.Name;
+                    TUI.Destroy(pair.Value);
+                    return true;
+                }
+            return false;
+        }
+
+        #endregion
+        #region DestroyAll
+
+        public void DestroyAll()
+        {
+            foreach (var pair in IterateInstances.ToArray())
+                TUI.Destroy(pair.Value);
+        }
+
+        #endregion
+        #region DisposeInstance
+
+        internal void DisposeInstance(Application app)
+        {
+            lock (Locker)
+            {
+                Application instance = Instances[app.Index];
+                instance.EndPlayerSession();
+                Instances.Remove(app.Index);
+                if (!instance.Personal)
+                    Saver?.UDBWrite(TUI.WorldID);
+            }
+        }
+
+        #endregion
+        #region Load
+
+        public void Load() => Saver?.UDBRead(TUI.WorldID);
+
+        #endregion
+        #region LoadInstance
+
         internal void LoadInstance(int index)
         {
             lock (Locker)
@@ -101,36 +158,14 @@ namespace TerrariaUI
             }
         }
 
-        internal void DisposeInstance(Application app)
-        {
-            lock (Locker)
-            {
-                Application instance = Instances[app.Index];
-                instance.EndPlayerSession();
-                Instances.Remove(app.Index);
-                if (!instance.Personal)
-                    Saver?.UDBWrite(TUI.WorldID);
-            }
-        }
+        #endregion
+        #region ToString
 
-        public void DestroyAll()
-        {
-            foreach (var pair in IterateInstances.ToArray())
-                TUI.Destroy(pair.Value);
-        }
+        public override string ToString() => Name;
 
-        public bool TryDestroy(int x, int y, out string name)
-        {
-            name = null;
-            foreach (var pair in IterateInstances)
-                if (pair.Value.Contains(x, y))
-                {
-                    name = pair.Value.Name;
-                    TUI.Destroy(pair.Value);
-                    return true;
-                }
-            return false;
-        }
+        #endregion
+
+        #region Write
 
         public void Write(BinaryWriter bw)
         {
@@ -142,5 +177,7 @@ namespace TerrariaUI
                     bw.Write((int)pair.Key);
             }
         }
+
+        #endregion
     }
 }

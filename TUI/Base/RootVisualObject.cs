@@ -187,7 +187,7 @@ namespace TerrariaUI.Base
 
         protected override void DrawDisable()
         {
-            RequestDrawChanges().Draw();
+            RequestDrawChanges().Draw(targetPlayers: OutdatedPlayers(toEveryone: true));
         }
 
         #endregion

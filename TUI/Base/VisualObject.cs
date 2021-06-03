@@ -461,11 +461,6 @@ namespace TerrariaUI.Base
         }
 
         #endregion
-        #region ToString
-
-        public override string ToString() => FullName;
-
-        #endregion
         #region CollectStyle
 
         public UIStyle CollectStyle(bool includeThis = true)
@@ -476,6 +471,11 @@ namespace TerrariaUI.Base
                     result.Stratify(node.Style);
             return result;
         }
+
+        #endregion
+        #region ToString
+
+        public override string ToString() => FullName;
 
         #endregion
 

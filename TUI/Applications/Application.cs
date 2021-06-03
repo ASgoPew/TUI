@@ -101,7 +101,7 @@ namespace TerrariaUI
             : base(name, 0, 0, width, height, null, style ?? new ApplicationStyle(), provider, observers)
         {
             CreateTime = DateTime.UtcNow;
-            if (Tracking && provider == null)
+            if (Tracking && Provider == null)
                 throw new ArgumentException("Tracking applications must have a custom tile provider.");
         }
 
