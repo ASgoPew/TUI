@@ -111,6 +111,7 @@ namespace TerrariaUI.Widgets
 
         protected override void LoadThisNative()
         {
+            base.LoadThisNative();
             if (!Personal)
                 UDBRead(TUI.WorldID);
         }
@@ -145,6 +146,16 @@ namespace TerrariaUI.Widgets
                     SetXY(x, y, false);
                 else if (PanelStyle.SaveSize)
                     SetWH(width, height, false);
+
+                if (PanelStyle.SaveEnabled)
+                {
+                    if (Enabled && !enabled)
+                        Disable(false);
+                    else if (!Enabled && enabled)
+                        Enable(false);
+                }
+
+                base.UDBReadNative(br, id);
             }
             else
             {
@@ -152,13 +163,6 @@ namespace TerrariaUI.Widgets
                 //SetXYWH(0, 0, width, height);
                 Disable(false);
                 return;
-            }
-            if (PanelStyle.SaveEnabled)
-            {
-                if (Enabled && !enabled)
-                    Disable(false);
-                else if (!Enabled && enabled)
-                    Enable(false);
             }
         }
 
@@ -172,6 +176,8 @@ namespace TerrariaUI.Widgets
             bw.Write((int)Width);
             bw.Write((int)Height);
             bw.Write((bool)Enabled);
+
+            base.UDBWriteNative(bw, id);
         }
 
         #endregion

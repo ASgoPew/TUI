@@ -196,8 +196,9 @@ namespace TerrariaUI.Base
 
         protected override void LoadThisNative()
         {
-            base.LoadThisNative();
             TUI.Hooks.LoadRoot.Invoke(new LoadRootArgs(this));
+
+            base.LoadThisNative();
         }
 
         #endregion
@@ -208,6 +209,7 @@ namespace TerrariaUI.Base
             // MainTileProvider acquires Main.tile field
             Provider.Update();
             SetWH(GetSizeNative(), false);
+
             base.UpdateThisNative();
         }
 
