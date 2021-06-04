@@ -39,7 +39,7 @@ namespace TerrariaUI.Widgets
         /// <summary>
         /// Color of statue underline part (if TextUnderline is LabelUnderLine.Underline).
         /// </summary>
-        public byte TextUnderlineColor { get; set; } = UIDefault.LabelTextColor;
+        public byte? TextUnderlineColor { get; set; } = null;
 
         public LabelStyle() : base() { }
 
@@ -65,16 +65,20 @@ namespace TerrariaUI.Widgets
         #region Data
 
         public const char ReservedCharacter = '@';
-        public const string ItemPattern = @"(?<!\\)\[(?<tag>i(tem)?)(\/(?<options>[^:]+))?:(?<id>\d+?)(?<!\\)\]";
+        public const string ItemPattern = @"(?<!\\)\[(?<tag>i(tem)?)(\/(?<color>[^:]+))?:(?<id>\d+?)(?<!\\)\]";
+        public const string ColorPattern = @"(?<!\\)\[(?<tag>c(olor)?)(\/(?<color>[^:]+))?:(?<text>.+?)(?<!\\)\]";
 
         public override string Name => $"{GetType().Name} ({RawText})";
-        protected string RawText { get; private set; }
-        protected List<(string Text, int Width)> Lines { get; set; }
+        public string RawText { get; private set; }
+        public string Text { get; private set; }
+        protected List<(string Text, int Width)> Lines { get; set; } = null;
         protected int TextW { get; set; }
         protected int TextH { get; set; }
 
-        private List<int> StatuePlaceStyle = null;
+        private List<int> StatuePlaceStyle;
         private int StatuePlaceStyleCounter = 0;
+        private SortedDictionary<int, byte> TagColors;
+        private int CharacterCounter = 0;
 
         public LabelStyle LabelStyle => Style as LabelStyle;
 
@@ -158,6 +162,7 @@ namespace TerrariaUI.Widgets
             int defaultCharX = charX;
 
             StatuePlaceStyleCounter = 0;
+            CharacterCounter = 0;
             foreach (var pair in Lines)
             {
                 string line = pair.Text;
@@ -173,7 +178,7 @@ namespace TerrariaUI.Widgets
 			    for (int j = 0; j < line.Length; j++)
                 {
 				    char c = line[j];
-                    (bool alphabet, int statueFrame) = StatueTextFrame(c);
+                    (bool alphabet, byte color, int statueFrame) = StatueTextFrame(c);
 				    if (statueFrame >= 0)
                     {
 					    for (int statueX = 0; statueX < 2; statueX++)
@@ -190,9 +195,9 @@ namespace TerrariaUI.Widgets
                                 else
                                     tile.type = (ushort)105; // TileID.Statues
                                 if (statueY < 2)
-                                    tile.color(style.TextColor);
+                                    tile.color(color);
 							    if (statueY == 2)
-								    tile.color(style.TextUnderlineColor);
+								    tile.color(style.TextUnderlineColor.HasValue ? style.TextUnderlineColor.Value : color);
                                 tile.inActive(style.InActive ?? false);
                             }
                         DrawWithSection = true;
@@ -225,24 +230,51 @@ namespace TerrariaUI.Widgets
             int spaceH = Height - indent.Up - indent.Down;
             int lineH = 2 + (int)style.TextUnderline;
 
-            if (StatuePlaceStyle == null)
+            if (Lines == null)
             {
-                List<int> statuePlaceStyle = new List<int>();
-                RawText = Regex.Replace(RawText, ItemPattern, match =>
+                StatuePlaceStyle = new List<int>();
+                string text = Regex.Replace(RawText, ItemPattern, match =>
                 {
                     GetPlaceStyleArgs args = new GetPlaceStyleArgs(int.Parse(match.Groups["id"].Value));
                     TUI.Hooks.GetPlaceStyle.Invoke(args);
-                    statuePlaceStyle.Add(args.PlaceStyle);
+                    StatuePlaceStyle.Add(args.PlaceStyle);
                     return ReservedCharacter.ToString();
                 });
-                StatuePlaceStyle = statuePlaceStyle;
-            }
+                TagColors = new SortedDictionary<int, byte>();
+                int delta = 0;
+                text = Regex.Replace(text, ColorPattern, match =>
+                {
+                    string replace = match.Groups["text"].Value;
+                    TagColors[match.Index - delta] = PaintIDByName(match.Groups["color"].Value);
+                    TagColors[match.Index + replace.Length - delta] = 255;
+                    delta += match.Length - replace.Length;
+                    return replace;
+                });
+                Text = text;
 
-            //Dividing text into lines
-            (List<(string, int)> lines, int maxLineW) = LimitStatueText(RawText, spaceW, spaceH, indent.Horizontal, indent.Vertical, lineH);
-            Lines = lines;
-            TextW = maxLineW;
-            TextH = lines.Count * (lineH + indent.Vertical) - indent.Vertical;
+                //Dividing text into lines
+                (List<(string, int)> lines, int maxLineW) = LimitStatueText(text, spaceW, spaceH, indent.Horizontal, indent.Vertical, lineH);
+                Lines = lines;
+                TextW = maxLineW;
+                TextH = lines.Count * (lineH + indent.Vertical) - indent.Vertical;
+            }
+        }
+
+        #endregion
+        #region SetXYWH
+
+        public override VisualObject SetXYWH(int x, int y, int width, int height, bool draw)
+        {
+            int oldX = X, oldY = Y, oldWidth = Width, oldHeight = Height;
+            base.SetXYWH(x, y, width, height, false);
+            if (oldX != X || oldY != Y || oldWidth != Width || oldHeight != Height)
+            {
+                Lines = null;
+                Update();
+                if (draw)
+                    DrawReposition(oldX, oldY, oldWidth, oldHeight);
+            }
+            return this;
         }
 
         #endregion
@@ -256,36 +288,47 @@ namespace TerrariaUI.Widgets
         {
             if (value.Contains(ReservedCharacter))
                 throw new InvalidOperationException((int)ReservedCharacter + " is a reserved character.");
-            StatuePlaceStyle = null;
+            Lines = null;
             RawText = value ?? throw new ArgumentNullException(nameof(value));
         }
 
         #endregion
         #region GetText
 
-        public virtual string GetText() => RawText;
+        public virtual string GetText() => Text;
 
         #endregion
 
         #region StatueTextFrame
 
-        public (bool alphabet, int placeStyle) StatueTextFrame(char c)
+        public (bool alphabet, byte color, int placeStyle) StatueTextFrame(char c)
         {
+            byte color = LabelStyle.TextColor;
+            foreach (var pair in TagColors)
+                if (CharacterCounter >= pair.Key)
+                {
+                    if (pair.Value == 255)
+                        color = LabelStyle.TextColor;
+                    else
+                        color = pair.Value;
+                }
+            CharacterCounter++;
+
             if (c == ReservedCharacter)
-                return (false, StatuePlaceStyle[StatuePlaceStyleCounter++] * 36);
+                return (false, color, StatuePlaceStyle[StatuePlaceStyleCounter++] * 36);
             else if (c >= '0' && c <= '9')
-                return (true, (c - '0') * 36);
+                return (true, color, (c - '0') * 36);
             else if (c >= 'a' && c <= 'z')
-                return (true, (10 + c - 'a') * 36);
+                return (true, color, (10 + c - 'a') * 36);
             else if (c >= 'A' && c <= 'Z')
-                return (true, (10 + c - 'A') * 36);
-            return (false, -1);
+                return (true, color, (10 + c - 'A') * 36);
+            return (false, color, -1);
         }
 
         #endregion
         #region LimitStatueText
 
-        private static (List<(string, int)>, int MaxLineWidth) LimitStatueText(string text, int width, int height, int emptyIndentation, int linesIndentation, int lineH)
+        private static (List<(string, int)> Lines, int MaxLineWidth) LimitStatueText(string text, int width, int height, int emptyIndentation, int linesIndentation, int lineH)
         {
             if (width < 2)
                 return (new List<(string, int)>(), 0);
@@ -384,6 +427,70 @@ namespace TerrariaUI.Widgets
                     max = width;
             }
             return max;
+        }
+
+        #endregion
+        #region PaintIDByName
+
+        public static byte PaintIDByName(string name)
+        {
+            switch (name.ToLower())
+            {
+                case "red":
+                case "deepred":
+                    return PaintID2.DeepRed;
+                case "orange":
+                case "deeporange":
+                    return PaintID2.DeepOrange;
+                case "yellow":
+                case "deepyellow":
+                    return PaintID2.DeepYellow;
+                case "lime":
+                case "deeplime":
+                    return PaintID2.DeepLime;
+                case "green":
+                case "deepgreen":
+                    return PaintID2.DeepGreen;
+                case "teal":
+                case "deepteal":
+                    return PaintID2.DeepTeal;
+                case "cyan":
+                case "deepcyan":
+                    return PaintID2.DeepCyan;
+                case "sky":
+                case "sky blue":
+                case "deepsky":
+                case "deep sky blue":
+                    return PaintID2.DeepSkyBlue;
+                case "blue":
+                case "deepblue":
+                    return PaintID2.DeepBlue;
+                case "purple":
+                case "deeppurple":
+                    return PaintID2.DeepPurple;
+                case "violet":
+                case "deepviolet":
+                    return PaintID2.DeepViolet;
+                case "pink":
+                case "deeppink":
+                    return PaintID2.DeepPink;
+                case "black":
+                    return PaintID2.Black;
+                case "white":
+                    return PaintID2.White;
+                case "gray":
+                    return PaintID2.Gray;
+                case "brown":
+                    return PaintID2.Brown;
+                case "shadow":
+                    return PaintID2.Shadow;
+                case "negative":
+                    return PaintID2.Negative;
+                case "illuminant":
+                    return PaintID2.Illuminant;
+                default:
+                    return PaintID2.None;
+            }
         }
 
         #endregion

@@ -101,7 +101,7 @@ namespace TerrariaUI.Widgets
 
         public Canvas PaintPixel(int x, int y, byte paint, bool draw = false)
         {
-            if (x < 0 || y < 0 || x >= Width || y >= Height || paint >= PaintID2.Glow)
+            if (x < 0 || y < 0 || x >= Width || y >= Height || paint >= PaintID2.Illuminant)
                 throw new ArgumentOutOfRangeException();
 
             Paint[x, y] = paint;

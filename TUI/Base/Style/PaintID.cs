@@ -33,6 +33,6 @@
         public const byte Brown = 28;
         public const byte Shadow = 29;
         public const byte Negative = 30;
-        public const byte Glow = 31;
+        public const byte Illuminant = 31;
     }
 }
