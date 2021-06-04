@@ -404,7 +404,6 @@ namespace TerrariaUI
                     child.Apply();
                 else
                     child.RequestDrawChanges();
-                TUI.Log("Intersecting");
                 child.Draw();
             }
         }
