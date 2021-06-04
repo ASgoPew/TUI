@@ -64,16 +64,16 @@ namespace TerrariaUI.Widgets
     {
         #region Data
 
-        public const char ReservedCharacter = '\r';
+        public const char ReservedCharacter = '@';
         public const string ItemPattern = @"(?<!\\)\[(?<tag>i(tem)?)(\/(?<options>[^:]+))?:(?<id>\d+?)(?<!\\)\]";
 
         public override string Name => $"{GetType().Name} ({RawText})";
-        protected string RawText { get; set; }
+        protected string RawText { get; private set; }
         protected List<(string Text, int Width)> Lines { get; set; }
         protected int TextW { get; set; }
         protected int TextH { get; set; }
 
-        private List<int> StatuePlaceStyle = new List<int>();
+        private List<int> StatuePlaceStyle = null;
         private int StatuePlaceStyleCounter = 0;
 
         public LabelStyle LabelStyle => Style as LabelStyle;
@@ -173,7 +173,7 @@ namespace TerrariaUI.Widgets
 			    for (int j = 0; j < line.Length; j++)
                 {
 				    char c = line[j];
-                    int statueFrame = StatueTextFrame(c);
+                    (bool alphabet, int statueFrame) = StatueTextFrame(c);
 				    if (statueFrame >= 0)
                     {
 					    for (int statueX = 0; statueX < 2; statueX++)
@@ -185,7 +185,10 @@ namespace TerrariaUI.Widgets
                                 tile.frameX = (short)(statueFrame + statueX * 18);
                                 tile.frameY = (short)(statueY * 18);
                                 tile.active(true);
-                                tile.type = (ushort)337; // TileID.AlphabetStatues
+                                if (alphabet)
+                                    tile.type = (ushort)337; // TileID.AlphabetStatues
+                                else
+                                    tile.type = (ushort)105; // TileID.Statues
                                 if (statueY < 2)
                                     tile.color(style.TextColor);
 							    if (statueY == 2)
@@ -222,14 +225,18 @@ namespace TerrariaUI.Widgets
             int spaceH = Height - indent.Up - indent.Down;
             int lineH = 2 + (int)style.TextUnderline;
 
-            StatuePlaceStyle.Clear();
-            Regex.Replace(RawText, ItemPattern, match =>
+            if (StatuePlaceStyle == null)
             {
-                GetPlaceStyleArgs args = new GetPlaceStyleArgs(int.Parse(match.Groups["id"].Value));
-                TUI.Hooks.GetPlaceStyle.Invoke(args);
-                StatuePlaceStyle.Add(args.PlaceStyle);
-                return ReservedCharacter.ToString();
-            });
+                List<int> statuePlaceStyle = new List<int>();
+                RawText = Regex.Replace(RawText, ItemPattern, match =>
+                {
+                    GetPlaceStyleArgs args = new GetPlaceStyleArgs(int.Parse(match.Groups["id"].Value));
+                    TUI.Hooks.GetPlaceStyle.Invoke(args);
+                    statuePlaceStyle.Add(args.PlaceStyle);
+                    return ReservedCharacter.ToString();
+                });
+                StatuePlaceStyle = statuePlaceStyle;
+            }
 
             //Dividing text into lines
             (List<(string, int)> lines, int maxLineW) = LimitStatueText(RawText, spaceW, spaceH, indent.Horizontal, indent.Vertical, lineH);
@@ -249,6 +256,7 @@ namespace TerrariaUI.Widgets
         {
             if (value.Contains(ReservedCharacter))
                 throw new InvalidOperationException((int)ReservedCharacter + " is a reserved character.");
+            StatuePlaceStyle = null;
             RawText = value ?? throw new ArgumentNullException(nameof(value));
         }
 
@@ -261,17 +269,17 @@ namespace TerrariaUI.Widgets
 
         #region StatueTextFrame
 
-        public int StatueTextFrame(char c)
+        public (bool alphabet, int placeStyle) StatueTextFrame(char c)
         {
             if (c == ReservedCharacter)
-                return StatuePlaceStyle[StatuePlaceStyleCounter++] * 36;
+                return (false, StatuePlaceStyle[StatuePlaceStyleCounter++] * 36);
             else if (c >= '0' && c <= '9')
-                return (c - '0') * 36;
+                return (true, (c - '0') * 36);
             else if (c >= 'a' && c <= 'z')
-                return (10 + c - 'a') * 36;
+                return (true, (10 + c - 'a') * 36);
             else if (c >= 'A' && c <= 'Z')
-                return (10 + c - 'A') * 36;
-            return -1;
+                return (true, (10 + c - 'A') * 36);
+            return (false, -1);
         }
 
         #endregion

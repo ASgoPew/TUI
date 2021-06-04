@@ -63,14 +63,19 @@ namespace TUIPlugin
         {
             try
             {
+                TUI.Hooks.Log.Event += OnLog;
+
                 FakesEnabled = ServerApi.Plugins.Count(p => p.Plugin.Name == "FakeProvider") > 0;
 
+                var old = Main.player[Main.myPlayer];
+                Main.player[Main.myPlayer] = new Player();
                 for (int i = 0; i < Main.maxItemTypes; i++)
                 {
                     Item item = new Item();
                     item.netDefaults(i);
                     PlaceStyles[i] = item.placeStyle;
                 }
+                Main.player[Main.myPlayer] = old;
 
                 ServerApi.Hooks.GamePostInitialize.Register(this, OnGamePostInitialize, Int32.MinValue);
                 ServerApi.Hooks.ServerConnect.Register(this, OnServerConnect);
@@ -91,7 +96,6 @@ namespace TUIPlugin
                 TUI.Hooks.RemoveSign.Event += OnRemoveSign;
                 TUI.Hooks.UpdateChest.Event += OnUpdateChest;
                 TUI.Hooks.RemoveChest.Event += OnRemoveChest;
-                TUI.Hooks.Log.Event += OnLog;
                 TUI.Hooks.Database.Event += OnDatabase;
                 RegionTimer.Elapsed += OnRegionTimer;
 
