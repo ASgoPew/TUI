@@ -136,7 +136,7 @@ namespace TerrariaUI
         /// <param name="root">Root of user interface tree.
         /// <para></para>
         /// Consider using Panel widget for ability to automatically save position and size.</param>
-        public static T Create<T>(T root)
+        public static T Create<T>(T root, bool draw = true)
             where T : RootVisualObject
         {
             if (!(root.Provider is MainTileProvider)
@@ -157,7 +157,9 @@ namespace TerrariaUI
                 if (Active)
                 {
                     root.Load();
-                    root.Update().Apply().Draw();
+                    root.Update();
+                    if (draw)
+                        root.Apply().Draw();
                 }
             }
             return root;
@@ -332,7 +334,7 @@ namespace TerrariaUI
                     RootVisualObject o = Child[i];
                     int saveX = o.X, saveY = o.Y;
                     if (o.Active
-                        && o.Contains(touch)
+                        && o.ContainsParent(touch)
                         && o.Players.Contains(touch.Session.PlayerIndex)
                         && (!o.Personal || o.Observers.Contains(touch.PlayerIndex)))
                     {

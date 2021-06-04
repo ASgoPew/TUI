@@ -146,7 +146,7 @@ namespace TerrariaUI.Base
         #endregion
         #region Contains, Intersects
 
-        public bool Contains(int x, int y) =>
+        public bool ContainsParent(int x, int y) =>
             x >= X && y >= Y && x < X + Width && y < Y + Height;
         public bool ContainsRelative(int x, int y) =>
             x >= 0 && y >= 0 && x < Width && y < Height;

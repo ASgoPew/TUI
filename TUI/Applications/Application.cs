@@ -106,6 +106,11 @@ namespace TerrariaUI
         }
 
         #endregion
+        #region PlayerInSession
+
+        public bool PlayerInSession(int playerIndex) => SessionPlayers.Contains(playerIndex);
+
+        #endregion
         #region StartPlayerSession
 
         bool StartingPlayerSession = false;

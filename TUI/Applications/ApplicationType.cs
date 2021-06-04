@@ -73,7 +73,7 @@ namespace TerrariaUI
         #endregion
         #region CreateInstance
 
-        public Application CreateInstance(int x, int y, HashSet<int> observers = null)
+        public Application CreateInstance(int x, int y, HashSet<int> observers = null, bool draw = true)
         {
             lock (Locker)
             {
@@ -86,7 +86,7 @@ namespace TerrariaUI
                 Instances[index] = instance;
                 instance.SetXY(x - instance.Width / 2, y - instance.Height / 2, false);
                 instance.SavePanel();
-                TUI.Create(instance);
+                TUI.Create(instance, draw);
                 if (!instance.Personal)
                     Saver?.UDBWrite(TUI.WorldID);
                 return instance;
@@ -100,7 +100,7 @@ namespace TerrariaUI
         {
             name = null;
             foreach (var pair in IterateInstances)
-                if (pair.Value.Contains(x, y))
+                if (pair.Value.ContainsParent(x, y))
                 {
                     name = pair.Value.Name;
                     TUI.Destroy(pair.Value);

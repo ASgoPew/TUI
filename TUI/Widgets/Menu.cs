@@ -17,6 +17,16 @@ namespace TerrariaUI.Widgets
         protected Action<Menu> TitleCallback { get; set; }
 
         public bool HasTitle => Title != null;
+        public bool HasBlinks
+        {
+            get
+            {
+                foreach (var child in ChildrenFromTop)
+                    if (child.Style is ButtonStyle style && style.BlinkStyle != ButtonBlinkStyle.None)
+                        return true;
+                return false;
+            }
+        }
 
         #endregion
 
@@ -48,9 +58,13 @@ namespace TerrariaUI.Widgets
                 AddToLayout(new Label(0, 0, 0, 4, Title, titleStyle)).SetFullSize(true, false);
             int i = 0;
             foreach (var value in values)
-                AddToLayout(new Button(0, 0, 0, 4, value, style: i++ % 2 == 0 ? style1 : style2))
-                    .SetFullSize(true, false)
-                    .Configuration.UseBegin = false;
+            {
+                Button button = new Button(0, 0, 0, 4, value, style: i++ % 2 == 0 ? style1 : style2);
+                button.Configuration.UseBegin = false;
+                button.Configuration.UseMoving = false;
+                button.Configuration.UseEnd = false;
+                AddToLayout(button.SetFullSize(true, false));
+            }
 
             int width = Label.FindMaxWidth(values, style1.TextIndent.Horizontal) + 6;
             if (HasTitle)
@@ -67,7 +81,7 @@ namespace TerrariaUI.Widgets
         public override void Invoke(Touch touch)
         {
             Touch beginTouch = touch.Session.BeginTouch;
-            if (!Contains(beginTouch) || !Contains(touch))
+            if (!ContainsRelative(beginTouch) || !ContainsRelative(touch))
                 return;
             int titleHeight = HasTitle ? 4 : 0;
             if (TitleCallback != null && touch.State == TouchState.End &&
@@ -78,14 +92,10 @@ namespace TerrariaUI.Widgets
                 int index = touch.Y / 4;
                 if (HasTitle)
                     index--;
-                if (index < 0)
-                    index = 0;
-                else if (index >= Values.Count)
-                    index = Values.Count - 1;
                 string value = Values[index];
 
                 if (touch.State == TouchState.Begin || touch.State == TouchState.Moving)
-                    SetTempValue(value, true);
+                    SetTempValue(value, HasBlinks);
                 else if (touch.Undo)
                 {
                     int childIndex = Values.IndexOf(Input.Temp);
@@ -98,10 +108,10 @@ namespace TerrariaUI.Widgets
                     }
                 }
                 else
-                    SetValue(value, true, touch.PlayerIndex);
+                    SetValue(value, HasBlinks, touch.PlayerIndex);
             }
             else if (Input.Temp != null)
-                SetTempValue(null, true);
+                SetTempValue(null, HasBlinks);
         }
 
         #endregion

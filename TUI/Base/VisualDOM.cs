@@ -569,7 +569,7 @@ namespace TerrariaUI.Base
         /// </summary>
         /// <param name="x">X point coordinate</param>
         /// <param name="y">Y point coordinate</param>
-        public virtual bool Contains(int x, int y) =>
+        public virtual bool ContainsParent(int x, int y) =>
             x >= X && y >= Y && x < X + Width && y < Y + Height;
 
         /// <summary>

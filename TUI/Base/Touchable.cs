@@ -16,7 +16,9 @@ namespace TerrariaUI.Base
         /// </summary>
         public Action<VisualObject, Touch> Callback { get; set; }
 
-        public virtual bool Contains(Touch touch) => Contains(touch.X, touch.Y);
+        public virtual bool ContainsParent(Touch touch) => ContainsParent(touch.X, touch.Y);
+        public virtual bool ContainsRelative(Touch touch) => ContainsRelative(touch.X, touch.Y);
+        public virtual bool ContainsAbsolute(Touch touch) => ContainsAbsolute(touch.X, touch.Y);
 
         #endregion
 
@@ -147,7 +149,7 @@ namespace TerrariaUI.Base
             foreach (VisualObject child in ChildrenFromTop)
             {
                 int saveX = child.X, saveY = child.Y;
-                if (child.Active && child.Contains(touch))
+                if (child.Active && child.ContainsParent(touch))
                 {
                     touch.Move(-saveX, -saveY);
                     if (child.Touched(touch))
