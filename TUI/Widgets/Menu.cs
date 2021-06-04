@@ -59,6 +59,7 @@ namespace TerrariaUI.Widgets
             {
                 Label titleLabel = new Label(0, 0, 0, 4, Title, titleStyle);
                 AddToLayout(titleLabel).SetFullSize(true, false);
+                titleLabel.Update();
                 titleText = titleLabel.GetText();
             }
             int i = 0;
@@ -70,6 +71,7 @@ namespace TerrariaUI.Widgets
                 button.Configuration.UseMoving = false;
                 button.Configuration.UseEnd = false;
                 AddToLayout(button.SetFullSize(true, false));
+                button.Update();
                 valuesText.Add(button.GetText());
             }
 
