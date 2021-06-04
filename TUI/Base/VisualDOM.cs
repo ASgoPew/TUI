@@ -562,7 +562,7 @@ namespace TerrariaUI.Base
             SetXY(X + dx, Y + dy, draw);
 
         #endregion
-        #region Contains, Intersecting
+        #region Contains
 
         /// <summary>
         /// Checks if point (x, y) relative to Parent object is inside current object.
@@ -579,6 +579,21 @@ namespace TerrariaUI.Base
         /// <param name="y">Y point coordinate</param>
         public virtual bool ContainsRelative(int x, int y) =>
             x >= 0 && y >= 0 && x < Width && y < Height;
+
+        /// <summary>
+        /// Checks if point (x, y) in absolute coordinates is inside this object.
+        /// </summary>
+        /// <param name="x">X point coordinate</param>
+        /// <param name="y">Y point coordinate</param>
+        /// <returns></returns>
+        public virtual bool ContainsAbsolute(int x, int y)
+        {
+            (int ax, int ay) = AbsoluteXY();
+            return x >= ax && y >= ay && x < ax + Width && y < ay + Height;
+        }
+
+        #endregion
+        #region Intersecting
 
         /// <summary>
         /// Checks if rectangle (x, y, width, height) relative to Parent object is intersecting current object.

@@ -14,31 +14,37 @@ namespace TerrariaUI.Widgets
         public object Value => Input.Value;
         public List<string> Values { get; protected set; }
         public string Title { get; protected set; }
+        protected Action<Menu> TitleCallback { get; set; }
+
+        public bool HasTitle => Title != null;
 
         #endregion
 
         #region Constructor
 
         public Menu(int x, int y, IEnumerable<string> values, ButtonStyle style1 = null, ButtonStyle style2 = null,
-            string title = null, LabelStyle titleStyle = null, Input<string> input = null)
+            string title = null, LabelStyle titleStyle = null, Input<string> input = null, Action<Menu> titleCallback = null)
             : base(x, y, 0, 0, new UIConfiguration()
             {
                 UseMoving = true,
                 UseEnd = true,
+                BeginRequire = true,
                 UseOutsideTouches = true
             })
         {
             Values = values.ToList();
             Input = input ?? new Input<string>(Values[0], Values[0]);
             Title = title;
+            TitleCallback = titleCallback;
 
-            style1 = style1 ?? new ButtonStyle() { Wall = 153, WallColor = PaintID2.Gray, TextColor = PaintID2.Shadow };
+            style1 = style1 ?? new ButtonStyle() { Wall = 153, WallColor = PaintID2.Gray, TextColor = PaintID2.Shadow,
+                BlinkStyle = ButtonBlinkStyle.None };
             style2 = style2 ?? new ButtonStyle(style1) { Wall = style1.SimilarWall() };
             titleStyle = titleStyle ?? new LabelStyle(style1) { Wall = style1.SimilarWall(),
                 WallColor = PaintID2.White, TextColor = PaintID2.Shadow };
 
             SetupLayout(Alignment.Center, Direction.Down, Side.Center, null, 0);
-            if (Title != null)
+            if (HasTitle)
                 AddToLayout(new Label(0, 0, 0, 4, Title, titleStyle)).SetFullSize(true, false);
             int i = 0;
             foreach (var value in values)
@@ -47,10 +53,10 @@ namespace TerrariaUI.Widgets
                     .Configuration.UseBegin = false;
 
             int width = Label.FindMaxWidth(values, style1.TextIndent.Horizontal) + 6;
-            if (Title != null)
+            if (HasTitle)
                 width = Math.Max(width, Label.FindMaxWidth(new string[] { Title }, titleStyle.TextIndent.Horizontal) + 2);
             int height = 4 * values.Count();
-            if (Title != null)
+            if (HasTitle)
                 height += 4;
             SetWH(width, height, false);
         }
@@ -61,9 +67,17 @@ namespace TerrariaUI.Widgets
         public override void Invoke(Touch touch)
         {
             Touch beginTouch = touch.Session.BeginTouch;
-            if (beginTouch.Object == this && Contains(beginTouch) && beginTouch.Y >= 4 && Contains(touch) && touch.Y >= 4)
+            if (!Contains(beginTouch) || !Contains(touch))
+                return;
+            int titleHeight = HasTitle ? 4 : 0;
+            if (TitleCallback != null && touch.State == TouchState.End &&
+                    beginTouch.Y < titleHeight && touch.Y < titleHeight)
+                TitleCallback.Invoke(this);
+            else if (beginTouch.Y >= titleHeight && touch.Y >= titleHeight)
             {
-                int index = touch.Y / 4 - 1;
+                int index = touch.Y / 4;
+                if (HasTitle)
+                    index--;
                 if (index < 0)
                     index = 0;
                 else if (index >= Values.Count)
@@ -77,7 +91,7 @@ namespace TerrariaUI.Widgets
                     int childIndex = Values.IndexOf(Input.Temp);
                     if (childIndex >= 0)
                     {
-                        if (Title != null)
+                        if (HasTitle)
                             childIndex++;
                         Button btn = (Button)GetChild(childIndex);
                         btn.EndBlink(btn.ButtonStyle.BlinkStyle);
