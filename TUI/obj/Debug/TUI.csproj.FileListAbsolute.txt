@@ -44,3 +44,10 @@ C:\Users\Zachary Fahey\Documents\GitHub\TUI\TUI\obj\Debug\TUI.csproj.CoreCompile
 C:\Users\Zachary Fahey\Documents\GitHub\TUI\TUI\obj\Debug\TUI.dll
 C:\Users\Zachary Fahey\Documents\GitHub\TUI\TUI\obj\Debug\TUI.pdb
 C:\Users\ASgo\Documents\GitHub\TUI\TUI\obj\Debug\TUI.csprojAssemblyReference.cache
+D:\YandexDisk\Repos\TUI\TUI\bin\Debug\TUI.xml
+D:\YandexDisk\Repos\TUI\TUI\bin\Debug\TUI.dll
+D:\YandexDisk\Repos\TUI\TUI\bin\Debug\TUI.pdb
+D:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.csprojAssemblyReference.cache
+D:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.csproj.CoreCompileInputs.cache
+D:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.dll
+D:\YandexDisk\Repos\TUI\TUI\obj\Debug\TUI.pdb

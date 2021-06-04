@@ -65,6 +65,7 @@
     <Compile Include="Hooks\Args\LoadRootArgs.cs" />
     <Compile Include="Hooks\Args\RemoveProviderArgs.cs" />
     <Compile Include="Hooks\Args\DrawRectangleArgs.cs" />
+    <Compile Include="Hooks\Args\GetPlaceStyleArgs.cs" />
     <Compile Include="Hooks\Args\UpdateChestArgs.cs" />
     <Compile Include="Hooks\Args\DatabaseArgs.cs" />
     <Compile Include="Hooks\Args\LogArgs.cs" />

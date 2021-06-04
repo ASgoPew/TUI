@@ -18,6 +18,7 @@ namespace TerrariaUI.Hooks
         public Hook<CanTouchArgs> CanTouch = new Hook<CanTouchArgs>();
         public Hook<TouchCancelArgs> TouchCancel = new Hook<TouchCancelArgs>();
         public Hook<GetTileArgs> GetTile = new Hook<GetTileArgs>();
+        public Hook<GetPlaceStyleArgs> GetPlaceStyle = new Hook<GetPlaceStyleArgs>();
 
         public Hook<UpdateSignArgs> UpdateSign = new Hook<UpdateSignArgs>();
         public Hook<RemoveSignArgs> RemoveSign = new Hook<RemoveSignArgs>();

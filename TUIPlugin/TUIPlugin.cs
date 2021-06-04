@@ -39,6 +39,7 @@ namespace TUIPlugin
         public static DesignState[] playerDesignState = new DesignState[Main.maxPlayers];
         public static bool FakesEnabled = false;
         private static Timer RegionTimer = new Timer(1000) { AutoReset = true };
+        private static int[] PlaceStyles = new int[Main.maxItemTypes];
         public static Command[] CommandList = new Command[]
         {
             new Command(TUI.ControlPermission, TUICommand, "tui")
@@ -64,6 +65,13 @@ namespace TUIPlugin
             {
                 FakesEnabled = ServerApi.Plugins.Count(p => p.Plugin.Name == "FakeProvider") > 0;
 
+                for (int i = 0; i < Main.maxItemTypes; i++)
+                {
+                    Item item = new Item();
+                    item.netDefaults(i);
+                    PlaceStyles[i] = item.placeStyle;
+                }
+
                 ServerApi.Hooks.GamePostInitialize.Register(this, OnGamePostInitialize, Int32.MinValue);
                 ServerApi.Hooks.ServerConnect.Register(this, OnServerConnect);
                 ServerApi.Hooks.ServerLeave.Register(this, OnServerLeave);
@@ -78,6 +86,7 @@ namespace TUIPlugin
                 TUI.Hooks.DrawRectangle.Event += OnDrawRectangle;
                 TUI.Hooks.TouchCancel.Event += OnTouchCancel;
                 TUI.Hooks.GetTile.Event += OnGetTile;
+                TUI.Hooks.GetPlaceStyle.Event += OnGetPlaceStyle;
                 TUI.Hooks.UpdateSign.Event += OnUpdateSign;
                 TUI.Hooks.RemoveSign.Event += OnRemoveSign;
                 TUI.Hooks.UpdateChest.Event += OnUpdateChest;
@@ -123,6 +132,7 @@ namespace TUIPlugin
                     TUI.Hooks.DrawRectangle.Event -= OnDrawRectangle;
                     TUI.Hooks.TouchCancel.Event -= OnTouchCancel;
                     TUI.Hooks.GetTile.Event -= OnGetTile;
+                    TUI.Hooks.GetPlaceStyle.Event -= OnGetPlaceStyle;
                     TUI.Hooks.UpdateSign.Event -= OnUpdateSign;
                     TUI.Hooks.RemoveSign.Event -= OnRemoveSign;
                     TUI.Hooks.UpdateChest.Event -= OnUpdateChest;
@@ -479,6 +489,14 @@ namespace TUIPlugin
                 return;
 
             args.Tile = Main.tile[args.X, args.Y];
+        }
+
+        #endregion
+        #region OnGetPlaceStyle
+
+        private void OnGetPlaceStyle(GetPlaceStyleArgs args)
+        {
+            args.PlaceStyle = PlaceStyles[args.Item];
         }
 
         #endregion

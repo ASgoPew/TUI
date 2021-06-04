@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using TerrariaUI.Base;
 using TerrariaUI.Base.Style;
+using TerrariaUI.Hooks.Args;
 
 namespace TerrariaUI.Widgets
 {
@@ -61,11 +64,17 @@ namespace TerrariaUI.Widgets
     {
         #region Data
 
+        public const char ReservedCharacter = '\r';
+        public const string ItemPattern = @"(?<!\\)\[(?<tag>i(tem)?)(\/(?<options>[^:]+))?:(?<id>\d+?)(?<!\\)\]";
+
         public override string Name => $"{GetType().Name} ({RawText})";
         protected string RawText { get; set; }
         protected List<(string Text, int Width)> Lines { get; set; }
         protected int TextW { get; set; }
         protected int TextH { get; set; }
+
+        private List<int> StatuePlaceStyle = new List<int>();
+        private int StatuePlaceStyleCounter = 0;
 
         public LabelStyle LabelStyle => Style as LabelStyle;
 
@@ -83,6 +92,8 @@ namespace TerrariaUI.Widgets
                 UseBegin = false
             }, style ?? new LabelStyle(), callback)
         {
+            if (text.Contains(ReservedCharacter))
+                throw new InvalidOperationException((int)ReservedCharacter + " is a reserved character.");
             RawText = text ?? throw new ArgumentNullException(nameof(text));
         }
 
@@ -146,6 +157,7 @@ namespace TerrariaUI.Widgets
 
             int defaultCharX = charX;
 
+            StatuePlaceStyleCounter = 0;
             foreach (var pair in Lines)
             {
                 string line = pair.Text;
@@ -210,6 +222,15 @@ namespace TerrariaUI.Widgets
             int spaceH = Height - indent.Up - indent.Down;
             int lineH = 2 + (int)style.TextUnderline;
 
+            StatuePlaceStyle.Clear();
+            Regex.Replace(RawText, ItemPattern, match =>
+            {
+                GetPlaceStyleArgs args = new GetPlaceStyleArgs(int.Parse(match.Groups["id"].Value));
+                TUI.Hooks.GetPlaceStyle.Invoke(args);
+                StatuePlaceStyle.Add(args.PlaceStyle);
+                return ReservedCharacter.ToString();
+            });
+
             //Dividing text into lines
             (List<(string, int)> lines, int maxLineW) = LimitStatueText(RawText, spaceW, spaceH, indent.Horizontal, indent.Vertical, lineH);
             Lines = lines;
@@ -226,6 +247,8 @@ namespace TerrariaUI.Widgets
         /// <param name="value"></param>
         public virtual void SetText(string value)
         {
+            if (value.Contains(ReservedCharacter))
+                throw new InvalidOperationException((int)ReservedCharacter + " is a reserved character.");
             RawText = value ?? throw new ArgumentNullException(nameof(value));
         }
 
@@ -238,9 +261,11 @@ namespace TerrariaUI.Widgets
 
         #region StatueTextFrame
 
-        public static int StatueTextFrame(char c)
+        public int StatueTextFrame(char c)
         {
-            if (c >= '0' && c <= '9')
+            if (c == ReservedCharacter)
+                return StatuePlaceStyle[StatuePlaceStyleCounter++] * 36;
+            else if (c >= '0' && c <= '9')
                 return (c - '0') * 36;
             else if (c >= 'a' && c <= 'z')
                 return (10 + c - 'a') * 36;
@@ -326,7 +351,7 @@ namespace TerrariaUI.Widgets
         #region IsStatueCharacter
 
         private static bool IsStatueCharacter(char c) =>
-            c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9';
+            c == ReservedCharacter || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9';
 
         #endregion
         #region FindMaxSize
