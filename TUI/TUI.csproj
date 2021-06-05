@@ -121,6 +121,8 @@
     <Compile Include="Widgets\Data\SignData.cs" />
     <Compile Include="Widgets\Media\Video.cs" />
     <Compile Include="Widgets\Menu.cs" />
+    <Compile Include="Widgets\PagesList.cs" />
+    <Compile Include="Widgets\PaginationMenu.cs" />
     <Compile Include="Widgets\Panel.cs" />
     <Compile Include="Widgets\Leaderboard.cs" />
     <Compile Include="Widgets\ScrollBackground.cs" />

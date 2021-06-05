@@ -488,27 +488,20 @@ namespace TerrariaUI.Base
         {
             Root?.PrePulseObject(this, type);
 
-            VisualObject result = PulseNative(type);
-
-            Root?.PostPulseObject(this, type);
-
-            return result;
-        }
-
-        #region PulseNative
-
-        public virtual VisualObject PulseNative(PulseType type)
-        {
             // Pulse event handling related to this node
             PulseThis(type);
 
             // Recursive Pulse call
             PulseChild(type);
 
+            // Post pulse event handling related to this node
+            PostPulseThis(type);
+
+            Root?.PostPulseObject(this, type);
+
             return this;
         }
 
-        #endregion
         #region PulseThis
 
         /// <summary>
@@ -570,6 +563,35 @@ namespace TerrariaUI.Base
                 child.Pulse(type);
             return this;
         }
+
+        #endregion
+        #region PostPulseThis
+
+        public VisualObject PostPulseThis(PulseType type)
+        {
+            try
+            {
+                // Overridable pulse handling method
+                PostPulseThisNative(type);
+
+                // Custom pulse handler
+                Configuration.Custom.PostPulse?.Invoke(this, type);
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
+            }
+            return this;
+        }
+
+        #endregion
+        #region PostPulseThisNative
+
+        /// <summary>
+        /// Overridable function to handle post pulse signal for this node.
+        /// </summary>
+        /// <param name="type"></param>
+        protected virtual void PostPulseThisNative(PulseType type) { }
 
         #endregion
 
@@ -1225,6 +1247,9 @@ namespace TerrariaUI.Base
                 // Recursive Apply call
                 ApplyChild();
 
+                // Post applying related to this node
+                PostApplyThis();
+
                 Root?.PostApplyObject(this);
             }
 
@@ -1340,6 +1365,41 @@ namespace TerrariaUI.Base
             }
             return this;
         }
+
+        #endregion
+        #region PostApplyThis
+
+        /// <summary>
+        /// Post apply handling
+        /// </summary>
+        /// <returns>this</returns>
+        public VisualObject PostApplyThis()
+        {
+            lock (Locker)
+            {
+                try
+                {
+                    // Overridable apply function
+                    PostApplyThisNative();
+
+                    // Custom apply callback
+                    Configuration.Custom.Apply?.Invoke(this);
+                }
+                catch (Exception e)
+                {
+                    TUI.HandleException(e);
+                }
+            }
+            return this;
+        }
+
+        #endregion
+        #region PostApplyThisNative
+
+        /// <summary>
+        /// Overridable method for post apply related to this node.
+        /// </summary>
+        protected virtual void PostApplyThisNative() { }
 
         #endregion
 

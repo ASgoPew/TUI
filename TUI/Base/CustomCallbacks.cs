@@ -25,9 +25,17 @@ namespace TerrariaUI.Base
         /// </summary>
         public Action<VisualObject> Apply { get; set; }
         /// <summary>
+        /// Callback for applying custom actions on PostApply().
+        /// </summary>
+        public Action<VisualObject> PostApply { get; set; }
+        /// <summary>
         /// Callback for custom pulse event handling.
         /// </summary>
         public Action<VisualObject, PulseType> Pulse { get; set; }
+        /// <summary>
+        /// Callback for custom post pulse event handling.
+        /// </summary>
+        public Action<VisualObject, PulseType> PostPulse { get; set; }
         /// <summary>
         /// Callback for custom resource loading.
         /// </summary>
@@ -64,9 +72,11 @@ namespace TerrariaUI.Base
         public CustomCallbacks(CustomCallbacks callbacks)
         {
             Update = callbacks.Update;
+            PostUpdate = callbacks.PostUpdate;
             CanTouch = callbacks.CanTouch;
             Apply = callbacks.Apply;
             Pulse = callbacks.Pulse;
+            PostPulse = callbacks.PostPulse;
             Load = callbacks.Load;
             Dispose = callbacks.Dispose;
             DBRead = callbacks.DBRead;
