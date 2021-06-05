@@ -338,10 +338,10 @@ namespace TerrariaUI
                         && o.Players.Contains(touch.Session.PlayerIndex)
                         && (!o.Personal || o.Observers.Contains(touch.PlayerIndex)))
                     {
-                        insideUI = true;
                         touch.Move(-saveX, -saveY);
                         if (o.Touched(touch))
                         {
+                            insideUI = true;
                             if (o.Orderable && SetTop(o))
                                 PostSetTop(o);
                             return true;
