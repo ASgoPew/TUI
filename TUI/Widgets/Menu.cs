@@ -54,16 +54,13 @@ namespace TerrariaUI.Widgets
                 WallColor = PaintID2.White, TextColor = PaintID2.Shadow };
 
             SetupLayout(Alignment.Center, Direction.Down, Side.Center, null, 0);
-            string titleText = null;
             if (HasTitle)
             {
                 Label titleLabel = new Label(0, 0, 0, 4, Title, titleStyle);
                 AddToLayout(titleLabel).SetFullSize(true, false);
                 titleLabel.Update();
-                titleText = titleLabel.GetText();
             }
             int i = 0;
-            List<string> valuesText = new List<string>();
             foreach (var value in values)
             {
                 Button button = new Button(0, 0, 0, 4, value, style: i++ % 2 == 0 ? style1 : style2);
@@ -72,12 +69,11 @@ namespace TerrariaUI.Widgets
                 button.Configuration.UseEnd = false;
                 AddToLayout(button.SetFullSize(true, false));
                 button.Update();
-                valuesText.Add(button.GetText());
             }
 
-            int width = Label.FindMaxWidth(valuesText, style1.TextIndent.Horizontal) + 2;
+            int width = Label.FindMaxWidth(values, style1.TextIndent.Horizontal) + 2;
             if (HasTitle)
-                width = Math.Max(width, Label.FindMaxWidth(new string[] { titleText }, titleStyle.TextIndent.Horizontal) + 2);
+                width = Math.Max(width, Label.FindMaxWidth(new string[] { Title }, titleStyle.TextIndent.Horizontal) + 2);
             int height = 4 * values.Count();
             if (HasTitle)
                 height += 4;

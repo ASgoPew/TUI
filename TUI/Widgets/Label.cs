@@ -410,8 +410,11 @@ namespace TerrariaUI.Widgets
         public static int FindMaxWidth(IEnumerable<string> values, int emptyIndentation)
         {
             int max = 0;
-            foreach (var text in values)
+            foreach (string _text in values)
             {
+                string text = Regex.Replace(_text, ItemPattern, ReservedCharacter.ToString());
+                text = Regex.Replace(text, ColorPattern, match => match.Groups["text"].Value);
+
                 int width = 0;
                 foreach (char c in text)
                     if (c == '\n')
