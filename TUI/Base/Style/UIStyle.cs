@@ -37,6 +37,10 @@
         /// and try to call <see cref="VisualObject.ApplyTile"/>
         /// </summary>
         public bool CustomApplyTile { get; set; } = false;
+        /// <summary>
+        /// If false calculates self-size using <see cref="VisualObject.GetSizeNative"/>
+        /// </summary>
+        public bool FixedSize { get; set; } = true;
 
         /// <summary>
         /// Drawing styles for VisualObject.
@@ -65,6 +69,7 @@
                 this.WallColor = style.WallColor.Value;
             if (style.InActive.HasValue)
                 this.InActive = style.InActive.Value;
+            FixedSize = style.FixedSize;
         }
 
         public ushort? SimilarWall()

@@ -105,42 +105,6 @@ namespace TerrariaUI.Base
 
         #endregion
 
-        #region DescendantDFS
-
-        /// <summary>
-        /// Deep Fast Search method of iterating objects in sub-tree including this node.
-        /// </summary>
-        public IEnumerable<VisualObject> DescendantDFS
-        {
-            get
-            {
-                List<VisualObject> list = new List<VisualObject>();
-                DFS(list);
-
-                foreach (VisualObject o in list)
-                    yield return o;
-            }
-        }
-
-        #endregion
-        #region DescendantBFS
-
-        /// <summary>
-        /// Broad Fast Search method of iterating objects in sub-tree including this node.
-        /// </summary>
-        public IEnumerable<VisualObject> DescendantBFS
-        {
-            get
-            {
-                List<VisualObject> list = new List<VisualObject>();
-                BFS(list);
-
-                foreach (VisualObject o in list)
-                    yield return o;
-            }
-        }
-
-        #endregion
         #region ChildrenFromTop
 
         /// <summary>
@@ -458,28 +422,42 @@ namespace TerrariaUI.Base
         }
 
         #endregion
-        #region DFS
+        #region TreeDFS
 
-        private void DFS(List<VisualObject> list)
+        private void DFS(List<VisualObject> list, bool forward)
         {
-            list.Add(this as VisualObject);
+            if (forward)
+                list.Add(this as VisualObject);
             foreach (VisualObject child in ChildrenFromTop)
-                child.DFS(list);
+                child.DFS(list, forward);
+            if (!forward)
+                list.Add(this as VisualObject);
+        }
+
+        public IEnumerable<VisualObject> TreeDFS(bool forward = true)
+        {
+            List<VisualObject> list = new List<VisualObject>();
+            DFS(list, forward);
+            return list;
         }
 
         #endregion
-        #region BFS
+        #region TreeBFS
 
-        private void BFS(List<VisualObject> list)
+        public IEnumerable<VisualObject> TreeBFS(bool forward = true)
         {
+            List<VisualObject> list = new List<VisualObject>();
             list.Add(this as VisualObject);
             int index = 0;
             while (index < list.Count)
             {
-                foreach (VisualObject o in list[index].ChildrenFromTop)
+                foreach (VisualObject o in list[index].ChildrenFromBottom)
                     list.Add(o);
                 index++;
             }
+            if (!forward)
+                list.Reverse();
+            return list;
         }
 
         #endregion

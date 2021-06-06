@@ -129,10 +129,6 @@ namespace TerrariaUI
         public static T Create<T>(T root, bool draw = true)
             where T : RootVisualObject
         {
-            if (!(root.Provider is MainTileProvider)
-                    && (root.Width > root.Provider.Width || root.Height > root.Provider.Height))
-                throw new ArgumentException("Provider size is less than RootVisualObject size: " + root.FullName);
-
             if (Roots.Count(r => r.Name == root.Name) > 0)
                 throw new ArgumentException($"TUI.Create: name {root.Name} is already taken.");
 

@@ -16,7 +16,7 @@ namespace TerrariaUI.Base
         U GetChild<U>() where U : VisualObject;
         bool HasChild(T node);
         bool SetTop(T child);
-        IEnumerable<T> DescendantDFS { get; }
-        IEnumerable<T> DescendantBFS { get; }
+        IEnumerable<T> TreeDFS(bool forward);
+        IEnumerable<T> TreeBFS(bool forward);
     }
 }

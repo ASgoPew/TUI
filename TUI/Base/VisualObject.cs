@@ -50,6 +50,7 @@ namespace TerrariaUI.Base
         /// Overridable field for disabling ability to be ordered in Parent's Child array.
         /// </summary>
         public override bool Orderable => !Configuration.InLayout;
+        public bool SizeChanged => GetSizeNative() != (Width, Height);
         protected bool CanDraw => Root?.DrawState > 0;
 
         private string _Name;
@@ -606,6 +607,10 @@ namespace TerrariaUI.Base
         {
             Root?.PreUpdateObject(this);
 
+            // Update of objects that set their size by themself
+            if (UpdateSelfSize())
+                return this;
+
             // Updates related to this node
             UpdateThis();
 
@@ -622,6 +627,41 @@ namespace TerrariaUI.Base
 
             return this;
         }
+
+        #region GetSizeNative
+
+        /// <summary>
+        /// Overridable method for determining object size depending on own data or child objects
+        /// </summary>
+        /// <returns></returns>
+        protected virtual (int, int) GetSizeNative() => (Width, Height);
+
+        #endregion
+        #region UpdateSelfSize
+
+        /// <summary>
+        /// Update of objects that set their size by themself
+        /// </summary>
+        /// <returns>True if parent size should be updated as well</returns>
+        public bool UpdateSelfSize()
+        {
+            foreach (VisualObject o in TreeBFS(false))
+                if (!o.Style.FixedSize)
+                    o.SetWH(o.GetSizeNative(), false);
+            if (SizeChanged)
+            {
+                if (Parent is VisualObject parent)
+                {
+                    parent.Update();
+                    return true;
+                }
+                else if (!Style.FixedSize)
+                    SetWH(GetSizeNative(), false);
+            }
+            return false;
+        }
+
+        #endregion
 
         #region UpdateThis
 
@@ -733,26 +773,14 @@ namespace TerrariaUI.Base
         #region UpdateChildSize
 
         /// <summary>
-        /// Updates child sizes with call of overridable child.UpdateSizeNative()
+        /// Updates child sizes
         /// </summary>
         public void UpdateChildSize()
         {
             foreach (VisualObject child in ChildrenFromTop)
-            {
-                child.SetWH(child.GetSizeNative(), false);
                 if (child.Configuration.FullSize != FullSize.None)
                     child.UpdateFullSize();
-            }
         }
-
-        #endregion
-        #region GetSizeNative
-
-        /// <summary>
-        /// Overridable method for determining object size depending on own data (image/text/etc size)
-        /// </summary>
-        /// <returns></returns>
-        protected virtual (int, int) GetSizeNative() => (Width, Height);
 
         #endregion
         #region UpdateFullSize
@@ -1269,6 +1297,9 @@ namespace TerrariaUI.Base
             {
                 try
                 {
+                    // Mark changes to be drawn
+                    RequestDrawChanges();
+
                     // Overridable apply function
                     ApplyThisNative();
 
@@ -1377,9 +1408,6 @@ namespace TerrariaUI.Base
             {
                 try
                 {
-                    // Mark changes to be drawn
-                    RequestDrawChanges();
-
                     // Overridable apply function
                     PostApplyThisNative();
 

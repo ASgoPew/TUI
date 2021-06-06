@@ -24,15 +24,23 @@ namespace TUIExample
 
         public override void Initialize()
         {
+            Create(true);
+            Create(false);
+        }
+
+        private void Create(bool mainTileProvider)
+        {
             // Determine the position and size of the interface.
             int x = 0, y = 0, w = 50, h = 40;
             // Pass an empty provider to the panel (the interface will be drawn on Main.tile).
             object provider = null;
+            if (mainTileProvider)
+                provider = new MainTileProvider();
             // Although we can use as a provider, for example, FakeTileRectangle from FakeManager:
             //object provider = FakeManager.FakeManager.Common.Add("TestPanelProvider", x, y, w, h);
 
             // Create a panel with a wall of diamond gemspark wall with black paint.
-            Panel root = TUI.Create(new Panel("TestPanel", x, y, w, h, null,
+            Panel root = TUI.Create(new Panel(mainTileProvider ? "TestPanel2" : "TestPanel", x, y, w, h, null,
                 new PanelStyle() { Wall = WallID.DiamondGemspark, WallColor = PaintID2.Black }, provider)) as Panel;
             // Create a Label widget (text display) with white characters.
             Label label1 = new Label(1, 1, 17, 2, "some text", new LabelStyle() { TextColor = PaintID2.White });
@@ -233,7 +241,7 @@ namespace TUIExample
             Image image = node.AddToLayout(new Image(15, 5, "Media\\Image.TEditSch")) as Image;
 
             // Video
-            Video video = node.AddToLayout(new Video(15, 5, null, new VideoStyle()
+            Video video = node.AddToLayout(new Video(15, 5, 0, 0, null, new VideoStyle()
             {
                 VideoName = "Media\\Animation-1",
                 Delay = 100,

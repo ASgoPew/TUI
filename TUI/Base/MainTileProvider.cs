@@ -12,12 +12,12 @@ namespace TerrariaUI.Base
         internal int Height = 0;
         internal bool Enabled = true;
 
-        private FieldInfo TileField;
+        private static FieldInfo TileField;
 
         public MainTileProvider(object tile = null)
         {
             Tile = tile;
-            if (Tile == null)
+            if (Tile == null && TileField == null)
             {
                 Assembly[] asms = AppDomain.CurrentDomain.GetAssemblies();
                 foreach (Assembly asm in asms)
@@ -70,7 +70,8 @@ namespace TerrariaUI.Base
 
         public void Update()
         {
-            Tile = TileField?.GetValue(null);
+            if (Tile == null)
+                Tile = TileField?.GetValue(null);
         }
     }
 }

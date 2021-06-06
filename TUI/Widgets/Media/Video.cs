@@ -56,10 +56,12 @@ namespace TerrariaUI.Widgets
 
         #region Constructor
 
-        public Video(int x, int y, UIConfiguration configuration = null, VideoStyle style = null,
+        public Video(int x, int y, int width = 0, int height = 0, UIConfiguration configuration = null, VideoStyle style = null,
                 Action<VisualObject, Touch> callback = null)
-            : base(x, y, 8, 5, configuration, style, callback)
+            : base(x, y, width, height, configuration, style, callback)
         {
+            if (width == 0 || height == 0)
+                Style.FixedSize = false;
             Timer.Interval = VideoStyle.Delay;
             Timer.Elapsed += Next;
         }
@@ -139,7 +141,6 @@ namespace TerrariaUI.Widgets
 
         protected override (int, int) GetSizeNative() =>
             Images?.Count > 0
-            //? (Images.Max(i => i.Width), Images.Max(i => i.Height))
             ? (Images[Frame].Width, Images[Frame].Height)
             : (8, 5);
 

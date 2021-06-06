@@ -122,8 +122,11 @@ namespace TerrariaUI.Widgets
                 int oldTemp = Input.Temp;
                 Input.Temp = temp;
                 if (draw)
+                {
+
                     ApplyThis().Draw(temp < oldTemp ? temp : oldTemp, 0,
                     temp > oldTemp ? temp + 1 - oldTemp : oldTemp + 1 - temp);
+                }
             }
         }
 

@@ -36,14 +36,22 @@ namespace TerrariaUI.Base
         /// Tile provider object, default value - null (interface would
         /// be drawn on the Main.tile, tiles would be irrevocably modified).
         /// <para></para>
-        /// FakeTileRectangle from [FakeManager](https://github.com/AnzhelikaO/FakeManager)
+        /// TileProvider from [FakeProvider](https://github.com/AnzhelikaO/FakeProvider)
         /// can be passed as a value so that interface would be drawn above the Main.tile.
         /// </summary>
-        public override dynamic Provider { get; }
+        public override dynamic Provider => _Provider;
         /// <summary>
         /// Counter of Apply() calls. Interface won't redraw to user if ApplyCounter hasn't changed.
         /// </summary>
         public ulong DrawState { get; protected internal set; }
+        /// <summary>
+        /// Tile provider object, default value - null (interface would
+        /// be drawn on the Main.tile, tiles would be irrevocably modified).
+        /// <para></para>
+        /// TileProvider from [FakeProvider](https://github.com/AnzhelikaO/FakeProvider)
+        /// can be passed as a value so that interface would be drawn above the Main.tile.
+        /// </summary>
+        protected dynamic _Provider { get; set; }
         protected VisualContainer PopUpBackground { get; set; }
         protected Dictionary<VisualObject, Action<VisualObject>> PopUpCancelCallbacks { get; set; } =
             new Dictionary<VisualObject, Action<VisualObject>>();
@@ -75,26 +83,7 @@ namespace TerrariaUI.Base
         {
             Name = name;
             Observers = observers; // we have to initialize this field before trying to create provider
-            if (provider != null)
-                Provider = provider;
-            else
-            {
-                var args = new CreateProviderArgs(this);
-                TUI.Hooks.CreateProvider.Invoke(args); // fake or personal fake is root.Observers is not null
-                Provider = args.Provider ?? new MainTileProvider();
-            }
-            if (Personal && Provider is MainTileProvider)
-                throw new NotSupportedException("Personal UI is not supported with MainTileProvider.");
-        }
-
-        #endregion
-        #region DisposeThisNative
-
-        protected override void DisposeThisNative()
-        {
-            base.DisposeThisNative();
-            if (!(Provider is MainTileProvider))
-                TUI.Hooks.RemoveProvider.Invoke(new RemoveProviderArgs(Provider));
+            _Provider = provider;
         }
 
         #endregion
@@ -121,7 +110,7 @@ namespace TerrariaUI.Base
                     Clear();
 
                 // MainTileProvider ignores this SetXYWH
-                Provider.SetXYWH(x, y, width, height, false);
+                Provider?.SetXYWH(x, y, width, height, false);
                 base.SetXYWH(x, y, width, height, draw);
                 TUI.Hooks.SetXYWH.Invoke(new SetXYWHArgs(this, x, y, width, height, draw));
             }
@@ -196,9 +185,30 @@ namespace TerrariaUI.Base
 
         protected override void LoadThisNative()
         {
-            TUI.Hooks.LoadRoot.Invoke(new LoadRootArgs(this));
-
             base.LoadThisNative();
+
+            if (Provider == null)
+            {
+                var args = new CreateProviderArgs(this);
+                TUI.Hooks.CreateProvider.Invoke(args); // fake or personal fake is root.Observers is not null
+                _Provider = args.Provider ?? new MainTileProvider();
+            }
+            if (Personal && Provider is MainTileProvider)
+                throw new NotSupportedException("Personal UI is not supported with MainTileProvider: "+ FullName);
+            // MainTileProvider ignores this SetXYWH
+            Provider.SetXYWH(X, Y, Width, Height, false);
+
+            TUI.Hooks.LoadRoot.Invoke(new LoadRootArgs(this));
+        }
+
+        #endregion
+        #region DisposeThisNative
+
+        protected override void DisposeThisNative()
+        {
+            base.DisposeThisNative();
+            if (!(Provider is MainTileProvider))
+                TUI.Hooks.RemoveProvider.Invoke(new RemoveProviderArgs(Provider));
         }
 
         #endregion
@@ -208,8 +218,6 @@ namespace TerrariaUI.Base
         {
             // MainTileProvider acquires Main.tile field
             Provider.Update();
-            SetWH(GetSizeNative(), false);
-
             base.UpdateThisNative();
         }
 
