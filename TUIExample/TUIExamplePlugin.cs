@@ -41,7 +41,7 @@ namespace TUIExample
 
             // Create a panel with a wall of diamond gemspark wall with black paint.
             Panel root = TUI.Create(new Panel(mainTileProvider ? "TestPanel2" : "TestPanel", x, y, w, h, null,
-                new PanelStyle() { Wall = WallID.DiamondGemspark, WallColor = PaintID2.Black }, provider)) as Panel;
+                new PanelStyle() { Wall = WallID.DiamondGemspark, WallColor = PaintID2.Black }, provider));
             // Create a Label widget (text display) with white characters.
             Label label1 = new Label(1, 1, 17, 2, "some text", new LabelStyle() { TextColor = PaintID2.White });
             // Add to panel
@@ -52,7 +52,7 @@ namespace TUIExample
             // so adding an element can be implemented as follows:
             VisualContainer node = root.Add(
                 new VisualContainer(0, 15, w, 25, null, new ContainerStyle() { WallColor = PaintID2.White })
-            ) as VisualContainer;
+            );
             // Add a button to this container, which, when clicked, will send the clicker to the chat.
             /*node.Add(new Button(5, 0, 12, 4, "lol", null, new ButtonStyle()
             { Wall = 165, WallColor = PaintID2.DeepGreen }, (self, touch) =>
@@ -71,7 +71,7 @@ namespace TUIExample
                 node.AddToLayout(new ItemRack(0, 0, new ItemRackStyle() { Type = 200, Left = true }, (self, touch) =>
                     Console.WriteLine($"Touch: {touch.X}, {touch.Y}; absolute: {touch.AbsoluteX}, {touch.AbsoluteY}")));
                 ItemRack irack1 = node.AddToLayout(new ItemRack(0, 0,
-                    new ItemRackStyle() { Type = 201, Left = true })) as ItemRack;
+                    new ItemRackStyle() { Type = 201, Left = true }));
                 // ItemRack allows you to add text on top using a sign:
                 irack1.SetText("lololo\nkekeke");
                 // Finally, add the slider to the layout.
@@ -157,7 +157,7 @@ namespace TUIExample
             {
                 WallColor = PaintID2.DeepLime,
                 TextColor = PaintID2.DeepRed
-            })) as Label;
+            }));
 
             // Button
             Button button = node.AddToLayout(new Button(15, 5, 12, 4, "lol", null, new ButtonStyle()
@@ -165,7 +165,7 @@ namespace TUIExample
                 WallColor = PaintID2.DeepGreen,
                 BlinkColor = PaintID2.Shadow,
                 TriggerStyle = ButtonTriggerStyle.TouchEnd
-            }, (self, touch) => touch.Player().SendInfoMessage("You released lol button!"))) as Button;
+            }, (self, touch) => touch.Player().SendInfoMessage("You released lol button!")));
 
             // Slider
             Slider slider = node.AddToLayout(new Slider(15, 5, 10, 2, new SliderStyle()
@@ -175,7 +175,7 @@ namespace TUIExample
                 SeparatorColor = PaintID2.Black,
                 UsedColor = PaintID2.DeepOrange
             }, new Input<int>(0, 0, (self, value, playerIndex) =>
-                TShock.Players[playerIndex].SendInfoMessage("Slider value: " + value)))) as Slider;
+                TShock.Players[playerIndex].SendInfoMessage("Slider value: " + value))));
 
             // Checkbox
             Checkbox checkbox = node.AddToLayout(new Checkbox(15, 5, 2, new CheckboxStyle()
@@ -184,14 +184,14 @@ namespace TUIExample
                 WallColor = PaintID2.White,
                 CheckedColor = PaintID2.DeepRed
             }, new Input<bool>(false, false, (self, value, playerIndex) =>
-                TSPlayer.All.SendInfoMessage("Checkbox value: " + value)))) as Checkbox;
+                TSPlayer.All.SendInfoMessage("Checkbox value: " + value))));
 
             // Separator
             Separator separator = node.AddToLayout(new Separator(6, new UIStyle()
             {
                 Wall = 156,
                 WallColor = PaintID2.DeepRed
-            })) as Separator;
+            }));
 
             // InputLabel
             InputLabel input = node.AddToLayout(new InputLabel(15, 5, new InputLabelStyle()
@@ -201,7 +201,7 @@ namespace TUIExample
                 TextColor = PaintID2.DeepRed,
                 TextUnderlineColor = PaintID2.Black // Этот параметр из LabelStyle
             }, new Input<string>("12345", "12345", (self, value, playerIndex) =>
-                TSPlayer.All.SendInfoMessage("InputLabel value: " + value)))) as InputLabel;
+                TSPlayer.All.SendInfoMessage("InputLabel value: " + value))));
 
             // ItemRack
             ItemRack irack = node.AddToLayout(new ItemRack(15, 5, new ItemRackStyle()
@@ -209,20 +209,20 @@ namespace TUIExample
                 Type = ItemID.LargeDiamond,
                 Size = ItemSize.Biggest,
                 Left = true
-            })) as ItemRack;
+            }));
             ItemRack irack2 = node.AddToLayout(new ItemRack(20, 5, new ItemRackStyle()
             {
                 Type = ItemID.SnowmanCannon,
                 Size = ItemSize.Smallest,
                 Left = true
-            })) as ItemRack;
+            }));
             irack2.SetText("This is a snowman cannon.");
 
             // VisualSign
-            VisualSign vsign = node.AddToLayout(new VisualSign(0, 0, "lmfao sosi(te pozhaluista)")) as VisualSign;
+            VisualSign vsign = node.AddToLayout(new VisualSign(0, 0, "lmfao sosi(te pozhaluista)"));
             VisualSign vsign2 = node.AddToLayout(new VisualSign(0, 0, "This is an example of what can happen " +
                 "if you use signs in TUI without FakeManager (only $399!)." +
-                "Text above would be empty. Even tho it has to have it...")) as VisualSign;
+                "Text above would be empty. Even tho it has to have it..."));
 
             // FormField
             FormField ffield = node.AddToLayout(new FormField(
@@ -235,10 +235,10 @@ namespace TUIExample
                 {
                     TextColor = PaintID2.Shadow,
                     TextAlignment = Alignment.Left
-                }, new ExternalIndent() { Right = 1 })) as FormField;
+                }, new ExternalIndent() { Right = 1 }));
 
             // Image
-            Image image = node.AddToLayout(new Image(15, 5, "Media\\Image.TEditSch")) as Image;
+            Image image = node.AddToLayout(new Image(15, 5, "Media\\Image.TEditSch"));
 
             // Video
             Video video = node.AddToLayout(new Video(15, 5, 0, 0, null, new VideoStyle()
@@ -246,37 +246,37 @@ namespace TUIExample
                 VideoName = "Media\\Animation-1",
                 Delay = 100,
                 TileColor = PaintID2.DeepTeal
-            }, (self, touch) => (self as Video).ToggleStart())) as Video;
+            }, (self, touch) => (self as Video).ToggleStart()));
 
             // AlertWindow
             Button alertButton = node.AddToLayout(new Button(15, 10, 16, 4, "alert", null, new ButtonStyle()
             {
                 Wall = WallID.AmberGemspark,
                 WallColor = PaintID2.DeepOrange
-            }, (self, touch) => ((Panel)node.Root).Alert("Hello world"))) as Button;
+            }, (self, touch) => ((Panel)node.Root).Alert("Hello world")));
 
             // ConfirmWindow
             Button confirmButton = node.AddToLayout(new Button(15, 13, 20, 4, "confirm\npls", null, new ButtonStyle()
             {
                 Wall = WallID.AmberGemspark,
                 WallColor = PaintID2.DeepTeal
-            }, (self, touch) => ((Panel)node.Root).Confirm("Very nice", value => TSPlayer.All.SendInfoMessage("Confirmed? " + value)))) as Button;
+            }, (self, touch) => ((Panel)node.Root).Confirm("Very nice", value => TSPlayer.All.SendInfoMessage("Confirmed? " + value))));
 
             // ScrollBackground
             // <Adding a lot of widgets to layout>
             // Specifying layer value as Int32.MinValue so that this widget would be under all other child objects,
             // although ScrollBackground specifies this layer by default in custructor so we don't have to do it manually.
-            ScrollBackground scrollbg = node.Add(new ScrollBackground(true, true, true), Int32.MinValue) as ScrollBackground;
+            ScrollBackground scrollbg = node.Add(new ScrollBackground(true, true, true), Int32.MinValue);
 
             // ScrollBar
-            ScrollBar scrollbar = node.Add(new ScrollBar(Direction.Right)) as ScrollBar;
+            ScrollBar scrollbar = node.Add(new ScrollBar(Direction.Right));
 
             // Arrow
             Arrow arrow = node.AddToLayout(new Arrow(15, 5, new ArrowStyle()
             {
                 TileColor = PaintID2.DeepBlue,
                 Direction = Direction.Left
-            })) as Arrow;
+            }));
         }
     }
 }

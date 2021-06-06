@@ -363,7 +363,7 @@ namespace TerrariaUI.Base
                     for (int j = 0; j < gridStyle.Lines.Length; j++)
                         this[i, j] = new VisualContainer();
 
-            return this as VisualObject;
+            return this;
         }
 
         #endregion

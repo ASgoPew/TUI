@@ -21,7 +21,7 @@ namespace TUIPlugin
             {
                 int p = Projectile.NewProjectile(Projectile.GetNoneSource(),
                     player.TPlayer.position.X + beginX + i * dx, player.TPlayer.position.Y + dy, 0f, -8f,
-                    type, 0, (float)0);
+                    type, 0, 0);
                 Main.projectile[p].Kill();
             }
         }
