@@ -137,8 +137,7 @@ namespace TerrariaUI.Base
             VisualObject @this = this as VisualObject;
             CanTouchArgs args = new CanTouchArgs(@this, touch);
             TUI.Hooks.CanTouch.Invoke(args);
-            lock (Locker)
-                return Loaded && !Disposed && args.CanTouch;
+            return Loaded && !Disposed && args.CanTouch;
         }
 
         #endregion

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,30 +11,21 @@ namespace TerrariaUI
     {
         #region Data
 
+        protected ConcurrentDictionary<int, Application> Instances { get; set; } = new ConcurrentDictionary<int, Application>();
+        protected ApplicationSaver Saver;
+
         public string Name { get; protected set; }
         public Func<string, HashSet<int>, Application> Generator { get; protected set; }
         public bool AllowManualRun { get; protected set; }
         public ImageData Icon { get; set; } = null;
 
-        protected Dictionary<int, Application> Instances { get; set; } = new Dictionary<int, Application>();
-        protected ApplicationSaver Saver;
-        protected object Locker = new object();
-
-        public int InstancesCount
-        {
-            get
-            {
-                lock (Locker)
-                    return Instances.Count;
-            }
-        }
+        public int InstancesCount => Instances.Count;
         public IEnumerable<KeyValuePair<int, Application>> IterateInstances
         {
             get
             {
-                lock (Locker)
-                    foreach (var instance in Instances.ToArray())
-                        yield return instance;
+                foreach (var instance in Instances)
+                    yield return instance;
             }
         }
 
@@ -75,22 +67,19 @@ namespace TerrariaUI
 
         public Application CreateInstance(int x, int y, HashSet<int> observers = null, bool draw = true)
         {
-            lock (Locker)
-            {
-                int index = 0;
-                while (Instances.ContainsKey(index))
-                    index++;
-                Application instance = Generator($"{Name}_{index}", observers);
-                instance.Type = this;
-                instance.Index = index;
-                Instances[index] = instance;
-                instance.SetXY(x - instance.Width / 2, y - instance.Height / 2, false);
-                instance.SavePanel();
-                TUI.Create(instance, draw);
-                if (!instance.Personal)
-                    Saver?.UDBWrite(TUI.WorldID);
-                return instance;
-            }
+            int index = 0;
+            while (Instances.ContainsKey(index))
+                index++;
+            Application instance = Generator($"{Name}_{index}", observers);
+            instance.Type = this;
+            instance.Index = index;
+            Instances[index] = instance;
+            instance.SetXY(x - instance.Width / 2, y - instance.Height / 2, false);
+            instance.SavePanel();
+            TUI.Create(instance, draw);
+            if (!instance.Personal)
+                Saver?.UDBWrite(TUI.WorldID);
+            return instance;
         }
 
         #endregion
@@ -99,7 +88,8 @@ namespace TerrariaUI
         public bool TryDestroy(int x, int y, out string name)
         {
             name = null;
-            foreach (var pair in IterateInstances)
+            TUI.Log($"DESTROYING APPTYPE {Name} INSTANCES: {Instances.Count}");
+            foreach (var pair in Instances)
                 if (pair.Value.ContainsParent(x, y))
                 {
                     name = pair.Value.Name;
@@ -114,7 +104,7 @@ namespace TerrariaUI
 
         public void DestroyAll()
         {
-            foreach (var pair in IterateInstances.ToArray())
+            foreach (var pair in Instances.ToArray())
                 TUI.Destroy(pair.Value);
         }
 
@@ -123,14 +113,11 @@ namespace TerrariaUI
 
         internal void DisposeInstance(Application app)
         {
-            lock (Locker)
-            {
-                Application instance = Instances[app.Index];
-                instance.EndPlayerSession();
-                Instances.Remove(app.Index);
-                if (!instance.Personal)
-                    Saver?.UDBWrite(TUI.WorldID);
-            }
+            Application instance = Instances[app.Index];
+            instance.EndPlayerSession();
+            Instances.TryRemove(app.Index, out _);
+            if (!instance.Personal)
+                Saver?.UDBWrite(TUI.WorldID);
         }
 
         #endregion
@@ -143,19 +130,16 @@ namespace TerrariaUI
 
         internal void LoadInstance(int index)
         {
-            lock (Locker)
+            Application instance = Generator($"{Name}_{index}", null);
+            instance.Type = this;
+            instance.Index = index;
+            if (Instances.TryGetValue(index, out Application another))
             {
-                Application instance = Generator($"{Name}_{index}", null);
-                instance.Type = this;
-                instance.Index = index;
-                if (Instances.TryGetValue(index, out Application another))
-                {
-                    TUI.Destroy(another);
-                    TUI.Log($"Application {another.Name} was replaced by a new one.", LogType.Warning);
-                }
-                Instances[index] = instance;
-                TUI.Create(instance);
+                TUI.Destroy(another);
+                TUI.Log($"Application {another.Name} was replaced by a new one.", LogType.Warning);
             }
+            Instances[index] = instance;
+            TUI.Create(instance);
         }
 
         #endregion
@@ -169,13 +153,10 @@ namespace TerrariaUI
 
         public void Write(BinaryWriter bw)
         {
-            lock (Locker)
-            {
-                var instances = Instances.Where(instance => !instance.Value.Personal);
-                bw.Write((byte)instances.Count());
-                foreach (var pair in instances)
-                    bw.Write((int)pair.Key);
-            }
+            var instances = Instances.Where(instance => !instance.Value.Personal);
+            bw.Write((byte)instances.Count());
+            foreach (var pair in instances)
+                bw.Write((int)pair.Key);
         }
 
         #endregion

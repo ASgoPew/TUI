@@ -17,8 +17,14 @@ namespace TerrariaUI
     {
         #region Data
 
+        private static List<RootVisualObject> _Child = new List<RootVisualObject>();
+        private static Timer Timer;
+        internal static object LoadLocker = new object();
+        internal static object DisposeLocker = new object();
+
         public const string ControlPermission = "TUI.control";
 
+        public static List<RootVisualObject> Roots => _Child.ToList();
         public static int MaxPlayers { get; private set; }
         public static int MaxTilesX { get; private set; }
         public static int MaxTilesY { get; private set; }
@@ -31,9 +37,6 @@ namespace TerrariaUI
             new ConcurrentDictionary<string, ApplicationType>();
         public static List<ConcurrentDictionary<Application, byte>> ApplicationPlayerSessions { get; } =
             new List<ConcurrentDictionary<Application, byte>>();
-
-        private static List<RootVisualObject> Child = new List<RootVisualObject>();
-        private static Timer Timer;
 
         #endregion
 
@@ -56,19 +59,14 @@ namespace TerrariaUI
 
         public static void Load(int worldID)
         {
+            Active = true; // Must be before Load() calls
             WorldID = worldID;
+
+            foreach (VisualObject child in Roots)
+                child.Load();
 
             foreach (var pair in ApplicationTypes)
                 pair.Value.Load();
-
-            // Locking for Child and Active
-            lock (Child)
-            {
-                Active = true;
-
-                foreach (VisualObject child in Child)
-                    child.Load();
-            }
 
             Timer.Start();
 
@@ -82,15 +80,11 @@ namespace TerrariaUI
         {
             Timer.Stop();
 
-            // Locking for Child and Active
-            lock (Child)
-            {
-                Active = false;
+            Active = false;
 
-                foreach (RootVisualObject child in Child)
-                    child.Dispose();
-                Child.Clear();
-            }
+            foreach (RootVisualObject child in Roots)
+                child.Dispose();
+            _Child.Clear();
 
             Hooks.Dispose.Invoke(new EventArgs());
         }
@@ -100,12 +94,8 @@ namespace TerrariaUI
 
         internal static void TryToLoadChild(VisualObject node, VisualObject child)
         {
-            // Locking for Child and Active
-            lock (Child)
-            {
-                if (Child.Contains(node.GetRoot() as RootVisualObject) && Active)
-                    child.Load();
-            }
+            if (_Child.Contains(node.GetRoot() as RootVisualObject) && Active)
+                child.Load();
         }
 
         #endregion
@@ -143,24 +133,21 @@ namespace TerrariaUI
                     && (root.Width > root.Provider.Width || root.Height > root.Provider.Height))
                 throw new ArgumentException("Provider size is less than RootVisualObject size: " + root.FullName);
 
-            // Locking for Child and Active
-            lock (Child)
+            if (Roots.Count(r => r.Name == root.Name) > 0)
+                throw new ArgumentException($"TUI.Create: name {root.Name} is already taken.");
+
+            List<RootVisualObject> _child = Roots;
+            int index = _child.Count;
+            while (index > 0 && _child[index - 1].Layer > root.Layer)
+                index--;
+            _Child.Insert(index, root);
+
+            if (Active)
             {
-                if (Child.Count(r => r.Name == root.Name) > 0)
-                    throw new ArgumentException($"TUI.Create: name {root.Name} is already taken.");
-
-                int index = Child.Count;
-                while (index > 0 && Child[index - 1].Layer > root.Layer)
-                    index--;
-                Child.Insert(index, root);
-
-                if (Active)
-                {
-                    root.Load();
-                    root.Update();
-                    if (draw)
-                        root.Apply().Draw();
-                }
+                root.Load();
+                root.Update();
+                if (draw)
+                    root.Apply().Draw();
             }
             return root;
         }
@@ -170,28 +157,13 @@ namespace TerrariaUI
 
         public static void Destroy(RootVisualObject obj)
         {
-            lock (Child)
-            {
-                if (obj is Application app)
-                    app.Type.DisposeInstance(app);
+            if (obj is Application app)
+                app.Type.DisposeInstance(app);
 
-                if (Active)
-                    obj.Disable(true);
-                Child.Remove(obj);
-                obj.Dispose();
-            }
-        }
-
-        #endregion
-        #region GetRoots
-
-        public static List<RootVisualObject> GetRoots()
-        {
-            List<RootVisualObject> result = new List<RootVisualObject>();
-            lock (Child)
-                foreach (RootVisualObject child in Child)
-                    result.Add(child);
-            return result;
+            if (Active)
+                obj.Disable(true);
+            _Child.Remove(obj);
+            obj.Dispose();
         }
 
         #endregion
@@ -199,8 +171,7 @@ namespace TerrariaUI
 
         public static void InitializePlayer(int playerIndex)
         {
-            lock (Session)
-                Session[playerIndex] = new PlayerSession(playerIndex);
+            Session[playerIndex] = new PlayerSession(playerIndex);
         }
 
         #endregion
@@ -218,17 +189,16 @@ namespace TerrariaUI
                 Touched(playerIndex, simulatedEndTouch);
             }
 
-            lock (Child)
-                foreach (RootVisualObject child in Child.ToArray())
+            foreach (RootVisualObject child in Roots)
+            {
+                if (child.Personal && child.Observers.Contains(playerIndex))
                 {
-                    if (child.Personal && child.Observers.Contains(playerIndex))
-                    {
-                        child.Observers.Remove(playerIndex);
-                        if (child is Application app)
-                            app.OnObserverLeave(playerIndex);
-                    }
-                    child.Players.Remove(playerIndex);
+                    child.Observers.Remove(playerIndex);
+                    if (child is Application app)
+                        app.OnObserverLeave(playerIndex);
                 }
+                child.Players.Remove(playerIndex);
+            }
 
             foreach (var pair in ApplicationPlayerSessions[playerIndex])
                 pair.Key.OnPlayerLeave(playerIndex);
@@ -245,59 +215,56 @@ namespace TerrariaUI
             PlayerSession session = Session[playerIndex];
             touch.SetSession(session);
 
-            lock (session)
-            {
-                Touch previous = session.PreviousTouch;
-                if (touch.State == TouchState.Begin && previous != null
-                        && (previous.State == TouchState.Begin || previous.State == TouchState.Moving))
-                    throw new InvalidOperationException();
+            Touch previous = session.PreviousTouch;
+            if (touch.State == TouchState.Begin && previous != null
+                    && (previous.State == TouchState.Begin || previous.State == TouchState.Moving))
+                throw new InvalidOperationException();
 
-                if ((touch.State == TouchState.Moving || touch.State == TouchState.End)
-                        && (previous == null || previous.State == TouchState.End))
-                    throw new InvalidOperationException();
+            if ((touch.State == TouchState.Moving || touch.State == TouchState.End)
+                    && (previous == null || previous.State == TouchState.End))
+                throw new InvalidOperationException();
 
-                if (touch.State == TouchState.Moving && touch.AbsoluteX == previous.AbsoluteX && touch.AbsoluteY == previous.AbsoluteY)
-                    return session.Used;
-
-#if DEBUG
-                Stopwatch sw = Stopwatch.StartNew();
-#endif
-
-                if (touch.State == TouchState.Begin)
-                {
-                    session.Reset();
-                    session.BeginTouch = touch;
-                }
-
-                bool insideUI = false;
-                bool used = false;
-                if (session.Enabled)
-                {
-                    if (session.Acquired != null)
-                        used = TouchedAcquired(touch, ref insideUI);
-                    else
-                        used = TouchedChild(touch, ref insideUI);
-                }
-                session.Used = session.Used || used;
-                touch.InsideUI = insideUI;
-
-                if (touch.State == TouchState.End)
-                {
-                    session.TouchSessionIndex++;
-                    session.EndTouchHandled = touch.InsideUI || session.BeginTouch.InsideUI;
-                }
-
-#if DEBUG
-                long elapsed = sw.ElapsedMilliseconds;
-                sw.Stop();
-                Log($"Touch ({touch.X},{touch.Y}): {touch.State} ({touch.Object}); elapsed: {elapsed}");
-#endif
-
-                session.Count++;
-                session.PreviousTouch = touch;
-
+            if (touch.State == TouchState.Moving && touch.AbsoluteX == previous.AbsoluteX && touch.AbsoluteY == previous.AbsoluteY)
                 return session.Used;
+
+#if DEBUG
+            Stopwatch sw = Stopwatch.StartNew();
+#endif
+
+            if (touch.State == TouchState.Begin)
+            {
+                session.Reset();
+                session.BeginTouch = touch;
             }
+
+            bool insideUI = false;
+            bool used = false;
+            if (session.Enabled)
+            {
+                if (session.Acquired != null)
+                    used = TouchedAcquired(touch, ref insideUI);
+                else
+                    used = TouchedChild(touch, ref insideUI);
+            }
+            session.Used = session.Used || used;
+            touch.InsideUI = insideUI;
+
+            if (touch.State == TouchState.End)
+            {
+                session.TouchSessionIndex++;
+                session.EndTouchHandled = touch.InsideUI || session.BeginTouch.InsideUI;
+            }
+
+#if DEBUG
+            long elapsed = sw.ElapsedMilliseconds;
+            sw.Stop();
+            Log($"Touch ({touch.X},{touch.Y}): {touch.State} ({touch.Object}); elapsed: {elapsed}");
+#endif
+
+            session.Count++;
+            session.PreviousTouch = touch;
+
+            return session.Used;
         }
 
         #endregion
@@ -327,27 +294,25 @@ namespace TerrariaUI
 
         public static bool TouchedChild(Touch touch, ref bool insideUI)
         {
-            lock (Child)
+            List<RootVisualObject> _child = Roots;
+            for (int i = _child.Count - 1; i >= 0; i--)
             {
-                for (int i = Child.Count - 1; i >= 0; i--)
+                RootVisualObject o = _child[i];
+                int saveX = o.X, saveY = o.Y;
+                if (o.Active
+                    && o.ContainsParent(touch)
+                    && o.Players.Contains(touch.Session.PlayerIndex)
+                    && (!o.Personal || o.Observers.Contains(touch.PlayerIndex)))
                 {
-                    RootVisualObject o = Child[i];
-                    int saveX = o.X, saveY = o.Y;
-                    if (o.Active
-                        && o.ContainsParent(touch)
-                        && o.Players.Contains(touch.Session.PlayerIndex)
-                        && (!o.Personal || o.Observers.Contains(touch.PlayerIndex)))
+                    touch.Move(-saveX, -saveY);
+                    if (o.Touched(touch))
                     {
-                        touch.Move(-saveX, -saveY);
-                        if (o.Touched(touch))
-                        {
-                            insideUI = true;
-                            if (o.Orderable && SetTop(o))
-                                PostSetTop(o);
-                            return true;
-                        }
-                        touch.Move(saveX, saveY);
+                        insideUI = true;
+                        if (o.Orderable && SetTop(o))
+                            PostSetTop(o);
+                        return true;
                     }
+                    touch.Move(saveX, saveY);
                 }
             }
             return false;
@@ -367,28 +332,26 @@ namespace TerrariaUI
             if (root.Personal)
                 return false;
 
-            lock (Child)
-            {
-                int previousIndex = Child.IndexOf(root);
-                int index = previousIndex;
-                if (index < 0)
-                    throw new InvalidOperationException("Trying to SetTop an object that isn't a child of current VisualDOM");
-                int count = Child.Count;
+            List<RootVisualObject> _child = Roots;
+            int previousIndex = _child.IndexOf(root);
+            int index = previousIndex;
+            if (index < 0)
+                throw new InvalidOperationException("Trying to SetTop an object that isn't a child of current VisualDOM");
+            int count = _child.Count;
+            index++;
+            while (index < count && _child[index].Layer <= root.Layer)
                 index++;
-                while (index < count && Child[index].Layer <= root.Layer)
-                    index++;
 
-                if (index == previousIndex + 1)
-                    return false;
+            if (index == previousIndex + 1)
+                return false;
 
-                Child.Remove(root);
-                Child.Insert(index - 1, root);
+            _Child.Remove(root);
+            _Child.Insert(index - 1, root);
 
-                if (!root.UsesDefaultMainProvider)
-                    root.Provider.SetTop(false);
+            if (!root.UsesDefaultMainProvider)
+                root.Provider.SetTop(false);
 
-                return true;
-            }
+            return true;
         }
 
         #endregion
@@ -414,7 +377,7 @@ namespace TerrariaUI
         public static (bool intersects, bool needsApply) ChildIntersectingOthers(RootVisualObject o)
         {
             bool intersects = false;
-            foreach (RootVisualObject child in Child)
+            foreach (RootVisualObject child in Roots)
                 if (child != o && child.Active && child.Orderable && o.Intersecting(child))
                 {
                     intersects = true;
@@ -438,17 +401,16 @@ namespace TerrariaUI
 
         public static void Update()
         {
-            lock (Child)
-                foreach (RootVisualObject child in Child)
-                    try
-                    {
-                        if (child.Active)
-                            child.Update();
-                    }
-                    catch (Exception e)
-                    {
-                        HandleException(child, e);
-                    }
+            foreach (RootVisualObject child in Roots)
+                try
+                {
+                    if (child.Active)
+                        child.Update();
+                }
+                catch (Exception e)
+                {
+                    HandleException(child, e);
+                }
         }
 
         #endregion
@@ -456,17 +418,16 @@ namespace TerrariaUI
 
         public static void Apply()
         {
-            lock (Child)
-                foreach (RootVisualObject child in Child)
-                    try
-                    {
-                        if (child.Active)
-                            child.Apply();
-                    }
-                    catch (Exception e)
-                    {
-                        HandleException(child, e);
-                    }
+            foreach (RootVisualObject child in Roots)
+                try
+                {
+                    if (child.Active)
+                        child.Apply();
+                }
+                catch (Exception e)
+                {
+                    HandleException(child, e);
+                }
         }
 
         #endregion
@@ -474,17 +435,16 @@ namespace TerrariaUI
 
         public static void Draw()
         {
-            lock (Child)
-                foreach (RootVisualObject child in Child)
-                    try
-                    {
-                        if (child.Active)
-                            child.Draw();
-                    }
-                    catch (Exception e)
-                    {
-                        HandleException(child, e);
-                    }
+            foreach (RootVisualObject child in Roots)
+                try
+                {
+                    if (child.Active)
+                        child.Draw();
+                }
+                catch (Exception e)
+                {
+                    HandleException(child, e);
+                }
         }
 
         #endregion
@@ -514,29 +474,9 @@ namespace TerrariaUI
 
         public static void RequestDrawChanges()
         {
-            lock (Child)
-                foreach (RootVisualObject child in Child)
-                    if (child.Active && !(child.Provider is MainTileProvider))
-                        child.RequestDrawChanges();
-        }
-
-        #endregion
-
-        #region SaveTime
-
-        public static void SaveTime<T>(T o, string name, string key = null)
-            where T : VisualDOM
-        {
-
-        }
-
-        #endregion
-        #region ShowTime
-
-        public static void ShowTime<T>(T o, string name, string key = null)
-            where T : VisualDOM
-        {
-
+            foreach (RootVisualObject child in Roots)
+                if (child.Active && !(child.Provider is MainTileProvider))
+                    child.RequestDrawChanges();
         }
 
         #endregion

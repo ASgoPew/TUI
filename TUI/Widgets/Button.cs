@@ -66,7 +66,6 @@ namespace TerrariaUI.Widgets
         #region Data
 
         private byte State;
-        private object ButtonLocker = new object();
         private bool BlinkOn = false;
 
         public ButtonStyle ButtonStyle => Style as ButtonStyle;
@@ -124,38 +123,31 @@ namespace TerrariaUI.Widgets
                 State = 0;
                 ButtonBlinkStyle blinkStyle = ButtonStyle.BlinkStyle;
                 bool blinking = blinkStyle != ButtonBlinkStyle.None && ButtonStyle.BlinkDelay > 0 && Style.WallColor != null;
-                lock (ButtonLocker)
-                {
-                    if (blinking)
-                        StartBlink(blinkStyle);
+                if (blinking)
+                    StartBlink(blinkStyle);
 
-                    if (ButtonStyle.TriggerStyle == ButtonTriggerStyle.TouchBegin || ButtonStyle.TriggerStyle == ButtonTriggerStyle.Both)
-                        base.Invoke(touch);
+                if (ButtonStyle.TriggerStyle == ButtonTriggerStyle.TouchBegin || ButtonStyle.TriggerStyle == ButtonTriggerStyle.Both)
+                    base.Invoke(touch);
 
-                    if (blinking)
-                        Task.Delay(ButtonStyle.BlinkDelay).ContinueWith(_ =>
+                if (blinking)
+                    Task.Delay(ButtonStyle.BlinkDelay).ContinueWith(_ =>
+                    {
+                        try
                         {
-                            try
-                            {
-                                lock (ButtonLocker)
-                                    TryEndBlink(blinkStyle, 2);
-                            }
-                            catch (Exception e)
-                            {
-                                TUI.HandleException(this, e);
-                            }
-                        });
-                }
+                            TryEndBlink(blinkStyle, 2);
+                        }
+                        catch (Exception e)
+                        {
+                            TUI.HandleException(this, e);
+                        }
+                    });
             }
             else if (touch.State == TouchState.End)
             {
-                lock (ButtonLocker)
-                {
-                    if ((ButtonStyle.TriggerStyle == ButtonTriggerStyle.TouchEnd || ButtonStyle.TriggerStyle == ButtonTriggerStyle.Both)
-                            && !touch.Undo)
-                        base.Invoke(touch);
-                    TryEndBlink(ButtonStyle.BlinkStyle, 1);
-                }
+                if ((ButtonStyle.TriggerStyle == ButtonTriggerStyle.TouchEnd || ButtonStyle.TriggerStyle == ButtonTriggerStyle.Both)
+                        && !touch.Undo)
+                    base.Invoke(touch);
+                TryEndBlink(ButtonStyle.BlinkStyle, 1);
             }
         }
 

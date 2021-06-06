@@ -12,9 +12,13 @@ namespace TerrariaUI.Base
         #region IDOM
 
         /// <summary>
-        /// List of child objects.
+        /// Unsafe List of child objects.
         /// </summary>
-        protected List<VisualObject> Child { get; private set; } = new List<VisualObject>();
+        protected List<VisualObject> _Child { get; private set; } = new List<VisualObject>();
+        /// <summary>
+        /// Safe list of child objects;
+        /// </summary>
+        public List<VisualObject> Child => _Child.ToList();
         /// <summary>
         /// Parent object. Null for <see cref="RootVisualObject"/>.
         /// </summary>
@@ -65,10 +69,6 @@ namespace TerrariaUI.Base
         /// </summary>
         public UIConfiguration Configuration { get; set; }
         /// <summary>
-        /// Locker for locking node related operations.
-        /// </summary>
-        internal object Locker { get; set; } = new object();
-        /// <summary>
         /// Runtime storage for node related data.
         /// </summary>
         protected ConcurrentDictionary<string, object> Shortcuts { get; set; }
@@ -88,12 +88,12 @@ namespace TerrariaUI.Base
         /// <summary>
         /// Index in Parent's Child array.
         /// </summary>
-        public int IndexInParent => Parent.Child.IndexOf(this as VisualObject);
+        public int IndexInParent => Parent._Child.IndexOf(this as VisualObject);
         /// <summary>
         /// DEBUG property: Child array size.
         /// </summary>
         /// <returns>Size of Child array</returns>
-        public int ChildCount => Child.Count;
+        public int ChildCount => _Child.Count;
         /// <summary>
         /// Object is Active when it is Enabled and Visible (see <see cref="Enabled"/>, <see cref="Visible"/>)
         /// </summary>
@@ -150,10 +150,10 @@ namespace TerrariaUI.Base
         {
             get
             {
-                int index = Child.Count - 1;
-                lock (Child)
-                    while (index >= 0)
-                        yield return Child[index--];
+                List<VisualObject> child = Child;
+                int index = child.Count - 1;
+                while (index >= 0)
+                    yield return child[index--];
             }
         }
 
@@ -167,11 +167,11 @@ namespace TerrariaUI.Base
         {
             get
             {
-                int count = Child.Count;
+                List<VisualObject> child = Child;
+                int count = child.Count;
                 int index = 0;
-                lock (Child)
-                    while (index < count)
-                        yield return Child[index++];
+                while (index < count)
+                    yield return child[index++];
             }
         }
 
@@ -287,24 +287,23 @@ namespace TerrariaUI.Base
             where T : VisualObject
         {
             VisualObject @this = this as VisualObject;
-            lock (Child)
-            {
-                if (child.Disposed)
-                    throw new InvalidOperationException("You cannot add a disposed VisualObject.");
-                else if (child.Parent != null && child.Parent != this)
-                    throw new InvalidOperationException("You cannot add an object that was added somewhere else.");
-                else if (Child.Contains(child))
-                    return child;
 
-                if (layer.HasValue)
-                    child.Layer = layer.Value;
+            if (child.Disposed)
+                throw new InvalidOperationException("You cannot add a disposed VisualObject.");
+            else if (child.Parent != null && child.Parent != this)
+                throw new InvalidOperationException("You cannot add an object that was added somewhere else.");
+            else if (_Child.Contains(child))
+                return child;
 
-                int index = Child.Count;
-                while (index > 0 && Child[index - 1].Layer > child.Layer)
-                    index--;
-                Child.Insert(index, child);
-            }
+            if (layer.HasValue)
+                child.Layer = layer.Value;
+
+            List<VisualObject> _child = Child;
+            int index = _child.Count;
+            while (index > 0 && _child[index - 1].Layer > child.Layer)
+                index--;
             child.Parent = @this;
+            _Child.Insert(index, child);
 
             TUI.TryToLoadChild(@this, child);
             if (TUI.Active)
@@ -327,9 +326,8 @@ namespace TerrariaUI.Base
         /// <returns>this</returns>
         public virtual VisualObject Remove(VisualObject child)
         {
-            lock (Child)
-                if (!Child.Remove(child))
-                    throw new InvalidOperationException("You can't remove object that isn't a child.");
+            if (!_Child.Remove(child))
+                throw new InvalidOperationException("You can't remove object that isn't a child.");
 
             // Should probably update these fields in all sub-tree.
             // Currently removed object = disposed object. You can't use it anymore.
@@ -353,11 +351,8 @@ namespace TerrariaUI.Base
         /// </summary>
         public void RemoveAll()
         {
-            lock (Child)
-            {
-                foreach (VisualObject child in Child.ToList())
-                    Remove(child);
-            }
+            foreach (VisualObject child in Child)
+                Remove(child);
         }
 
         #endregion
@@ -416,7 +411,7 @@ namespace TerrariaUI.Base
         #endregion
         #region GetChild
 
-        public VisualObject GetChild(int index) => Child[index];
+        public VisualObject GetChild(int index) => _Child[index];
 
         public T GetChild<T>()
             where T : VisualObject
@@ -430,7 +425,7 @@ namespace TerrariaUI.Base
         #endregion
         #region HasChild
 
-        public bool HasChild(VisualObject node) => Child.Contains(node);
+        public bool HasChild(VisualObject node) => _Child.Contains(node);
 
         #endregion
         #region SetTop
@@ -443,24 +438,23 @@ namespace TerrariaUI.Base
         /// <returns>True if child object position changed</returns>
         public virtual bool SetTop(VisualObject child)
         {
-            lock (Child)
-            {
-                int previousIndex = Child.IndexOf(child);
-                int index = previousIndex;
-                if (index < 0)
-                    throw new InvalidOperationException("Trying to SetTop an object that isn't a child of current VisualDOM");
-                int count = Child.Count;
+            int previousIndex = _Child.IndexOf(child);
+            int index = previousIndex;
+            if (index < 0)
+                throw new InvalidOperationException("Trying to SetTop an object that isn't a child of current VisualDOM");
+
+            List<VisualObject> _child = Child;
+            int count = _child.Count;
+            index++;
+            while (index < count && _child[index].Layer <= child.Layer)
                 index++;
-                while (index < count && Child[index].Layer <= child.Layer)
-                    index++;
 
-                if (index == previousIndex + 1)
-                    return false;
+            if (index == previousIndex + 1)
+                return false;
 
-                Child.Remove(child);
-                Child.Insert(index - 1, child);
-                return true;
-            }
+            _Child.Remove(child);
+            _Child.Insert(index - 1, child);
+            return true;
         }
 
         #endregion
@@ -634,7 +628,7 @@ namespace TerrariaUI.Base
         /// </summary>
         internal void Load()
         {
-            lock (Locker)
+            lock (TUI.LoadLocker)
             {
                 if (Loaded)
                     return;
@@ -689,7 +683,7 @@ namespace TerrariaUI.Base
         /// </summary>
         internal void Dispose()
         {
-            lock (Locker)
+            lock (TUI.DisposeLocker)
             {
                 if (Disposed || !Loaded)
                     return;

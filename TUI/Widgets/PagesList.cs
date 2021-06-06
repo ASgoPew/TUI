@@ -26,7 +26,7 @@ namespace TerrariaUI.Widgets
 
         protected override (int, int) GetSizeNative()
         {
-            if (Selected == null && Child.ElementAtOrDefault(0) is VisualObject child)
+            if (Selected == null && _Child.ElementAtOrDefault(0) is VisualObject child)
                 Select(child, false);
             return (Selected.Width, Selected.Height);
         }
@@ -40,11 +40,11 @@ namespace TerrariaUI.Widgets
             if (index == Page)
                 return;
 
-            VisualObject child = Child.ElementAtOrDefault(index);
+            VisualObject child = _Child.ElementAtOrDefault(index);
             if (child == null)
                 throw new InvalidOperationException("Trying to select page that doesn't exit");
 
-            Select(Child[index], false);
+            Select(_Child[index], false);
             Page = index;
             Parent.Update().Apply();
             if (draw)

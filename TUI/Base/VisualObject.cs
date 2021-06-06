@@ -50,8 +50,10 @@ namespace TerrariaUI.Base
         /// Overridable field for disabling ability to be ordered in Parent's Child array.
         /// </summary>
         public override bool Orderable => !Configuration.InLayout;
+        protected bool CanDraw => Root?.DrawState > 0;
 
         private string _Name;
+        private object ApplyLocker = new object();
         /// <summary>
         /// Object name. Class type name by default.
         /// </summary>
@@ -1211,11 +1213,10 @@ namespace TerrariaUI.Base
         protected virtual void PostUpdateThisNative()
         {
             if (Configuration.Grid != null)
-                lock (Child)
-                {
-                    Configuration.Grid.MinWidth = Math.Max(Configuration.Grid.MinWidth, Child.Max(o => o.Configuration.Grid?.MinWidth) ?? 1);
-                    Configuration.Grid.MinHeight = Math.Max(Configuration.Grid.MinHeight, Child.Max(o => o.Configuration.Grid?.MinHeight) ?? 1);
-                }
+            {
+                Configuration.Grid.MinWidth = Math.Max(Configuration.Grid.MinWidth, Child.Max(o => o.Configuration.Grid?.MinWidth) ?? 1);
+                Configuration.Grid.MinHeight = Math.Max(Configuration.Grid.MinHeight, Child.Max(o => o.Configuration.Grid?.MinHeight) ?? 1);
+            }
         }
 
         #endregion
@@ -1237,7 +1238,7 @@ namespace TerrariaUI.Base
             //TUI.Log($"Apply ({FullName})");
 #endif
 
-            lock (Locker)
+            lock (ApplyLocker)
             {
                 Root?.PreApplyObject(this);
 
@@ -1264,11 +1265,8 @@ namespace TerrariaUI.Base
         /// <returns>this</returns>
         public VisualObject ApplyThis()
         {
-            lock (Locker)
+            lock (ApplyLocker)
             {
-                // Mark changes to be drawn
-                RequestDrawChanges();
-
                 try
                 {
                     // Overridable apply function
@@ -1299,7 +1297,7 @@ namespace TerrariaUI.Base
         public VisualObject ApplyTiles()
         {
             // Default style tile changes
-            lock (Locker)
+            lock (ApplyLocker)
             {
                 if (!Style.CustomApplyTile && Style.Active == null && Style.InActive == null
                         && Style.Tile == null && Style.TileColor == null && Style.Wall == null
@@ -1352,7 +1350,7 @@ namespace TerrariaUI.Base
         /// <returns>this</returns>
         public VisualObject ApplyChild()
         {
-            lock (Locker)
+            lock (ApplyLocker)
             {
                 bool forceSection = DrawWithSection;
                 foreach (VisualObject child in ChildrenFromBottom)
@@ -1375,10 +1373,13 @@ namespace TerrariaUI.Base
         /// <returns>this</returns>
         public VisualObject PostApplyThis()
         {
-            lock (Locker)
+            lock (ApplyLocker)
             {
                 try
                 {
+                    // Mark changes to be drawn
+                    RequestDrawChanges();
+
                     // Overridable apply function
                     PostApplyThisNative();
 
@@ -1469,10 +1470,8 @@ namespace TerrariaUI.Base
         public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1, HashSet<int> targetPlayers = null,
             bool? drawWithSection = null, bool? frameSection = null)
         {
-#if DEBUG
-            if (Root == null)
-                TUI.Throw(this, "Drawing before Update()");
-#endif
+            if (!CanDraw)
+                return this;
             if (targetPlayers == null)
                 targetPlayers = OutdatedPlayers();
             if (Root.Observers is HashSet<int> observers)
@@ -1530,13 +1529,13 @@ namespace TerrariaUI.Base
         /// <returns>this</returns>
         public VisualObject Clear()
         {
-            lock (Locker)
+            lock (ApplyLocker)
             {
-                // Mark changes to be drawn
-                RequestDrawChanges();
-
                 foreach ((int x, int y) in Points)
                     Tile(x, y)?.ClearEverything();
+
+                // Mark changes to be drawn
+                RequestDrawChanges();
             }
             return this;
         }
@@ -1552,7 +1551,7 @@ namespace TerrariaUI.Base
             if (Configuration.Grid == null)
                 throw new Exception("Grid not setup for this object.");
 
-            lock (Locker)
+            lock (ApplyLocker)
             {
                 for (int i = 0; i < Configuration.Grid.Columns.Length; i++)
                     for (int j = 0; j < Configuration.Grid.Lines.Length; j++)
@@ -1570,6 +1569,9 @@ namespace TerrariaUI.Base
                             }
                     }
             }
+
+            // Mark changes to be drawn
+            RequestDrawChanges();
 
             Draw();
         }

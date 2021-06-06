@@ -207,21 +207,19 @@ namespace TerrariaUI.Widgets
         {
             style = style ?? new ContainerStyle();
             style.Transparent = true;
-            lock (Locker)
+            if (PopUpBackground == null)
             {
-                if (PopUpBackground == null)
+                VisualContainer popUpBackground = new VisualContainer(0, 0, 0, 0, new UIConfiguration()
+                { SessionAcquire = true }, style, (self, touch) =>
                 {
-                    PopUpBackground = new VisualContainer(0, 0, 0, 0, new UIConfiguration()
-                    { SessionAcquire = true }, style, (self, touch) =>
-                    {
-                        VisualObject selected = ((VisualContainer)self).Selected;
-                        if (selected != null && PopUpCancelCallbacks.TryGetValue(selected, out Action<VisualObject> cancel))
-                            cancel.Invoke(this);
-                        else
-                            HidePopUp();
-                    });
-                    Add(PopUpBackground, Int32.MaxValue);
-                }
+                    VisualObject selected = ((VisualContainer)self).Selected;
+                    if (selected != null && PopUpCancelCallbacks.TryGetValue(selected, out Action<VisualObject> cancel))
+                        cancel.Invoke(this);
+                    else
+                        HidePopUp();
+                });
+                Add(popUpBackground, Int32.MaxValue);
+                PopUpBackground = popUpBackground;
             }
             if (style != null)
                 PopUpBackground.Style = style;
@@ -241,9 +239,9 @@ namespace TerrariaUI.Widgets
 
         public virtual RootVisualObject HidePopUp()
         {
-            if (PopUpBackground != null)
+            if (PopUpBackground is VisualContainer popUpBackground)
             {
-                PopUpBackground.Disable(false);
+                popUpBackground.Disable(false);
                 Apply().Draw();
             }
             return this;
@@ -276,21 +274,18 @@ namespace TerrariaUI.Widgets
         public Panel Summon(VisualObject node, Alignment alignment = Alignment.Center,
             bool replace = false, bool drag = false, bool resize = false)
         {
-            lock (Locker)
-            {
-                if (Summoned == node)
-                    return this;
-
-                if (Summoning == null)
-                    Summoning = new Summoning(X, Y, Width, Height);
-                else if (replace)
-                    UnsummonNode();
-
-                SummonNode(node, alignment, drag, resize);
-                ApplySummoned();
-
+            if (Summoned == node)
                 return this;
-            }
+
+            if (Summoning == null)
+                Summoning = new Summoning(X, Y, Width, Height);
+            else if (replace)
+                UnsummonNode();
+
+            SummonNode(node, alignment, drag, resize);
+            ApplySummoned();
+
+            return this;
         }
 
         #endregion
@@ -354,33 +349,30 @@ namespace TerrariaUI.Widgets
 
         public Panel Unsummon(int levels = 1)
         {
-            lock (Locker)
-            {
-                if (Summoning == null)
-                    return this;
-                else if (levels < 1)
-                    throw new ArgumentOutOfRangeException(nameof(levels));
-                else if (levels > Summoning.Count)
-                    levels = Summoning.Count;
-
-                (int oldX, int oldY, int oldWidth, int oldHeight) = XYWH();
-                while (levels-- > 0)
-                    UnsummonNode();
-
-                if (Summoning.Count > 0)
-                    ApplySummoned();
-                else
-                {
-                    SetXYWH(Summoning.OldX, Summoning.OldY, Summoning.OldWidth, Summoning.OldHeight, false);
-                    DragObject?.Enable(false);
-                    ResizeObject?.Enable(false);
-                    Deselect(false);
-                    DrawReposition(oldX, oldY, oldWidth, oldHeight);
-                    Summoning = null;
-                }
-
+            if (Summoning == null)
                 return this;
+            else if (levels < 1)
+                throw new ArgumentOutOfRangeException(nameof(levels));
+            else if (levels > Summoning.Count)
+                levels = Summoning.Count;
+
+            (int oldX, int oldY, int oldWidth, int oldHeight) = XYWH();
+            while (levels-- > 0)
+                UnsummonNode();
+
+            if (Summoning.Count > 0)
+                ApplySummoned();
+            else
+            {
+                SetXYWH(Summoning.OldX, Summoning.OldY, Summoning.OldWidth, Summoning.OldHeight, false);
+                DragObject?.Enable(false);
+                ResizeObject?.Enable(false);
+                Deselect(false);
+                DrawReposition(oldX, oldY, oldWidth, oldHeight);
+                Summoning = null;
             }
+
+            return this;
         }
 
         #endregion

@@ -112,7 +112,7 @@ namespace TerrariaUI.Widgets
                     {
                         if (HasTitle)
                             childIndex++;
-                        Button btn = (Button)GetChild(childIndex);
+                        Button btn = (Button)_Child[childIndex];
                         btn.EndBlink(btn.ButtonStyle.BlinkStyle);
                     }
                 }
@@ -168,7 +168,7 @@ namespace TerrariaUI.Widgets
             {
                 if (Title != null)
                     index++;
-                Button btn = (Button)GetChild(index);
+                Button btn = (Button)_Child[index];
                 if (end)
                     btn.EndBlink(btn.ButtonStyle.BlinkStyle);
                 else

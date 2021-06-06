@@ -718,7 +718,7 @@ namespace TUIPlugin
         {
             try
             {
-                foreach (RootVisualObject root in TUI.GetRoots().Where(r => r.Enabled))
+                foreach (RootVisualObject root in TUI.Roots.Where(r => r.Enabled))
                 {
                     FindNearPlayers(root);
                     root.Draw();
@@ -788,7 +788,7 @@ namespace TUIPlugin
             found = null;
             List<RootVisualObject> foundRoots = new List<RootVisualObject>();
             string lowerName = name.ToLower();
-            foreach (RootVisualObject root in TUI.GetRoots())
+            foreach (RootVisualObject root in TUI.Roots)
             {
                 if (root.Name == name)
                 {
@@ -1153,7 +1153,7 @@ Draw state: {root.DrawState}");
                 {
                     if (!PaginationTools.TryParsePageNumber(args.Parameters, 1, args.Player, out int page))
                         return;
-                    List<string> lines = PaginationTools.BuildLinesFromTerms(TUI.GetRoots());
+                    List<string> lines = PaginationTools.BuildLinesFromTerms(TUI.Roots);
                     PaginationTools.SendPage(args.Player, page, lines, new PaginationTools.Settings()
                     {
                         HeaderFormat = "TUI interfaces ({0}/{1}):",
