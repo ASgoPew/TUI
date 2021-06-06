@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using TerrariaUI.Hooks;
 using TerrariaUI.Hooks.Args;
 
