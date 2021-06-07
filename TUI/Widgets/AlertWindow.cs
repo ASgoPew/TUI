@@ -18,12 +18,12 @@ namespace TerrariaUI.Widgets
         public AlertWindow(string text, ContainerStyle windowStyle = null, ButtonStyle buttonStyle = null)
             : base(0, 0, 0, 0, null, windowStyle ?? new ContainerStyle() { Wall = 165, WallColor = 27 })
         {
-            SetAlignmentInParent(Alignment.Center);
+            SetParentAlignment(Alignment.Center);
             SetupLayout(Alignment.Center, Direction.Down, childIndent: 0);
             int lines = (text?.Count(c => c == '\n') ?? 0) + 1;
             Label = AddToLayout(new Label(0, 0, 0, 1 + lines * 3, text, null,
                 new LabelStyle() { TextIndent = new Indent() { Horizontal = 1, Vertical = 1 } }));
-            Label.SetFullSize(FullSize.Horizontal);
+            Label.SetParentStretch(FullSize.Horizontal);
             buttonStyle = buttonStyle ?? new ButtonStyle()
             {
                 WallColor = PaintID2.DeepGreen,
@@ -34,7 +34,7 @@ namespace TerrariaUI.Widgets
             Button = AddToLayout(new Button(0, 0, 14, 4, "ok", null, buttonStyle,
                 ((self, touch) => ((Panel)self.Root).HidePopUp())));
             SetWH(0, Label.Height + Button.Height, false);
-            SetFullSize(FullSize.Horizontal);
+            SetParentStretch(FullSize.Horizontal);
         }
 
         #endregion

@@ -223,7 +223,7 @@ namespace TerrariaUI.Widgets
             }
             if (style != null)
                 PopUpBackground.Style = style;
-            PopUpBackground.SetFullSize(FullSize.Both);
+            PopUpBackground.SetParentStretch(FullSize.Both);
             PopUpBackground.Add(popup);
             if (cancelCallback != null)
                 PopUpCancelCallbacks[popup] = cancelCallback;
@@ -502,7 +502,7 @@ namespace TerrariaUI.Widgets
         public DefaultPanelResize()
             : base(0, 0, 1, 1, new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true, Permission=TUI.ControlPermission })
         {
-            SetAlignmentInParent(Alignment.DownRight);
+            SetParentAlignment(Alignment.DownRight);
         }
     }
 

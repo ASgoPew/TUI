@@ -25,19 +25,19 @@ namespace TerrariaUI.Widgets
         {
             ConfirmCallback = callback ?? throw new ArgumentNullException(nameof(callback));
 
-            SetAlignmentInParent(Alignment.Center);
-            SetFullSize(FullSize.Both);
+            SetParentAlignment(Alignment.Center);
+            SetParentStretch(FullSize.Both);
 
             Container = Add(new VisualContainer(style ?? new ContainerStyle()
                 { Wall = 165, WallColor = 27 }));
-            Container.SetAlignmentInParent(Alignment.Center)
-                .SetFullSize(FullSize.Horizontal)
+            Container.SetParentAlignment(Alignment.Center)
+                .SetParentStretch(FullSize.Horizontal)
                 .SetupLayout(Alignment.Center, Direction.Down, childIndent: 0);
 
             int lines = (text?.Count(c => c == '\n') ?? 0) + 1;
             Label = Container.AddToLayout(new Label(0, 0, 0, 1 + lines * 3, text, null,
                 new LabelStyle() { TextIndent = new Indent() { Horizontal = 1, Vertical = 1 } }));
-            Label.SetFullSize(FullSize.Horizontal);
+            Label.SetParentStretch(FullSize.Horizontal);
 
             VisualContainer yesno = Container.AddToLayout(new VisualContainer(0, 0, 24, 4));
 

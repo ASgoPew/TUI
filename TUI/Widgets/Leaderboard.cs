@@ -41,7 +41,8 @@ namespace TerrariaUI.Widgets
             // Optional TUI library hashing?
             // EnableNumberHashing(string key)
 
-            SetupGrid(lines: new ISize[] { new Absolute(4), new Relative(100), new Dynamic() });
+            SetupGrid(lines: new ISize[] { new Absolute(4), new Relative(100), new Dynamic() })
+                .FillGrid();
             this[0, 0] = new Label(0, 0, Width, 4, Key, new LabelStyle() { Wall = 154, WallColor = 27 });
             this[0, 1].Style.Wall = 155;
             //this[0, 1].Style.WallColor = PaintID2.Black;
@@ -68,7 +69,7 @@ namespace TerrariaUI.Widgets
             {
                 var lineData = list[i];
                 VisualContainer line = new VisualContainer(0, 0, 0, 4, new UIConfiguration() { UseBegin = false });
-                line.SetFullSize(true, false)
+                line.SetParentStretch(true, false)
                     .SetupGrid(columns: new ISize[] { new Relative(100), new Dynamic() });
                 byte color = i == 0
                     ? PaintID2.DeepYellow
@@ -77,7 +78,7 @@ namespace TerrariaUI.Widgets
                         : i == 2
                             ? PaintID2.Brown
                             : PaintID2.Black;
-                line[0, 0] = new Label(0, 0, 0, 0, lineData.Username, new LabelStyle() { TextColor = color }).SetFullSize(true, true);
+                line[0, 0] = new Label(0, 0, 0, 0, lineData.Username, new LabelStyle() { TextColor = color }).SetParentStretch(true, true);
                 string number = lineData.Number.ToString();
                 line[1, 0] = new Label(0, 0, number.Length * 2 + 2, 4, number, new LabelStyle() { TextColor = PaintID2.Black });
                 this[0, 1].AddToLayout(line);

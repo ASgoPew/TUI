@@ -93,7 +93,7 @@ namespace TerrariaUI
 
         internal static void TryToLoadChild(VisualObject node, VisualObject child)
         {
-            if (_Child.Contains(node.GetRoot() as RootVisualObject) && Active)
+            if (Active && _Child.Contains(node.GetRoot() as RootVisualObject))
                 child.Load();
         }
 
@@ -271,7 +271,7 @@ namespace TerrariaUI
             (int saveX, int saveY) = o.AbsoluteXY();
 
             touch.Move(-saveX, -saveY);
-            bool inside = touch.Intersecting(0, 0, o.Width, o.Height);
+            bool inside = o.ContainsRelative(touch);
 
             if (o.Active && inside)
                 insideUI = true;

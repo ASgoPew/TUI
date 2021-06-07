@@ -141,7 +141,7 @@ namespace TerrariaUI.Widgets
         {
             base.PulseThisNative(type);
 
-            if (type == PulseType.PositionChanged)
+            if (type == PulseType.SetXYWH)
                 UpdateSign();
         }
 

@@ -51,6 +51,7 @@
     <Compile Include="Base\IInput.cs" />
     <Compile Include="Base\Input.cs" />
     <Compile Include="Base\InputVisualObject.cs" />
+    <Compile Include="Base\PositioningAndResizing.cs" />
     <Compile Include="Base\Light.cs" />
     <Compile Include="Base\Selection.cs" />
     <Compile Include="Base\Style\PaintID.cs" />

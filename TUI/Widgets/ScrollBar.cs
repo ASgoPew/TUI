@@ -55,21 +55,21 @@ namespace TerrariaUI.Widgets
             if (Vertical)
             {
                 Width = width;
-                SetFullSize(FullSize.Vertical);
+                SetParentStretch(FullSize.Vertical);
                 if (side == Direction.Left)
-                    SetAlignmentInParent(Alignment.Left);
+                    SetParentAlignment(Alignment.Left);
                 else
-                    SetAlignmentInParent(Alignment.Right);
+                    SetParentAlignment(Alignment.Right);
                 SetupLayout(Alignment.Up, Direction.Up, Side.Center, null, 0);
             }
             else
             {
                 Height = width;
-                SetFullSize(FullSize.Horizontal);
+                SetParentStretch(FullSize.Horizontal);
                 if (side == Direction.Up)
-                    SetAlignmentInParent(Alignment.Up);
+                    SetParentAlignment(Alignment.Up);
                 else
-                    SetAlignmentInParent(Alignment.Down);
+                    SetParentAlignment(Alignment.Down);
                 SetupLayout(Alignment.Left, Direction.Left, Side.Center, null, 0);
             }
             Empty1 = AddToLayout(new Separator(0));
@@ -78,7 +78,7 @@ namespace TerrariaUI.Widgets
             Slider = AddToLayout(new ScrollBackground(false, true, true, ScrollAction), 0);
             Empty2 = AddToLayout(new Separator(0));
             Empty2.Configuration.UseBegin = false;
-            Slider.SetFullSize(FullSize.None);
+            Slider.SetParentStretch(FullSize.None);
             Slider.Style.WallColor = ScrollBarStyle.SliderColor;
             if (Style.WallColor == null)
                 Style.WallColor = 0;

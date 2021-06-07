@@ -57,7 +57,7 @@ namespace TerrariaUI.Widgets
             if (HasTitle)
             {
                 Label titleLabel = new Label(0, 0, 0, 4, Title, titleStyle);
-                AddToLayout(titleLabel).SetFullSize(true, false);
+                AddToLayout(titleLabel).SetParentStretch(true, false);
                 titleLabel.Update();
             }
             int i = 0;
@@ -67,7 +67,7 @@ namespace TerrariaUI.Widgets
                 button.Configuration.UseBegin = false;
                 button.Configuration.UseMoving = false;
                 button.Configuration.UseEnd = false;
-                AddToLayout(button.SetFullSize(true, false));
+                AddToLayout(button.SetParentStretch(true, false));
                 button.Update();
             }
         }

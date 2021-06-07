@@ -18,10 +18,6 @@ namespace TerrariaUI.Base
         /// </summary>
         public UIStyle Style { get; set; }
         /// <summary>
-        /// Child grid. Use operator[,] to get or set grid elements.
-        /// </summary>
-        protected VisualObject[,] Grid { get; set; }
-        /// <summary>
         /// Cell of Parent's grid in which this object is. Null if not in Parent's grid.
         /// </summary>
         public GridCell Cell { get; private set; }
@@ -49,7 +45,7 @@ namespace TerrariaUI.Base
         /// <summary>
         /// Overridable field for disabling ability to be ordered in Parent's Child array.
         /// </summary>
-        public override bool Orderable => !Configuration.InLayout;
+        public override bool Orderable => base.Orderable && !InLayout;
         protected bool CanDraw => Root?.DrawState > 0;
 
         private string _Name;
@@ -74,30 +70,89 @@ namespace TerrariaUI.Base
                         ? $"{Parent.FullName}[{Cell.Column},{Cell.Line}].{Name}"
                         : $"{Parent.FullName}[{IndexInParent}].{Name}";
 
+        private int? _MinWidth;
+        private int? _MinHeight;
+        protected virtual int MinWidth => Math.Max(_MinWidth ?? 0, GridConfiguration?.MinWidth ?? 0);
+        protected virtual int MinHeight => Math.Max(_MinHeight ?? 0, GridConfiguration?.MinHeight ?? 0);
+
+        protected IPositioning Positioning { get; set; }
+        protected IResizing WidthResizing { get; set; }
+        protected IResizing HeightResizing { get; set; }
+
+        /// <summary>
+        /// Child objects positioning in Layout. Not set by default (null).
+        /// <para></para>
+        /// Use <see cref="VisualObject.SetupLayout"/>
+        /// </summary>
+        public LayoutConfiguration LayoutConfiguration { get; private set; }
+        /// <summary>
+        /// Child objects positioning in grid. Not set by default (null).
+        /// <para></para>
+        /// Use <see cref="VisualObject.SetupGrid"/> to initialize grid.
+        /// </summary>
+        public GridConfiguration GridConfiguration { get; private set; }
+
+        public bool HasLayout => LayoutConfiguration != null;
+        public bool HasGrid => GridConfiguration != null;
+        public bool HasWidthChildStretch => WidthResizing is InChildStretch;
+        public bool HasHeightChildStretch => HeightResizing is InChildStretch;
+        public bool HasChildStretch => HasWidthChildStretch || HasHeightChildStretch;
+        public bool HasParentAlignment => Positioning is InParentAlignment;
+        public bool HasWidthParentStretch => WidthResizing is InParentStretch;
+        public bool HasHeightParentStretch => HeightResizing is InParentStretch;
+        public bool HasParentStretch => HasWidthParentStretch || HasHeightParentStretch;
+        public bool InLayout => Positioning is InLayout;
+        public bool InGrid => Positioning is InGrid;
+        public bool InGridDynamic => Positioning is InGrid p &&
+            (Parent.GridConfiguration.Columns[p.Column].IsDynamic ||
+            Parent.GridConfiguration.Lines[p.Line].IsDynamic);
+        // TODO: if only last column/line is Relative then false;
+        public bool HasRelativesInGrid =>
+            GridConfiguration.Columns.Any(column => column.IsRelative) ||
+            GridConfiguration.Lines.Any(line => line.IsRelative);
+
+        protected virtual bool RepositionRequiresParentResize => Parent != null &&
+            (Parent.HasWidthChildStretch && X + Width > Parent.Width ||
+            Parent.HasHeightChildStretch && Y + Height > Parent.Height);
+
+        protected virtual bool ResizeRequiresParentResize => Parent != null &&
+            (Parent.HasLayout && InLayout ||
+            Parent.HasGrid && InGridDynamic ||
+            Parent.HasWidthChildStretch && X + Width > Parent.Width ||
+            Parent.HasHeightChildStretch && Y + Height > Parent.Height);
+
+        protected virtual bool ResizeRequiresChildrenRepositionAndResize =>
+            HasLayout ||
+            HasGrid && HasRelativesInGrid ||
+            Child.Any(child => child.HasParentAlignment) ||
+            Child.Any(child => child.HasParentStretch);
+
+        /*protected virtual bool ResizeRequiresChildrenReposition =>
+            HasLayout ||
+            Child.Any(child => child.HasParentAlignment) ||
+            HasGrid && HasRelativesInGrid;
+        protected virtual bool ResizeRequiresChildrenResize =>
+            Child.Any(child => child.HasParentStretch) ||
+            HasGrid && HasRelativesInGrid;*/
+
         #endregion
 
         #region IDOM
 
-        #region Remove
+        #region Add
 
-        /// <summary>
-        /// Removes child object. Calls Dispose() on removed object so you can't use
-        /// this object anymore.
-        /// </summary>
-        /// <param name="child">Child object to remove.</param>
-        /// <returns>this</returns>
-        public override VisualObject Remove(VisualObject child)
+        protected virtual bool AddRequiresResize(VisualObject child) =>
+            HasWidthChildStretch && (child.X + child.Width > Width) ||
+            HasHeightChildStretch && (child.Y + child.Height > Height);
+
+        public override T Add<T>(T child, int? layer = null)
         {
-            base.Remove(child);
-            GridCell cell = child.Cell;
-            if (cell != null)
-            {
-                Grid[cell.Column, cell.Line] = null;
-                child.Cell = null;
-            }
-            if (child.Configuration.InLayout)
-                Configuration.Layout.Objects.Remove(child);
-            return this;
+            base.Add(child, layer);
+
+            if (AddRequiresResize(child))
+                UpdateSize(false);
+
+            return child;
         }
 
         #endregion
@@ -163,31 +218,13 @@ namespace TerrariaUI.Base
         /// <param name="column"></param>
         /// <param name="line"></param>
         /// <returns></returns>
-        public VisualObject this[int column, int line]
+        public IEnumerable<VisualObject> this[int column, int line]
         {
-            get => Grid[column, line];
+            get => Child.Where(child => child.Positioning is InGrid positioning && positioning.Column == column && positioning.Line == line);
             set
             {
-                if (value != null)
-                {
-                    value.Style.AllowSelfResize = false;
-                    value.Style.Stretch = false;
-                    value.Configuration.FullSize = FullSize.None;
-
-                    value.Configuration.InLayout = false;
-                    value.Configuration.Alignment = null;
-
-                    if (Grid[column, line] != null)
-                        Remove(Grid[column, line]);
-                    value.Cell = new GridCell(column, line);
-                    Grid[column, line] = Add(value);
-                }
-                else
-                {
-                    VisualObject child = Grid[column, line];
-                    Grid[column, line] = null;
-                    Remove(child);
-                }
+                foreach (var child in value)
+                    AddToGrid(child, column, line);
             }
         }
 
@@ -239,6 +276,7 @@ namespace TerrariaUI.Base
         }
 
         #endregion
+
         #region SetXYWH
 
         /// <summary>
@@ -248,17 +286,43 @@ namespace TerrariaUI.Base
         /// <param name="y">New y coordinate</param>
         /// <param name="width">New width</param>
         /// <param name="height">New height</param>
-        /// <returns>this</returns>
+        /// <returns>Most far ancestor that has changed size</returns>
         public override VisualObject SetXYWH(int x, int y, int width, int height, bool draw)
         {
-            width = Math.Max(width, Configuration.Grid?.MinWidth ?? 0);
-            height = Math.Max(height, Configuration.Grid?.MinHeight ?? 0);
+            if (Configuration.Grid != null)
+            {
+                Configuration.Grid.MinWidth = Math.Max(Configuration.Grid.MinWidth, Child.Max(o => o.Configuration.Grid?.MinWidth) ?? 1);
+                Configuration.Grid.MinHeight = Math.Max(Configuration.Grid.MinHeight, Child.Max(o => o.Configuration.Grid?.MinHeight) ?? 1);
+            }
+
+            //width = Math.Max(width, Configuration.Grid?.MinWidth ?? 0);
+            //height = Math.Max(height, Configuration.Grid?.MinHeight ?? 0);
+            width = Math.Max(width, MinWidth);
+            height = Math.Max(height, MinHeight);
 
             int oldX = X, oldY = Y, oldWidth = Width, oldHeight = Height;
             if (oldX != x || oldY != y || oldWidth != width || oldHeight != height)
             {
                 base.SetXYWH(x, y, width, height, draw);
-                Pulse(PulseType.PositionChanged);
+
+                if (oldX != X || oldY != Y)
+                {
+                    if (RepositionRequiresParentResize) return Parent.UpdateSize(draw); // parent's stretch
+                }
+                if (oldWidth != Width || oldHeight != Height)
+                {
+                    if (ResizeRequiresParentResize) return Parent.UpdateSize(draw); // parent's layout AND parent's grid AND parent's stretch
+                    if (ResizeRequiresChildrenRepositionAndResize) UpdateChildrenPositionAndSize(); // children's ParentStretch AND children's ParentAlignment AND layout AND grid
+                    //if (ResizeRequiresChildrenResize) UpdateChildrenSize(); // children's ParentStretch AND grid
+                    //if (ResizeRequiresChildrenReposition) UpdateChildrenPosition(); // children's ParentAlignment AND layout AND grid
+                }
+
+                // Update apply tile bounds
+                UpdateBounds();
+                // Update entities
+                // TODO: entities reposition should happen at Draw()
+                Pulse(PulseType.SetXYWH);
+
                 if (draw)
                     DrawReposition(oldX, oldY, oldWidth, oldHeight);
             }
@@ -267,677 +331,112 @@ namespace TerrariaUI.Base
         }
 
         #endregion
-        #region DrawReposition
+        #region UpdateSize
 
-        protected virtual void DrawReposition(int oldX, int oldY, int oldWidth, int oldHeight)
+        protected virtual VisualObject UpdateSize(bool draw)
         {
-            if (oldWidth != Width || oldHeight != Height)
-                Update();
-            Parent.Apply().Draw();
+            if (HasChildStretch)
+                return ChildStretch(draw);
+            return this;
         }
 
         #endregion
-        #region DrawEnable
+        #region ChildStretch
 
-        protected virtual void DrawEnable()
+        protected VisualObject ChildStretch(bool draw)
         {
-            Parent.Update();
-            if (Configuration.InLayout)
-                Parent.Apply().Draw();
-            else
-                Apply().Draw();
-        }
-
-        #endregion
-        #region DrawDisable
-
-        protected virtual void DrawDisable()
-        {
-            Parent.Update().Apply().Draw();
-        }
-
-        #endregion
-        #region AddToLayout
-
-        /// <summary>
-        /// Add object as a child in layout. Removes child alignment and grid positioning.
-        /// </summary>
-        /// <param name="child">Object to add as a child.</param>
-        /// <param name="layer">Layer where to add the object. Null by default (don't change object layer).</param>
-        /// <returns></returns>
-        public virtual T AddToLayout<T>(T child, int? layer = null)
-            where T : VisualObject
-        {
-            child.Configuration.Alignment = null;
-            if (child.Cell != null)
+            int width = 0;
+            int height = 0;
+            foreach (var child in Child)
             {
-                Grid[child.Cell.Column, child.Cell.Line] = null;
-                child.Cell = null;
+                if (child.HasParentAlignment)
+                    throw new InvalidOperationException($"Attempt to ChildStretch while child has ParentAlignment: {FullName}");
+                if (HasWidthChildStretch && child.HasWidthParentStretch)
+                    throw new InvalidOperationException($"Attempt to WidthChildStretch while child has WidthParentStretch: {FullName}");
+                if (HasHeightChildStretch && child.HasHeightParentStretch)
+                    throw new InvalidOperationException($"Attempt to HeightChildStretch while child has HeightParentStretch: {FullName}");
+                width = Math.Max(width, child.X + child.Width);
+                height = Math.Max(height, child.Y + child.Height);
             }
-
-            Add(child, layer);
-            child.Configuration.InLayout = true;
-            return child;
+            if (HasWidthChildStretch && HasHeightChildStretch)
+                return SetWH(width, height, draw);
+            else if (HasWidthChildStretch)
+                return SetWH(width, Height, draw);
+            else if (HasHeightChildStretch)
+                return SetWH(Width, height, draw);
+            throw new InvalidOperationException("Trying to ChildStretch object without setup");
         }
 
         #endregion
-        #region SetupLayout
+        #region UpdateChildrenPositionAndSize
 
-        /// <summary>
-        /// Setup layout for child positioning.
-        /// </summary>
-        /// <param name="alignment">Where to place all layout objects row/line</param>
-        /// <param name="direction">Direction of placing objects</param>
-        /// <param name="side">Side to which objects adjoin, relative to direction</param>
-        /// <param name="indent">Layout indent</param>
-        /// <param name="childIndent">Distance between objects in layout</param>
-        /// <param name="boundsIsIndent">Whether to draw objects/ object tiles that are outside of bounds of indent or not</param>
-        /// <returns>this</returns>
-        public VisualObject SetupLayout(Alignment alignment = Alignment.Center, Direction direction = Direction.Down,
-            Side side = Side.Center, ExternalIndent indent = null, int childIndent = 1, bool boundsIsIndent = true)
+        protected virtual void UpdateChildrenPositionAndSize()
         {
-            Configuration.Layout = new LayoutConfiguration(alignment, direction, side, indent, childIndent, boundsIsIndent);
-            return this;
-        }
-
-        #endregion
-        #region SetupGrid
-
-        /// <summary>
-        /// Setup grid for child positioning. Use Absolute and Relative classes for specifying sizes.
-        /// </summary>
-        /// <param name="columns">Column sizes (i.e. new ISize[] { new Absolute(10), new Relative(100) })</param>
-        /// <param name="lines">Line sizes (i.e. new ISize[] { new Absolute(10), new Relative(100) })</param>
-        /// <param name="indent">Grid indent</param>
-        /// <param name="fillWithEmptyObjects">Whether to fills all grid cells with empty VisualContainers</param>
-        /// <returns>this</returns>
-        public VisualObject SetupGrid(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null,
-            Indent indent = null, bool fillWithEmptyObjects = true)
-        {
-            GridConfiguration gridStyle = Configuration.Grid = new GridConfiguration(columns, lines, indent);
-
-            if (gridStyle.Columns == null)
-                gridStyle.Columns = new ISize[] { new Relative(100) };
-            if (gridStyle.Lines == null)
-                gridStyle.Lines = new ISize[] { new Relative(100) };
-            Grid = new VisualObject[gridStyle.Columns.Length, gridStyle.Lines.Length];
-            if (fillWithEmptyObjects)
-                for (int i = 0; i < gridStyle.Columns.Length; i++)
-                    for (int j = 0; j < gridStyle.Lines.Length; j++)
-                        this[i, j] = new VisualContainer();
-
-            return this;
-        }
-
-        #endregion
-        #region SetAlignmentInParent
-
-        /// <summary>
-        /// Setup alignment positioning inside parent. Removes layout and grid positioning.
-        /// </summary>
-        /// <param name="alignment">Where to place this object in parent</param>
-        /// <param name="indent">Alignment indent from Parent's borders</param>
-        /// <param name="boundsIsIndent">Whether to draw tiles of this object that are outside of bounds of indent or not</param>
-        /// <returns>this</returns>
-        public VisualObject SetAlignmentInParent(Alignment alignment, ExternalIndent indent = null, bool boundsIsIndent = true)
-        {
-            if (Cell != null)
+            foreach (var child in Child)
             {
-                Parent.Grid[Cell.Column, Cell.Line] = null;
-                Cell = null;
-            }
-            Configuration.InLayout = false;
-
-            Configuration.Alignment = new AlignmentConfiguration(alignment, indent, boundsIsIndent);
-            return this;
-        }
-
-        #endregion
-        #region SetFullSize
-
-        /// <summary>
-        /// Set automatic stretching to parent size. Removes grid positioning.
-        /// <para></para>
-        /// Incompatible with <see cref="VisualObject.AllowSelfResize"/> and <see cref="VisualContainer.Stretch"/>
-        /// </summary>
-        /// <param name="horizontal">Horizontal stretching</param>
-        /// <param name="vertical">Vertical stretching</param>
-        /// <returns>this</returns>
-        public VisualObject SetFullSize(bool horizontal = true, bool vertical = true) =>
-            SetFullSize(horizontal && vertical
-                ? FullSize.Both
-                : horizontal
-                    ? FullSize.Horizontal
-                    : vertical
-                        ? FullSize.Vertical
-                        : FullSize.None);
-
-        /// <summary>
-        /// Set automatic stretching to parent size. Removes grid positioning.
-        /// <para></para>
-        /// Incompatible with <see cref="VisualObject.AllowSelfResize"/> and <see cref="VisualContainer.Stretch"/>
-        /// </summary>
-        /// <param name="fullSize">Horizontal and/or vertical (or None)</param>
-        /// <returns>this</returns>
-        public VisualObject SetFullSize(FullSize fullSize)
-        {
-            Style.AllowSelfResize = false;
-            Style.Stretch = false;
-            if (Cell != null && fullSize != FullSize.None)
-            {
-                Parent.Grid[Cell.Column, Cell.Line] = null;
-                Cell = null;
-            }
-
-            Configuration.FullSize = fullSize;
-            return this;
-        }
-
-        #endregion
-        #region LayoutSkip
-
-        public VisualObject LayoutSkip(ushort value)
-        {
-            if (Configuration.Layout == null)
-                throw new Exception("Layout is not set for this object: " + FullName);
-
-            Configuration.Layout.Index = value;
-            return this;
-        }
-
-        #endregion
-        #region LayoutOffset
-
-        /// <summary>
-        /// Scrolling offset of layout. Used in ScrollBackground and ScrollBar.
-        /// </summary>
-        /// <param name="value">Indent value</param>
-        /// <returns>this</returns>
-        public VisualObject LayoutOffset(int value)
-        {
-            if (Configuration.Layout == null)
-                throw new Exception("Layout is not set for this object: " + FullName);
-
-            Configuration.Layout.LayoutOffset = value;
-            return this;
-        }
-
-        #endregion
-        #region AllowSelfResize
-
-        /// <summary>
-        /// Turns on object self resize using <see cref="VisualObject.GetSizeNative"/>
-        /// <para></para>
-        /// Incompatible with <see cref="VisualObject.SetFullSize(bool, bool)"/> and <see cref="VisualContainer.Stretch"/> and grid positioning.
-        /// </summary>
-        /// <returns>this</returns>
-        public VisualObject AllowSelfResize()
-        {
-            Configuration.FullSize = FullSize.None;
-            Style.Stretch = false;
-            if (Cell != null)
-            {
-                Parent.Grid[Cell.Column, Cell.Line] = null;
-                Cell = null;
-            }
-
-            Style.AllowSelfResize = true;
-            return this;
-        }
-
-        #endregion
-        #region Stretch
-
-        /// <summary>
-        /// Incompatible with <see cref="VisualObject.SetFullSize(bool, bool)"/> and <see cref="VisualObject.AllowSelfResize"/> and grid positioning.
-        /// </summary>
-        /// <returns></returns>
-        public VisualObject Stretch()
-        {
-            if (Cell != null)
-            {
-                Parent.Grid[Cell.Column, Cell.Line] = null;
-                Cell = null;
-            }
-            Configuration.FullSize = FullSize.None;
-            Style.AllowSelfResize = false;
-
-            Style.Stretch = true;
-            return this;
-        }
-
-        #endregion
-        #region RequestDrawChanges
-
-        public VisualObject RequestDrawChanges()
-        {
-            if (Root is RootVisualObject root)
-                root.DrawState++;
-            return this;
-        }
-
-        #endregion
-        #region CollectStyle
-
-        public UIStyle CollectStyle(bool includeThis = true)
-        {
-            UIStyle result = new UIStyle();
-            foreach (VisualObject node in WayFromRoot)
-                if (node != this || includeThis)
-                    result.Stratify(node.Style);
-            return result;
-        }
-
-        #endregion
-        #region ToString
-
-        public override string ToString() => FullName;
-
-        #endregion
-
-        #region Pulse
-
-        /// <summary> Send specified signal to all sub-tree including this node. </summary>
-        /// <param name="type"> Type of signal </param>
-        /// <returns> this </returns>
-        public VisualObject Pulse(PulseType type)
-        {
-            Root?.PrePulseObject(this, type);
-
-            // Pulse event handling related to this node
-            PulseThis(type);
-
-            // Recursive Pulse call
-            PulseChild(type);
-
-            // Post pulse event handling related to this node
-            PostPulseThis(type);
-
-            Root?.PostPulseObject(this, type);
-
-            return this;
-        }
-
-        #region PulseThis
-
-        /// <summary>
-        /// Send specified signal only to this node.
-        /// </summary>
-        /// <param name="type">Type of signal</param>
-        /// <returns>this</returns>
-        public VisualObject PulseThis(PulseType type)
-        {
-            try
-            {
-                // Overridable pulse handling method
-                PulseThisNative(type);
-
-                // Custom pulse handler
-                Configuration.Custom.Pulse?.Invoke(this, type);
-            }
-            catch (Exception e)
-            {
-                TUI.HandleException(e);
-            }
-            return this;
-        }
-
-        #endregion
-        #region PulseThisNative
-
-        /// <summary>
-        /// Overridable function to handle pulse signal for this node.
-        /// </summary>
-        /// <param name="type"></param>
-        protected virtual void PulseThisNative(PulseType type)
-        {
-            switch (type)
-            {
-                case PulseType.Reset:
-                    if (Configuration.Layout != null)
-                        LayoutOffset(0);
-                    break;
-                case PulseType.PositionChanged:
-                    // Update position relative to Provider
-                    if (Root != null)
-                        (ProviderX, ProviderY) = ProviderXY();
-                    break;
-            }
-        }
-
-        #endregion
-        #region PulseChild
-
-        /// <summary>
-        /// Send specified signal to sub-tree without this node.
-        /// </summary>
-        /// <param name="type">Type of signal</param>
-        /// <returns>this</returns>
-        public VisualObject PulseChild(PulseType type)
-        {
-            foreach (VisualObject child in ChildrenFromTop)
-                child.Pulse(type);
-            return this;
-        }
-
-        #endregion
-        #region PostPulseThis
-
-        public VisualObject PostPulseThis(PulseType type)
-        {
-            try
-            {
-                // Overridable pulse handling method
-                PostPulseThisNative(type);
-
-                // Custom pulse handler
-                Configuration.Custom.PostPulse?.Invoke(this, type);
-            }
-            catch (Exception e)
-            {
-                TUI.HandleException(e);
-            }
-            return this;
-        }
-
-        #endregion
-        #region PostPulseThisNative
-
-        /// <summary>
-        /// Overridable function to handle post pulse signal for this node.
-        /// </summary>
-        /// <param name="type"></param>
-        protected virtual void PostPulseThisNative(PulseType type) { }
-
-        #endregion
-
-        #endregion
-        #region Update
-
-        /// <summary> Updates the node and the child sub-tree. </summary>
-        /// <returns> this </returns>
-        public VisualObject Update()
-        {
-            Root?.PreUpdateObject(this);
-
-            // Update of objects that set their size by themself
-            if (UpdateSelfSize())
-                return this;
-
-            // Updates related to this node
-            UpdateThis();
-
-            // Updates related to child positioning
-            UpdateChildPositioning();
-
-            // Recursive Update() call
-            UpdateChild();
-
-            // Update of objects that set their size by themself
-            if (UpdateSelfSize2())
-                return this;
-
-            // Updates related to this node and dependant on child updates
-            PostUpdateThis();
-
-            Root?.PostUpdateObject(this);
-
-            return this;
-        }
-
-        #region GetSizeNative
-
-        /// <summary>
-        /// Overridable method for determining object size depending on own data or child objects
-        /// </summary>
-        /// <returns></returns>
-        public virtual (int, int) GetSizeNative()
-        {
-            if (Configuration.Custom.GetSize is Func<VisualObject, (int, int)> getSize)
-                return getSize.Invoke(this);
-            return (Width, Height);
-        }
-
-        #endregion
-        #region SizeChanged
-
-        public bool SizeChanged(out int width, out int height) =>
-            ((width, height) = GetSizeNative()) != (Width, Height);
-
-        #endregion
-        #region UpdateSelfSize
-
-        /// <summary>
-        /// Update of objects that set their size by themself
-        /// </summary>
-        /// <returns>True if parent size should be updated as well</returns>
-        public bool UpdateSelfSize()
-        {
-            foreach (VisualObject o in TreeBFS(false))
-                if (o.Style.AllowSelfResize)
-                    o.SetWH(o.GetSizeNative(), false);
-            if (Style.AllowSelfResize && SizeChanged(out int width, out int height))
-            {
-                if (Parent is VisualObject parent)
+                if (child.HasWidthParentStretch)
                 {
-                    SetWH(width, height, false);
-                    parent.Update();
-                    return true;
+                    if (HasWidthChildStretch)
+                        throw new InvalidOperationException($"Attempt to WidthParentStretch child while having WidthChildStretch: {FullName}");
+                    child.SetWH(Width, child.Height);
                 }
-                else
-                    SetWH(width, height, false);
-            }
-            return false;
-        }
-
-        #endregion
-
-        #region UpdateThis
-
-        /// <summary>
-        /// Updates related to this node only.
-        /// </summary>
-        /// <returns>this</returns>
-        public VisualObject UpdateThis()
-        {
-            try
-            {
-                // Overridable update method
-                UpdateThisNative();
-
-                // Custom update callback
-                Configuration.Custom.Update?.Invoke(this);
-            }
-            catch (Exception e)
-            {
-                TUI.HandleException(e);
-            }
-
-            return this;
-        }
-
-        #endregion
-        #region UpdateThisNative
-
-        /// <summary>
-        /// Overridable method for updates related to this node. Do not change position/size in in this method.
-        /// </summary>
-        protected virtual void UpdateThisNative()
-        {
-            // Find Root node
-            if (Root == null)
-                Root = GetRoot() as RootVisualObject;
-            // Update position relative to Provider
-            (ProviderX, ProviderY) = ProviderXY();
-            // Update apply tile bounds
-            UpdateBounds();
-        }
-
-        #endregion
-        #region UpdateBounds
-
-        /// <summary>
-        /// Calculate Bounds for this node (intersection of Parent's layout indent/alignment indent and Parent's Bounds)
-        /// </summary>
-        protected void UpdateBounds()
-        {
-            bool layoutBounds = Configuration.InLayout && Parent.Configuration.Layout.BoundsIsIndent;
-            bool alignmentBounds = Configuration.Alignment != null && Configuration.Alignment.BoundsIsIndent;
-            if (layoutBounds || alignmentBounds)
-            {
-                ExternalIndent parentIndent = layoutBounds ? Parent.Configuration.Layout.Indent : Configuration.Alignment.Indent;
-                Bounds = new ExternalIndent()
+                if (child.HasHeightParentStretch)
                 {
-                    Left = Math.Max(0, parentIndent.Left - X),
-                    Up = Math.Max(0, parentIndent.Up - Y),
-                    Right = Math.Max(0, (X + Width) - (Parent.Width - parentIndent.Right)),
-                    Down = Math.Max(0, (Y + Height) - (Parent.Height - parentIndent.Down)),
-                };
+                    if (HasHeightChildStretch)
+                        throw new InvalidOperationException($"Attempt to HeightParentStretch child while having HeightChildStretch: {FullName}");
+                    child.SetWH(child.Width, Height);
+                }
             }
-            else
-                Bounds = new ExternalIndent(UIDefault.ExternalIndent);
-
-            // Intersecting bounds with parent's Bounds
-            if (Parent != null)
-            {
-                ExternalIndent parentBounds = Parent.Bounds;
-                if (parentBounds == null)
-                    return;
-                Bounds = new ExternalIndent()
-                {
-                    Left = Math.Max(Bounds.Left, parentBounds.Left - X),
-                    Up = Math.Max(Bounds.Up, parentBounds.Up - Y),
-                    Right = Math.Max(Bounds.Right, parentBounds.Right - (Parent.Width - (X + Width))),
-                    Down = Math.Max(Bounds.Down, parentBounds.Down - (Parent.Height - (Y + Height)))
-                };
-            }
-        }
-
-        #endregion
-
-        #region UpdateChildPositioning
-
-        /// <summary>
-        /// First updates child sizes, then calculates child positions based on sizes (layout, grid, alignment).
-        /// </summary>
-        /// <returns>this</returns>
-        public VisualObject UpdateChildPositioning()
-        {
-            // Update child sizes first
-            UpdateChildSize();
-
-            // Update child objects with alignment
-            UpdateAlignment();
-            // Update child objects in layout
-            if (Configuration.Layout != null)
+            foreach (var child in Child)
+                if (child.HasParentAlignment)
+                    child.ParentAlignment();
+            if (HasLayout)
                 UpdateLayout();
-            // Update child objects in grid
-            if (Configuration.Grid != null)
+            if (HasGrid)
                 UpdateGrid();
-
-            return this;
         }
 
         #endregion
-        #region UpdateChildSize
+        #region ParentAlignment
 
-        /// <summary>
-        /// Updates child sizes
-        /// </summary>
-        public void UpdateChildSize()
+        private void ParentAlignment()
         {
-            foreach (VisualObject child in ChildrenFromTop)
-                if (child.Configuration.FullSize != FullSize.None)
-                    child.UpdateFullSize();
-        }
+            if (Parent.HasChildStretch)
+                throw new InvalidOperationException($"Attempt to ParentAlignment while parent has ChildStretch: {FullName}");
+            InParentAlignment positioning = (InParentAlignment)Positioning;
+            ExternalIndent indent = positioning.Indent;
+            Alignment alignment = positioning.Alignment;
+            int x, y;
+            if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
+                x = indent.Left;
+            else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
+                x = Parent.Width - indent.Right - Width;
+            else
+                x = (int)Math.Floor((Parent.Width - indent.Left - indent.Right - Width) / 2f) + indent.Left;
 
-        #endregion
-        #region UpdateFullSize
+            if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
+                y = indent.Up;
+            else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
+                y = Parent.Height - indent.Down - Height;
+            else
+                y = (int)Math.Floor((Parent.Height - indent.Up - indent.Down - Height) / 2f) + indent.Up;
 
-        /// <summary>
-        /// Updates this object size relative to Parent size if Configuration.FullSize is not None.
-        /// </summary>
-        protected void UpdateFullSize()
-        {
-            FullSize fullSize = Configuration.FullSize;
-            // If child is in layout then FullSize should match parent size minus layout indent.
-            // If Alignment is set then FullSize should match parent size minus alignment indent.
-            ExternalIndent indent = Configuration.InLayout
-                ? Parent.Configuration.Layout.Indent
-                : Configuration.Alignment != null
-                    ? Configuration.Alignment.Indent
-                    : UIDefault.ExternalIndent;
-
-            int newX = indent.Left;
-            int newY = indent.Up;
-            int newWidth = Parent.Width - newX - indent.Right;
-            int newHeight = Parent.Height - newY - indent.Down;
-
-            if (fullSize == FullSize.Both)
-                SetXYWH(newX, newY, newWidth, newHeight, false);
-            else if (fullSize == FullSize.Horizontal)
-                SetXYWH(newX, Y, newWidth, Height, false);
-            else if (fullSize == FullSize.Vertical)
-                SetXYWH(X, newY, Width, newHeight, false);
-        }
-
-        #endregion
-        #region UpdateAlignment
-
-        /// <summary>
-        /// Sets position of child objects with set Configuration.Alignment
-        /// </summary>
-        protected void UpdateAlignment()
-        {
-            foreach (VisualObject child in ChildrenFromTop)
-            {
-                AlignmentConfiguration positioning = child.Configuration.Alignment;
-                if (positioning  == null)
-                    continue;
-
-                ExternalIndent indent = positioning.Indent ?? UIDefault.ExternalIndent;
-                Alignment alignment = positioning.Alignment;
-                int x, y;
-                if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
-                    x = indent.Left;
-                else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
-                    x = Width - indent.Right - child.Width;
-                else
-                    x = (int)Math.Floor((Width - indent.Left - indent.Right - child.Width) / 2f) + indent.Left;
-
-                if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
-                    y = indent.Up;
-                else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
-                    y = Height - indent.Down - child.Height;
-                else
-                    y = (int)Math.Floor((Height - indent.Up - indent.Down - child.Height) / 2f) + indent.Up;
-
-                child.SetXY(x, y, false);
-            }
+            SetXY(x, y, false);
         }
 
         #endregion
         #region UpdateLayout
 
-        /// <summary>
-        /// Set position for children in layout
-        /// </summary>
-        protected void UpdateLayout()
+        private void UpdateLayout()
         {
-            ExternalIndent indent = Configuration.Layout.Indent;
-            Alignment alignment = Configuration.Layout.Alignment;
-            Direction direction = Configuration.Layout.Direction;
-            Side side = Configuration.Layout.Side;
-            int offset = Configuration.Layout.ChildOffset;
-            int layoutIndent = Configuration.Layout.LayoutOffset;
+            ExternalIndent indent = LayoutConfiguration.Indent;
+            Alignment alignment = LayoutConfiguration.Alignment;
+            Direction direction = LayoutConfiguration.Direction;
+            Side side = LayoutConfiguration.Side;
+            int offset = LayoutConfiguration.ChildOffset;
+            int layoutIndent = LayoutConfiguration.LayoutOffset;
 
             (int abstractLayoutW, int abstractLayoutH, List<VisualObject> layoutChild) = CalculateLayoutSize(direction, offset);
-            Configuration.Layout.Objects = layoutChild;
-            for (int i = 0; i < Configuration.Layout.Index; i++)
-                layoutChild[i].Visible = false;
-            if (layoutChild.Count - Configuration.Layout.Index <= 0)
-                return;
-            layoutChild = layoutChild.Skip(Configuration.Layout.Index).ToList();
 
             // Calculating layout box position
             int layoutX, layoutY, layoutW, layoutH;
@@ -1017,7 +516,7 @@ namespace TerrariaUI.Base
 
                 int resultX = layoutX + cx + sideDeltaX;
                 int resultY = layoutY + cy + sideDeltaY;
-                if (Configuration.Layout.BoundsIsIndent)
+                if (LayoutConfiguration.BoundsIsIndent)
                     child.Visible = Intersecting(resultX, resultY, child.Width, child.Height, indent.Left, indent.Up,
                         Width - indent.Right - indent.Left, Height - indent.Down - indent.Up);
                 else
@@ -1039,9 +538,9 @@ namespace TerrariaUI.Base
             }
 
             if (direction == Direction.Left || direction == Direction.Right)
-                Configuration.Layout.OffsetLimit = abstractLayoutW - layoutW;
+                LayoutConfiguration.OffsetLimit = abstractLayoutW - layoutW;
             else if (direction == Direction.Up || direction == Direction.Down)
-                Configuration.Layout.OffsetLimit = abstractLayoutH - layoutH;
+                LayoutConfiguration.OffsetLimit = abstractLayoutH - layoutH;
         }
 
         #endregion
@@ -1055,10 +554,9 @@ namespace TerrariaUI.Base
             List<VisualObject> layoutChild = new List<VisualObject>();
             foreach (VisualObject child in ChildrenFromBottom)
             {
-                FullSize fullSize = child.Configuration.FullSize;
-                if (!child.Enabled || !child.Configuration.InLayout || fullSize == FullSize.Both)
-                        //|| (fullSize == FullSize.Horizontal && (direction == Direction.Left || direction == Direction.Right))
-                        //|| (fullSize == FullSize.Vertical && (direction == Direction.Up || direction == Direction.Down)))
+                if (!child.Enabled || !child.InLayout)
+                    //|| (fullSize == FullSize.Horizontal && (direction == Direction.Left || direction == Direction.Right))
+                    //|| (fullSize == FullSize.Vertical && (direction == Direction.Up || direction == Direction.Down)))
                     continue;
 
                 layoutChild.Add(child);
@@ -1092,46 +590,33 @@ namespace TerrariaUI.Base
         #endregion
         #region UpdateGrid
 
-        /// <summary>
-        /// Sets position for children in grid
-        /// </summary>
-        protected void UpdateGrid()
+        private void UpdateGrid()
         {
-            CalculateGridSizes();
+            Indent indent = GridConfiguration.Indent;
+            ISize[] columnSizes = GridConfiguration.Columns;
+            ISize[] lineSizes = GridConfiguration.Lines;
+            CalculateSizes(columnSizes, Width, indent.Left, indent.Horizontal, indent.Right,
+                ref GridConfiguration.ResultingColumns, ref GridConfiguration.MinWidth, true);
+            CalculateSizes(lineSizes, Height, indent.Up, indent.Vertical, indent.Down,
+                ref GridConfiguration.ResultingLines, ref GridConfiguration.MinHeight, false);
 
             // Main cell loop
-            ISize[] columnSizes = Configuration.Grid.Columns;
-            ISize[] lineSizes = Configuration.Grid.Lines;
-
             for (int i = 0; i < columnSizes.Length; i++)
             {
-                (int columnX, int columnSize) = Configuration.Grid.ResultingColumns[i];
+                (int columnX, int columnSize) = GridConfiguration.ResultingColumns[i];
                 if (columnSizes[i].IsDynamic)
                     columnSize = -1;
                 for (int j = 0; j < lineSizes.Length; j++)
                 {
-                    (int lineX, int lineSize) = Configuration.Grid.ResultingLines[j];
+                    (int lineX, int lineSize) = GridConfiguration.ResultingLines[j];
                     if (lineSizes[j].IsDynamic)
                         lineSize = -1;
-                    VisualObject cell = Grid[i, j];
-                    if (cell == null)
-                        continue;
-                    cell.SetXYWH(columnX, lineX, columnSize == -1 ? cell.Width : columnSize,
-                        lineSize == -1 ? cell.Height : lineSize, false);
+                    foreach (var cell in this[i, j])
+                        if (cell != null)
+                            cell.SetXYWH(columnX, lineX, columnSize == -1 ? cell.Width : columnSize,
+                                lineSize == -1 ? cell.Height : lineSize, false);
                 }
             }
-        }
-
-        #endregion
-        #region CalculateGridSizes
-
-        public void CalculateGridSizes()
-        {
-            Indent indent = Configuration.Grid.Indent ?? UIDefault.Indent;
-            CalculateSizes(Configuration.Grid.Columns, Width, indent.Left, indent.Horizontal, indent.Right,
-                ref Configuration.Grid.ResultingColumns, ref Configuration.Grid.MinWidth, true);
-            CalculateSizes(Configuration.Grid.Lines, Height, indent.Up, indent.Vertical, indent.Down,
-                ref Configuration.Grid.ResultingLines, ref Configuration.Grid.MinHeight, false);
         }
 
         #endregion
@@ -1154,11 +639,11 @@ namespace TerrariaUI.Base
                 {
                     int max = 0;
                     if (isWidth)
-                        for (int line = 0; line < Configuration.Grid.Lines.Count(); line++)
-                            max = Math.Max(max, this[i, line]?.Width ?? 0);
+                        for (int line = 0; line < GridConfiguration.Lines.Count(); line++)
+                            max = Math.Max(max, this[i, line].Max(o => o.Width));
                     else
-                        for (int column = 0; column < Configuration.Grid.Columns.Count(); column++)
-                            max = Math.Max(max, this[column, i]?.Height ?? 0);
+                        for (int column = 0; column < GridConfiguration.Columns.Count(); column++)
+                            max = Math.Max(max, this[column, i].Max(o => o.Height));
                     value = max;
                     ((Dynamic)size).Value = value;
                     absoluteSum += value;
@@ -1264,32 +749,477 @@ namespace TerrariaUI.Base
         }
 
         #endregion
+        #region UpdateBounds
 
-        #region UpdateSelfSize2
-
-        public bool UpdateSelfSize2()
+        /// <summary>
+        /// Calculate Bounds for this node (intersection of Parent's layout indent/alignment indent and Parent's Bounds)
+        /// </summary>
+        protected void UpdateBounds()
         {
-            if (Style.Stretch)
+            bool layoutBounds = InLayout && Parent.LayoutConfiguration.BoundsIsIndent;
+            bool alignmentBounds = Positioning is InParentAlignment positioning && positioning.BoundsIsIndent;
+            if (layoutBounds || alignmentBounds)
             {
-                int width = 0;
-                int height = 0;
-                foreach (var child in Child)
+                ExternalIndent parentIndent = layoutBounds ? Parent.LayoutConfiguration.Indent : ((InParentAlignment)Positioning).Indent;
+                Bounds = new ExternalIndent()
                 {
-                    width = Math.Max(width, child.X + child.Width);
-                    height = Math.Max(height, child.Y + child.Height);
-                }
-                if (Width < width || Height < height)
-                {
-                    TUI.Log($"STRETCH {FullName}: {Width}, {Height} => {width}, {height}");
-                    SetWH(width, height, false);
-                    if (Parent is VisualObject parent)
-                        parent.Update();
-                    else
-                        Update();
-                    return true;
-                }
+                    Left = Math.Max(0, parentIndent.Left - X),
+                    Up = Math.Max(0, parentIndent.Up - Y),
+                    Right = Math.Max(0, (X + Width) - (Parent.Width - parentIndent.Right)),
+                    Down = Math.Max(0, (Y + Height) - (Parent.Height - parentIndent.Down)),
+                };
             }
-            return false;
+            else
+                Bounds = new ExternalIndent(UIDefault.ExternalIndent);
+
+            // Intersecting bounds with parent's Bounds
+            if (Parent != null)
+            {
+                ExternalIndent parentBounds = Parent.Bounds;
+                if (parentBounds == null)
+                    return;
+                Bounds = new ExternalIndent()
+                {
+                    Left = Math.Max(Bounds.Left, parentBounds.Left - X),
+                    Up = Math.Max(Bounds.Up, parentBounds.Up - Y),
+                    Right = Math.Max(Bounds.Right, parentBounds.Right - (Parent.Width - (X + Width))),
+                    Down = Math.Max(Bounds.Down, parentBounds.Down - (Parent.Height - (Y + Height)))
+                };
+            }
+        }
+
+        #endregion
+
+        #region DrawReposition
+
+        protected virtual void DrawReposition(int oldX, int oldY, int oldWidth, int oldHeight)
+        {
+            if (oldWidth != Width || oldHeight != Height)
+                Update();
+            Parent.Apply().Draw();
+        }
+
+        #endregion
+        #region DrawEnable
+
+        protected virtual void DrawEnable()
+        {
+            Parent.Update();
+            if (InLayout)
+                Parent.Apply().Draw();
+            else
+                Apply().Draw();
+        }
+
+        #endregion
+        #region DrawDisable
+
+        protected virtual void DrawDisable()
+        {
+            Parent.Update().Apply().Draw();
+        }
+
+        #endregion
+        #region RequestDrawChanges
+
+        public VisualObject RequestDrawChanges()
+        {
+            if (Root is RootVisualObject root)
+                root.DrawState++;
+            return this;
+        }
+
+        #endregion
+        #region CollectStyle
+
+        public UIStyle CollectStyle(bool includeThis = true)
+        {
+            UIStyle result = new UIStyle();
+            foreach (VisualObject node in WayFromRoot)
+                if (node != this || includeThis)
+                    result.Stratify(node.Style);
+            return result;
+        }
+
+        #endregion
+        #region ToString
+
+        public override string ToString() => FullName;
+
+        #endregion
+
+        // Setup
+        #region SetMinSize
+
+        public VisualObject SetMinSize(int? width = null, int? height = null)
+        {
+            _MinWidth = width;
+            _MinHeight = height;
+            return this;
+        }
+
+        #endregion
+        #region SetPositioning
+
+        public VisualObject SetPositioning(IPositioning positioning)
+        {
+            if (Positioning is InGrid inGrid && inGrid != positioning)
+            {
+                if (WidthResizing == inGrid)
+                    SetWidthResizing(null);
+                if (HeightResizing == inGrid)
+                    SetHeightResizing(null);
+            }
+            Positioning = positioning;
+            return this;
+        }
+
+        #endregion
+        #region SetWidthResizing
+
+        public VisualObject SetWidthResizing(IResizing resizing)
+        {
+            WidthResizing = resizing;
+            return this;
+        }
+
+        #endregion
+        #region SetHeightResizing
+
+        public VisualObject SetHeightResizing(IResizing resizing)
+        {
+            HeightResizing = resizing;
+            return this;
+        }
+
+        #endregion
+        #region SetupLayout
+
+        /// <summary>
+        /// Setup layout for child positioning.
+        /// </summary>
+        /// <param name="alignment">Where to place all layout objects row/line</param>
+        /// <param name="direction">Direction of placing objects</param>
+        /// <param name="side">Side to which objects adjoin, relative to direction</param>
+        /// <param name="indent">Layout indent</param>
+        /// <param name="childIndent">Distance between objects in layout</param>
+        /// <param name="boundsIsIndent">Whether to draw objects/ object tiles that are outside of bounds of indent or not</param>
+        /// <returns>this</returns>
+        public VisualObject SetupLayout(Alignment alignment = Alignment.Center, Direction direction = Direction.Down,
+            Side side = Side.Center, ExternalIndent indent = null, int childIndent = 1, bool boundsIsIndent = true)
+        {
+            LayoutConfiguration = new LayoutConfiguration(alignment, direction, side, indent, childIndent, boundsIsIndent);
+            return this;
+        }
+
+        #endregion
+        #region LayoutOffset
+
+        /// <summary>
+        /// Scrolling offset of layout. Used in ScrollBackground and ScrollBar.
+        /// </summary>
+        /// <param name="value">Indent value</param>
+        /// <returns>this</returns>
+        public VisualObject LayoutOffset(int value)
+        {
+            LayoutConfiguration.LayoutOffset = value;
+            return this;
+        }
+
+        #endregion
+        #region SetupGrid
+
+        /// <summary>
+        /// Setup grid for child positioning. Use Absolute and Relative classes for specifying sizes.
+        /// </summary>
+        /// <param name="columns">Column sizes (i.e. new ISize[] { new Absolute(10), new Relative(100) })</param>
+        /// <param name="lines">Line sizes (i.e. new ISize[] { new Absolute(10), new Relative(100) })</param>
+        /// <param name="indent">Grid indent</param>
+        /// <param name="fillWithEmptyObjects">Whether to fills all grid cells with empty VisualContainers</param>
+        /// <returns>this</returns>
+        public VisualObject SetupGrid(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null,
+            Indent indent = null)
+        {
+            columns = columns ?? new ISize[] { new Relative(100) };
+            lines = lines ?? new ISize[] { new Relative(100) };
+            GridConfiguration = new GridConfiguration(columns, lines, indent);
+            return this;
+        }
+
+        #endregion
+
+        // Positioning
+        #region AddToLayout
+
+        /// <summary>
+        /// Add object as a child in layout. Removes child alignment and grid positioning.
+        /// </summary>
+        /// <param name="child">Object to add as a child.</param>
+        /// <param name="layer">Layer where to add the object. Null by default (don't change object layer).</param>
+        /// <returns></returns>
+        public virtual T AddToLayout<T>(T child, int? layer = null)
+            where T : VisualObject
+        {
+            child.SetPositioning(new InLayout());
+            return Add(child, layer);
+        }
+
+        #endregion
+        #region SetParentAlignment
+
+        /// <summary>
+        /// Setup alignment positioning inside parent. Removes layout and grid positioning.
+        /// </summary>
+        /// <param name="alignment">Where to place this object in parent</param>
+        /// <param name="indent">Alignment indent from Parent's borders</param>
+        /// <param name="boundsIsIndent">Whether to draw tiles of this object that are outside of bounds of indent or not</param>
+        /// <returns>this</returns>
+        public VisualObject SetParentAlignment(Alignment alignment, ExternalIndent indent = null, bool boundsIsIndent = true)
+        {
+            SetPositioning(new InParentAlignment(alignment, indent, boundsIsIndent))
+                .ParentAlignment();
+            return this;
+        }
+
+        #endregion
+
+        // Resizing
+        #region SetWidthParentStretch
+
+        public VisualObject SetWidthParentStretch()
+        {
+            WidthResizing = new InParentStretch();
+            if (Parent is VisualObject parent)
+                SetWH(parent.Width, Height, false);
+            return this;
+        }
+
+        #endregion
+        #region SetHeightParentStretch
+
+        public VisualObject SetHeightParentStretch()
+        {
+            HeightResizing = new InParentStretch();
+            if (Parent is VisualObject parent)
+                SetWH(Width, parent.Height, false);
+            return this;
+        }
+
+        #endregion
+        #region SetWidthChildStretch
+
+        public VisualObject SetWidthChildStretch()
+        {
+            WidthResizing = new InChildStretch();
+            return ChildStretch(false);
+        }
+
+        #endregion
+        #region SetHeightChildStretch
+
+        public VisualObject SetHeightChildStretch()
+        {
+            HeightResizing = new InChildStretch();
+            return ChildStretch(false);
+        }
+
+        #endregion
+
+        // Positioning and resizing
+        #region AddToGrid
+
+        public VisualObject AddToGrid(VisualObject child, int column, int line, bool widthResize = true, bool heightResize = true, int? layer = null)
+        {
+            InGrid inGrid = new InGrid(column, line);
+            SetPositioning(inGrid);
+            if (widthResize)
+                SetWidthResizing(inGrid);
+            if (heightResize)
+                SetHeightResizing(inGrid);
+
+            Add(child, layer);
+            // TODO: only update if new size is more than existing dynamic size
+            //if (GridConfiguration.Columns[column].IsDynamic || GridConfiguration.Lines[line].IsDynamic)
+                //return UpdateSize(false);
+            UpdateChildrenPositionAndSize();
+            return this;
+        }
+
+        #endregion
+
+        #region Pulse
+
+        /// <summary> Send specified signal to all sub-tree including this node. </summary>
+        /// <param name="type"> Type of signal </param>
+        /// <returns> this </returns>
+        public VisualObject Pulse(PulseType type)
+        {
+            Root?.PrePulseObject(this, type);
+
+            // Pulse event handling related to this node
+            PulseThis(type);
+
+            // Recursive Pulse call
+            PulseChild(type);
+
+            // Post pulse event handling related to this node
+            PostPulseThis(type);
+
+            Root?.PostPulseObject(this, type);
+
+            return this;
+        }
+
+        #region PulseThis
+
+        /// <summary>
+        /// Send specified signal only to this node.
+        /// </summary>
+        /// <param name="type">Type of signal</param>
+        /// <returns>this</returns>
+        public VisualObject PulseThis(PulseType type)
+        {
+            try
+            {
+                // Overridable pulse handling method
+                PulseThisNative(type);
+
+                // Custom pulse handler
+                Configuration.Custom.Pulse?.Invoke(this, type);
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
+            }
+            return this;
+        }
+
+        #endregion
+        #region PulseThisNative
+
+        /// <summary>
+        /// Overridable function to handle pulse signal for this node.
+        /// </summary>
+        /// <param name="type"></param>
+        protected virtual void PulseThisNative(PulseType type)
+        {
+            switch (type)
+            {
+                case PulseType.Reset:
+                    if (LayoutConfiguration != null)
+                        LayoutOffset(0);
+                    break;
+                case PulseType.SetXYWH:
+                    // Update position relative to Provider
+                    if (Root != null)
+                        (ProviderX, ProviderY) = ProviderXY();
+                    break;
+            }
+        }
+
+        #endregion
+        #region PulseChild
+
+        /// <summary>
+        /// Send specified signal to sub-tree without this node.
+        /// </summary>
+        /// <param name="type">Type of signal</param>
+        /// <returns>this</returns>
+        public VisualObject PulseChild(PulseType type)
+        {
+            foreach (VisualObject child in ChildrenFromTop)
+                child.Pulse(type);
+            return this;
+        }
+
+        #endregion
+        #region PostPulseThis
+
+        public VisualObject PostPulseThis(PulseType type)
+        {
+            try
+            {
+                // Overridable pulse handling method
+                PostPulseThisNative(type);
+
+                // Custom pulse handler
+                Configuration.Custom.PostPulse?.Invoke(this, type);
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
+            }
+            return this;
+        }
+
+        #endregion
+        #region PostPulseThisNative
+
+        /// <summary>
+        /// Overridable function to handle post pulse signal for this node.
+        /// </summary>
+        /// <param name="type"></param>
+        protected virtual void PostPulseThisNative(PulseType type) { }
+
+        #endregion
+
+        #endregion
+        #region Update
+
+        /// <summary> Updates the node and the child sub-tree. </summary>
+        /// <returns> this </returns>
+        public VisualObject Update()
+        {
+            Root?.PreUpdateObject(this);
+
+            // Updates related to this node
+            UpdateThis();
+
+            // Recursive Update() call
+            UpdateChild();
+
+            // Updates related to this node and dependant on child updates
+            PostUpdateThis();
+
+            Root?.PostUpdateObject(this);
+
+            return this;
+        }
+
+        #region UpdateThis
+
+        /// <summary>
+        /// Updates related to this node only.
+        /// </summary>
+        /// <returns>this</returns>
+        public VisualObject UpdateThis()
+        {
+            try
+            {
+                // Overridable update method
+                UpdateThisNative();
+
+                // Custom update callback
+                Configuration.Custom.Update?.Invoke(this);
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
+            }
+
+            return this;
+        }
+
+        #endregion
+        #region UpdateThisNative
+
+        /// <summary>
+        /// Overridable method for updates related to this node. Do not change position/size in in this method.
+        /// </summary>
+        protected virtual void UpdateThisNative()
+        {
+            // Update position relative to Provider
+            (ProviderX, ProviderY) = ProviderXY();
         }
 
         #endregion
@@ -1336,14 +1266,7 @@ namespace TerrariaUI.Base
         /// <summary>
         /// Overridable method for updates related to this node and dependant on child updates.
         /// </summary>
-        protected virtual void PostUpdateThisNative()
-        {
-            if (Configuration.Grid != null)
-            {
-                Configuration.Grid.MinWidth = Math.Max(Configuration.Grid.MinWidth, Child.Max(o => o.Configuration.Grid?.MinWidth) ?? 1);
-                Configuration.Grid.MinHeight = Math.Max(Configuration.Grid.MinHeight, Child.Max(o => o.Configuration.Grid?.MinHeight) ?? 1);
-            }
-        }
+        protected virtual void PostUpdateThisNative() { }
 
         #endregion
 
@@ -1674,16 +1597,13 @@ namespace TerrariaUI.Base
         /// </summary>
         public void ShowGrid()
         {
-            if (Configuration.Grid == null)
-                throw new Exception("Grid not setup for this object.");
-
             lock (ApplyLocker)
             {
-                for (int i = 0; i < Configuration.Grid.Columns.Length; i++)
-                    for (int j = 0; j < Configuration.Grid.Lines.Length; j++)
+                for (int i = 0; i < GridConfiguration.Columns.Length; i++)
+                    for (int j = 0; j < GridConfiguration.Lines.Length; j++)
                     {
-                        (int columnX, int columnSize) = Configuration.Grid.ResultingColumns[i];
-                        (int lineY, int lineSize) = Configuration.Grid.ResultingLines[j];
+                        (int columnX, int columnSize) = GridConfiguration.ResultingColumns[i];
+                        (int lineY, int lineSize) = GridConfiguration.ResultingLines[j];
                         for (int x = columnX; x < columnX + columnSize; x++)
                             for (int y = lineY; y < lineY + lineSize; y++)
                             {

@@ -20,7 +20,7 @@ namespace TerrariaUI.Widgets
                 string title = null, LabelStyle titleStyle = null, Input<string> input = null, Action<Menu> titleCallback = null)
             : base(x, y, 0, 0)
         {
-            SetupGrid(lines: new ISize[] { new Relative(100), new Absolute(4) }, fillWithEmptyObjects: false);
+            SetupGrid(lines: new ISize[] { new Relative(100), new Absolute(4) });
             this[0, 0] = Pages = new PagesList(0, 0);
             int pagesCount = 1;
             while (values.Count() > 0)
@@ -30,11 +30,12 @@ namespace TerrariaUI.Widgets
                 values = values.Skip(pageLimit);
             }
             Add(new Arrow(0, 0, new ArrowStyle() { Direction = Direction.Left })
-                .SetAlignmentInParent(Alignment.DownLeft, new ExternalIndent() { Left = 1, Down = 1 }));
+                .SetParentAlignment(Alignment.DownLeft, new ExternalIndent() { Left = 1, Down = 1 }));
             Add(new Arrow(0, 0, new ArrowStyle() { Direction = Direction.Right })
-                .SetAlignmentInParent(Alignment.DownRight, new ExternalIndent() { Right = 1, Down = 1 }));
+                .SetParentAlignment(Alignment.DownRight, new ExternalIndent() { Right = 1, Down = 1 }));
             VisualObject footer = this[0, 1] = new VisualObject(0, pageLimit * 4 + (title != null ? 4 : 0), 0, 4);
-            footer.SetupGrid(columns: new ISize[] { new Relative(50), new Relative(50) });
+            footer.SetupGrid(columns: new ISize[] { new Relative(50), new Relative(50) })
+                .FillGrid();
             footer[0, 0].Callback = (self, touch) =>
             {
                 if (Pages.PreviousPage(false))

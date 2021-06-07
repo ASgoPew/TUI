@@ -30,7 +30,7 @@ namespace TerrariaUI.Widgets
                 throw new ArgumentException($"{nameof(input)} must be VisualObject, IInput.");
             Input = input;
             Add((VisualObject)input)
-                .SetAlignmentInParent(Alignment.Right, inputIndent);
+                .SetParentAlignment(Alignment.Right, inputIndent);
         }
 
         #endregion
