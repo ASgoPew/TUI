@@ -50,7 +50,6 @@ namespace TerrariaUI.Base
         /// Overridable field for disabling ability to be ordered in Parent's Child array.
         /// </summary>
         public override bool Orderable => !Configuration.InLayout;
-        public bool SizeChanged => GetSizeNative() != (Width, Height);
         protected bool CanDraw => Root?.DrawState > 0;
 
         private string _Name;
@@ -171,6 +170,10 @@ namespace TerrariaUI.Base
             {
                 if (value != null)
                 {
+                    value.Style.AllowSelfResize = false;
+                    value.Style.Stretch = false;
+                    value.Configuration.FullSize = FullSize.None;
+
                     value.Configuration.InLayout = false;
                     value.Configuration.Alignment = null;
 
@@ -394,6 +397,8 @@ namespace TerrariaUI.Base
 
         /// <summary>
         /// Set automatic stretching to parent size. Removes grid positioning.
+        /// <para></para>
+        /// Incompatible with <see cref="VisualObject.AllowSelfResize"/> and <see cref="VisualContainer.Stretch"/>
         /// </summary>
         /// <param name="horizontal">Horizontal stretching</param>
         /// <param name="vertical">Vertical stretching</param>
@@ -409,11 +414,15 @@ namespace TerrariaUI.Base
 
         /// <summary>
         /// Set automatic stretching to parent size. Removes grid positioning.
+        /// <para></para>
+        /// Incompatible with <see cref="VisualObject.AllowSelfResize"/> and <see cref="VisualContainer.Stretch"/>
         /// </summary>
         /// <param name="fullSize">Horizontal and/or vertical (or None)</param>
         /// <returns>this</returns>
         public VisualObject SetFullSize(FullSize fullSize)
         {
+            Style.AllowSelfResize = false;
+            Style.Stretch = false;
             if (Cell != null && fullSize != FullSize.None)
             {
                 Parent.Grid[Cell.Column, Cell.Line] = null;
@@ -450,6 +459,50 @@ namespace TerrariaUI.Base
                 throw new Exception("Layout is not set for this object: " + FullName);
 
             Configuration.Layout.LayoutOffset = value;
+            return this;
+        }
+
+        #endregion
+        #region AllowSelfResize
+
+        /// <summary>
+        /// Turns on object self resize using <see cref="VisualObject.GetSizeNative"/>
+        /// <para></para>
+        /// Incompatible with <see cref="VisualObject.SetFullSize(bool, bool)"/> and <see cref="VisualContainer.Stretch"/> and grid positioning.
+        /// </summary>
+        /// <returns>this</returns>
+        public VisualObject AllowSelfResize()
+        {
+            Configuration.FullSize = FullSize.None;
+            Style.Stretch = false;
+            if (Cell != null)
+            {
+                Parent.Grid[Cell.Column, Cell.Line] = null;
+                Cell = null;
+            }
+
+            Style.AllowSelfResize = true;
+            return this;
+        }
+
+        #endregion
+        #region Stretch
+
+        /// <summary>
+        /// Incompatible with <see cref="VisualObject.SetFullSize(bool, bool)"/> and <see cref="VisualObject.AllowSelfResize"/> and grid positioning.
+        /// </summary>
+        /// <returns></returns>
+        public VisualObject Stretch()
+        {
+            if (Cell != null)
+            {
+                Parent.Grid[Cell.Column, Cell.Line] = null;
+                Cell = null;
+            }
+            Configuration.FullSize = FullSize.None;
+            Style.AllowSelfResize = false;
+
+            Style.Stretch = true;
             return this;
         }
 
@@ -620,6 +673,10 @@ namespace TerrariaUI.Base
             // Recursive Update() call
             UpdateChild();
 
+            // Update of objects that set their size by themself
+            if (UpdateSelfSize2())
+                return this;
+
             // Updates related to this node and dependant on child updates
             PostUpdateThis();
 
@@ -634,7 +691,18 @@ namespace TerrariaUI.Base
         /// Overridable method for determining object size depending on own data or child objects
         /// </summary>
         /// <returns></returns>
-        protected virtual (int, int) GetSizeNative() => (Width, Height);
+        public virtual (int, int) GetSizeNative()
+        {
+            if (Configuration.Custom.GetSize is Func<VisualObject, (int, int)> getSize)
+                return getSize.Invoke(this);
+            return (Width, Height);
+        }
+
+        #endregion
+        #region SizeChanged
+
+        public bool SizeChanged(out int width, out int height) =>
+            ((width, height) = GetSizeNative()) != (Width, Height);
 
         #endregion
         #region UpdateSelfSize
@@ -646,17 +714,18 @@ namespace TerrariaUI.Base
         public bool UpdateSelfSize()
         {
             foreach (VisualObject o in TreeBFS(false))
-                if (!o.Style.FixedSize)
+                if (o.Style.AllowSelfResize)
                     o.SetWH(o.GetSizeNative(), false);
-            if (SizeChanged)
+            if (Style.AllowSelfResize && SizeChanged(out int width, out int height))
             {
                 if (Parent is VisualObject parent)
                 {
+                    SetWH(width, height, false);
                     parent.Update();
                     return true;
                 }
-                else if (!Style.FixedSize)
-                    SetWH(GetSizeNative(), false);
+                else
+                    SetWH(width, height, false);
             }
             return false;
         }
@@ -1192,6 +1261,35 @@ namespace TerrariaUI.Base
                     return;
                 }
             list.Add((index, value));
+        }
+
+        #endregion
+
+        #region UpdateSelfSize2
+
+        public bool UpdateSelfSize2()
+        {
+            if (Style.Stretch)
+            {
+                int width = 0;
+                int height = 0;
+                foreach (var child in Child)
+                {
+                    width = Math.Max(width, child.X + child.Width);
+                    height = Math.Max(height, child.Y + child.Height);
+                }
+                if (Width < width || Height < height)
+                {
+                    TUI.Log($"STRETCH {FullName}: {Width}, {Height} => {width}, {height}");
+                    SetWH(width, height, false);
+                    if (Parent is VisualObject parent)
+                        parent.Update();
+                    else
+                        Update();
+                    return true;
+                }
+            }
+            return false;
         }
 
         #endregion

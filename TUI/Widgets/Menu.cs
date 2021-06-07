@@ -32,9 +32,9 @@ namespace TerrariaUI.Widgets
 
         #region Constructor
 
-        public Menu(int x, int y, IEnumerable<string> values, ButtonStyle style1 = null, ButtonStyle style2 = null,
+        public Menu(int x, int y, int width, int height, IEnumerable<string> values, ButtonStyle style1 = null, ButtonStyle style2 = null,
             string title = null, LabelStyle titleStyle = null, Input<string> input = null, Action<Menu> titleCallback = null)
-            : base(x, y, 0, 0, new UIConfiguration()
+            : base(x, y, width, height, new UIConfiguration()
             {
                 UseMoving = true,
                 UseEnd = true,
@@ -70,14 +70,6 @@ namespace TerrariaUI.Widgets
                 AddToLayout(button.SetFullSize(true, false));
                 button.Update();
             }
-
-            int width = Label.FindMaxWidth(values, style1.TextIndent.Horizontal) + 2;
-            if (HasTitle)
-                width = Math.Max(width, Label.FindMaxWidth(new string[] { Title }, titleStyle.TextIndent.Horizontal) + 2);
-            int height = 4 * values.Count();
-            if (HasTitle)
-                height += 4;
-            SetWH(width, height, false);
         }
 
         #endregion

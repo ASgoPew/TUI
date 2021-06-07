@@ -17,6 +17,10 @@ namespace TerrariaUI.Base
         /// </summary>
         public Action<VisualObject> PostUpdate { get; set; }
         /// <summary>
+        /// Callback for self size change.
+        /// </summary>
+        public Func<VisualObject, (int, int)> GetSize { get; set; }
+        /// <summary>
         /// Callback for custom checking if user can touch this node.
         /// </summary>
         public Func<VisualObject, Touch, bool> CanTouch { get; set; }
@@ -73,6 +77,7 @@ namespace TerrariaUI.Base
         {
             Update = callbacks.Update;
             PostUpdate = callbacks.PostUpdate;
+            GetSize = callbacks.GetSize;
             CanTouch = callbacks.CanTouch;
             Apply = callbacks.Apply;
             Pulse = callbacks.Pulse;

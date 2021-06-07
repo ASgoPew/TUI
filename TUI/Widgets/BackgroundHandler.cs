@@ -13,11 +13,11 @@ namespace TerrariaUI.Widgets
         public BackgroundHandler(string name, int layer = Int32.MaxValue)
             : base(name, 0, 0, 0, 0, provider: new MainTileProvider(0))
         {
-            Style.FixedSize = false;
+            AllowSelfResize();
             _Layer = layer;
         }
 
-        protected override (int, int) GetSizeNative() => (TUI.MaxTilesX, TUI.MaxTilesY);
+        public override (int, int) GetSizeNative() => (TUI.MaxTilesX, TUI.MaxTilesY);
 
         public override dynamic Tile(int x, int y) => null;
 

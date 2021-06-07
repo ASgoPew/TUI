@@ -60,8 +60,6 @@ namespace TerrariaUI.Widgets
                 Action<VisualObject, Touch> callback = null)
             : base(x, y, width, height, configuration, style, callback)
         {
-            if (width == 0 || height == 0)
-                Style.FixedSize = false;
             Timer.Interval = VideoStyle.Delay;
             Timer.Elapsed += Next;
         }
@@ -139,7 +137,7 @@ namespace TerrariaUI.Widgets
         #endregion
         #region UpdateSizeNative
 
-        protected override (int, int) GetSizeNative() =>
+        public override (int, int) GetSizeNative() =>
             Images?.Count > 0
             ? (Images[Frame].Width, Images[Frame].Height)
             : (8, 5);

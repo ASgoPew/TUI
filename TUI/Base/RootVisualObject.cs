@@ -216,7 +216,7 @@ namespace TerrariaUI.Base
         protected override void UpdateThisNative()
         {
             // MainTileProvider acquires Main.tile field
-            Provider.Update();
+            Provider?.Update();
             base.UpdateThisNative();
         }
 

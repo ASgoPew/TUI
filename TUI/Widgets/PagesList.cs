@@ -16,21 +16,7 @@ namespace TerrariaUI.Widgets
         #region Constructor
 
         public PagesList(int x, int y, int width = 0, int height = 0)
-            : base(x, y, width, height, new UIConfiguration() { UseBegin = false })
-        {
-            if (width == 0 || height == 0)
-                Style.FixedSize = false;
-        }
-
-        #endregion
-        #region GetSizeNative
-
-        protected override (int, int) GetSizeNative()
-        {
-            if (Selected == null && _Child.ElementAtOrDefault(0) is VisualObject child)
-                Select(child, false);
-            return (Selected.Width, Selected.Height);
-        }
+            : base(x, y, width, height, new UIConfiguration() { UseBegin = false }) { }
 
         #endregion
 

@@ -25,7 +25,7 @@ namespace TerrariaUI.Widgets
             int pagesCount = 1;
             while (values.Count() > 0)
             {
-                Menu menu = new Menu(0, 0, values.Take(pageLimit), style1, style2, title, titleStyle, input, titleCallback);
+                Menu menu = new Menu(0, 0, 0, 0, values.Take(pageLimit), style1, style2, title, titleStyle, input, titleCallback);
                 Pages.Add(menu);
                 values = values.Skip(pageLimit);
             }

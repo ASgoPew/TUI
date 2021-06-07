@@ -72,6 +72,8 @@ namespace TerrariaUI.Widgets
         public string RawText { get; private set; }
         public string Text { get; private set; }
         protected List<(string Text, int Width)> Lines { get; set; } = null;
+        private int WidthOnUpdate;
+        private int HeightOnUpdate;
         protected int TextW { get; set; }
         protected int TextH { get; set; }
 
@@ -98,6 +100,7 @@ namespace TerrariaUI.Widgets
         {
             if (text.Contains(ReservedCharacter))
                 throw new InvalidOperationException((int)ReservedCharacter + " is a reserved character.");
+            AllowSelfResize();
             RawText = text ?? throw new ArgumentNullException(nameof(text));
         }
 
@@ -116,6 +119,61 @@ namespace TerrariaUI.Widgets
             : this(label.X, label.Y, label.Width, label.Height, string.Copy(label.RawText),new UIConfiguration(label.Configuration),
                   new LabelStyle(label.Style as LabelStyle), label.Callback?.Clone() as Action<VisualObject, Touch>)
         {
+        }
+
+        #endregion
+        #region GetSizeNative
+
+        public override (int, int) GetSizeNative()
+        {
+            if (Lines == null)
+                UpdateThisNative();
+            return (TextW + 2, TextH + 2);
+        }
+
+        #endregion
+        #region UpdateThisNative
+
+        protected override void UpdateThisNative()
+        {
+            base.UpdateThisNative();
+
+            if (Lines == null || Width != WidthOnUpdate || Height != HeightOnUpdate)
+            {
+                WidthOnUpdate = Width;
+                HeightOnUpdate = Height;
+                LabelStyle style = Style as LabelStyle;
+                Indent indent = style.TextIndent;
+                int spaceW = WidthOnUpdate - indent.Left - indent.Right;
+                int spaceH = HeightOnUpdate - indent.Up - indent.Down;
+                int lineH = 2 + (int)style.TextUnderline;
+
+                StatuePlaceStyle = new List<int>();
+                string text = Regex.Replace(RawText, ItemPattern, match =>
+                {
+                    GetPlaceStyleArgs args = new GetPlaceStyleArgs(int.Parse(match.Groups["id"].Value));
+                    TUI.Hooks.GetPlaceStyle.Invoke(args);
+                    StatuePlaceStyle.Add(args.PlaceStyle);
+                    return ReservedCharacter.ToString();
+                });
+                TagColors = new SortedDictionary<int, byte>();
+                int delta = 0;
+                text = Regex.Replace(text, ColorPattern, match =>
+                {
+                    string replace = match.Groups["text"].Value;
+                    TagColors[match.Index - delta] = PaintIDByName(match.Groups["color"].Value);
+                    TagColors[match.Index + replace.Length - delta] = 255;
+                    delta += match.Length - replace.Length;
+                    return replace;
+                });
+                Text = text;
+
+                //Dividing text into lines
+                (List<(string, int)> lines, int maxLineW) = LimitStatueText(text, spaceW, spaceH, indent.Horizontal, indent.Vertical, lineH);
+                Lines = lines;
+                TextW = maxLineW;
+                TextH = lines.Count * (lineH + indent.Vertical) - indent.Vertical;
+            }
         }
 
         #endregion
@@ -215,66 +273,6 @@ namespace TerrariaUI.Widgets
                     break;
                 charY = charY + lineH + indent.Vertical;
             }
-        }
-
-        #endregion
-        #region UpdateThisNative
-
-        protected override void UpdateThisNative()
-        {
-            base.UpdateThisNative();
-
-            LabelStyle style = Style as LabelStyle;
-            Indent indent = style.TextIndent;
-            int spaceW = Width - indent.Left - indent.Right;
-            int spaceH = Height - indent.Up - indent.Down;
-            int lineH = 2 + (int)style.TextUnderline;
-
-            if (Lines == null)
-            {
-                StatuePlaceStyle = new List<int>();
-                string text = Regex.Replace(RawText, ItemPattern, match =>
-                {
-                    GetPlaceStyleArgs args = new GetPlaceStyleArgs(int.Parse(match.Groups["id"].Value));
-                    TUI.Hooks.GetPlaceStyle.Invoke(args);
-                    StatuePlaceStyle.Add(args.PlaceStyle);
-                    return ReservedCharacter.ToString();
-                });
-                TagColors = new SortedDictionary<int, byte>();
-                int delta = 0;
-                text = Regex.Replace(text, ColorPattern, match =>
-                {
-                    string replace = match.Groups["text"].Value;
-                    TagColors[match.Index - delta] = PaintIDByName(match.Groups["color"].Value);
-                    TagColors[match.Index + replace.Length - delta] = 255;
-                    delta += match.Length - replace.Length;
-                    return replace;
-                });
-                Text = text;
-
-                //Dividing text into lines
-                (List<(string, int)> lines, int maxLineW) = LimitStatueText(text, spaceW, spaceH, indent.Horizontal, indent.Vertical, lineH);
-                Lines = lines;
-                TextW = maxLineW;
-                TextH = lines.Count * (lineH + indent.Vertical) - indent.Vertical;
-            }
-        }
-
-        #endregion
-        #region SetXYWH
-
-        public override VisualObject SetXYWH(int x, int y, int width, int height, bool draw)
-        {
-            int oldX = X, oldY = Y, oldWidth = Width, oldHeight = Height;
-            base.SetXYWH(x, y, width, height, false);
-            if (oldX != X || oldY != Y || oldWidth != Width || oldHeight != Height)
-            {
-                Lines = null;
-                Update();
-                if (draw)
-                    DrawReposition(oldX, oldY, oldWidth, oldHeight);
-            }
-            return this;
         }
 
         #endregion
@@ -407,7 +405,7 @@ namespace TerrariaUI.Widgets
         #endregion
         #region FindMaxSize
 
-        public static int FindMaxWidth(IEnumerable<string> values, int emptyIndentation)
+        /*public static int FindMaxWidth(IEnumerable<string> values, int emptyIndentation)
         {
             int max = 0;
             foreach (string _text in values)
@@ -430,7 +428,7 @@ namespace TerrariaUI.Widgets
                     max = width;
             }
             return max;
-        }
+        }*/
 
         #endregion
         #region PaintIDByName
