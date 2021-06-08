@@ -287,14 +287,14 @@ namespace TerrariaUI
         #endregion
         #region TouchedChild
 
-        public static bool TouchedChild(Touch touch, ref bool insideUI)
+        private static bool TouchedChild(Touch touch, ref bool insideUI)
         {
             List<RootVisualObject> _child = Roots;
             for (int i = _child.Count - 1; i >= 0; i--)
             {
                 RootVisualObject o = _child[i];
                 int saveX = o.X, saveY = o.Y;
-                if (o.Active
+                if (o.IsActive
                     && o.ContainsParent(touch)
                     && o.Players.Contains(touch.Session.PlayerIndex)
                     && (!o.Personal || o.Observers.Contains(touch.PlayerIndex)))
@@ -303,8 +303,6 @@ namespace TerrariaUI
                     if (o.Touched(touch))
                     {
                         insideUI = true;
-                        if (o.Orderable && SetTop(o))
-                            PostSetTop(o);
                         return true;
                     }
                     touch.Move(saveX, saveY);
@@ -316,29 +314,29 @@ namespace TerrariaUI
         #endregion
         #region EndTouchHandled
 
-        public static bool EndTouchHandled(int userIndex) =>
+        private static bool EndTouchHandled(int userIndex) =>
             Session[userIndex]?.EndTouchHandled ?? false;
 
         #endregion
         #region SetTop
 
-        public static bool SetTop(RootVisualObject root)
+        public static void SetTop(RootVisualObject root)
         {
             if (root.Personal)
-                return false;
+                return;
 
             List<RootVisualObject> _child = Roots;
             int previousIndex = _child.IndexOf(root);
             int index = previousIndex;
             if (index < 0)
-                throw new InvalidOperationException("Trying to SetTop an object that isn't a child of current VisualDOM");
+                throw new InvalidOperationException("Trying to SetTop an an object that is not in TUI roots list");
             int count = _child.Count;
             index++;
             while (index < count && _child[index].Layer <= root.Layer)
                 index++;
 
             if (index == previousIndex + 1)
-                return false;
+                return;
 
             _Child.Remove(root);
             _Child.Insert(index - 1, root);
@@ -346,14 +344,6 @@ namespace TerrariaUI
             if (!root.UsesDefaultMainProvider)
                 root.Provider.SetTop(false);
 
-            return true;
-        }
-
-        #endregion
-        #region PostSetTop
-
-        public static void PostSetTop(RootVisualObject child)
-        {
             // Should not apply if intersecting objects have different tile provider
             (bool intersects, bool needsApply) = ChildIntersectingOthers(child);
             if (intersects)

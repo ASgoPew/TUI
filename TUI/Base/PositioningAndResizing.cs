@@ -96,19 +96,14 @@ namespace TerrariaUI
         /// Distance between objects in child layout.
         /// </summary>
         public int ChildOffset { get; set; }
-        /// <summary>
-        /// Restrict drawing outside of indent or not.
-        /// </summary>
-        public bool BoundsIsIndent { get; set; }
 
-        internal LayoutConfiguration(Alignment alignment = Alignment.Center, Direction direction = Direction.Down, Side side = Side.Center, ExternalIndent indent = null, int childIndent = 1, bool boundsIsIndent = true)
+        internal LayoutConfiguration(Alignment alignment = Alignment.Center, Direction direction = Direction.Down, Side side = Side.Center, ExternalIndent indent = null, int childOffset = 1)
         {
             Alignment = alignment;
             Direction = direction;
             Side = side;
             Indent = indent ?? new ExternalIndent();
-            ChildOffset = childIndent;
-            BoundsIsIndent = boundsIsIndent;
+            ChildOffset = childOffset;
         }
 
         internal LayoutConfiguration(LayoutConfiguration layoutConfiguration)

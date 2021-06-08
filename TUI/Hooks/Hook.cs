@@ -3,10 +3,11 @@
 namespace TerrariaUI.Hooks
 {
     public class Hook<T>
+        where T : EventArgs
     {
         public delegate void HookD(T args);
         public event HookD Event;
-        public void Invoke(T args)
+        public T Invoke(T args)
         {
             try
             {
@@ -16,6 +17,7 @@ namespace TerrariaUI.Hooks
             {
                 TUI.HandleException(e);
             }
+            return args;
         }
         public void Clear()
         {

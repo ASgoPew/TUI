@@ -58,10 +58,6 @@ namespace TerrariaUI.Base
         /// </summary>
         public bool Enabled { get; private set; } = true;
         /// <summary>
-        /// Whether the object is visible. Object becomes invisible e.g. when it is outside of bounds of layout.
-        /// </summary>
-        public bool Visible { get; protected internal set; } = true;
-        /// <summary>
         /// Layer in Parent's Child array. Objects with higher layer are always higher in this array.
         /// </summary>
         public virtual int Layer { get; protected set; } = 0;
@@ -78,7 +74,7 @@ namespace TerrariaUI.Base
         /// Tile provider object, default value - null (interface would
         /// be drawn on the Main.tile, tiles would be irrevocably modified).
         /// <para></para>
-        /// FakeTileRectangle from [FakeManager](https://github.com/AnzhelikaO/FakeManager)
+        /// TileProvider from [FakeProvider](https://github.com/AnzhelikaO/FakeProvider)
         /// can be passed as a value so that interface would be drawn above the Main.tile.
         /// </summary>
         public virtual dynamic Provider => Root?.Provider;
@@ -96,13 +92,9 @@ namespace TerrariaUI.Base
         /// <returns>Size of Child array</returns>
         public int ChildCount => _Child.Count;
         /// <summary>
-        /// Object is Active when it is Enabled and Visible (see <see cref="Enabled"/>, <see cref="Visible"/>)
-        /// </summary>
-        public virtual bool Active => Enabled && Visible && !Disposed;
-        /// <summary>
         /// Overridable property for disabling ability to be ordered in Parent's Child array.
         /// </summary>
-        public virtual bool Orderable => true;
+        public virtual bool Orderable => false;
 
         #endregion
 
@@ -233,13 +225,7 @@ namespace TerrariaUI.Base
 
         #endregion
 
-        #region IDOM
-
-        #region InitializeDOM
-
-        internal void InitializeDOM() { }
-
-        #endregion
+        // IDOM
         #region Add
 
         /// <summary>
@@ -258,7 +244,7 @@ namespace TerrariaUI.Base
             else if (child.Parent != null && child.Parent != this)
                 throw new InvalidOperationException("You cannot add an object that was added somewhere else.");
             else if (_Child.Contains(child))
-                return child;
+                throw new InvalidOperationException("Attempt to add object as a child twice.");
 
             if (layer.HasValue)
                 child.Layer = layer.Value;
@@ -271,11 +257,6 @@ namespace TerrariaUI.Base
             _Child.Insert(index, child);
 
             TUI.TryToLoadChild(@this, child);
-            if (TUI.Active)
-            {
-                @this.UpdateChildPositioning();
-                child.Update();
-            }
 
             return child;
         }
@@ -293,14 +274,6 @@ namespace TerrariaUI.Base
         {
             if (!_Child.Remove(child))
                 throw new InvalidOperationException("You can't remove object that isn't a child.");
-
-            // Should probably update these fields in all sub-tree.
-            // Currently removed object = disposed object. You can't use it anymore.
-            //child.Parent = null;
-            //child.Root = null;
-            if (Shortcuts != null)
-                foreach (var pair in Shortcuts.Where(o => o.Value == child))
-                    Shortcuts.TryRemove(pair.Key, out object _);
 
             child.Dispose();
 
@@ -463,21 +436,8 @@ namespace TerrariaUI.Base
 
         #endregion
 
-        #endregion
-        #region IVisual
-
-        #region InitializeVisual
-
-        internal void InitializeVisual(int x, int y, int width, int height)
-        {
-            X = x;
-            Y = y;
-            Width = width;
-            Height = height;
-        }
-
-        #endregion
-        #region XYWH, SetXYWH
+        // IVisual
+        #region XYWH
 
         /// <summary>
         /// Get object position and size.
@@ -490,6 +450,9 @@ namespace TerrariaUI.Base
             return (X + dx, Y + dy, Width, Height);
         }
 
+        #endregion
+        #region SetXYWH
+
         /// <summary>
         /// Sets object position and size.
         /// </summary>
@@ -498,7 +461,7 @@ namespace TerrariaUI.Base
         /// <param name="width">New width</param>
         /// <param name="height">New height</param>
         /// <returns>this</returns>
-        public virtual VisualObject SetXYWH(int x, int y, int width, int height, bool draw = true)
+        public virtual VisualObject SetXYWH(int x, int y, int width, int height)
         {
             if (width < 0)
                 throw new ArgumentException($"{nameof(width)} < 0");
@@ -511,16 +474,16 @@ namespace TerrariaUI.Base
             return this as VisualObject;
         }
 
-        public VisualObject SetXYWH((int x, int y, int width, int height) data, bool draw = true) =>
-            SetXYWH(data.x, data.y, data.width, data.height, draw);
-        public VisualObject SetXY(int x, int y, bool draw = true) =>
-            SetXYWH(x, y, Width, Height, draw);
-        public VisualObject SetXY((int x, int y) pair, bool draw = true) =>
-            SetXYWH(pair.x, pair.y, Width, Height, draw);
-        public VisualObject SetWH(int width, int height, bool draw = true) =>
-            SetXYWH(X, Y, width, height, draw);
-        public VisualObject SetWH((int width, int height) pair, bool draw = true) =>
-            SetXYWH(X, Y, pair.width, pair.height, draw);
+        public VisualObject SetXYWH((int x, int y, int width, int height) data) =>
+            SetXYWH(data.x, data.y, data.width, data.height);
+        public VisualObject SetXY(int x, int y) =>
+            SetXYWH(x, y, Width, Height);
+        public VisualObject SetXY((int x, int y) pair) =>
+            SetXYWH(pair.x, pair.y, Width, Height);
+        public VisualObject SetWH(int width, int height) =>
+            SetXYWH(X, Y, width, height);
+        public VisualObject SetWH((int width, int height) pair) =>
+            SetXYWH(X, Y, pair.width, pair.height);
 
         #endregion
         #region Move
@@ -531,8 +494,8 @@ namespace TerrariaUI.Base
         /// <param name="dx">X coordinate delta</param>
         /// <param name="dy">Y coordinate delta</param>
         /// <returns>this</returns>
-        public virtual VisualObject Move(int dx, int dy, bool draw = true) =>
-            SetXY(X + dx, Y + dy, draw);
+        public virtual VisualObject Move(int dx, int dy) =>
+            SetXY(X + dx, Y + dy);
 
         #endregion
         #region Contains
@@ -587,15 +550,14 @@ namespace TerrariaUI.Base
 
         #endregion
 
-        #endregion
-
         #region Constructor
 
         public VisualDOM(int x, int y, int width, int height, UIConfiguration configuration = null)
         {
-            InitializeDOM();
-            InitializeVisual(x, y, width, height);
-
+            X = x;
+            Y = y;
+            Width = width;
+            Height = height;
             Configuration = configuration ?? new UIConfiguration();
         }
 
@@ -723,8 +685,9 @@ namespace TerrariaUI.Base
             get
             {
                 object value = null;
-                Shortcuts?.TryGetValue(key, out value);
-                return value;
+                if (Shortcuts?.TryGetValue(key, out value) == true)
+                    return value;
+                return null;
             }
             set
             {
@@ -741,7 +704,7 @@ namespace TerrariaUI.Base
         /// Enables object. See <see cref="Enabled"/>.
         /// </summary>
         /// <returns>this</returns>
-        public virtual VisualObject Enable(bool draw = true)
+        public virtual VisualObject Enable()
         {
             Enabled = true;
             return this as VisualObject;
@@ -754,33 +717,14 @@ namespace TerrariaUI.Base
         /// Disables object. See <see cref="Enabled"/>.
         /// </summary>
         /// <returns>this</returns>
-        public virtual VisualObject Disable(bool draw = true)
+        public virtual VisualObject Disable()
         {
             Enabled = false;
             return this as VisualObject;
         }
 
         #endregion
-        #region CalculateActive
 
-        /// <summary>
-        /// Finds out if every object including this node and up to the Root is Active. Root must be
-        /// a RootVisualObject. See <see cref="Active"/>.
-        /// </summary>
-        public bool CalculateActive()
-        {
-            VisualDOM node = this;
-
-            while (!(node is RootVisualObject) && node != null)
-            {
-                if (!node.Active)
-                    return false;
-                node = node.Parent;
-            }
-            return node is RootVisualObject;
-        }
-
-        #endregion
         #region RelativeXY
 
         /// <summary>

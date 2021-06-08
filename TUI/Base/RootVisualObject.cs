@@ -31,13 +31,6 @@ namespace TerrariaUI.Base
         /// Unique interface root identifier.
         /// </summary>
         public override string Name { get; set; }
-        /// <summary>
-        /// Tile provider object, default value - null (interface would
-        /// be drawn on the Main.tile, tiles would be irrevocably modified).
-        /// <para></para>
-        /// TileProvider from [FakeProvider](https://github.com/AnzhelikaO/FakeProvider)
-        /// can be passed as a value so that interface would be drawn above the Main.tile.
-        /// </summary>
         public override dynamic Provider => _Provider;
         /// <summary>
         /// Counter of Apply() calls. Interface won't redraw to user if ApplyCounter hasn't changed.
@@ -63,6 +56,9 @@ namespace TerrariaUI.Base
         /// 0 for Root with MainTileProvider, 1 for root with any fake provider.
         /// </summary>
         public override int Layer => UsesDefaultMainProvider ? 0 : 1;
+        public override bool Orderable => true;
+        protected override int MinWidth => Math.Max(base.MinWidth, 1);
+        protected override int MinHeight => Math.Max(base.MinHeight, 1);
 
         #endregion
 
@@ -98,20 +94,18 @@ namespace TerrariaUI.Base
         #endregion
         #region SetXYWH
 
-        public override VisualObject SetXYWH(int x, int y, int width, int height, bool draw = true)
+        public override VisualObject SetXYWH(int x, int y, int width, int height)
         {
-            width = Math.Max(width, Configuration.Grid?.MinWidth ?? 1);
-            height = Math.Max(height, Configuration.Grid?.MinHeight ?? 1);
-
-            if (x != X || y != Y || width != Width || height != Height)
+            int oldX = X, oldY = Y, oldWidth = Width, oldHeight = Height;
+            base.SetXYWH(x, y, width, height);
+            if (oldX != X || oldY != Y || oldWidth != Width || oldHeight != Height)
             {
-                if (UsesDefaultMainProvider && draw)
+                if (UsesDefaultMainProvider)
                     Clear();
 
                 // MainTileProvider ignores this SetXYWH
                 Provider?.SetXYWH(x, y, width, height, false);
-                base.SetXYWH(x, y, width, height, draw);
-                TUI.Hooks.SetXYWH.Invoke(new SetXYWHArgs(this, x, y, width, height, draw));
+                TUI.Hooks.SetXYWH.Invoke(new SetXYWHArgs(this, x, y, width, height));
             }
             return this;
         }
@@ -155,8 +149,9 @@ namespace TerrariaUI.Base
             RequestDrawChanges();
             Draw(oldX - X, oldY - Y, oldWidth, oldHeight, OutdatedPlayers(toEveryone: true));
 
+            Update();
             if (UsesDefaultMainProvider || oldWidth != Width || oldHeight != Height)
-                Update().Apply();
+                Apply();
             else
                 RequestDrawChanges();
             Draw(targetPlayers: OutdatedPlayers(toEveryone: true));

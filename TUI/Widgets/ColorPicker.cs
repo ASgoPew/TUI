@@ -62,14 +62,15 @@ namespace TerrariaUI.Widgets
 
             foreach (var color in Colors)
             {
-                Add(new VisualObject(color[0], color[1], color[3], color[3], null, new UIStyle()
+                VisualObject o = Add(new VisualObject(color[0], color[1], color[3], color[3], null, new UIStyle()
                 {
                     Wall = 155,
                     WallColor = (byte)color[2],
                 }, (self, touch) =>
                 {
                     SetValue((int)self["value"], true, touch.PlayerIndex);
-                }))["value"] = color[2];
+                }));
+                o["value"] = color[2];
             }
 
             Current = Add(new VisualObject(SelectedColor[0], SelectedColor[1],

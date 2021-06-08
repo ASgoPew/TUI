@@ -41,23 +41,43 @@ namespace TerrariaUI.Base
         /// <returns></returns>
         internal bool Touched(Touch touch)
         {
-            if (!CalculateActive())
-                return false;
-
-            if (IsLocked(touch))
-                return true;
-
             if (!CanTouch(touch))
                 return !touch.Session.Enabled;
 
-            bool used = TouchedChild(touch);
-            if (!used && CanTouchThis(touch))
-            {
-                TouchedThis(touch);
-                used = true;
-            }
+            return TouchedChild(touch) || CanTouchThis(touch) && TouchedThis(touch);
+        }
 
-            return used;
+        #endregion
+        #region CanTouch
+
+        /// <summary>
+        /// Checks if specified touch can press this object or one of child objects in sub-tree.
+        /// </summary>
+        /// <param name="touch">Touch to check</param>
+        public bool CanTouch(Touch touch)
+        {
+            bool result = false;
+            try
+            {
+                result = CanTouchNative(touch) &&
+                    Configuration.Custom.CanTouch?.Invoke(this as VisualObject, touch) != false;
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
+            }
+            return result;
+        }
+
+        #endregion
+        #region CanTouchNative
+
+        protected virtual bool CanTouchNative(Touch touch)
+        {
+            VisualObject @this = (VisualObject)this;
+            return @this.IsActive &&
+                !IsLocked(touch) &&
+                TUI.Hooks.CanTouch.Invoke(new CanTouchArgs(@this, touch)).CanTouch;
         }
 
         #endregion
@@ -109,38 +129,6 @@ namespace TerrariaUI.Base
         }
 
         #endregion
-        #region CanTouch
-
-        /// <summary>
-        /// Checks if specified touch can press this object or one of child objects in sub-tree.
-        /// </summary>
-        /// <param name="touch">Touch to check</param>
-        public bool CanTouch(Touch touch)
-        {
-            bool result = false;
-            try
-            {
-                result = CanTouchNative(touch) && Configuration.Custom.CanTouch?.Invoke(this as VisualObject, touch) != false;
-            }
-            catch (Exception e)
-            {
-                TUI.HandleException(e);
-            }
-            return result;
-        }
-
-        #endregion
-        #region CanTouchNative
-
-        protected virtual bool CanTouchNative(Touch touch)
-        {
-            VisualObject @this = this as VisualObject;
-            CanTouchArgs args = new CanTouchArgs(@this, touch);
-            TUI.Hooks.CanTouch.Invoke(args);
-            return Loaded && !Disposed && args.CanTouch;
-        }
-
-        #endregion
         #region TouchedChild
 
         private bool TouchedChild(Touch touch)
@@ -148,15 +136,11 @@ namespace TerrariaUI.Base
             foreach (VisualObject child in ChildrenFromTop)
             {
                 int saveX = child.X, saveY = child.Y;
-                if (child.Active && child.ContainsParent(touch))
+                if (child.IsActiveThis && child.ContainsParent(touch))
                 {
                     touch.Move(-saveX, -saveY);
                     if (child.Touched(touch))
-                    {
-                        if (Configuration.Ordered && child.Orderable && SetTop(child))
-                            PostSetTop(child);
                         return true;
-                    }
                     touch.Move(saveX, saveY);
                 }
             }
@@ -164,38 +148,12 @@ namespace TerrariaUI.Base
         }
 
         #endregion
-        #region PostSetTop
-
-        private void PostSetTop(VisualObject o)
-        {
-            try
-            {
-                PostSetTopNative(o);
-            }
-            catch (Exception e)
-            {
-                TUI.HandleException(e);
-            }
-        }
-
-        #endregion
-        #region PostSetTopNative
-
-        /// <summary>
-        /// Overridable function that is called when object comes on top of the layer.
-        /// </summary>
-        /// <param name="o"></param>
-        protected virtual void PostSetTopNative(VisualObject o) { }
-
-        #endregion
         #region CanTouchThis
 
         /// <summary>
-        /// Checks if specified touch can press this object. Not to be confused with <see cref="CanTouch(Touch)"/>.
+        /// Checks if specified touch can press exactly this object.
         /// </summary>
-        /// <param name="touch"></param>
-        /// <returns></returns>
-        public virtual bool CanTouchThis(Touch touch) =>
+        protected virtual bool CanTouchThis(Touch touch) =>
             (touch.State == TouchState.Begin && Configuration.UseBegin
                 || touch.State == TouchState.Moving && Configuration.UseMoving
                 || touch.State == TouchState.End && Configuration.UseEnd)
@@ -204,12 +162,17 @@ namespace TerrariaUI.Base
         #endregion
         #region TouchedThis
 
-        private void TouchedThis(Touch touch)
+        private bool TouchedThis(Touch touch)
         {
-            VisualObject @this = this as VisualObject;
+            VisualObject @this = (VisualObject)this;
             touch.Object = @this;
 
             TrySetLock(touch);
+
+            if (@this is RootVisualObject root)
+                TUI.SetTop(root);
+            else if (Parent.Configuration.Ordered && Orderable)
+                Parent.SetTop(@this);
 
             try
             {
@@ -222,6 +185,7 @@ namespace TerrariaUI.Base
 
             if (Configuration.SessionAcquire)
                 touch.Session.Acquired = @this;
+            return true;
         }
 
         #endregion
@@ -233,7 +197,7 @@ namespace TerrariaUI.Base
         /// <param name="touch"></param>
         internal void TrySetLock(Touch touch)
         {
-            VisualObject @this = this as VisualObject;
+            VisualObject @this = (VisualObject)this;
             // You can't lock the same object twice per touch session
             if (Configuration.Lock != null && !touch.Session.LockedObjects.Contains(@this))
             {
@@ -265,8 +229,8 @@ namespace TerrariaUI.Base
         /// </summary>
         /// <param name="touch"></param>
         /// <returns></returns>
-        public virtual void Invoke(Touch touch) =>
-            Callback?.Invoke(this as VisualObject, touch);
+        protected virtual void Invoke(Touch touch) =>
+            Callback?.Invoke((VisualObject)this, touch);
 
         #endregion
     }
