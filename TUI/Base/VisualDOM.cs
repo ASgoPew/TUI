@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using TerrariaUI.Base.Style;
 
 namespace TerrariaUI.Base
 {
@@ -69,6 +70,18 @@ namespace TerrariaUI.Base
         /// Runtime storage for node related data.
         /// </summary>
         protected ConcurrentDictionary<string, object> Shortcuts { get; set; }
+        /// <summary>
+        /// Bounds (relative to this object) in which this object is allowed to draw.
+        /// </summary>
+        public ExternalIndent Bounds { get; protected set; } = new ExternalIndent();
+        /// <summary>
+        /// X coordinate relative to tile provider. Sets in Update() and PulseType.PositionChanged. Used in Tile() function.
+        /// </summary>
+        public int ProviderX { get; protected set; }
+        /// <summary>
+        /// Y coordinate relative to tile provider. Sets in Update() and PulseType.PositionChanged. Used in Tile() function.
+        /// </summary>
+        public int ProviderY { get; protected set; }
 
         /// <summary>
         /// Tile provider object, default value - null (interface would
@@ -216,9 +229,8 @@ namespace TerrariaUI.Base
         {
             get
             {
-                (int x, int y) = ProviderXY();
-                for (int _x = x; _x < x + Width; _x++)
-                    for (int _y = y; _y < y + Height; _y++)
+                for (int _x = ProviderX + Bounds.Left; _x < ProviderX + Bounds.Right; _x++)
+                    for (int _y = ProviderY; _y < Provider + Height; _y++)
                         yield return (_x, _y);
             }
         }

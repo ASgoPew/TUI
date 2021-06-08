@@ -18,10 +18,6 @@ namespace TerrariaUI.Base
         /// </summary>
         public UIStyle Style { get; set; }
         /// <summary>
-        /// Cell of Parent's grid in which this object is. Null if not in Parent's grid.
-        /// </summary>
-        public GridCell Cell { get; private set; }
-        /// <summary>
         /// Objects draw with SentTileSquare by default. Set this field to force drawing this object with SendSection.
         /// </summary>
         public bool DrawWithSection { get; set; } = false;
@@ -30,30 +26,15 @@ namespace TerrariaUI.Base
         /// </summary>
         public bool FrameSection { get; set; } = true;
         /// <summary>
-        /// X coordinate relative to tile provider. Sets in Update() and PulseType.PositionChanged. Used in Tile() function.
-        /// </summary>
-        public int ProviderX { get; protected set; }
-        /// <summary>
-        /// Y coordinate relative to tile provider. Sets in Update() and PulseType.PositionChanged. Used in Tile() function.
-        /// </summary>
-        public int ProviderY { get; protected set; }
-        /// <summary>
-        /// Bounds (relative to this object) in which this object is allowed to draw.
-        /// </summary>
-        public ExternalIndent Bounds { get; protected set; } = new ExternalIndent();
-        /// <summary>
-        /// Whether the object is visible. Object becomes invisible e.g. when it is outside of bounds of layout.
+        /// Whether the object is visible. Object becomes invisible fox example when it is outside of bounds of layout.
         /// </summary>
         public bool Visible { get; private set; } = true;
         private bool _DrawMode = false;
         public bool IsActiveThis => Enabled && Visible && Loaded && !Disposed;
-        /// <summary>
-        /// Object is Active when it is Enabled and Visible (see <see cref="Enabled"/>, <see cref="Visible"/>)
-        /// </summary>
         public virtual bool IsActive => IsActiveThis && (this is RootVisualObject || Parent?.IsActive == true);
         protected bool InDrawMode => _DrawMode && (this is RootVisualObject || Parent?.InDrawMode == true);
 
-        protected bool CanSend => Root?.DrawState > 0;
+        //protected bool CanSend => Root?.DrawState > 0;
         private string _Name;
         protected object ApplyLocker = new object();
         /// <summary>
@@ -72,8 +53,8 @@ namespace TerrariaUI.Base
                 ? Name
                 : _Name != null
                     ? $"{Parent.FullName}.{_Name}"
-                    : Cell != null
-                        ? $"{Parent.FullName}[{Cell.Column},{Cell.Line}].{Name}"
+                    : Positioning is InGrid inGrid
+                        ? $"{Parent.FullName}[{inGrid.Column},{inGrid.Line}].{Name}"
                         : $"{Parent.FullName}[{IndexInParent}].{Name}";
 
         private int? _MinWidth;
@@ -162,13 +143,18 @@ namespace TerrariaUI.Base
         {
             base.Add(child, layer);
 
-            if (Root != null)
+            if (IsActive)
                 child.Update();
+
+            hmmmmm
 
             if (AddRequiresResize(child))
                 UpdateSize();
             if (AddRequiresChildrenRepositionAndResize(child))
                 UpdateChildrenPositionAndSize();
+
+            // Update grid min sizes
+            SetXY(0, 0);
 
             return child;
         }
@@ -269,7 +255,7 @@ namespace TerrariaUI.Base
         public virtual dynamic Tile(int x, int y)
         {
             ExternalIndent bounds = Bounds;
-            if (x < bounds.Left || x >= Width - bounds.Right || y < bounds.Up || y >= Height - bounds.Down)
+            if (x < bounds.Left || x >= bounds.Left + bounds.Right || y < bounds.Up || y >= bounds.Up + bounds.Down)
                 return null;
             return Provider?[ProviderX + x, ProviderY + y];
         }
@@ -282,7 +268,7 @@ namespace TerrariaUI.Base
             if (!Enabled)
             {
                 base.Enable();
-                if (Root != null && IsActive && InDrawMode)
+                if (IsActive && InDrawMode)
                     DrawEnable();
             }
             return this;
@@ -296,7 +282,8 @@ namespace TerrariaUI.Base
             if (Enabled)
             {
                 base.Disable();
-                DrawDisable();
+                if (IsActive && InDrawMode)
+                    DrawDisable();
             }
             return this;
         }
@@ -352,7 +339,7 @@ namespace TerrariaUI.Base
                 // Update apply tile bounds
                 UpdateBounds();
 
-                if (Root != null && IsActive && InDrawMode)
+                if (IsActive && InDrawMode)
                 {
                     // Update entities
                     // TODO: entities reposition should happen at Draw()
@@ -423,26 +410,38 @@ namespace TerrariaUI.Base
 
         protected virtual void UpdateChildrenPositionAndSize()
         {
-            foreach (var child in Child)
-            {
-                if (child.HasWidthParentStretch)
-                {
-                    if (HasWidthChildStretch)
-                        throw new InvalidOperationException($"Attempt to WidthParentStretch child while having WidthChildStretch: {FullName}");
-                    child.Width = Width;
-                }
-                if (child.HasHeightParentStretch)
-                {
-                    if (HasHeightChildStretch)
-                        throw new InvalidOperationException($"Attempt to HeightParentStretch child while having HeightChildStretch: {FullName}");
-                    child.Height = Height;
-                }
-            }
+            NoDrawMode(); // ?????????????????????????????????????????????????
+
+            UpdateParentStretch();
             UpdateChildrenParentAlignment();
             if (HasLayout)
                 UpdateLayout();
             if (HasGrid)
                 UpdateGrid();
+
+            DrawMode();
+        }
+
+        #endregion
+        #region UpdateParentStretch
+
+        private void UpdateParentStretch()
+        {
+            foreach (VisualObject child in Child)
+            {
+                if (child.HasWidthParentStretch)
+                {
+                    if (HasWidthChildStretch)
+                        throw new InvalidOperationException($"Attempt to WidthParentStretch child while having WidthChildStretch: {FullName}");
+                    child.SetWH(Width, child.Height);
+                }
+                if (child.HasHeightParentStretch)
+                {
+                    if (HasHeightChildStretch)
+                        throw new InvalidOperationException($"Attempt to HeightParentStretch child while having HeightChildStretch: {FullName}");
+                    child.SetWH(child.Width, Height);
+                }
+            }
         }
 
         #endregion
@@ -450,11 +449,9 @@ namespace TerrariaUI.Base
 
         private void UpdateChildrenParentAlignment()
         {
-            NoDrawMode();
             foreach (var child in Child)
                 if (child.HasParentAlignment)
                     child.ParentAlignment();
-            DrawMode();
         }
 
         #endregion
@@ -541,7 +538,6 @@ namespace TerrariaUI.Base
                 cy = cy + layoutIndent;
 
             int k = 0;
-            NoDrawMode();
             for (; k < layoutChild.Count; k++)
             {
                 // Calculating side alignment
@@ -579,7 +575,7 @@ namespace TerrariaUI.Base
                 int resultX = layoutX + cx + sideDeltaX;
                 int resultY = layoutY + cy + sideDeltaY;
 
-                SetXY(resultX, resultY);
+                child.SetXY(resultX, resultY);
 
                 if (k == layoutChild.Count - 1)
                     break;
@@ -593,7 +589,6 @@ namespace TerrariaUI.Base
                 else if (direction == Direction.Up)
                     cy = cy - offset - layoutChild[k + 1].Height;
             }
-            DrawMode();
 
             if (direction == Direction.Left || direction == Direction.Right)
                 LayoutConfiguration.OffsetLimit = abstractLayoutW - layoutW;
@@ -653,7 +648,6 @@ namespace TerrariaUI.Base
                 ref GridConfiguration.ResultingLines, ref GridConfiguration.MinHeight, false);
 
             // Main cell loop
-            NoDrawMode();
             for (int i = 0; i < columnSizes.Length; i++)
             {
                 (int columnX, int columnSize) = GridConfiguration.ResultingColumns[i];
@@ -666,12 +660,11 @@ namespace TerrariaUI.Base
                         lineSize = -1;
                     foreach (var cell in this[i, j])
                         if (cell != null)
-                            SetXYWH(columnX, lineY,
+                            cell.SetXYWH(columnX, lineY,
                                 columnSize >= 0 && cell.Positioning == cell.WidthResizing ? columnSize : cell.Width,
                                 lineSize >= 0 && cell.Positioning == cell.HeightResizing ? lineSize : cell.Height);
                 }
             }
-            DrawMode();
         }
 
         #endregion
@@ -974,9 +967,9 @@ namespace TerrariaUI.Base
         /// <param name="boundsIsIndent">Whether to draw objects/ object tiles that are outside of bounds of indent or not</param>
         /// <returns>this</returns>
         public VisualObject SetupLayout(Alignment alignment = Alignment.Center, Direction direction = Direction.Down,
-            Side side = Side.Center, ExternalIndent indent = null, int childIndent = 1, bool boundsIsIndent = true)
+            Side side = Side.Center, ExternalIndent indent = null, int childIndent = 1)
         {
-            LayoutConfiguration = new LayoutConfiguration(alignment, direction, side, indent, childIndent, boundsIsIndent);
+            LayoutConfiguration = new LayoutConfiguration(alignment, direction, side, indent, childIndent);
             return this;
         }
 
@@ -1210,8 +1203,8 @@ namespace TerrariaUI.Base
                     break;
                 case PulseType.SetXYWH:
                     // Update position relative to Provider
-                    if (Root != null)
-                        (ProviderX, ProviderY) = ProviderXY();
+                    ProviderX = X + (Parent?.ProviderX ?? 0);
+                    ProviderY = Y + (Parent?.ProviderY ?? 0);
                     break;
             }
         }
@@ -1291,7 +1284,7 @@ namespace TerrariaUI.Base
         /// Updates related to this node only.
         /// </summary>
         /// <returns>this</returns>
-        public VisualObject UpdateThis()
+        private void UpdateThis()
         {
             try
             {
@@ -1305,8 +1298,6 @@ namespace TerrariaUI.Base
             {
                 TUI.HandleException(e);
             }
-
-            return this;
         }
 
         #endregion
@@ -1315,11 +1306,7 @@ namespace TerrariaUI.Base
         /// <summary>
         /// Overridable method for updates related to this node. Do not change position/size in in this method.
         /// </summary>
-        protected virtual void UpdateThisNative()
-        {
-            // Update position relative to Provider
-            (ProviderX, ProviderY) = ProviderXY();
-        }
+        protected virtual void UpdateThisNative() { }
 
         #endregion
 
@@ -1329,12 +1316,11 @@ namespace TerrariaUI.Base
         /// Updates all Enabled child objects (sub-tree without this node).
         /// </summary>
         /// <returns>this</returns>
-        public VisualObject UpdateChild()
+        private void UpdateChild()
         {
             foreach (VisualObject child in ChildrenFromTop)
                 if (child.Enabled)
                     child.Update();
-            return this;
         }
 
         #endregion
@@ -1345,7 +1331,7 @@ namespace TerrariaUI.Base
         /// Updates related to this node and dependant on child updates. Executes after calling Update() on each child.
         /// </summary>
         /// <returns></returns>
-        public VisualObject PostUpdateThis()
+        private void PostUpdateThis()
         {
             try
             {
@@ -1356,7 +1342,6 @@ namespace TerrariaUI.Base
             {
                 TUI.HandleException(e);
             }
-            return this;
         }
 
         #endregion
@@ -1598,8 +1583,8 @@ namespace TerrariaUI.Base
         public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1, HashSet<int> targetPlayers = null,
             bool? drawWithSection = null, bool? frameSection = null)
         {
-            if (!CanSend)
-                return this;
+            //if (!CanSend)
+                //return this;
             if (targetPlayers == null)
                 targetPlayers = OutdatedPlayers();
             if (Root.Observers is HashSet<int> observers)

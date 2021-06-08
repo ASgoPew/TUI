@@ -64,7 +64,7 @@ namespace TerrariaUI.Widgets
         #endregion
         #region Invoke
 
-        public override void Invoke(Touch touch)
+        protected override void Invoke(Touch touch)
         {
             if (touch.State == TouchState.Begin)
                 Input.Value = Input.Temp;
@@ -79,11 +79,8 @@ namespace TerrariaUI.Widgets
         #endregion
         #region ApplyTile
 
-        protected override void ApplyTile(int x, int y)
+        protected override void ApplyTile(int x, int y, dynamic tile)
         {
-            dynamic tile = Tile(x, y);
-            if (tile == null)
-                return;
             if (Style.Active != null)
                 tile.active(Style.Active.Value);
             else if (Style.Tile != null)
@@ -124,7 +121,7 @@ namespace TerrariaUI.Widgets
                 if (draw)
                 {
 
-                    ApplyThis().Draw(temp < oldTemp ? temp : oldTemp, 0,
+                    Apply().Draw(temp < oldTemp ? temp : oldTemp, 0,
                     temp > oldTemp ? temp + 1 - oldTemp : oldTemp + 1 - temp);
                 }
             }

@@ -35,7 +35,8 @@ namespace TerrariaUI.Widgets
             ScrollBackgroundCallback = callback;
             Layer = Int32.MinValue;
 
-            SetParentStretch(FullSize.Both);
+            SetWidthParentStretch();
+            SetHeightParentStretch();
         }
 
         #endregion
