@@ -76,7 +76,7 @@ namespace TerrariaUI.Base
         /// </summary>
         /// <param name="node">Child to select.</param>
         /// <returns>this</returns>
-        public VisualContainer Select(VisualObject node, bool draw = true)
+        public VisualContainer Select(VisualObject node)
         {
             if (!_Child.Contains(node))
                 throw new InvalidOperationException("Trying to Select an object that isn't a child of current VisualDOM");
@@ -85,9 +85,9 @@ namespace TerrariaUI.Base
             {
                 if (Selected == node)
                     return this;
-                Selected.Disable(draw);
+                Selected.Disable();
                 Selecting.Selected = node;
-                Selected.Enable(draw);
+                Selected.Enable();
                 return this;
             }
             Selecting = new Selection(node);
@@ -95,14 +95,12 @@ namespace TerrariaUI.Base
             foreach (VisualObject child in ChildrenFromTop)
                 if (child.Enabled)
                 {
-                    child.Disable(false);
+                    child.Disable();
                     Selecting.DisabledChildren.Add(child);
                 }
-            node.Enable(false);
+            node.Enable();
 
-            Update();
-            if (draw)
-                Apply().Draw();
+            Update().Apply().Draw();
 
             return this;
         }
@@ -114,21 +112,19 @@ namespace TerrariaUI.Base
         /// Enables all child objects. See <see cref="Select(VisualObject)"/>
         /// </summary>
         /// <returns>this</returns>
-        public VisualContainer Deselect(bool draw = true)
+        public VisualContainer Deselect()
         {
             if (Selecting == null)
                 throw new InvalidOperationException("Trying to deselect without selecting.");
 
             if (!Selecting.DisabledChildren.Contains(Selected))
-                Selected.Disable(false);
+                Selected.Disable();
             foreach (VisualObject child in Selecting.DisabledChildren)
                 if (_Child.Contains(child) && !child.Enabled)
-                    child.Enable(false);
+                    child.Enable();
             Selecting = null;
 
-            Update();
-            if (draw)
-                Apply().Draw();
+            Update().Apply().Draw();
 
             return this;
         }
@@ -167,30 +163,26 @@ namespace TerrariaUI.Base
         #endregion
         #region ApplyTile
 
-        protected override void ApplyTile(int x, int y)
+        protected override void ApplyTile(int x, int y, dynamic tile)
         {
-            dynamic tile = Tile(x, y);
-            if (tile == null)
-                return;
-
             if (!ContainerStyle.Transparent)
                 tile.ClearEverything();
 
-            if (Style.Active != null)
+            if (Style.Active.HasValue)
                 tile.active(Style.Active.Value);
-            else if (Style.Tile != null)
+            else if (Style.Tile.HasValue)
                 tile.active(true);
-            else if (Style.Wall != null)
+            else if (Style.Wall.HasValue)
                 tile.active(false);
-            if (Style.InActive != null)
+            if (Style.InActive.HasValue)
                 tile.inActive(Style.InActive.Value);
-            if (Style.Tile != null)
+            if (Style.Tile.HasValue)
                 tile.type = Style.Tile.Value;
-            if (Style.TileColor != null)
+            if (Style.TileColor.HasValue)
                 tile.color(Style.TileColor.Value);
-            if (Style.Wall != null)
+            if (Style.Wall.HasValue)
                 tile.wall = Style.Wall.Value;
-            if (Style.WallColor != null)
+            if (Style.WallColor.HasValue)
                 tile.wallColor(Style.WallColor.Value);
         }
 

@@ -67,7 +67,7 @@ namespace TerrariaUI.Widgets
         {
             Input = input ?? new Input<string>("", "", null);
             SetXYWH(x, y, Input.DefaultValue.Length * 2,
-                style?.TextUnderline == LabelUnderline.Underline? 3 : 2, false);
+                style?.TextUnderline == LabelUnderline.Underline? 3 : 2);
             SetText(Input.DefaultValue);
             InputLabelStyle ilstyle = InputLabelStyle;
             ilstyle.TextIndent = new Indent() { Left = 0, Up = 0, Right = 0, Down = 0, Horizontal = 2, Vertical = 2 };
@@ -85,7 +85,7 @@ namespace TerrariaUI.Widgets
         #endregion
         #region Invoke
 
-        public override void Invoke(Touch touch)
+        protected override void Invoke(Touch touch)
         {
             if (touch.State == TouchState.Begin)
                 Input.Value = GetText();
@@ -126,7 +126,7 @@ namespace TerrariaUI.Widgets
                 Input.Temp = temp;
                 SetText(temp);
                 if (draw)
-                    UpdateThis().ApplyThis().Draw();
+                    Update().Apply().Draw();
             }
         }
 

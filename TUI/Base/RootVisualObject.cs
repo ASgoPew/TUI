@@ -113,12 +113,12 @@ namespace TerrariaUI.Base
         #endregion
         #region Enable
 
-        public override VisualObject Enable(bool draw = true)
+        public override VisualObject Enable()
         {
             if (!Enabled)
             {
                 Provider.Enable(false);
-                base.Enable(draw);
+                base.Enable();
                 TUI.Hooks.Enabled.Invoke(new EnabledArgs(this, true));
             }
             return this;
@@ -127,15 +127,15 @@ namespace TerrariaUI.Base
         #endregion
         #region Disable
 
-        public override VisualObject Disable(bool draw = true)
+        public override VisualObject Disable()
         {
             if (Enabled)
             {
-                if (UsesDefaultMainProvider && draw)
+                if (UsesDefaultMainProvider)
                     Clear();
 
                 Provider.Disable(false);
-                base.Disable(draw);
+                base.Disable();
                 TUI.Hooks.Enabled.Invoke(new EnabledArgs(this, false));
             }
             return this;

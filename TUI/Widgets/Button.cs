@@ -116,7 +116,7 @@ namespace TerrariaUI.Widgets
         #endregion
         #region Invoke
 
-        public override void Invoke(Touch touch)
+        protected override void Invoke(Touch touch)
         {
             if (touch.State == TouchState.Begin)
             {
@@ -154,11 +154,8 @@ namespace TerrariaUI.Widgets
         #endregion
         #region ApplyTile
 
-        protected override void ApplyTile(int x, int y)
+        protected override void ApplyTile(int x, int y, dynamic tile)
         {
-            dynamic tile = Tile(x, y);
-            if (tile == null)
-                return;
             if (Style.Active != null)
                 tile.active(Style.Active.Value);
             else if (Style.Tile != null)
@@ -197,7 +194,7 @@ namespace TerrariaUI.Widgets
             State |= type;
             if (State == 3)
                 EndBlink(blinkStyle);
-            else if (!CalculateActive())
+            else if (!IsActive)
                 BlinkOn = false;
         }
 
@@ -209,7 +206,7 @@ namespace TerrariaUI.Widgets
 
         public virtual void Blink(ButtonBlinkStyle blinkStyle, byte blinkColor)
         {
-            if (!CalculateActive())
+            if (!IsActive)
             {
                 BlinkOn = false;
                 return;

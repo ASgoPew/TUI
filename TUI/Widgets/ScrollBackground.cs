@@ -42,11 +42,11 @@ namespace TerrariaUI.Widgets
         #endregion
         #region Invoke
 
-        public override void Invoke(Touch touch)
+        protected override void Invoke(Touch touch)
         {
-            if (Parent?.Configuration?.Layout == null)
+            if (Parent?.LayoutConfiguration == null)
                 throw new Exception("Scroll has no parent or parent doesn't have layout.");
-            LayoutConfiguration layout = Parent.Configuration.Layout;
+            LayoutConfiguration layout = Parent.LayoutConfiguration;
             int offset = layout.LayoutOffset;
             Limit = layout.OffsetLimit;
             bool vertical = layout.Direction == Direction.Up || layout.Direction == Direction.Down;
@@ -73,8 +73,8 @@ namespace TerrariaUI.Widgets
                 }
                 if (newOffset != offset || touch.State == TouchState.End)
                 {
-                    VisualObject first = layout.Objects.FirstOrDefault();
-                    VisualObject last = layout.Objects.LastOrDefault();
+                    VisualObject first = Child.Where(child => child.InLayout).FirstOrDefault();
+                    VisualObject last = Child.Where(child => child.InLayout).LastOrDefault();
                     if (first == null)
                         return;
                     if (touch.State == TouchState.End || !AllowToPull)
@@ -84,7 +84,7 @@ namespace TerrariaUI.Widgets
                         else if (newOffset > Limit)
                             newOffset = Limit;
                     }
-                    if (Parent.Configuration.Layout.LayoutOffset != newOffset)
+                    if (Parent.LayoutConfiguration.LayoutOffset != newOffset)
                     {
                         Parent.LayoutOffset(newOffset);
                         Action<ScrollBackground, int> callback = ScrollBackgroundCallback;

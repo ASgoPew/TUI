@@ -29,10 +29,9 @@ namespace TerrariaUI.Base
         /// Whether the object is visible. Object becomes invisible fox example when it is outside of bounds of layout.
         /// </summary>
         public bool Visible { get; private set; } = true;
-        private bool _DrawMode = false;
         public bool IsActiveThis => Enabled && Visible && Loaded && !Disposed;
         public virtual bool IsActive => IsActiveThis && (this is RootVisualObject || Parent?.IsActive == true);
-        protected bool InDrawMode => _DrawMode && (this is RootVisualObject || Parent?.InDrawMode == true);
+        protected bool InDrawMode => true;
 
         //protected bool CanSend => Root?.DrawState > 0;
         private string _Name;
@@ -101,11 +100,11 @@ namespace TerrariaUI.Base
             GridConfiguration.Columns.Any(column => column.IsRelative) ||
             GridConfiguration.Lines.Any(line => line.IsRelative);
 
-        protected virtual bool RepositionRequiresParentResize => Parent != null &&
+        protected virtual bool ParentResizeRequired => Parent != null &&
             (Parent.HasWidthChildStretch && X + Width > Parent.Width ||
             Parent.HasHeightChildStretch && Y + Height > Parent.Height);
 
-        protected virtual bool ResizeRequiresParentResize => Parent != null &&
+        /*protected virtual bool ResizeRequiresParentResize => Parent != null &&
             (Parent.HasLayout && InLayout ||
             Parent.HasGrid && InGridDynamic ||
             Parent.HasWidthChildStretch && X + Width > Parent.Width ||
@@ -115,7 +114,7 @@ namespace TerrariaUI.Base
             HasLayout ||
             HasGrid && HasRelativesInGrid ||
             Child.Any(child => child.HasParentAlignment) ||
-            Child.Any(child => child.HasParentStretch);
+            Child.Any(child => child.HasParentStretch);*/
 
         /*protected virtual bool ResizeRequiresChildrenReposition =>
             HasLayout ||
@@ -126,8 +125,6 @@ namespace TerrariaUI.Base
             HasGrid && HasRelativesInGrid;*/
 
         protected virtual bool AddRequiresResize(VisualObject child) =>
-            child.InGridDynamic ||
-            child.InGridRelative ||
             HasWidthChildStretch && (child.X + child.Width > Width) ||
             HasHeightChildStretch && (child.Y + child.Height > Height);
 
@@ -145,8 +142,6 @@ namespace TerrariaUI.Base
 
             if (IsActive)
                 child.Update();
-
-            hmmmmm
 
             if (AddRequiresResize(child))
                 UpdateSize();
@@ -318,18 +313,25 @@ namespace TerrariaUI.Base
 
                 if (oldX != X || oldY != Y)
                 {
-                    if (RepositionRequiresParentResize)
+                    if (ParentResizeRequired)
                         Parent.UpdateSize(); // parent's stretch
                 }
                 if (oldWidth != Width || oldHeight != Height)
                 {
+                    if (ParentResizeRequired)
+                        Parent.UpdateSize(); // parent's stretch
+
+                    UpdateChildrenPositionAndSize();
+
+                    /*
                     if (ResizeRequiresParentResize)
                     {
                         Parent.UpdateSize(); // parent's layout AND parent's grid AND parent's stretch
-                        update_parents_children
+                        Parent.UpdateChildrenPositionAndSize();
                     }
                     if (ResizeRequiresChildrenRepositionAndResize)
                         UpdateChildrenPositionAndSize(); // children's ParentStretch AND children's ParentAlignment AND layout AND grid
+                    */
                     //if (ResizeRequiresChildrenResize)
                         //UpdateChildrenSize(); // children's ParentStretch AND grid
                     //if (ResizeRequiresChildrenReposition)
@@ -356,7 +358,7 @@ namespace TerrariaUI.Base
 
         public VisualObject DrawMode()
         {
-            _DrawMode = true;
+            //_DrawMode = true;
             return this;
         }
 
@@ -365,7 +367,7 @@ namespace TerrariaUI.Base
 
         public VisualObject NoDrawMode()
         {
-            _DrawMode = false;
+            //_DrawMode = false;
             return this;
         }
 
@@ -410,16 +412,12 @@ namespace TerrariaUI.Base
 
         protected virtual void UpdateChildrenPositionAndSize()
         {
-            NoDrawMode(); // ?????????????????????????????????????????????????
-
             UpdateParentStretch();
             UpdateChildrenParentAlignment();
             if (HasLayout)
                 UpdateLayout();
             if (HasGrid)
                 UpdateGrid();
-
-            DrawMode();
         }
 
         #endregion
@@ -1447,21 +1445,21 @@ namespace TerrariaUI.Base
         /// <param name="y">Y coordinate related to this node</param>
         protected virtual void ApplyTile(int x, int y, dynamic tile)
         {
-            if (Style.Active != null)
+            if (Style.Active.HasValue)
                 tile.active(Style.Active.Value);
-            else if (Style.Tile != null)
+            else if (Style.Tile.HasValue)
                 tile.active(true);
-            else if (Style.Wall != null)
+            else if (Style.Wall.HasValue)
                 tile.active(false);
-            if (Style.InActive != null)
+            if (Style.InActive.HasValue)
                 tile.inActive(Style.InActive.Value);
-            if (Style.Tile != null)
+            if (Style.Tile.HasValue)
                 tile.type = Style.Tile.Value;
-            if (Style.TileColor != null)
+            if (Style.TileColor.HasValue)
                 tile.color(Style.TileColor.Value);
-            if (Style.Wall != null)
+            if (Style.Wall.HasValue)
                 tile.wall = Style.Wall.Value;
-            if (Style.WallColor != null)
+            if (Style.WallColor.HasValue)
                 tile.wallColor(Style.WallColor.Value);
         }
 
@@ -1583,8 +1581,6 @@ namespace TerrariaUI.Base
         public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1, HashSet<int> targetPlayers = null,
             bool? drawWithSection = null, bool? frameSection = null)
         {
-            //if (!CanSend)
-                //return this;
             if (targetPlayers == null)
                 targetPlayers = OutdatedPlayers();
             if (Root.Observers is HashSet<int> observers)

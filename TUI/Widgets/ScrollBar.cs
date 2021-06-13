@@ -55,7 +55,7 @@ namespace TerrariaUI.Widgets
             if (Vertical)
             {
                 Width = width;
-                SetParentStretch(FullSize.Vertical);
+                SetHeightParentStretch();
                 if (side == Direction.Left)
                     SetParentAlignment(Alignment.Left);
                 else
@@ -65,7 +65,7 @@ namespace TerrariaUI.Widgets
             else
             {
                 Height = width;
-                SetParentStretch(FullSize.Horizontal);
+                SetHeightParentStretch();
                 if (side == Direction.Up)
                     SetParentAlignment(Alignment.Up);
                 else
@@ -78,7 +78,8 @@ namespace TerrariaUI.Widgets
             Slider = AddToLayout(new ScrollBackground(false, true, true, ScrollAction), 0);
             Empty2 = AddToLayout(new Separator(0));
             Empty2.Configuration.UseBegin = false;
-            Slider.SetParentStretch(FullSize.None);
+            // ?????????
+            //Slider.SetParentStretch(FullSize.None);
             Slider.Style.WallColor = ScrollBarStyle.SliderColor;
             if (Style.WallColor == null)
                 Style.WallColor = 0;
@@ -104,63 +105,63 @@ namespace TerrariaUI.Widgets
         {
             base.UpdateThisNative();
 
-            Configuration.Layout.LayoutOffset = Parent.Configuration.Layout.LayoutOffset;
-            int limit = Parent.Configuration.Layout.OffsetLimit;
+            LayoutConfiguration.LayoutOffset = Parent.LayoutConfiguration.LayoutOffset;
+            int limit = Parent.LayoutConfiguration.OffsetLimit;
             Slider.Style.WallColor = ScrollBarStyle.SliderColor;
             if (Vertical)
             {
                 int size = Math.Max(Height - limit, 1);
                 if (size >= Height)
                 {
-                    Slider.Disable(false);
+                    Slider.Disable();
                     Configuration.UseBegin = false;
                     return;
                 }
                 else
                 {
-                    Slider.Enable(false);
+                    Slider.Enable();
                     Configuration.UseBegin = true;
                 }
-                Slider.SetWH(_Width, size, false);
-                Empty1.SetWH(_Width, Height - Slider.Height, false);
-                Empty2.SetWH(_Width, limit, false);
+                Slider.SetWH(_Width, size);
+                Empty1.SetWH(_Width, Height - Slider.Height);
+                Empty2.SetWH(_Width, limit);
             }
             else
             {
                 int size = Math.Max(Width - limit, 1);
                 if (size >= Width)
                 {
-                    Slider.Disable(false);
+                    Slider.Disable();
                     Configuration.UseBegin = false;
                     return;
                 }
                 else
                 {
-                    Slider.Enable(false);
+                    Slider.Enable();
                     Configuration.UseBegin = true;
                 }
-                Slider.SetWH(size, _Width, false);
-                Empty1.SetWH(Width - Slider.Width, _Width, false);
-                Empty2.SetWH(limit, _Width, false);
+                Slider.SetWH(size, _Width);
+                Empty1.SetWH(Width - Slider.Width, _Width);
+                Empty2.SetWH(limit, _Width);
             }
             DrawWithSection = Parent.DrawWithSection;
-            switch (Parent.Configuration.Layout.Direction)
+            switch (Parent.LayoutConfiguration.Direction)
             {
                 case Direction.Left:
-                    Configuration.Layout.Alignment = Alignment.Right;
-                    Configuration.Layout.Direction = Direction.Right;
+                    LayoutConfiguration.Alignment = Alignment.Right;
+                    LayoutConfiguration.Direction = Direction.Right;
                     break;
                 case Direction.Up:
-                    Configuration.Layout.Alignment = Alignment.Down;
-                    Configuration.Layout.Direction = Direction.Down;
+                    LayoutConfiguration.Alignment = Alignment.Down;
+                    LayoutConfiguration.Direction = Direction.Down;
                     break;
                 case Direction.Right:
-                    Configuration.Layout.Alignment = Alignment.Left;
-                    Configuration.Layout.Direction = Direction.Left;
+                    LayoutConfiguration.Alignment = Alignment.Left;
+                    LayoutConfiguration.Direction = Direction.Left;
                     break;
                 case Direction.Down:
-                    Configuration.Layout.Alignment = Alignment.Up;
-                    Configuration.Layout.Direction = Direction.Up;
+                    LayoutConfiguration.Alignment = Alignment.Up;
+                    LayoutConfiguration.Direction = Direction.Up;
                     break;
             }
         }
@@ -168,22 +169,22 @@ namespace TerrariaUI.Widgets
         #endregion
         #region Invoke
 
-        public override void Invoke(Touch touch)
+        protected override void Invoke(Touch touch)
         {
-            int forward = Parent.Configuration.Layout.Direction == Direction.Right || Parent.Configuration.Layout.Direction == Direction.Down ? 1 : -1;
+            int forward = Parent.LayoutConfiguration.Direction == Direction.Right || Parent.LayoutConfiguration.Direction == Direction.Down ? 1 : -1;
             if (Vertical)
             {
                 if (touch.Y > Slider.Y)
-                    ScrollAction(Slider, Configuration.Layout.LayoutOffset + (touch.Y - (Slider.Y + Slider.Height) + 1) * forward);
+                    ScrollAction(Slider, LayoutConfiguration.LayoutOffset + (touch.Y - (Slider.Y + Slider.Height) + 1) * forward);
                 else
-                    ScrollAction(Slider, Configuration.Layout.LayoutOffset - (Slider.Y - touch.Y) * forward);
+                    ScrollAction(Slider, LayoutConfiguration.LayoutOffset - (Slider.Y - touch.Y) * forward);
             }
             else
             {
                 if (touch.X > Slider.X)
-                    ScrollAction(Slider, Configuration.Layout.LayoutOffset + (touch.X - (Slider.X + Slider.Width) + 1) * forward);
+                    ScrollAction(Slider, LayoutConfiguration.LayoutOffset + (touch.X - (Slider.X + Slider.Width) + 1) * forward);
                 else
-                    ScrollAction(Slider, Configuration.Layout.LayoutOffset - (Slider.X - touch.X) * forward);
+                    ScrollAction(Slider, LayoutConfiguration.LayoutOffset - (Slider.X - touch.X) * forward);
             }
         }
 

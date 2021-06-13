@@ -37,12 +37,16 @@ namespace TerrariaUI.Widgets
         #endregion
         #region Invoke
 
-        public override void Invoke(Touch touch)
+        protected override void Invoke(Touch touch)
         {
             if (Root is Panel panel)
             {
                 if (Dropdown == null)
+                {
                     Dropdown = new Dropdown(this);
+                    (int x, int y) = RelativeXY(0, 0, Root);
+                    Dropdown?.SetXYWH(x, y, Width, Height * Values.Count).Update();
+                }
                 panel.ShowPopUp(Dropdown);
                 touch.Session.Acquired = Dropdown;
                 Input.Temp = null;
@@ -50,16 +54,6 @@ namespace TerrariaUI.Widgets
             }
             else
                 throw new InvalidOperationException("Dropdown is only supported in Panel widgets");
-        }
-
-        #endregion
-        #region UpdateThisNative
-
-        protected override void UpdateThisNative()
-        {
-            base.UpdateThisNative();
-            (int x, int y) = RelativeXY(0, 0, Root);
-            Dropdown?.SetXYWH(x, y, Width, Height * Values.Count, false).Update();
         }
 
         #endregion
@@ -110,10 +104,10 @@ namespace TerrariaUI.Widgets
                     Button btn = (Button)Dropdown.GetChild(index);
                     bool enabled = btn.Enabled;
                     if (enabled)
-                        btn.Disable(false);
+                        btn.Disable();
                     btn.EndBlink(btn.ButtonStyle.BlinkStyle);
                     if (enabled)
-                        btn.Enable(false);
+                        btn.Enable();
                 }
                 panel.HidePopUp();
             }
@@ -156,7 +150,7 @@ namespace TerrariaUI.Widgets
         #endregion
         #region Invoke
 
-        public override void Invoke(Touch touch)
+        protected override void Invoke(Touch touch)
         {
             int index = touch.Y / Origin.Height;
             if (index < 0)

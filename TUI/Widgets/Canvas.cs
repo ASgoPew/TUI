@@ -61,10 +61,10 @@ namespace TerrariaUI.Widgets
 
         #region SetXYWH
 
-        public override VisualObject SetXYWH(int x, int y, int width, int height, bool draw)
+        public override VisualObject SetXYWH(int x, int y, int width, int height)
         {
-            int oldX = X, oldY = Y, oldWidth = Width, oldHeight = Height;
-            base.SetXYWH(x, y, width, height, false);
+            int oldWidth = Width, oldHeight = Height;
+            base.SetXYWH(x, y, width, height);
             if (oldWidth != Width || oldHeight != Height)
             {
                 byte[,] oldPaint = Paint;
@@ -78,22 +78,37 @@ namespace TerrariaUI.Widgets
                         else
                             Paint[_x, _y] = DefaultPaint;
             }
-            if (draw)
-                DrawReposition(oldX, oldY, oldWidth, oldHeight);
-
             return this;
         }
 
         #endregion
         #region ApplyTile
 
-        protected override void ApplyTile(int x, int y)
+        protected override void ApplyTile(int x, int y, dynamic tile)
         {
-            base.ApplyTile(x, y);
+            //base.ApplyTile(x, y, tile);
+
+            if (Style.Active.HasValue)
+                tile.active(Style.Active.Value);
+            else if (Style.Tile.HasValue)
+                tile.active(true);
+            else if (Style.Wall.HasValue)
+                tile.active(false);
+            if (Style.InActive.HasValue)
+                tile.inActive(Style.InActive.Value);
+            if (Style.Tile.HasValue)
+                tile.type = Style.Tile.Value;
+            if (Style.TileColor.HasValue)
+                tile.color(Style.TileColor.Value);
+            if (Style.Wall.HasValue)
+                tile.wall = Style.Wall.Value;
+            if (Style.WallColor.HasValue)
+                tile.wallColor(Style.WallColor.Value);
+
             if (CanvasStyle.CanvasType == CanvasType.Wall)
-                Tile(x, y)?.wallColor(Paint[x, y]);
+                tile.wallColor(Paint[x, y]);
             else
-                Tile(x, y)?.color(Paint[x, y]);
+                tile.color(Paint[x, y]);
         }
 
         #endregion

@@ -57,32 +57,29 @@ namespace TerrariaUI.Widgets
         #endregion
         #region Invoke
 
-        public override void Invoke(Touch touch) =>
+        protected override void Invoke(Touch touch) =>
             SetValue(!Input.Value, true, touch.Session.PlayerIndex);
 
         #endregion
         #region ApplyTile
 
-        protected override void ApplyTile(int x, int y)
+        protected override void ApplyTile(int x, int y, dynamic tile)
         {
-            dynamic tile = Tile(x, y);
-            if (tile == null)
-                return;
-            if (Style.Active != null)
+            if (Style.Active.HasValue)
                 tile.active(Style.Active.Value);
-            else if (Style.Tile != null)
+            else if (Style.Tile.HasValue)
                 tile.active(true);
-            else if (Style.Wall != null)
+            else if (Style.Wall.HasValue)
                 tile.active(false);
-            if (Style.InActive != null)
+            if (Style.InActive.HasValue)
                 tile.inActive(Style.InActive.Value);
-            if (Style.Tile != null)
+            if (Style.Tile.HasValue)
                 tile.type = Style.Tile.Value;
-            if (Style.TileColor != null)
+            if (Style.TileColor.HasValue)
                 tile.color(Style.TileColor.Value);
-            if (Style.Wall != null)
+            if (Style.Wall.HasValue)
                 tile.wall = Style.Wall.Value;
-            if (Style.WallColor != null)
+            if (Style.WallColor.HasValue)
                 tile.wallColor((byte)(Input.Temp ? CheckboxStyle.CheckedColor : Style.WallColor));
         }
 
@@ -100,7 +97,7 @@ namespace TerrariaUI.Widgets
             {
                 Input.Temp = temp;
                 if (draw)
-                    ApplyThis().Draw();
+                    Apply().Draw();
             }
         }
 

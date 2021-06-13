@@ -183,20 +183,17 @@ namespace TerrariaUI.Widgets
         #endregion
         #region ApplyTile
 
-        protected override void ApplyTile(int x, int y)
+        protected override void ApplyTile(int x, int y, dynamic tile)
         {
-            dynamic tile = Tile(x, y);
-            if (tile == null)
-                return;
             tile.active(true);
-            if (Style.InActive != null)
+            if (Style.InActive.HasValue)
                 tile.inActive(Style.InActive.Value);
             tile.type = (ushort)21;
-            if (Style.TileColor != null)
+            if (Style.TileColor.HasValue)
                 tile.color(Style.TileColor.Value);
-            if (Style.Wall != null)
+            if (Style.Wall.HasValue)
                 tile.wall = Style.Wall.Value;
-            if (Style.WallColor != null)
+            if (Style.WallColor.HasValue)
                 tile.wallColor(Style.WallColor.Value);
 
             tile.frameX = (short)((x == 0) ? 0 : 18);

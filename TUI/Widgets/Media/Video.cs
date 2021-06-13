@@ -82,10 +82,10 @@ namespace TerrariaUI.Widgets
             foreach (ImageData data in images)
             {
                 Image image = new Image(0, 0, data, new UIConfiguration() { UseBegin=false }, new UIStyle(Style));
-                Add(image.Disable(false));
+                Add(image.Disable());
                 Images.Add(image);
             }
-            Images[0].Enable(false);
+            Images[0].Enable();
             return;
         }
 
@@ -137,10 +137,10 @@ namespace TerrariaUI.Widgets
         #endregion
         #region UpdateSizeNative
 
-        public override (int, int) GetSizeNative() =>
+        /*public override (int, int) GetSizeNative() =>
             Images?.Count > 0
             ? (Images[Frame].Width, Images[Frame].Height)
-            : (8, 5);
+            : (8, 5);*/
 
         #endregion
 
@@ -166,11 +166,11 @@ namespace TerrariaUI.Widgets
 
         protected virtual void Next(object sender, ElapsedEventArgs args)
         {
-            if (Root == null || Root.Players.Count == 0 || !CalculateActive())
+            if (Root == null || Root.Players.Count == 0 || !IsActive)
                 return;
 
             Frame = (Frame + 1) % Images.Count;
-            Select(Images[Frame], true);
+            Select(Images[Frame]);
 
             if (Frame == Images.Count - 1 && !VideoStyle.Repeat)
                 Stop();

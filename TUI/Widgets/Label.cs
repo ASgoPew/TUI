@@ -100,7 +100,6 @@ namespace TerrariaUI.Widgets
         {
             if (text.Contains(ReservedCharacter))
                 throw new InvalidOperationException((int)ReservedCharacter + " is a reserved character.");
-            AllowSelfResize();
             RawText = text ?? throw new ArgumentNullException(nameof(text));
         }
 
@@ -124,12 +123,12 @@ namespace TerrariaUI.Widgets
         #endregion
         #region GetSizeNative
 
-        public override (int, int) GetSizeNative()
+        /*public override (int, int) GetSizeNative()
         {
             if (Lines == null)
                 UpdateThisNative();
-            return (TextW + 2, TextH + 2);
-        }
+            return (TextW + LabelStyle.TextIndent.Left + LabelStyle.TextIndent.Right, TextH + LabelStyle.TextIndent.Up + LabelStyle.TextIndent.Down);
+        }*/
 
         #endregion
         #region UpdateThisNative

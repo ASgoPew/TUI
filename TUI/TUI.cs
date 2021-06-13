@@ -156,7 +156,7 @@ namespace TerrariaUI
                 app.Type.DisposeInstance(app);
 
             if (Active)
-                obj.Disable(true);
+                obj.Disable();
             _Child.Remove(obj);
             obj.Dispose();
         }
@@ -273,10 +273,10 @@ namespace TerrariaUI
             touch.Move(-saveX, -saveY);
             bool inside = o.ContainsRelative(touch);
 
-            if (o.Active && inside)
+            if (o.IsActive && inside)
                 insideUI = true;
 
-            if (o.Active && (inside || o.Configuration.UseOutsideTouches))
+            if (o.IsActive && (inside || o.Configuration.UseOutsideTouches))
                 if (o.Touched(touch))
                     return true;
 
@@ -345,14 +345,14 @@ namespace TerrariaUI
                 root.Provider.SetTop(false);
 
             // Should not apply if intersecting objects have different tile provider
-            (bool intersects, bool needsApply) = ChildIntersectingOthers(child);
+            (bool intersects, bool needsApply) = ChildIntersectingOthers(root);
             if (intersects)
             {
                 if (needsApply)
-                    child.Apply();
+                    root.Apply();
                 else
-                    child.RequestDrawChanges();
-                child.Draw();
+                    root.RequestDrawChanges();
+                root.Draw();
             }
         }
 
@@ -363,7 +363,7 @@ namespace TerrariaUI
         {
             bool intersects = false;
             foreach (RootVisualObject child in Roots)
-                if (child != o && child.Active && child.Orderable && o.Intersecting(child))
+                if (child != o && child.IsActive && child.Orderable && o.Intersecting(child))
                 {
                     intersects = true;
                     dynamic provider1 = o.Provider;
@@ -389,7 +389,7 @@ namespace TerrariaUI
             foreach (RootVisualObject child in Roots)
                 try
                 {
-                    if (child.Active)
+                    if (child.IsActive)
                         child.Update();
                 }
                 catch (Exception e)
@@ -406,7 +406,7 @@ namespace TerrariaUI
             foreach (RootVisualObject child in Roots)
                 try
                 {
-                    if (child.Active)
+                    if (child.IsActive)
                         child.Apply();
                 }
                 catch (Exception e)
@@ -423,7 +423,7 @@ namespace TerrariaUI
             foreach (RootVisualObject child in Roots)
                 try
                 {
-                    if (child.Active)
+                    if (child.IsActive)
                         child.Draw();
                 }
                 catch (Exception e)
@@ -460,7 +460,7 @@ namespace TerrariaUI
         public static void RequestDrawChanges()
         {
             foreach (RootVisualObject child in Roots)
-                if (child.Active && !(child.Provider is MainTileProvider))
+                if (child.IsActive && !(child.Provider is MainTileProvider))
                     child.RequestDrawChanges();
         }
 

@@ -141,18 +141,18 @@ namespace TerrariaUI.Widgets
             if (x + width < TUI.MaxTilesX && y + height < TUI.MaxTilesY)
             {
                 if (PanelStyle.SavePosition && PanelStyle.SaveSize)
-                    SetXYWH(x, y, width, height, false);
+                    SetXYWH(x, y, width, height);
                 else if (PanelStyle.SavePosition)
-                    SetXY(x, y, false);
+                    SetXY(x, y);
                 else if (PanelStyle.SaveSize)
-                    SetWH(width, height, false);
+                    SetWH(width, height);
 
                 if (PanelStyle.SaveEnabled)
                 {
                     if (Enabled && !enabled)
-                        Disable(false);
+                        Disable();
                     else if (!Enabled && enabled)
-                        Enable(false);
+                        Enable();
                 }
 
                 base.UDBReadNative(br, id);
@@ -161,7 +161,7 @@ namespace TerrariaUI.Widgets
             {
                 TUI.Log(this, $"Panel can't be placed at {x},{y}: map is too small", LogType.Warning);
                 //SetXYWH(0, 0, width, height);
-                Disable(false);
+                Disable();
                 return;
             }
         }
@@ -223,12 +223,13 @@ namespace TerrariaUI.Widgets
             }
             if (style != null)
                 PopUpBackground.Style = style;
-            PopUpBackground.SetParentStretch(FullSize.Both);
+            PopUpBackground.SetWidthParentStretch();
+            PopUpBackground.SetHeightParentStretch();
             PopUpBackground.Add(popup);
             if (cancelCallback != null)
                 PopUpCancelCallbacks[popup] = cancelCallback;
             PopUpBackground.DrawWithSection = DrawWithSection;
-            PopUpBackground.Select(popup, false).Enable(false);
+            PopUpBackground.Select(popup).Enable();
             Update();
             PopUpBackground.Apply().Draw();
             return PopUpBackground;
@@ -241,7 +242,7 @@ namespace TerrariaUI.Widgets
         {
             if (PopUpBackground is VisualContainer popUpBackground)
             {
-                popUpBackground.Disable(false);
+                popUpBackground.Disable();
                 Apply().Draw();
             }
             return this;
@@ -297,7 +298,7 @@ namespace TerrariaUI.Widgets
             if (!wasChild)
                 Add(node);
             Summoning.Push(node, wasChild, alignment, drag, resize);
-            node.SetXY(0, 0, false);
+            node.SetXY(0, 0);
         }
 
         #endregion
@@ -310,15 +311,15 @@ namespace TerrariaUI.Widgets
             Alignment alignment = summoningNode.Alignment;
             (int oldX, int oldY, int oldWidth, int oldHeight) = XYWH();
 
-            Select(node, false);
+            Select(node);
             if (summoningNode.Drag)
-                DragObject?.Enable(false);
+                DragObject?.Enable();
             else
-                DragObject?.Disable(false);
+                DragObject?.Disable();
             if (summoningNode.Resize)
-                ResizeObject?.Enable(false);
+                ResizeObject?.Enable();
             else
-                ResizeObject?.Disable(false);
+                ResizeObject?.Disable();
 
             int w = node.Width;
             int h = node.Height;
@@ -339,7 +340,7 @@ namespace TerrariaUI.Widgets
             else
                 y = Summoning.OldY + (Summoning.OldHeight - h) / 2;
 
-            SetXYWH(x, y, w, h, false);
+            SetXYWH(x, y, w, h);
             Update().Apply();
             DrawReposition(oldX, oldY, oldWidth, oldHeight);
         }
@@ -364,10 +365,10 @@ namespace TerrariaUI.Widgets
                 ApplySummoned();
             else
             {
-                SetXYWH(Summoning.OldX, Summoning.OldY, Summoning.OldWidth, Summoning.OldHeight, false);
-                DragObject?.Enable(false);
-                ResizeObject?.Enable(false);
-                Deselect(false);
+                SetXYWH(Summoning.OldX, Summoning.OldY, Summoning.OldWidth, Summoning.OldHeight);
+                DragObject?.Enable();
+                ResizeObject?.Enable();
+                Deselect();
                 DrawReposition(oldX, oldY, oldWidth, oldHeight);
                 Summoning = null;
             }
@@ -390,7 +391,7 @@ namespace TerrariaUI.Widgets
             if (!node.WasChild)
                 Remove(node.Node);
             else // Restoring Summoned position in parent since it was a child before summoning
-                node.Node.SetXY(node.OldX, node.OldY, false);
+                node.Node.SetXY(node.OldX, node.OldY);
         }
 
         #endregion
@@ -428,7 +429,7 @@ namespace TerrariaUI.Widgets
                     int dy = touch.AbsoluteY - touch.Session.BeginTouch.AbsoluteY;
                     Panel panel = (Panel)@this.Parent;
                     panel.SaveDataNow = ending;
-                    panel.SetXY(panel.DragX + dx, panel.DragY + dy, true);
+                    panel.SetXY(panel.DragX + dx, panel.DragY + dy);
                     if (ending)
                     {
                         touch.Session[@this] = null;
@@ -472,7 +473,7 @@ namespace TerrariaUI.Widgets
                     int dh = touch.AbsoluteY - touch.Session.BeginTouch.AbsoluteY;
                     Panel panel = (Panel)@this.Parent;
                     panel.SaveDataNow = ending;
-                    panel.SetWH(panel.ResizeW + dw, panel.ResizeH + dh, true);
+                    panel.SetWH(panel.ResizeW + dw, panel.ResizeH + dh);
                     if (ending)
                     {
                         touch.Session[@this] = null;

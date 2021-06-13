@@ -57,7 +57,7 @@ namespace TerrariaUI.Widgets
             if (HasTitle)
             {
                 Label titleLabel = new Label(0, 0, 0, 4, Title, titleStyle);
-                AddToLayout(titleLabel).SetParentStretch(true, false);
+                AddToLayout(titleLabel).SetWidthParentStretch();
                 titleLabel.Update();
             }
             int i = 0;
@@ -67,7 +67,7 @@ namespace TerrariaUI.Widgets
                 button.Configuration.UseBegin = false;
                 button.Configuration.UseMoving = false;
                 button.Configuration.UseEnd = false;
-                AddToLayout(button.SetParentStretch(true, false));
+                AddToLayout(button.SetWidthParentStretch());
                 button.Update();
             }
         }
@@ -75,7 +75,7 @@ namespace TerrariaUI.Widgets
         #endregion
         #region Invoke
 
-        public override void Invoke(Touch touch)
+        protected override void Invoke(Touch touch)
         {
             Touch beginTouch = touch.Session.BeginTouch;
             if (!ContainsRelative(beginTouch) || !ContainsRelative(touch))
