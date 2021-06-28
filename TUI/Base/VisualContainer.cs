@@ -76,7 +76,7 @@ namespace TerrariaUI.Base
         /// </summary>
         /// <param name="node">Child to select.</param>
         /// <returns>this</returns>
-        public VisualContainer Select(VisualObject node)
+        public VisualContainer Select(VisualObject node, bool draw)
         {
             if (!_Child.Contains(node))
                 throw new InvalidOperationException("Trying to Select an object that isn't a child of current VisualDOM");
@@ -85,9 +85,9 @@ namespace TerrariaUI.Base
             {
                 if (Selected == node)
                     return this;
-                Selected.Disable();
+                Selected.Disable(false);
                 Selecting.Selected = node;
-                Selected.Enable();
+                Selected.Enable(false);
                 return this;
             }
             Selecting = new Selection(node);
@@ -95,12 +95,13 @@ namespace TerrariaUI.Base
             foreach (VisualObject child in ChildrenFromTop)
                 if (child.Enabled)
                 {
-                    child.Disable();
+                    child.Disable(false);
                     Selecting.DisabledChildren.Add(child);
                 }
-            node.Enable();
+            node.Enable(false);
 
-            Update().Apply().Draw();
+            if (draw && IsActive)
+                Update().Apply().Draw();
 
             return this;
         }
@@ -112,19 +113,20 @@ namespace TerrariaUI.Base
         /// Enables all child objects. See <see cref="Select(VisualObject)"/>
         /// </summary>
         /// <returns>this</returns>
-        public VisualContainer Deselect()
+        public VisualContainer Deselect(bool draw)
         {
             if (Selecting == null)
                 throw new InvalidOperationException("Trying to deselect without selecting.");
 
             if (!Selecting.DisabledChildren.Contains(Selected))
-                Selected.Disable();
+                Selected.Disable(false);
             foreach (VisualObject child in Selecting.DisabledChildren)
                 if (_Child.Contains(child) && !child.Enabled)
-                    child.Enable();
+                    child.Enable(false);
             Selecting = null;
 
-            Update().Apply().Draw();
+            if (draw && IsActive)
+                Update().Apply().Draw();
 
             return this;
         }

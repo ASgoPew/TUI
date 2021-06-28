@@ -45,7 +45,7 @@ namespace TerrariaUI.Widgets
                 {
                     Dropdown = new Dropdown(this);
                     (int x, int y) = RelativeXY(0, 0, Root);
-                    Dropdown?.SetXYWH(x, y, Width, Height * Values.Count).Update();
+                    Dropdown?.SetXYWH(x, y, Width, Height * Values.Count, false).Update();
                 }
                 panel.ShowPopUp(Dropdown);
                 touch.Session.Acquired = Dropdown;
@@ -104,10 +104,10 @@ namespace TerrariaUI.Widgets
                     Button btn = (Button)Dropdown.GetChild(index);
                     bool enabled = btn.Enabled;
                     if (enabled)
-                        btn.Disable();
+                        btn.Disable(false);
                     btn.EndBlink(btn.ButtonStyle.BlinkStyle);
                     if (enabled)
-                        btn.Enable();
+                        btn.Enable(false);
                 }
                 panel.HidePopUp();
             }

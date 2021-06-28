@@ -61,10 +61,10 @@ namespace TerrariaUI.Widgets
 
         #region SetXYWH
 
-        public override VisualObject SetXYWH(int x, int y, int width, int height)
+        public override VisualObject SetXYWH(int x, int y, int width, int height, bool draw)
         {
             int oldWidth = Width, oldHeight = Height;
-            base.SetXYWH(x, y, width, height);
+            base.SetXYWH(x, y, width, height, draw);
             if (oldWidth != Width || oldHeight != Height)
             {
                 byte[,] oldPaint = Paint;

@@ -156,7 +156,7 @@ namespace TerrariaUI
                 app.Type.DisposeInstance(app);
 
             if (Active)
-                obj.Disable();
+                obj.Disable(true);
             _Child.Remove(obj);
             obj.Dispose();
         }
@@ -314,7 +314,7 @@ namespace TerrariaUI
         #endregion
         #region EndTouchHandled
 
-        private static bool EndTouchHandled(int userIndex) =>
+        public static bool EndTouchHandled(int userIndex) =>
             Session[userIndex]?.EndTouchHandled ?? false;
 
         #endregion

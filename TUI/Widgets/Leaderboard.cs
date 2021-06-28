@@ -69,7 +69,7 @@ namespace TerrariaUI.Widgets
             {
                 var lineData = list[i];
                 VisualContainer line = new VisualContainer(0, 0, 0, 4, new UIConfiguration() { UseBegin = false });
-                line.SetParentStretch(true, false)
+                line.SetWidthParentStretch()
                     .SetupGrid(columns: new ISize[] { new Relative(100), new Dynamic() });
                 byte color = i == 0
                     ? PaintID2.DeepYellow
@@ -78,7 +78,9 @@ namespace TerrariaUI.Widgets
                         : i == 2
                             ? PaintID2.Brown
                             : PaintID2.Black;
-                line[0, 0] = new Label(0, 0, 0, 0, lineData.Username, new LabelStyle() { TextColor = color }).SetParentStretch(true, true);
+                line[0, 0] = new Label(0, 0, 0, 0, lineData.Username, new LabelStyle() { TextColor = color })
+                    .SetWidthParentStretch()
+                    .SetHeightParentStretch();
                 string number = lineData.Number.ToString();
                 line[1, 0] = new Label(0, 0, number.Length * 2 + 2, 4, number, new LabelStyle() { TextColor = PaintID2.Black });
                 this[0, 1].AddToLayout(line);

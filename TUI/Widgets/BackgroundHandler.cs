@@ -9,8 +9,8 @@ namespace TerrariaUI.Widgets
         private int _Layer;
         public override int Layer => _Layer;
         public override bool Orderable => false;
-        protected override int MinWidth => TUI.MaxTilesX;
-        protected override int MinHeight => TUI.MaxTilesY;
+        public override int MinWidth => TUI.MaxTilesX;
+        public override int MinHeight => TUI.MaxTilesY;
 
         public BackgroundHandler(string name, int layer = Int32.MaxValue)
             : base(name, 0, 0, 0, 0, provider: new MainTileProvider(0))

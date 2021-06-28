@@ -473,7 +473,7 @@ namespace TerrariaUI.Base
         /// <param name="width">New width</param>
         /// <param name="height">New height</param>
         /// <returns>this</returns>
-        public virtual VisualObject SetXYWH(int x, int y, int width, int height)
+        public virtual VisualObject SetXYWH(int x, int y, int width, int height, bool draw)
         {
             if (width < 0)
                 throw new ArgumentException($"{nameof(width)} < 0");
@@ -486,16 +486,16 @@ namespace TerrariaUI.Base
             return this as VisualObject;
         }
 
-        public VisualObject SetXYWH((int x, int y, int width, int height) data) =>
-            SetXYWH(data.x, data.y, data.width, data.height);
-        public VisualObject SetXY(int x, int y) =>
-            SetXYWH(x, y, Width, Height);
-        public VisualObject SetXY((int x, int y) pair) =>
-            SetXYWH(pair.x, pair.y, Width, Height);
-        public VisualObject SetWH(int width, int height) =>
-            SetXYWH(X, Y, width, height);
-        public VisualObject SetWH((int width, int height) pair) =>
-            SetXYWH(X, Y, pair.width, pair.height);
+        public VisualObject SetXYWH((int x, int y, int width, int height) data, bool draw) =>
+            SetXYWH(data.x, data.y, data.width, data.height, draw);
+        public VisualObject SetXY(int x, int y, bool draw) =>
+            SetXYWH(x, y, Width, Height, draw);
+        public VisualObject SetXY((int x, int y) pair, bool draw) =>
+            SetXYWH(pair.x, pair.y, Width, Height, draw);
+        public VisualObject SetWH(int width, int height, bool draw) =>
+            SetXYWH(X, Y, width, height, draw);
+        public VisualObject SetWH((int width, int height) pair, bool draw) =>
+            SetXYWH(X, Y, pair.width, pair.height, draw);
 
         #endregion
         #region Move
@@ -506,8 +506,8 @@ namespace TerrariaUI.Base
         /// <param name="dx">X coordinate delta</param>
         /// <param name="dy">Y coordinate delta</param>
         /// <returns>this</returns>
-        public virtual VisualObject Move(int dx, int dy) =>
-            SetXY(X + dx, Y + dy);
+        public virtual VisualObject Move(int dx, int dy, bool draw) =>
+            SetXY(X + dx, Y + dy, draw);
 
         #endregion
         #region Contains
@@ -716,7 +716,7 @@ namespace TerrariaUI.Base
         /// Enables object. See <see cref="Enabled"/>.
         /// </summary>
         /// <returns>this</returns>
-        public virtual VisualObject Enable()
+        public virtual VisualObject Enable(bool draw)
         {
             Enabled = true;
             return this as VisualObject;
@@ -729,7 +729,7 @@ namespace TerrariaUI.Base
         /// Disables object. See <see cref="Enabled"/>.
         /// </summary>
         /// <returns>this</returns>
-        public virtual VisualObject Disable()
+        public virtual VisualObject Disable(bool draw)
         {
             Enabled = false;
             return this as VisualObject;

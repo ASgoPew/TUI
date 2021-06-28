@@ -56,9 +56,9 @@ namespace TerrariaUI.Widgets
 
         #region Constructor
 
-        public Video(int x, int y, int width = 0, int height = 0, UIConfiguration configuration = null, VideoStyle style = null,
+        public Video(int x, int y, int width = -1, int height = -1, UIConfiguration configuration = null, VideoStyle style = null,
                 Action<VisualObject, Touch> callback = null)
-            : base(x, y, width, height, configuration, style, callback)
+            : base(x, y, width == -1 ? 8 : width, height == -1 ? 5 : height, configuration, style, callback)
         {
             Timer.Interval = VideoStyle.Delay;
             Timer.Elapsed += Next;
@@ -82,10 +82,12 @@ namespace TerrariaUI.Widgets
             foreach (ImageData data in images)
             {
                 Image image = new Image(0, 0, data, new UIConfiguration() { UseBegin=false }, new UIStyle(Style));
-                Add(image.Disable());
+                Add(image.Disable(false));
                 Images.Add(image);
             }
-            Images[0].Enable();
+            Images[0].Enable(false);
+
+            SetWH(Images[0].Width, Images[0].Height, false);
             return;
         }
 
@@ -135,14 +137,6 @@ namespace TerrariaUI.Widgets
         }
 
         #endregion
-        #region UpdateSizeNative
-
-        /*public override (int, int) GetSizeNative() =>
-            Images?.Count > 0
-            ? (Images[Frame].Width, Images[Frame].Height)
-            : (8, 5);*/
-
-        #endregion
 
         #region ApplyThisNative
 
@@ -170,7 +164,7 @@ namespace TerrariaUI.Widgets
                 return;
 
             Frame = (Frame + 1) % Images.Count;
-            Select(Images[Frame]);
+            Select(Images[Frame], true);
 
             if (Frame == Images.Count - 1 && !VideoStyle.Repeat)
                 Stop();

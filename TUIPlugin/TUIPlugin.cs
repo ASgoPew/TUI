@@ -401,6 +401,12 @@ namespace TUIPlugin
             if (players.Count == 0)
                 return;
 
+            Console.WriteLine($"Name: {node.FullName}");
+            Console.WriteLine($"State: {node.Root.DrawState}");
+            Console.WriteLine($"PlayerStates: {string.Join(",", node.Root.PlayerApplyCounter.Select(pair => $"{pair.Key}-{pair.Value}"))}");
+            Console.WriteLine($"Players: {string.Join(",", players)}");
+            Console.WriteLine("StackTrace: '{0}'", Environment.StackTrace);
+
 #if DEBUG
             TUI.Log($"Draw ({node.Name} -> " +
                 string.Join(",", players.Select(i => TShock.Players[i]?.Name)) +

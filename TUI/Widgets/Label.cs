@@ -121,16 +121,6 @@ namespace TerrariaUI.Widgets
         }
 
         #endregion
-        #region GetSizeNative
-
-        /*public override (int, int) GetSizeNative()
-        {
-            if (Lines == null)
-                UpdateThisNative();
-            return (TextW + LabelStyle.TextIndent.Left + LabelStyle.TextIndent.Right, TextH + LabelStyle.TextIndent.Up + LabelStyle.TextIndent.Down);
-        }*/
-
-        #endregion
         #region UpdateThisNative
 
         protected override void UpdateThisNative()

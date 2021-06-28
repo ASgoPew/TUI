@@ -23,7 +23,7 @@ namespace TerrariaUI.Widgets
             int lines = (text?.Count(c => c == '\n') ?? 0) + 1;
             Label = AddToLayout(new Label(0, 0, 0, 1 + lines * 3, text, null,
                 new LabelStyle() { TextIndent = new Indent() { Horizontal = 1, Vertical = 1 } }));
-            Label.SetParentStretch(FullSize.Horizontal);
+            Label.SetWidthParentStretch();
             buttonStyle = buttonStyle ?? new ButtonStyle()
             {
                 WallColor = PaintID2.DeepGreen,
@@ -34,7 +34,7 @@ namespace TerrariaUI.Widgets
             Button = AddToLayout(new Button(0, 0, 14, 4, "ok", null, buttonStyle,
                 ((self, touch) => ((Panel)self.Root).HidePopUp())));
             SetWH(0, Label.Height + Button.Height, false);
-            SetParentStretch(FullSize.Horizontal);
+            SetWidthParentStretch();
         }
 
         #endregion

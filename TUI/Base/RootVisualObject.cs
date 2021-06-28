@@ -57,8 +57,8 @@ namespace TerrariaUI.Base
         /// </summary>
         public override int Layer => UsesDefaultMainProvider ? 0 : 1;
         public override bool Orderable => true;
-        protected override int MinWidth => Math.Max(base.MinWidth, 1);
-        protected override int MinHeight => Math.Max(base.MinHeight, 1);
+        public override int MinWidth => Math.Max(base.MinWidth, 1);
+        public override int MinHeight => Math.Max(base.MinHeight, 1);
 
         #endregion
 
@@ -88,24 +88,25 @@ namespace TerrariaUI.Base
         {
             if (x < 0 || y < 0 || x >= Width || y >= Height)
                 throw new ArgumentOutOfRangeException($"{FullName}: Invalid tile x or y.");
-            return Provider?[ProviderX + x, ProviderY + y];
+            return base.Tile(x, y);
         }
 
         #endregion
         #region SetXYWH
 
-        public override VisualObject SetXYWH(int x, int y, int width, int height)
+        public override VisualObject SetXYWH(int x, int y, int width, int height, bool draw)
         {
             int oldX = X, oldY = Y, oldWidth = Width, oldHeight = Height;
-            base.SetXYWH(x, y, width, height);
-            if (oldX != X || oldY != Y || oldWidth != Width || oldHeight != Height)
+            base.SetXYWH(x, y, width, height, false);
+            if (oldX != X || oldY != Y || oldWidth != Width || oldHeight != Height
+                && IsActive)
             {
-                if (UsesDefaultMainProvider)
-                    Clear();
-
                 // MainTileProvider ignores this SetXYWH
                 Provider?.SetXYWH(x, y, width, height, false);
                 TUI.Hooks.SetXYWH.Invoke(new SetXYWHArgs(this, x, y, width, height));
+
+                if (draw)
+                    DrawReposition(oldX, oldY, oldWidth, oldHeight);
             }
             return this;
         }
@@ -113,12 +114,12 @@ namespace TerrariaUI.Base
         #endregion
         #region Enable
 
-        public override VisualObject Enable()
+        public override VisualObject Enable(bool draw)
         {
             if (!Enabled)
             {
                 Provider.Enable(false);
-                base.Enable();
+                base.Enable(draw);
                 TUI.Hooks.Enabled.Invoke(new EnabledArgs(this, true));
             }
             return this;
@@ -127,7 +128,7 @@ namespace TerrariaUI.Base
         #endregion
         #region Disable
 
-        public override VisualObject Disable()
+        public override VisualObject Disable(bool draw)
         {
             if (Enabled)
             {
@@ -135,7 +136,7 @@ namespace TerrariaUI.Base
                     Clear();
 
                 Provider.Disable(false);
-                base.Disable();
+                base.Disable(draw);
                 TUI.Hooks.Enabled.Invoke(new EnabledArgs(this, false));
             }
             return this;
@@ -146,7 +147,10 @@ namespace TerrariaUI.Base
 
         protected override void DrawReposition(int oldX, int oldY, int oldWidth, int oldHeight)
         {
-            RequestDrawChanges();
+            if (UsesDefaultMainProvider)
+                ClearOld(oldX, oldY, oldWidth, oldHeight);
+            else
+                RequestDrawChanges();
             Draw(oldX - X, oldY - Y, oldWidth, oldHeight, OutdatedPlayers(toEveryone: true));
 
             Update();
@@ -155,6 +159,23 @@ namespace TerrariaUI.Base
             else
                 RequestDrawChanges();
             Draw(targetPlayers: OutdatedPlayers(toEveryone: true));
+        }
+
+        #endregion
+        #region ClearOld
+
+        private void ClearOld(int x, int y, int width, int height)
+        {
+            lock (ApplyLocker)
+            {
+                for (int _x = x; _x < x + width; _x++)
+                    for (int _y = y; _y < y + height; _y++)
+                        // getting tile directly to avoid bounds check
+                        Provider[_x, _y]?.ClearEverything();
+
+                // Mark changes to be drawn
+                RequestDrawChanges();
+            }
         }
 
         #endregion
@@ -203,6 +224,20 @@ namespace TerrariaUI.Base
             base.DisposeThisNative();
             if (!(Provider is MainTileProvider))
                 TUI.Hooks.RemoveProvider.Invoke(new RemoveProviderArgs(Provider));
+        }
+
+        #endregion
+        #region PulseThisNative
+
+        protected override void PulseThisNative(PulseType type)
+        {
+            base.PulseThisNative(type);
+            switch (type)
+            {
+                case PulseType.SetXYWH:
+                    (ProviderX, ProviderY) = ProviderXY();
+                    break;
+            }
         }
 
         #endregion

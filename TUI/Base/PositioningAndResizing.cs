@@ -30,20 +30,15 @@ namespace TerrariaUI
         /// Indent for <see cref="Alignment"/> inside parent.
         /// </summary>
         public ExternalIndent Indent { get; set; }
-        /// <summary>
-        /// Restrict drawing outside of indent or not.
-        /// </summary>
-        public bool BoundsIsIndent { get; set; }
 
-        public InParentAlignment(Alignment alignment, ExternalIndent indent = null, bool boundsIsIndent = true)
+        public InParentAlignment(Alignment alignment, ExternalIndent indent = null)
         {
             Alignment = alignment;
             Indent = indent ?? new ExternalIndent();
-            BoundsIsIndent = boundsIsIndent;
         }
 
         public InParentAlignment(InParentAlignment positioning)
-            : this(positioning.Alignment, positioning.Indent, positioning.BoundsIsIndent) { }
+            : this(positioning.Alignment, positioning.Indent) { }
     }
 
     public class InChildStretch : IResizing { }

@@ -61,7 +61,7 @@ namespace TUIExample
             if (false)
             {
                 // Set the layout configuration.
-                node.SetupLayout(Alignment.Center, Direction.Right, Side.Center, null, 3, false);
+                node.SetupLayout(Alignment.Center, Direction.Right, Side.Center, null, 3);
                 // Add the InputLabel widget to the layout that allows you to input text.
                 node.AddToLayout(new InputLabel(0, 0, new InputLabelStyle()
                     { TextColor = PaintID2.Black, Type = InputLabelType.All, TextUnderline = LabelUnderline.None },
@@ -86,7 +86,7 @@ namespace TUIExample
                 node.SetupGrid(
                     new ISize[] { new Relative(100), new Absolute(15) }, // Размеры колонок
                     new ISize[] { new Relative(50), new Relative(50) }, // Размеры линий
-                    null, true);
+                    null);
                 // In the top left cell (at the intersection of the first column and the first line), set the background color to orange.
                 node[0, 0].Style.WallColor = PaintID2.DeepOrange;
                 // At the top right, we put a sapphire (blue) wall without paint.
@@ -128,16 +128,16 @@ namespace TUIExample
             {
                 // Add a label and immediately set Alignment.DownRight with indent 3 blocks to the right and 1 below.
                 node.Add(new Label(0, 0, 16, 6, "test", new LabelStyle() { WallColor = PaintID2.DeepPink }))
-                    .SetAlignmentInParent(Alignment.DownRight, new ExternalIndent() { Right = 3, Down = 1 });
+                    .SetParentAlignment(Alignment.DownRight, new ExternalIndent() { Right = 3, Down = 1 });
             }
 
             if (false)
             {
                 // Let's make our node container the size of the root in width.
-                node.SetFullSize(true, false);
+                node.SetWidthParentStretch();
             }
 
-            node.SetupLayout(Alignment.Center, Direction.Down, Side.Center, null, 1, false);
+            node.SetupLayout(Alignment.Center, Direction.Down, Side.Center, null, 1);
 
             // VisualObject
             VisualObject obj = node.AddToLayout(new VisualObject(5, 5, 8, 4, null, new UIStyle()

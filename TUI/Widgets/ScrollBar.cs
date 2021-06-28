@@ -113,36 +113,36 @@ namespace TerrariaUI.Widgets
                 int size = Math.Max(Height - limit, 1);
                 if (size >= Height)
                 {
-                    Slider.Disable();
+                    Slider.Disable(false);
                     Configuration.UseBegin = false;
                     return;
                 }
                 else
                 {
-                    Slider.Enable();
+                    Slider.Enable(false);
                     Configuration.UseBegin = true;
                 }
-                Slider.SetWH(_Width, size);
-                Empty1.SetWH(_Width, Height - Slider.Height);
-                Empty2.SetWH(_Width, limit);
+                Slider.SetWH(_Width, size, false);
+                Empty1.SetWH(_Width, Height - Slider.Height, false);
+                Empty2.SetWH(_Width, limit, false);
             }
             else
             {
                 int size = Math.Max(Width - limit, 1);
                 if (size >= Width)
                 {
-                    Slider.Disable();
+                    Slider.Disable(false);
                     Configuration.UseBegin = false;
                     return;
                 }
                 else
                 {
-                    Slider.Enable();
+                    Slider.Enable(false);
                     Configuration.UseBegin = true;
                 }
-                Slider.SetWH(size, _Width);
-                Empty1.SetWH(Width - Slider.Width, _Width);
-                Empty2.SetWH(limit, _Width);
+                Slider.SetWH(size, _Width, false);
+                Empty1.SetWH(Width - Slider.Width, _Width, false);
+                Empty2.SetWH(limit, _Width, false);
             }
             DrawWithSection = Parent.DrawWithSection;
             switch (Parent.LayoutConfiguration.Direction)
