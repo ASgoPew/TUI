@@ -229,8 +229,8 @@ namespace TerrariaUI.Base
         {
             get
             {
-                for (int _x = ProviderX + Bounds.Left; _x < ProviderX + Bounds.Right; _x++)
-                    for (int _y = ProviderY; _y < Provider + Height; _y++)
+                for (int _x = ProviderX + Bounds.Left; _x <= ProviderX + Bounds.Right; _x++)
+                    for (int _y = ProviderY + Bounds.Up; _y <= ProviderY + Bounds.Down; _y++)
                         yield return (_x, _y);
             }
         }

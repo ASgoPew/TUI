@@ -201,7 +201,7 @@ namespace TerrariaUI.Base
         public virtual dynamic Tile(int x, int y)
         {
             ExternalIndent bounds = Bounds;
-            if (x < bounds.Left || x >= bounds.Left + bounds.Right || y < bounds.Up || y >= bounds.Up + bounds.Down)
+            if (x < bounds.Left || x > bounds.Right || y < bounds.Up || y > bounds.Down)
                 return null;
             return Provider?[ProviderX + x, ProviderY + y];
         }
@@ -394,6 +394,8 @@ namespace TerrariaUI.Base
         /// <returns>this</returns>
         public VisualObject LayoutOffset(int value)
         {
+            if (LayoutConfiguration == null)
+                throw new InvalidOperationException("Widget has no layout");
             LayoutConfiguration.LayoutOffset = value;
             return this;
         }
@@ -423,6 +425,8 @@ namespace TerrariaUI.Base
 
         public VisualObject FillGrid()
         {
+            if (GridConfiguration == null)
+                throw new InvalidOperationException("Widget has no grid");
             for (int i = 0; i < GridConfiguration.Columns.Length; i++)
                 for (int j = 0; j < GridConfiguration.Lines.Length; j++)
                     this[i, j] = new VisualContainer();
@@ -1166,19 +1170,20 @@ namespace TerrariaUI.Base
         private void UpdateBounds()
         {
             // Intersecting bounds with parent's Bounds
-            ExternalIndent bounds = new ExternalIndent() { Left = 0, Up = 0, Right = Width, Down = Height };
+            ExternalIndent bounds = new ExternalIndent() { Left = 0, Up = 0, Right = Width - 1, Down = Height - 1 };
             int deltaX = X;
             int deltaY = Y;
             for (VisualObject node = Parent; node != null; node = node.Parent)
             {
                 ExternalIndent pBounds = node.Bounds;
-                if (Intersect(0, 0, Width, Height, pBounds.Left - deltaX, pBounds.Up - deltaY, pBounds.Right - deltaX, pBounds.Down - deltaY,
+                if (Intersect(bounds.Left, bounds.Up, bounds.Right - bounds.Left + 1, bounds.Down - bounds.Up + 1,
+                    pBounds.Left - deltaX, pBounds.Up - deltaY, pBounds.Right - pBounds.Left + 1, pBounds.Down - pBounds.Up + 1,
                     out int x, out int y, out int width, out int height))
                 {
                     bounds.Left = x;
                     bounds.Right = y;
-                    bounds.Right = width;
-                    bounds.Down = height;
+                    bounds.Right = x + width - 1;
+                    bounds.Down = y + height - 1;
                 }
                 else
                 {
