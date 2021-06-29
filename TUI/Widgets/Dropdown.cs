@@ -57,6 +57,16 @@ namespace TerrariaUI.Widgets
         }
 
         #endregion
+        #region UpdateThisNative
+
+        protected override void UpdateThisNative()
+        {
+            base.UpdateThisNative();
+            (int x, int y) = RelativeXY(0, 0, Root);
+            Dropdown?.SetXYWH(x, y, Width, Height * Values.Count, false).Update();
+        }
+
+        #endregion
         #region GetValue
 
         public string GetValue() => Input.Value;

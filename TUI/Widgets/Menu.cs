@@ -70,6 +70,14 @@ namespace TerrariaUI.Widgets
                 AddToLayout(button.SetWidthParentStretch());
                 button.Update();
             }
+
+            width = Label.FindMaxWidth(values, style1.TextIndent.Horizontal) + 2;
+            if (HasTitle)
+                width = Math.Max(width, Label.FindMaxWidth(new string[] { Title }, titleStyle.TextIndent.Horizontal) + 2);
+            height = 4 * values.Count();
+            if (HasTitle)
+                height += 4;
+            SetWH(width, height, false);
         }
 
         #endregion

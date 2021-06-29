@@ -65,7 +65,7 @@ namespace TerrariaUI.Widgets
             else
             {
                 Height = width;
-                SetHeightParentStretch();
+                SetWidthParentStretch();
                 if (side == Direction.Up)
                     SetParentAlignment(Alignment.Up);
                 else
@@ -78,8 +78,8 @@ namespace TerrariaUI.Widgets
             Slider = AddToLayout(new ScrollBackground(false, true, true, ScrollAction), 0);
             Empty2 = AddToLayout(new Separator(0));
             Empty2.Configuration.UseBegin = false;
-            // ?????????
-            //Slider.SetParentStretch(FullSize.None);
+            Slider.SetWidthResizing(null);
+            Slider.SetHeightResizing(null);
             Slider.Style.WallColor = ScrollBarStyle.SliderColor;
             if (Style.WallColor == null)
                 Style.WallColor = 0;
@@ -175,16 +175,16 @@ namespace TerrariaUI.Widgets
             if (Vertical)
             {
                 if (touch.Y > Slider.Y)
-                    ScrollAction(Slider, LayoutConfiguration.LayoutOffset + (touch.Y - (Slider.Y + Slider.Height) + 1) * forward);
+                    ScrollAction(Slider, Parent.LayoutConfiguration.LayoutOffset + (touch.Y - (Slider.Y + Slider.Height) + 1) * forward);
                 else
-                    ScrollAction(Slider, LayoutConfiguration.LayoutOffset - (Slider.Y - touch.Y) * forward);
+                    ScrollAction(Slider, Parent.LayoutConfiguration.LayoutOffset - (Slider.Y - touch.Y) * forward);
             }
             else
             {
                 if (touch.X > Slider.X)
-                    ScrollAction(Slider, LayoutConfiguration.LayoutOffset + (touch.X - (Slider.X + Slider.Width) + 1) * forward);
+                    ScrollAction(Slider, Parent.LayoutConfiguration.LayoutOffset + (touch.X - (Slider.X + Slider.Width) + 1) * forward);
                 else
-                    ScrollAction(Slider, LayoutConfiguration.LayoutOffset - (Slider.X - touch.X) * forward);
+                    ScrollAction(Slider, Parent.LayoutConfiguration.LayoutOffset - (Slider.X - touch.X) * forward);
             }
         }
 

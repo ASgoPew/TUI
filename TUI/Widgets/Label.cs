@@ -394,7 +394,7 @@ namespace TerrariaUI.Widgets
         #endregion
         #region FindMaxSize
 
-        /*public static int FindMaxWidth(IEnumerable<string> values, int emptyIndentation)
+        public static int FindMaxWidth(IEnumerable<string> values, int emptyIndentation)
         {
             int max = 0;
             foreach (string _text in values)
@@ -417,7 +417,7 @@ namespace TerrariaUI.Widgets
                     max = width;
             }
             return max;
-        }*/
+        }
 
         #endregion
         #region PaintIDByName

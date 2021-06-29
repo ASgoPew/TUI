@@ -73,8 +73,9 @@ namespace TerrariaUI.Widgets
                 }
                 if (newOffset != offset || touch.State == TouchState.End)
                 {
-                    VisualObject first = Child.Where(child => child.InLayout).FirstOrDefault();
-                    VisualObject last = Child.Where(child => child.InLayout).LastOrDefault();
+                    var inLayout = Parent.Child.Where(child => child.InLayout);
+                    VisualObject first = inLayout.FirstOrDefault();
+                    VisualObject last = inLayout.LastOrDefault();
                     if (first == null)
                         return;
                     if (touch.State == TouchState.End || !AllowToPull)

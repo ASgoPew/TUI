@@ -109,8 +109,7 @@ namespace TerrariaUI.Base
             if (IsActive)
                 child.Update();
 
-            // Update grid min sizes
-            SetXY(0, 0, false);
+            child.Pulse(PulseType.SetXYWH);
 
             return child;
         }
@@ -552,11 +551,11 @@ namespace TerrariaUI.Base
                 old.SetPositioning(null);
 
             InGrid inGrid = new InGrid(column, line);
-            SetPositioning(inGrid);
+            child.SetPositioning(inGrid);
             if (widthResize)
-                SetWidthResizing(inGrid);
+                child.SetWidthResizing(inGrid);
             if (heightResize)
-                SetHeightResizing(inGrid);
+                child.SetHeightResizing(inGrid);
             return Add(child, layer);
         }
 
@@ -861,6 +860,8 @@ namespace TerrariaUI.Base
             int layoutIndent = LayoutConfiguration.LayoutOffset;
 
             (int abstractLayoutW, int abstractLayoutH, List<VisualObject> layoutChild) = CalculateLayoutSize(direction, offset);
+            if (layoutChild.Count == 0)
+                return;
 
             // Calculating layout box position
             int layoutX, layoutY, layoutW, layoutH;
@@ -1176,21 +1177,21 @@ namespace TerrariaUI.Base
             for (VisualObject node = Parent; node != null; node = node.Parent)
             {
                 ExternalIndent pBounds = node.Bounds;
-                if (Intersect(bounds.Left, bounds.Up, bounds.Right - bounds.Left + 1, bounds.Down - bounds.Up + 1,
+                if (node.Enabled && Intersect(bounds.Left, bounds.Up, bounds.Right - bounds.Left + 1, bounds.Down - bounds.Up + 1,
                     pBounds.Left - deltaX, pBounds.Up - deltaY, pBounds.Right - pBounds.Left + 1, pBounds.Down - pBounds.Up + 1,
                     out int x, out int y, out int width, out int height))
                 {
                     bounds.Left = x;
-                    bounds.Right = y;
+                    bounds.Up = y;
                     bounds.Right = x + width - 1;
                     bounds.Down = y + height - 1;
                 }
                 else
                 {
                     bounds.Left = 0;
-                    bounds.Right = 0;
-                    bounds.Right = 0;
-                    bounds.Down = 0;
+                    bounds.Up = 0;
+                    bounds.Right = -1;
+                    bounds.Down = -1;
                     Visible = false;
                     return;
                 }

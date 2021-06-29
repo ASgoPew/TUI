@@ -225,7 +225,8 @@ namespace TerrariaUI.Widgets
                 PopUpBackground.Style = style;
             PopUpBackground.SetWidthParentStretch();
             PopUpBackground.SetHeightParentStretch();
-            PopUpBackground.Add(popup);
+            if (!PopUpBackground.HasChild(popup))
+                PopUpBackground.Add(popup);
             if (cancelCallback != null)
                 PopUpCancelCallbacks[popup] = cancelCallback;
             PopUpBackground.DrawWithSection = DrawWithSection;
