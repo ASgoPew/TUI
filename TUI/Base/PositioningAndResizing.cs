@@ -65,9 +65,9 @@ namespace TerrariaUI
         /// <summary>
         /// Whole layout offset.
         /// </summary>
-        public int LayoutOffset { get; internal set; } = 0;
+        public int Offset { get; internal set; } = 0;
         /// <summary>
-        /// Maximum value of <see cref="LayoutOffset"/> (in other words layout size).
+        /// Maximum value of <see cref="Offset"/> (in other words layout size).
         /// </summary>
         public int OffsetLimit { get; internal set; }
 

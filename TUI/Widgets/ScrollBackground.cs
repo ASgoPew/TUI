@@ -13,7 +13,7 @@ namespace TerrariaUI.Widgets
         #region Data
 
         private Action<ScrollBackground, int> ScrollBackgroundCallback;
-        public int BeginOffset { get; protected set; }
+        public int BeginOffset { get; protected internal set; }
         public int Limit { get; protected set; }
         public bool AllowToPull { get; set; }
         public bool RememberTouchPosition { get; set; }
@@ -47,7 +47,7 @@ namespace TerrariaUI.Widgets
             if (Parent?.LayoutConfiguration == null)
                 throw new Exception("Scroll has no parent or parent doesn't have layout.");
             LayoutConfiguration layout = Parent.LayoutConfiguration;
-            int offset = layout.LayoutOffset;
+            int offset = layout.Offset;
             Limit = layout.OffsetLimit;
             bool vertical = layout.Direction == Direction.Up || layout.Direction == Direction.Down;
             bool forward = layout.Direction == Direction.Right || layout.Direction == Direction.Down;
@@ -85,14 +85,12 @@ namespace TerrariaUI.Widgets
                         else if (newOffset > Limit)
                             newOffset = Limit;
                     }
-                    if (Parent.LayoutConfiguration.LayoutOffset != newOffset)
+                    if (Parent.LayoutConfiguration.Offset != newOffset)
                     {
-                        Parent.LayoutOffset(newOffset);
-                        Action<ScrollBackground, int> callback = ScrollBackgroundCallback;
-                        if (callback != null)
+                        if (ScrollBackgroundCallback is Action<ScrollBackground, int> callback)
                             callback.Invoke(this, newOffset);
                         else
-                            Parent.Update().Apply().Draw();
+                            Parent.LayoutOffset(newOffset).Update().Apply().Draw();
                     }
                 }
             }

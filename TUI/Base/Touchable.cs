@@ -165,9 +165,15 @@ namespace TerrariaUI.Base
         private bool TouchedThis(Touch touch)
         {
             VisualObject @this = (VisualObject)this;
+            if (TUI.TouchedDebug)
+                TUI.Log($"TOUCHED {(@this.FullName)}");
+
             touch.Object = @this;
 
             TrySetLock(touch);
+
+            if (Configuration.SessionAcquire)
+                touch.Session.Acquired = @this;
 
             if (@this is RootVisualObject root)
                 TUI.SetTop(root);
@@ -182,9 +188,6 @@ namespace TerrariaUI.Base
             {
                 TUI.HandleException(e);
             }
-
-            if (Configuration.SessionAcquire)
-                touch.Session.Acquired = @this;
             return true;
         }
 

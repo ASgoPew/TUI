@@ -58,7 +58,8 @@ namespace TerrariaUI.Widgets
 
         public Video(int x, int y, int width = -1, int height = -1, UIConfiguration configuration = null, VideoStyle style = null,
                 Action<VisualObject, Touch> callback = null)
-            : base(x, y, width == -1 ? 8 : width, height == -1 ? 5 : height, configuration, style, callback)
+            : base(x, y, width == -1 ? 8 : width, height == -1 ? 5 : height,
+                  configuration ?? new UIConfiguration() { UseBegin = true }, style, callback)
         {
             Timer.Interval = VideoStyle.Delay;
             Timer.Elapsed += Next;
@@ -106,7 +107,7 @@ namespace TerrariaUI.Widgets
 
         public Video Start()
         {
-            if (Images.Count != 0)
+            if (!Playing && Images.Count != 0)
                 Timer.Start();
             return this;
         }
@@ -116,12 +117,13 @@ namespace TerrariaUI.Widgets
 
         public Video Stop()
         {
-            Timer.Stop();
+            if (Playing)
+                Timer.Stop();
             return this;
         }
 
         #endregion
-        #region Toggle
+        #region ToggleStart
 
         public Video ToggleStart() => Playing ? Stop() : Start();
 

@@ -88,17 +88,18 @@ namespace TerrariaUI.Base
                 Selected.Disable(false);
                 Selecting.Selected = node;
                 Selected.Enable(false);
-                return this;
             }
-            Selecting = new Selection(node);
-
-            foreach (VisualObject child in ChildrenFromTop)
-                if (child.Enabled)
-                {
-                    child.Disable(false);
-                    Selecting.DisabledChildren.Add(child);
-                }
-            node.Enable(false);
+            else
+            {
+                Selecting = new Selection(node);
+                foreach (VisualObject child in ChildrenFromTop)
+                    if (child.Enabled)
+                    {
+                        child.Disable(false);
+                        Selecting.DisabledChildren.Add(child);
+                    }
+                node.Enable(false);
+            }
 
             if (draw && IsActive)
                 Update().Apply().Draw();

@@ -395,7 +395,7 @@ namespace TerrariaUI.Base
         {
             if (LayoutConfiguration == null)
                 throw new InvalidOperationException("Widget has no layout");
-            LayoutConfiguration.LayoutOffset = value;
+            LayoutConfiguration.Offset = value;
             return this;
         }
 
@@ -568,7 +568,8 @@ namespace TerrariaUI.Base
         /// <returns> this </returns>
         public VisualObject Pulse(PulseType type)
         {
-            Root?.PrePulseObject(this, type);
+            if (TUI.PulseDebug)
+                TUI.Log($"PULSE {FullName}");
 
             // Pulse event handling related to this node
             PulseThis(type);
@@ -578,8 +579,6 @@ namespace TerrariaUI.Base
 
             // Post pulse event handling related to this node
             PostPulseThis(type);
-
-            Root?.PostPulseObject(this, type);
 
             return this;
         }
@@ -684,7 +683,8 @@ namespace TerrariaUI.Base
         /// <returns> this </returns>
         public VisualObject Update()
         {
-            Root?.PreUpdateObject(this);
+            if (TUI.UpdateDebug)
+                TUI.Log($"UPDATE {FullName}");
 
             // Updates related to this node
             UpdateThis();
@@ -694,8 +694,6 @@ namespace TerrariaUI.Base
 
             // Updates related to this node and dependant on child updates
             PostUpdateThis();
-
-            Root?.PostUpdateObject(this);
 
             return this;
         }
@@ -798,13 +796,19 @@ namespace TerrariaUI.Base
                 {
                     if (HasWidthChildStretch)
                         throw new InvalidOperationException($"Attempt to WidthParentStretch child while having WidthChildStretch: {FullName}");
-                    child.SetWH(Width, child.Height, false);
+                    int width = Width;
+                    if (child.InLayout)
+                        width -= LayoutConfiguration.Indent.Left + LayoutConfiguration.Indent.Right;
+                    child.SetWH(width, child.Height, false);
                 }
                 if (child.HasHeightParentStretch)
                 {
                     if (HasHeightChildStretch)
                         throw new InvalidOperationException($"Attempt to HeightParentStretch child while having HeightChildStretch: {FullName}");
-                    child.SetWH(child.Width, Height, false);
+                    int height = Height;
+                    if (child.InLayout)
+                        height -= LayoutConfiguration.Indent.Up + LayoutConfiguration.Indent.Down;
+                    child.SetWH(child.Width, height, false);
                 }
             }
         }
@@ -857,7 +861,7 @@ namespace TerrariaUI.Base
             Direction direction = LayoutConfiguration.Direction;
             Side side = LayoutConfiguration.Side;
             int offset = LayoutConfiguration.ChildOffset;
-            int layoutIndent = LayoutConfiguration.LayoutOffset;
+            int layoutIndent = LayoutConfiguration.Offset;
 
             (int abstractLayoutW, int abstractLayoutH, List<VisualObject> layoutChild) = CalculateLayoutSize(direction, offset);
             if (layoutChild.Count == 0)
@@ -1272,12 +1276,13 @@ namespace TerrariaUI.Base
         /// <returns>this</returns>
         public VisualObject Apply()
         {
+            if (TUI.ApplyDebug)
+                TUI.Log($"APPLY {FullName}");
+
             lock (ApplyLocker)
             {
                 if (!IsActive)
                     throw new InvalidOperationException($"Applying inactive object: {FullName}");
-
-                Root?.PreApplyObject(this);
 
                 // Applying related to this node
                 ApplyThis();
@@ -1287,8 +1292,6 @@ namespace TerrariaUI.Base
 
                 // Post applying related to this node
                 PostApplyThis();
-
-                Root?.PostApplyObject(this);
 
                 // Mark changes to be drawn
                 RequestDrawChanges();
@@ -1506,6 +1509,11 @@ namespace TerrariaUI.Base
                 targetPlayers = OutdatedPlayers();
             if (Root.Observers is HashSet<int> observers)
                 targetPlayers = targetPlayers.Where(player => observers.Contains(player)).ToHashSet();
+            if (targetPlayers.Count == 0)
+                return this;
+
+            if (TUI.DrawDebug)
+                TUI.Log($"DRAW {FullName}");
 
             bool realDrawWithSection = drawWithSection ?? DrawWithSection;
             bool realFrame = frameSection ?? FrameSection;

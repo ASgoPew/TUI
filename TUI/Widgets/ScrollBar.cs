@@ -88,11 +88,10 @@ namespace TerrariaUI.Widgets
         #endregion
         #region ScrollAction
 
-        public static void ScrollAction(ScrollBackground @this, int value)
+        public void ScrollAction(ScrollBackground self, int value)
         {
-            //int newIndent = (int)Math.Round((value / (float)@this.Limit) * @this.Parent.Configuration.Layout.IndentLimit);
-            //Console.WriteLine(newIndent);
-            @this.Parent.Parent.LayoutOffset(value)
+            LayoutOffset(value);
+            Parent.LayoutOffset(value)
                 .Update()
                 .Apply()
                 .Draw();
@@ -103,9 +102,7 @@ namespace TerrariaUI.Widgets
 
         protected override void UpdateThisNative()
         {
-            base.UpdateThisNative();
-
-            LayoutConfiguration.LayoutOffset = Parent.LayoutConfiguration.LayoutOffset;
+            LayoutOffset(Parent.LayoutConfiguration.Offset);
             int limit = Parent.LayoutConfiguration.OffsetLimit;
             Slider.Style.WallColor = ScrollBarStyle.SliderColor;
             if (Vertical)
@@ -164,6 +161,8 @@ namespace TerrariaUI.Widgets
                     LayoutConfiguration.Direction = Direction.Up;
                     break;
             }
+
+            base.UpdateThisNative();
         }
 
         #endregion
@@ -172,20 +171,24 @@ namespace TerrariaUI.Widgets
         protected override void Invoke(Touch touch)
         {
             int forward = Parent.LayoutConfiguration.Direction == Direction.Right || Parent.LayoutConfiguration.Direction == Direction.Down ? 1 : -1;
+            int offset = LayoutConfiguration.Offset;
             if (Vertical)
             {
                 if (touch.Y > Slider.Y)
-                    ScrollAction(Slider, Parent.LayoutConfiguration.LayoutOffset + (touch.Y - (Slider.Y + Slider.Height) + 1) * forward);
+                    ScrollAction(Slider, offset + (touch.Y - (Slider.Y + Slider.Height) + 1) * forward);
                 else
-                    ScrollAction(Slider, Parent.LayoutConfiguration.LayoutOffset - (Slider.Y - touch.Y) * forward);
+                    ScrollAction(Slider, offset - (Slider.Y - touch.Y) * forward);
             }
             else
             {
                 if (touch.X > Slider.X)
-                    ScrollAction(Slider, Parent.LayoutConfiguration.LayoutOffset + (touch.X - (Slider.X + Slider.Width) + 1) * forward);
+                    ScrollAction(Slider, offset + (touch.X - (Slider.X + Slider.Width) + 1) * forward);
                 else
-                    ScrollAction(Slider, Parent.LayoutConfiguration.LayoutOffset - (Slider.X - touch.X) * forward);
+                    ScrollAction(Slider, offset - (Slider.X - touch.X) * forward);
             }
+            Slider.BeginOffset = LayoutConfiguration.Offset;
+            touch.Session.Acquired = Slider;
+            touch.Session.BeginTouch.Object = Slider;
         }
 
         #endregion

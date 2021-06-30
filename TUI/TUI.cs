@@ -20,6 +20,11 @@ namespace TerrariaUI
         private static Timer Timer;
         internal static object LoadLocker = new object();
         internal static object DisposeLocker = new object();
+        public static bool TouchedDebug = false;
+        public static bool PulseDebug = false;
+        public static bool UpdateDebug = false;
+        public static bool ApplyDebug = false;
+        public static bool DrawDebug = false;
 
         public const string ControlPermission = "TUI.control";
 
@@ -439,9 +444,7 @@ namespace TerrariaUI
             bool drawWithSection, bool frameSection = true)
         {
             var args = new DrawObjectArgs(node, targetPlayers, x, y, width, height, drawWithSection, frameSection);
-            node.Root?.PreDrawObject(args);
             Hooks.DrawObject.Invoke(args);
-            node.Root?.PostDrawObject(args);
         }
 
         #endregion

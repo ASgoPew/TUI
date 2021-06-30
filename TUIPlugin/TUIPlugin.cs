@@ -398,8 +398,6 @@ namespace TUIPlugin
         {
             VisualObject node = args.Node;
             HashSet<int> players = args.TargetPlayers;
-            if (players.Count == 0)
-                return;
 
             /*Console.WriteLine($"Name: {node.FullName}");
             Console.WriteLine($"State: {node.Root.DrawState}");
@@ -1066,7 +1064,7 @@ Draw state: {root.DrawState}");
                         args.Player.SendErrorMessage("/tui app list");
                         return;
                     }
-                    switch (args.Parameters[1])
+                    switch (args.Parameters[1].ToLower())
                     {
                         case "add":
                         {
@@ -1168,6 +1166,61 @@ Draw state: {root.DrawState}");
                     });
                     break;
                 }
+                case "debug":
+                {
+                    if (args.Parameters.Count == 1)
+                    {
+                        TUI.TouchedDebug = TUI.PulseDebug = TUI.UpdateDebug = TUI.ApplyDebug = TUI.DrawDebug = !TUI.TouchedDebug;
+                        args.Player.SendSuccessMessage($"Debug mode for ALL {(TUI.DrawDebug ? "enabled" : "disabled")}");
+                        break;
+                    }
+                    switch (args.Parameters[1].ToLower())
+                    {
+                        case "touch":
+                        case "touched":
+                        {
+                            TUI.TouchedDebug = !TUI.TouchedDebug;
+                            args.Player.SendSuccessMessage($"Debug mode for TOUCHED {(TUI.TouchedDebug ? "enabled" : "disabled")}.");
+                            break;
+                        }
+                        case "pulse":
+                        {
+                            TUI.PulseDebug = !TUI.PulseDebug;
+                            args.Player.SendSuccessMessage($"Debug mode for PULSE {(TUI.PulseDebug ? "enabled" : "disabled")}.");
+                            break;
+                        }
+                        case "update":
+                        {
+                            TUI.UpdateDebug = !TUI.UpdateDebug;
+                            args.Player.SendSuccessMessage($"Debug mode for UPDATE {(TUI.UpdateDebug ? "enabled" : "disabled")}.");
+                            break;
+                        }
+                        case "apply":
+                        {
+                            TUI.ApplyDebug = !TUI.ApplyDebug;
+                            args.Player.SendSuccessMessage($"Debug mode for APPLY {(TUI.ApplyDebug ? "enabled" : "disabled")}.");
+                            break;
+                        }
+                        case "draw":
+                        {
+                            TUI.DrawDebug = !TUI.DrawDebug;
+                            args.Player.SendSuccessMessage($"Debug mode for DRAW {(TUI.DrawDebug ? "enabled" : "disabled")}.");
+                            break;
+                        }
+                        case "all":
+                        {
+                            TUI.TouchedDebug = TUI.PulseDebug = TUI.UpdateDebug = TUI.ApplyDebug = TUI.DrawDebug = !TUI.TouchedDebug;
+                            args.Player.SendSuccessMessage($"Debug mode for ALL {(TUI.TouchedDebug ? "enabled" : "disabled")}");
+                            break;
+                        }
+                        default:
+                        {
+                            args.Player.SendErrorMessage("Debug mode available for: PULSE, UPDATE, APPLY, DRAW");
+                            break;
+                        }
+                    }
+                    break;
+                }
                 default:
                 {
                     args.Player.SendSuccessMessage("/tui subcommands:");
@@ -1182,6 +1235,7 @@ Draw state: {root.DrawState}");
                     args.Player.SendInfoMessage("/tui app <add/remove> \"app name\"");
                     args.Player.SendInfoMessage("/tui app list");
                     args.Player.SendInfoMessage("/tui list [page]");
+                    //args.Player.SendInfoMessage("/tui debug <mode>");
                     break;
                 }
             }
