@@ -175,10 +175,11 @@ namespace TerrariaUI.Base
             if (Configuration.SessionAcquire)
                 touch.Session.Acquired = @this;
 
-            if (@this is RootVisualObject root)
-                TUI.SetTop(root);
-            else if (Parent.Configuration.Ordered && Orderable)
-                Parent.SetTop(@this);
+            foreach (var node in WayFromRoot)
+                if (node is RootVisualObject root)
+                    TUI.SetTop(root);
+                else if (node.Parent.Configuration.Ordered && Orderable)
+                    node.Parent.SetTop(node);
 
             try
             {
