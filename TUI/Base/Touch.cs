@@ -52,6 +52,7 @@ namespace TerrariaUI.Base
         /// Identifier of touch interval when this touch was touched.
         /// </summary>
         public int TouchSessionIndex { get; internal set; }
+        public bool Priveleged { get; internal set; }
         public bool InsideUI { get; internal set; }
         /// <summary>
         /// True if it is TouchState.End and user ended his touch with pressing
@@ -98,13 +99,14 @@ namespace TerrariaUI.Base
 
         #region Constructor
 
-        public Touch(int x, int y, TouchState state, byte prefix = 0, byte stateByte = 0)
+        public Touch(int x, int y, TouchState state, bool priveleged = false, byte prefix = 0, byte stateByte = 0)
         {
             X = x;
             Y = y;
             AbsoluteX = X;
             AbsoluteY = Y;
             State = state;
+            Priveleged = priveleged;
             Prefix = prefix;
             StateByte = stateByte;
             Time = DateTime.UtcNow;
@@ -139,6 +141,7 @@ namespace TerrariaUI.Base
             this.AbsoluteX = touch.AbsoluteX;
             this.AbsoluteY = touch.AbsoluteY;
             this.State = touch.State;
+            this.Priveleged = touch.Priveleged;
             this.Prefix = touch.Prefix;
             this.Session = touch.Session;
             this.Undo = touch.Undo;

@@ -15,6 +15,10 @@ namespace TerrariaUI.Base
         /// </summary>
         public Lock Lock { get; set; }
         /// <summary>
+        /// Node can be touched only by priveleged users (<see cref="TUI.ControlPermission"/>)
+        /// </summary>
+        public bool Priveleged { get; set; }
+        /// <summary>
         /// Object that should be used for checking if user can touch this node (permission string for TShock).
         /// </summary>
         public object Permission { get; set; }

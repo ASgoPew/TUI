@@ -302,7 +302,8 @@ namespace TerrariaUI
                 if (o.IsActive
                     && o.ContainsParent(touch)
                     && o.Players.Contains(touch.Session.PlayerIndex)
-                    && (!o.Personal || o.Observers.Contains(touch.PlayerIndex)))
+                    && (!o.Personal || o.Observers.Contains(touch.PlayerIndex))
+                    && (!o.Freezed || touch.Priveleged))
                 {
                     touch.Move(-saveX, -saveY);
                     if (o.Touched(touch))

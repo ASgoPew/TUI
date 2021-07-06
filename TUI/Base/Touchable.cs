@@ -75,9 +75,10 @@ namespace TerrariaUI.Base
         protected virtual bool CanTouchNative(Touch touch)
         {
             VisualObject @this = (VisualObject)this;
-            return @this.IsActive &&
-                !IsLocked(touch) &&
-                TUI.Hooks.CanTouch.Invoke(new CanTouchArgs(@this, touch)).CanTouch;
+            return @this.IsActive
+                && (!Configuration.Priveleged || touch.Priveleged)
+                && !IsLocked(touch)
+                && TUI.Hooks.CanTouch.Invoke(new CanTouchArgs(@this, touch)).CanTouch;
         }
 
         #endregion

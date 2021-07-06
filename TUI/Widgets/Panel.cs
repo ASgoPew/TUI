@@ -274,15 +274,19 @@ namespace TerrariaUI.Widgets
         #region Summon
 
         public Panel Summon(VisualObject node, Alignment alignment = Alignment.Center,
-            bool replace = false, bool drag = false, bool resize = false)
+            int level = 1, bool drag = false, bool resize = false)
         {
             if (Summoned == node)
                 return this;
 
             if (Summoning == null)
                 Summoning = new Summoning(X, Y, Width, Height);
-            else if (replace)
+
+            while (level <= 0)
+            {
                 UnsummonNode();
+                level++;
+            }
 
             SummonNode(node, alignment, drag, resize);
             ApplySummoned();
@@ -370,6 +374,9 @@ namespace TerrariaUI.Widgets
                 DragObject?.Enable(false);
                 ResizeObject?.Enable(false);
                 Deselect(false);
+                // RootVisualObject does Apply() only if size has changed
+                if (Width == oldWidth && Height == oldHeight)
+                    Apply();
                 DrawReposition(oldX, oldY, oldWidth, oldHeight);
                 Summoning = null;
             }
@@ -491,7 +498,7 @@ namespace TerrariaUI.Widgets
     public sealed class DefaultPanelDrag : PanelDrag
     {
         public DefaultPanelDrag(bool useMoving = true)
-            : base(0, 0, 1, 1, new UIConfiguration() { UseMoving=useMoving, UseEnd=true, UseOutsideTouches=true, Permission=TUI.ControlPermission })
+            : base(0, 0, 1, 1, new UIConfiguration() { UseMoving=useMoving, UseEnd=true, UseOutsideTouches=true, Priveleged=true })
         {
         }
     }
@@ -502,7 +509,7 @@ namespace TerrariaUI.Widgets
     public sealed class DefaultPanelResize : PanelResize
     {
         public DefaultPanelResize()
-            : base(0, 0, 1, 1, new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true, Permission=TUI.ControlPermission })
+            : base(0, 0, 1, 1, new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true, Priveleged=true })
         {
             SetParentAlignment(Alignment.DownRight);
         }

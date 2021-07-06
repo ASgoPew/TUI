@@ -237,7 +237,8 @@ namespace TUIPlugin
                         else
                             return;
 
-                        TUI.Touched(player.Index, new Touch(ex, ey, TouchState.End, prefix, designStateByte));
+                        TUI.Touched(player.Index, new Touch(ex, ey, TouchState.End,
+                            player.HasPermission(TUI.ControlPermission), prefix, designStateByte));
                         args.Handled = TUI.EndTouchHandled(player.Index);
                         playerDesignState[player.Index] = DesignState.Waiting;
                     }
@@ -309,7 +310,8 @@ namespace TUIPlugin
                     int tileX = (int)Math.Floor((args.Position.X + 5) / 16);
                     int tileY = (int)Math.Floor((args.Position.Y + 5) / 16);
 
-                    if (TUI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Begin, prefix, 0)))
+                    if (TUI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Begin,
+                            player.HasPermission(TUI.ControlPermission), prefix, 0)))
                         TUI.Session[args.Owner].ProjectileID = args.Identity;
                     playerDesignState[args.Owner] = DesignState.Moving;
                     //args.Handled = true;
@@ -318,7 +320,8 @@ namespace TUIPlugin
                 {
                     int tileX = (int)Math.Floor((args.Position.X + 5) / 16);
                     int tileY = (int)Math.Floor((args.Position.Y + 5) / 16);
-                    TUI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Moving, prefix, 0));
+                    TUI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Moving,
+                        player.HasPermission(TUI.ControlPermission), prefix, 0));
                 }
             }
             catch (Exception e)

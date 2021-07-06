@@ -37,16 +37,16 @@ namespace TUITests
             RootVisualObject root = TUI.Create(new RootVisualObject("Game", 55, 115, 50, 40));
             root.SetupGrid(new ISize[] { new Relative(100), new Absolute(20) }, new ISize[] { new Absolute(20), new Relative(100) }, new Indent() { Right = 1 });
             TUI.Update();
-            TUI.Touched(me.Index, new Touch(124, 110, TouchState.Begin, 0, 0));
-            TUI.Touched(me.Index, new Touch(125, 110, TouchState.Moving, 0, 0));
-            TUI.Touched(me.Index, new Touch(124, 110, TouchState.Moving, 0, 0));
-            TUI.Touched(me.Index, new Touch(125, 110, TouchState.Moving, 0, 0));
-            TUI.Touched(me.Index, new Touch(124, 110, TouchState.End, 0, 0));
-            TUI.Touched(me.Index, new Touch(124, 110, TouchState.Begin, 0, 0));
-            TUI.Touched(me.Index, new Touch(125, 110, TouchState.Moving, 0, 0));
-            TUI.Touched(me.Index, new Touch(124, 110, TouchState.Moving, 0, 0));
-            TUI.Touched(me.Index, new Touch(125, 110, TouchState.Moving, 0, 0));
-            TUI.Touched(me.Index, new Touch(124, 110, TouchState.End, 0, 0));
+            TUI.Touched(me.Index, new Touch(124, 110, TouchState.Begin, false, 0, 0));
+            TUI.Touched(me.Index, new Touch(125, 110, TouchState.Moving, false, 0, 0));
+            TUI.Touched(me.Index, new Touch(124, 110, TouchState.Moving, false, 0, 0));
+            TUI.Touched(me.Index, new Touch(125, 110, TouchState.Moving, false, 0, 0));
+            TUI.Touched(me.Index, new Touch(124, 110, TouchState.End, false, 0, 0));
+            TUI.Touched(me.Index, new Touch(124, 110, TouchState.Begin, false, 0, 0));
+            TUI.Touched(me.Index, new Touch(125, 110, TouchState.Moving, false, 0, 0));
+            TUI.Touched(me.Index, new Touch(124, 110, TouchState.Moving, false, 0, 0));
+            TUI.Touched(me.Index, new Touch(125, 110, TouchState.Moving, false, 0, 0));
+            TUI.Touched(me.Index, new Touch(124, 110, TouchState.End, false, 0, 0));
             //game.Remove(game["lol"]);
             //UI.Touched(me, new Touch(24, 10, TouchState.Begin, session));
         }

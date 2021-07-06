@@ -47,6 +47,7 @@ namespace TerrariaUI.Base
         protected VisualContainer PopUpBackground { get; set; }
         protected Dictionary<VisualObject, Action<VisualObject>> PopUpCancelCallbacks { get; set; } =
             new Dictionary<VisualObject, Action<VisualObject>>();
+        public bool Freezed { get; private set; } = false;
 
         /// <summary>
         /// Personal interface can be seen by only specified players.
@@ -55,7 +56,8 @@ namespace TerrariaUI.Base
         /// <summary>
         /// 0 for Root with MainTileProvider, 1 for root with any fake provider.
         /// </summary>
-        public override int Layer => UsesDefaultMainProvider ? 0 : 1;
+        public override int Layer => Personal ? 2 :
+            !UsesDefaultMainProvider ? 1 : 0;
         public override bool Orderable => true;
         public override int MinWidth => Math.Max(base.MinWidth, 1);
         public override int MinHeight => Math.Max(base.MinHeight, 1);
@@ -192,6 +194,30 @@ namespace TerrariaUI.Base
         protected override void DrawDisable()
         {
             RequestDrawChanges().Draw(targetPlayers: OutdatedPlayers(toEveryone: true));
+        }
+
+        #endregion
+        #region CanSee
+
+        public virtual bool CanSee(int playerIndex) =>
+            Observers?.Contains(playerIndex) != false;
+
+        #endregion
+        #region Freeze
+
+        public virtual RootVisualObject Freeze()
+        {
+            Freezed = true;
+            return this;
+        }
+
+        #endregion
+        #region Unfreeze
+
+        public virtual RootVisualObject Unfreeze()
+        {
+            Freezed = false;
+            return this;
         }
 
         #endregion
