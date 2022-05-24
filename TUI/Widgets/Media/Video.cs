@@ -14,6 +14,7 @@ namespace TerrariaUI.Widgets
         public string VideoName { get; set; }
         public int Delay { get; set; } = 500;
         public bool Repeat { get; set; } = false;
+        public bool NeedPlayersForPlay { get; set; } = true;
 
         public VideoStyle() : base() { }
 
@@ -53,6 +54,11 @@ namespace TerrariaUI.Widgets
         public VideoStyle VideoStyle => Style as VideoStyle;
 
         #endregion
+        #region Events
+        public event Action OnStart;
+        public event Action OnStop;
+        public event ElapsedEventHandler OnFrame { add => Timer.Elapsed += value; remove => Timer.Elapsed -= value; }
+        #endregion 
 
         #region Constructor
 
@@ -107,6 +113,8 @@ namespace TerrariaUI.Widgets
 
         public Video Start()
         {
+            if (OnStart != null)
+                OnStart();
             if (!Playing && Images.Count != 0)
                 Timer.Start();
             return this;
@@ -117,6 +125,8 @@ namespace TerrariaUI.Widgets
 
         public Video Stop()
         {
+            if (OnStop != null)
+                OnStop();
             if (Playing)
                 Timer.Stop();
             return this;
@@ -162,7 +172,7 @@ namespace TerrariaUI.Widgets
 
         protected virtual void Next(object sender, ElapsedEventArgs args)
         {
-            if (Root == null || Root.Players.Count == 0 || !IsActive)
+            if (Root == null || (VideoStyle.NeedPlayersForPlay && Root.Players.Count == 0) || !IsActive)
                 return;
 
             Frame = (Frame + 1) % Images.Count;
