@@ -9,6 +9,7 @@ namespace TerrariaUI.Widgets
     /// <summary>
     /// Widget for drawing chest with items.
     /// </summary>
+    [Obsolete]
     public class VisualChest : VisualObject
     {
         #region Data

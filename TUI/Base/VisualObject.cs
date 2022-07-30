@@ -506,38 +506,26 @@ namespace TerrariaUI.Base
         // Resizing
         #region SetWidthParentStretch
 
-        public VisualObject SetWidthParentStretch()
-        {
-            WidthResizing = new InParentStretch();
-            return this;
-        }
+        public VisualObject SetWidthParentStretch() =>
+            SetWidthResizing(new InParentStretch());
 
         #endregion
         #region SetHeightParentStretch
 
-        public VisualObject SetHeightParentStretch()
-        {
-            HeightResizing = new InParentStretch();
-            return this;
-        }
+        public VisualObject SetHeightParentStretch() =>
+            SetHeightResizing(new InParentStretch());
 
         #endregion
         #region SetWidthChildStretch
 
-        public VisualObject SetWidthChildStretch()
-        {
-            WidthResizing = new InChildStretch();
-            return this;
-        }
+        public VisualObject SetWidthChildStretch() =>
+            SetWidthResizing(new InChildStretch());
 
         #endregion
         #region SetHeightChildStretch
 
-        public VisualObject SetHeightChildStretch()
-        {
-            HeightResizing = new InChildStretch();
-            return this;
-        }
+        public VisualObject SetHeightChildStretch() =>
+            SetHeightResizing(new InChildStretch());
 
         #endregion
 

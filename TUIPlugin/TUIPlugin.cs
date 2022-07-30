@@ -402,19 +402,13 @@ namespace TUIPlugin
             VisualObject node = args.Node;
             HashSet<int> players = args.TargetPlayers;
 
-            /*Console.WriteLine($"Name: {node.FullName}");
-            Console.WriteLine($"State: {node.Root.DrawState}");
-            Console.WriteLine($"PlayerStates: {string.Join(",", node.Root.PlayerApplyCounter.Select(pair => $"{pair.Key}-{pair.Value}"))}");
-            Console.WriteLine($"Players: {string.Join(",", players)}");
-            Console.WriteLine("StackTrace: '{0}'", Environment.StackTrace);*/
-
 #if DEBUG
             TUI.Log($"Draw ({node.Name} -> " +
                 string.Join(",", players.Select(i => TShock.Players[i]?.Name)) +
                 $"): {args.X}, {args.Y}, {args.Width}, {args.Height}: {args.DrawWithSection}");
 #endif
 
-            // Yes, we are converting HashSet<int> to NetworkText to pass it to NetMessage.SendData for FakeManager...
+            // Yes, we are converting HashSet<int> to NetworkText to pass it to NetMessage.SendData for FakeProvider...
             Terraria.Localization.NetworkText playerList = FakesEnabled
                 ? Terraria.Localization.NetworkText.FromLiteral(string.Concat(players.Select(p => (char) p)))
                 : null;
@@ -1035,6 +1029,7 @@ Draw state: {root.DrawState}");
                         panel.HidePopUp();
                         panel.UnsummonAll();
                     }
+                    root.Update().Apply().Draw();
 
                     args.Player.SendSuccessMessage($"Interface '{root.Name}' was reset.");
                     break;

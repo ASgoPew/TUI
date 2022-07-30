@@ -63,9 +63,7 @@ namespace TerrariaUI.Widgets
                 Data = image;
             }
 
-            foreach (SignData sign in Data.Signs)
-                Add(new VisualSign(sign.X, sign.Y, sign.Text));
-            //TODO: Chests, entities???
+            //TODO: signs, chests, entities???
 
             SetWH(Data.Width, Data.Height, false);
         }

@@ -10,6 +10,7 @@ using TerrariaUI.Widgets;
 using TUIPlugin;
 using TerrariaUI;
 
+#pragma warning disable CS0162 // Unreachable code detected
 namespace TUIExample
 {
     [ApiVersion(2, 1)]
@@ -40,7 +41,7 @@ namespace TUIExample
             //object provider = FakeManager.FakeManager.Common.Add("TestPanelProvider", x, y, w, h);
 
             // Create a panel with a wall of diamond gemspark wall with black paint.
-            Panel root = TUI.Create(new Panel(mainTileProvider ? "TestPanel2" : "TestPanel", x, y, w, h, null,
+            Panel root = TUI.Create(new Panel(mainTileProvider ? "ExamplePluginPanel_MainTileProvider" : "ExamplePluginPanel_AutoProvider", x, y, w, h, null,
                 new PanelStyle() { Wall = WallID.DiamondGemspark, WallColor = PaintID2.Black }, provider));
             // Create a Label widget (text display) with white characters.
             Label label1 = new Label(1, 1, 17, 2, "some text", new LabelStyle() { TextColor = PaintID2.White });
@@ -66,14 +67,14 @@ namespace TUIExample
                 node.AddToLayout(new InputLabel(0, 0, new InputLabelStyle()
                     { TextColor = PaintID2.Black, Type = InputLabelType.All, TextUnderline = LabelUnderline.None },
                     new Input<string>("000", "000")));
-                // Add to the layout one more ItemRack widget that corresponds to the Weapon rack: displaying an item
+                /*// Add to the layout one more ItemRack widget that corresponds to the Weapon rack: displaying an item
                 // on a 3x3 rack. By clicking displays the relative and absolute coordinates of this click.
                 node.AddToLayout(new ItemRack(0, 0, new ItemRackStyle() { Type = 200, Left = true }, (self, touch) =>
                     Console.WriteLine($"Touch: {touch.X}, {touch.Y}; absolute: {touch.AbsoluteX}, {touch.AbsoluteY}")));
                 ItemRack irack1 = node.AddToLayout(new ItemRack(0, 0,
                     new ItemRackStyle() { Type = 201, Left = true }));
                 // ItemRack allows you to add text on top using a sign:
-                irack1.SetText("lololo\nkekeke");
+                irack1.SetText("lololo\nkekeke");*/
                 // Finally, add the slider to the layout.
                 node.AddToLayout(new Slider(0, 0, 10, 2, new SliderStyle()
                     { Wall = WallID.AmberGemsparkOff, WallColor = PaintID2.White }));
@@ -175,7 +176,10 @@ namespace TUIExample
                 SeparatorColor = PaintID2.Black,
                 UsedColor = PaintID2.DeepOrange
             }, new Input<int>(0, 0, (self, value, playerIndex) =>
-                TShock.Players[playerIndex].SendInfoMessage("Slider value: " + value))));
+                (playerIndex >= 0
+                    ? TShock.Players[playerIndex]
+                    : TSPlayer.All)
+                .SendInfoMessage("Slider value: " + value))));
 
             // Checkbox
             Checkbox checkbox = node.AddToLayout(new Checkbox(15, 5, 2, new CheckboxStyle()
@@ -203,7 +207,7 @@ namespace TUIExample
             }, new Input<string>("12345", "12345", (self, value, playerIndex) =>
                 TSPlayer.All.SendInfoMessage("InputLabel value: " + value))));
 
-            // ItemRack
+            /*// ItemRack
             ItemRack irack = node.AddToLayout(new ItemRack(15, 5, new ItemRackStyle()
             {
                 Type = ItemID.LargeDiamond,
@@ -216,13 +220,13 @@ namespace TUIExample
                 Size = ItemSize.Smallest,
                 Left = true
             }));
-            irack2.SetText("This is a snowman cannon.");
+            irack2.SetText("This is a snowman cannon.");*/
 
             // VisualSign
-            VisualSign vsign = node.AddToLayout(new VisualSign(0, 0, "lmfao sosi(te pozhaluista)"));
-            VisualSign vsign2 = node.AddToLayout(new VisualSign(0, 0, "This is an example of what can happen " +
-                "if you use signs in TUI without FakeManager (only $399!)." +
-                "Text above would be empty. Even tho it has to have it..."));
+            //VisualSign vsign = node.AddToLayout(new VisualSign(0, 0, "lmfao sosi(te pozhaluista)"));
+            //VisualSign vsign2 = node.AddToLayout(new VisualSign(0, 0, "This is an example of what can happen " +
+            //    "if you use signs in TUI without FakeManager (only $399!)." +
+            //    "Text above would be empty. Even tho it has to have it..."));
 
             // FormField
             FormField ffield = node.AddToLayout(new FormField(

@@ -8,6 +8,7 @@ namespace TerrariaUI.Widgets
     /// <summary>
     /// Widget for drawing sign with text.
     /// </summary>
+    [Obsolete]
     public class VisualSign : VisualObject
     {
         #region Data

@@ -45,7 +45,7 @@ namespace TerrariaUI.Base
         /// <summary>
         /// Root of the interface tree. Null before first <see cref="VisualObject.Update"/> call. Use <see cref="GetRoot"/> to calculate manually.
         /// </summary>
-        public RootVisualObject Root => _Root ?? GetRoot() as RootVisualObject;
+        public RootVisualObject Root => _Root ?? (_Root = GetRoot() as RootVisualObject);
         /// <summary>
         /// True once the object was loaded. See <see cref="LoadThisNative"/>.
         /// </summary>

@@ -55,6 +55,7 @@ namespace TerrariaUI.Widgets
     /// <summary>
     /// Widget for drawing item (with ability to draw sign with text on topS).
     /// </summary>
+    [Obsolete]
     public class ItemRack : VisualObject
     {
         #region Data
