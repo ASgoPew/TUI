@@ -56,7 +56,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\TUI\_BuildResult\TUI.dll</HintPath>
     </Reference>
-    <Reference Include="WorldEdit">
+    <Reference Include="WorldEdit, Version=1.7.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>_References\WorldEdit.dll</HintPath>
     </Reference>
   </ItemGroup>

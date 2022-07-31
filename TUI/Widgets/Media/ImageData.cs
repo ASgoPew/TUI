@@ -42,7 +42,7 @@ namespace TerrariaUI.Widgets.Media
                 try
                 {
                     var image = reader.Invoke(name, false);
-                    if (image.Count > 0)
+                    if (image?.Count > 0)
                         return image[0];
                 } catch (Exception e)
                 {
