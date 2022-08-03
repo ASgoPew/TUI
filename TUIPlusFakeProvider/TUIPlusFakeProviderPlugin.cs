@@ -59,7 +59,7 @@ namespace TUIPlusFakeProvider
         private void OnRemoveProvider(RemoveProviderArgs args)
         {
             if (args.Provider is FakeProvider.TileProvider provider)
-                FakeProviderAPI.Tile.Remove(provider.Name);
+                FakeProviderAPI.Remove(provider);
         }
     }
 }
