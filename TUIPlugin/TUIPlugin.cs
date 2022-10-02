@@ -83,8 +83,9 @@ namespace TUIPlugin
                 ServerApi.Hooks.NetGetData.Register(this, OnGetData, 100);
                 PlayerHooks.PlayerLogout += OnPlayerLogout;
                 GetDataHandlers.NewProjectile += OnNewProjectile;
-                if (FakesEnabled)
-                    Hooks.World.IO.PostSaveWorld += OnPostSaveWorld;
+                if (FakesEnabled) {
+                    On.Terraria.IO.WorldFile.SaveWorld += OnSaveWorld;
+                }
                 TUI.Hooks.LoadRoot.Event += OnLoadRoot;
                 TUI.Hooks.CanTouch.Event += OnCanTouch;
                 TUI.Hooks.DrawObject.Event += OnDrawObject;
@@ -128,8 +129,9 @@ namespace TUIPlugin
                     ServerApi.Hooks.NetGetData.Deregister(this, OnGetData);
                     PlayerHooks.PlayerLogout -= OnPlayerLogout;
                     GetDataHandlers.NewProjectile -= OnNewProjectile;
-                    if (FakesEnabled)
-                        Hooks.World.IO.PostSaveWorld -= OnPostSaveWorld;
+                    if (FakesEnabled) {
+                        On.Terraria.IO.WorldFile.SaveWorld -= OnSaveWorld;
+                    }
                     TUI.Hooks.LoadRoot.Event -= OnLoadRoot;
                     TUI.Hooks.CanTouch.Event -= OnCanTouch;
                     TUI.Hooks.DrawObject.Event -= OnDrawObject;
@@ -333,8 +335,9 @@ namespace TUIPlugin
         #endregion
         #region OnPostSaveWorld
 
-        private static void OnPostSaveWorld(bool Cloud, bool ResetTime)
+        private static void OnSaveWorld(On.Terraria.IO.WorldFile.orig_SaveWorld orig)
         {
+            orig();
             TUI.RequestDrawChanges();
         }
 
