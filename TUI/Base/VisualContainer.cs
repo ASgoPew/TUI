@@ -81,7 +81,7 @@ namespace TUI.Base
         protected void InheritParentStyle()
         {
             VisualObject node = this;
-            byte? wall = null;
+            ushort? wall = null;
             byte? wallColor = null;
             while (node != null)
             {

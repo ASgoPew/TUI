@@ -1,5 +1,4 @@
-﻿using OTAPI.Tile;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -560,9 +559,10 @@ namespace TUIPlugin
         {
             Tile tile = new Tile()
             {
-                sTileHeader = br.ReadInt16(),
+                sTileHeader = br.ReadUInt16(),
                 bTileHeader = br.ReadByte(),
-                bTileHeader2 = br.ReadByte()
+                bTileHeader2 = br.ReadByte(),
+                bTileHeader3 = br.ReadByte()
             };
 
             if (tile.active())

@@ -23,7 +23,7 @@
         /// <summary>
         /// Sets tile.wall = Style.Wall for every tile.
         /// </summary>
-        public byte? Wall { get; set; }
+        public ushort? Wall { get; set; }
         /// <summary>
         /// Sets tile.wallColor(Style.WallColor) for every tile.
         /// </summary>
