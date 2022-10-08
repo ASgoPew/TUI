@@ -1,8 +1,8 @@
-﻿using Mono.Data.Sqlite;
-using MySql.Data.MySqlClient;
+﻿using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using Microsoft.Data.Sqlite;
 using System.IO;
 using TerrariaUI;
 using TShockAPI;
