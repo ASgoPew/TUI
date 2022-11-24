@@ -1,10 +1,10 @@
 ﻿using System;
-using TUI.Base;
-using TUI.Base.Style;
-using TUI.Hooks.Args;
-using TUI.Widgets.Media;
+using TerrariaUI.Base;
+using TerrariaUI.Base.Style;
+using TerrariaUI.Widgets.Data;
+using TerrariaUI.Widgets.Media;
 
-namespace TUI.Widgets
+namespace TerrariaUI.Widgets
 {
     public class Image : VisualObject
     {
@@ -12,17 +12,17 @@ namespace TUI.Widgets
 
         public const int BrokenImageSize = 5;
         public ImageData Data { get; protected set; }
-        public string Path { get; protected set; }
+        public string ImageName { get; protected set; }
 
         #endregion
 
         #region Constructor
 
-        public Image(int x, int y, string path, UIConfiguration configuration = null,
+        public Image(int x, int y, string name, UIConfiguration configuration = null,
                 UIStyle style = null, Action<VisualObject, Touch> callback = null)
             : base(x, y, BrokenImageSize, BrokenImageSize, configuration, style, callback)
         {
-            Path = path;
+            ImageName = name;
         }
 
         public Image(int x, int y, ImageData data, UIConfiguration configuration = null,
@@ -48,25 +48,24 @@ namespace TUI.Widgets
         {
             base.LoadThisNative();
 
-            if (Path == null && Data == null)
+            if (ImageName == null && Data == null)
                 return;
 
-            if (Path != null)
+            if (ImageName != null)
             {
-                ImageData[] images = ImageData.Load(Path);
-                if (images.Length != 1)
+                ImageData image = ImageData.LoadImage(ImageName);
+                if (image == null)
                 {
-                    TUI.Hooks.Log.Invoke(new LogArgs("File not found or path is a folder: " + Path, LogType.Error));
-                    Path = null;
+                    TUI.Log(this, "Cannot find an image: " + ImageName, LogType.Error);
+                    ImageName = null;
                     return;
                 }
-                Data = images[0];
+                Data = image;
             }
 
-            foreach (SignData sign in Data.Signs)
-                Add(new VisualSign(sign.X, sign.Y, sign.Text));
+            //TODO: signs, chests, entities???
 
-            SetWH(Data.Width, Data.Height);
+            SetWH(Data.Width, Data.Height, false);
         }
 
         #endregion

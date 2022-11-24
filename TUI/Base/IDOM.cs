@@ -1,20 +1,22 @@
 ﻿using System.Collections.Generic;
 
-namespace TUI.Base
+namespace TerrariaUI.Base
 {
     internal interface IDOM<T>
     {
         T Parent { get; }
 
-        T Add(T child, int? layer);
+        U Add<U>(U child, int? layer) where U : VisualObject;
         T Remove(T child);
-        T Select(T child);
-        T Selected();
-        T Deselect();
+        void RemoveAll();
         T GetRoot();
         bool IsAncestorFor(T o);
+        U GetAncestor<U>() where U : VisualObject;
+        T GetChild(int index);
+        U GetChild<U>() where U : VisualObject;
+        bool HasChild(T node);
         bool SetTop(T child);
-        IEnumerable<T> DescendantDFS { get; }
-        IEnumerable<T> DescendantBFS { get; }
+        IEnumerable<T> TreeDFS(bool forward);
+        IEnumerable<T> TreeBFS(bool forward);
     }
 }

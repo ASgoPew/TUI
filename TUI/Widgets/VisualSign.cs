@@ -1,19 +1,20 @@
 ﻿using System;
-using TUI.Base;
-using TUI.Base.Style;
-using TUI.Hooks.Args;
+using TerrariaUI.Base;
+using TerrariaUI.Base.Style;
+using TerrariaUI.Hooks.Args;
 
-namespace TUI.Widgets
+namespace TerrariaUI.Widgets
 {
     /// <summary>
     /// Widget for drawing sign with text.
     /// </summary>
+    [Obsolete]
     public class VisualSign : VisualObject
     {
         #region Data
 
         protected string RawText { get; set; }
-        protected dynamic Sign { get; set; }
+        public dynamic Sign { get; set; }
 
         #endregion
 
@@ -85,11 +86,11 @@ namespace TUI.Widgets
             if (RawText == null)
                 throw new NullReferenceException("CreateSign: Text is null");
             (int x, int y) = AbsoluteXY();
-            CreateSignArgs args = new CreateSignArgs(x, y, this);
-            TUI.Hooks.CreateSign.Invoke(args);
+            UpdateSignArgs args = new UpdateSignArgs(x, y, null, this);
+            TUI.Hooks.UpdateSign.Invoke(args);
             if (args.Sign == null)
             {
-                TUI.Hooks.Log.Invoke(new LogArgs("Can't create new sign.", LogType.Error));
+                TUI.Log(this, "VisualSign: no sign object received.", LogType.Error);
                 return;
             }
             Sign = args.Sign;
@@ -141,7 +142,7 @@ namespace TUI.Widgets
         {
             base.PulseThisNative(type);
 
-            if (type == PulseType.PositionChanged)
+            if (type == PulseType.SetXYWH)
                 UpdateSign();
         }
 
@@ -168,20 +169,17 @@ namespace TUI.Widgets
         #endregion
         #region ApplyTile
 
-        protected override void ApplyTile(int x, int y)
+        protected override void ApplyTile(int x, int y, dynamic tile)
         {
-            dynamic tile = Tile(x, y);
-            if (tile == null)
-                return;
             tile.active(true);
-            if (Style.InActive != null)
+            if (Style.InActive.HasValue)
                 tile.inActive(Style.InActive.Value);
             tile.type = (ushort)55;
-            if (Style.TileColor != null)
+            if (Style.TileColor.HasValue)
                 tile.color(Style.TileColor.Value);
-            if (Style.Wall != null)
+            if (Style.Wall.HasValue)
                 tile.wall = Style.Wall.Value;
-            if (Style.WallColor != null)
+            if (Style.WallColor.HasValue)
                 tile.wallColor(Style.WallColor.Value);
 
             tile.frameX = (short)((x == 0) ? 144 : 162);

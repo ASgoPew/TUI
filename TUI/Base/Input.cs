@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TUI.Base
+namespace TerrariaUI.Base
 {
     public class Input<T>
     {

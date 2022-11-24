@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
-using TUI.Base;
-using TUI.Base.Style;
+using TerrariaUI.Base;
+using TerrariaUI.Base.Style;
 
-namespace TUI.Widgets
+namespace TerrariaUI.Widgets
 {
     #region ButtonStyle
 
@@ -66,8 +66,7 @@ namespace TUI.Widgets
         #region Data
 
         private byte State;
-        private object ButtonLocker = new object();
-        private bool Pressed = false;
+        private bool BlinkOn = false;
 
         public ButtonStyle ButtonStyle => Style as ButtonStyle;
 
@@ -117,50 +116,46 @@ namespace TUI.Widgets
         #endregion
         #region Invoke
 
-        public override void Invoke(Touch touch)
+        protected override void Invoke(Touch touch)
         {
             if (touch.State == TouchState.Begin)
             {
                 State = 0;
-                Pressed = true;
                 ButtonBlinkStyle blinkStyle = ButtonStyle.BlinkStyle;
                 bool blinking = blinkStyle != ButtonBlinkStyle.None && ButtonStyle.BlinkDelay > 0 && Style.WallColor != null;
-                lock (ButtonLocker)
-                {
-                    if (blinking)
-                        StartBlink(blinkStyle);
+                if (blinking)
+                    StartBlink(blinkStyle);
 
-                    if (ButtonStyle.TriggerStyle == ButtonTriggerStyle.TouchBegin || ButtonStyle.TriggerStyle == ButtonTriggerStyle.Both)
-                        base.Invoke(touch);
+                if (ButtonStyle.TriggerStyle == ButtonTriggerStyle.TouchBegin || ButtonStyle.TriggerStyle == ButtonTriggerStyle.Both)
+                    base.Invoke(touch);
 
-                    if (blinking)
-                        Task.Delay(ButtonStyle.BlinkDelay).ContinueWith(_ =>
+                if (blinking)
+                    Task.Delay(ButtonStyle.BlinkDelay).ContinueWith(_ =>
+                    {
+                        try
                         {
-                            lock (ButtonLocker)
-                                TryEndBlink(blinkStyle, 2);
-                        });
-                }
+                            TryEndBlink(blinkStyle, 2);
+                        }
+                        catch (Exception e)
+                        {
+                            TUI.HandleException(this, e);
+                        }
+                    });
             }
             else if (touch.State == TouchState.End)
             {
-                lock (ButtonLocker)
-                {
-                    if ((ButtonStyle.TriggerStyle == ButtonTriggerStyle.TouchEnd || ButtonStyle.TriggerStyle == ButtonTriggerStyle.Both)
-                            && !touch.Undo)
-                        base.Invoke(touch);
-                    TryEndBlink(ButtonStyle.BlinkStyle, 1);
-                }
+                if ((ButtonStyle.TriggerStyle == ButtonTriggerStyle.TouchEnd || ButtonStyle.TriggerStyle == ButtonTriggerStyle.Both)
+                        && !touch.Undo)
+                    base.Invoke(touch);
+                TryEndBlink(ButtonStyle.BlinkStyle, 1);
             }
         }
 
         #endregion
         #region ApplyTile
 
-        protected override void ApplyTile(int x, int y)
+        protected override void ApplyTile(int x, int y, dynamic tile)
         {
-            dynamic tile = Tile(x, y);
-            if (tile == null)
-                return;
             if (Style.Active != null)
                 tile.active(Style.Active.Value);
             else if (Style.Tile != null)
@@ -178,7 +173,7 @@ namespace TUI.Widgets
             if (Style.WallColor != null)
             {
                 ButtonBlinkStyle blinkStyle = ButtonStyle.BlinkStyle;
-                tile.wallColor(Pressed && (blinkStyle == ButtonBlinkStyle.Full
+                tile.wallColor(BlinkOn && (blinkStyle == ButtonBlinkStyle.Full
                     || blinkStyle == ButtonBlinkStyle.Left && x == 0
                     || blinkStyle == ButtonBlinkStyle.Right && x == Width - 1)
                         ? ButtonStyle.BlinkColor : Style.WallColor.Value);
@@ -188,40 +183,55 @@ namespace TUI.Widgets
         #endregion
         #region Blink
 
-        protected virtual void StartBlink(ButtonBlinkStyle blinkStyle) =>
+        public virtual void StartBlink(ButtonBlinkStyle blinkStyle)
+        {
+            BlinkOn = true;
             Blink(blinkStyle, ButtonStyle.BlinkColor);
+        }
 
         private void TryEndBlink(ButtonBlinkStyle blinkStyle, byte type)
         {
             State |= type;
             if (State == 3)
                 EndBlink(blinkStyle);
+            else if (!IsActive)
+                BlinkOn = false;
         }
 
-        protected virtual void EndBlink(ButtonBlinkStyle blinkStyle)
+        public virtual void EndBlink(ButtonBlinkStyle blinkStyle)
         {
-            Pressed = false;
+            BlinkOn = false;
             Blink(blinkStyle, Style.WallColor.Value);
         }
 
-        protected virtual void Blink(ButtonBlinkStyle blinkStyle, byte blinkColor)
+        public virtual void Blink(ButtonBlinkStyle blinkStyle, byte blinkColor)
         {
-            if (!CalculateActive())
+            if (!IsActive)
+            {
+                BlinkOn = false;
                 return;
+            }
 
             if (blinkStyle == ButtonBlinkStyle.Full)
-                Apply().Draw();
+            {
+                foreach (var point in Points)
+                    Tile(point.Item1, point.Item2)?.wallColor(blinkColor);
+                RequestDrawChanges();
+                Draw();
+            }
             else if (blinkStyle == ButtonBlinkStyle.Left)
             {
                 for (int y = 0; y < Height; y++)
                     Tile(0, y)?.wallColor(blinkColor);
-                Draw(-Height + 1, 0, Height, Height, forceSection: false);
+                RequestDrawChanges();
+                Draw(0, 0, 1, Height, drawWithSection: false);
             }
             else if (blinkStyle == ButtonBlinkStyle.Right)
             {
                 for (int y = 0; y < Height; y++)
                     Tile(Width - 1, y)?.wallColor(blinkColor);
-                Draw(Width - 1, 0, Height, Height, forceSection: false);
+                RequestDrawChanges();
+                Draw(Width - 1, 0, 1, Height, drawWithSection: false);
             }
         }
 

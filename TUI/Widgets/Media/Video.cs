@@ -1,27 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Timers;
-using TUI.Base;
-using TUI.Base.Style;
-using TUI.Hooks.Args;
-using TUI.Widgets.Media;
+using TerrariaUI.Base;
+using TerrariaUI.Base.Style;
+using TerrariaUI.Widgets.Media;
 
-namespace TUI.Widgets
+namespace TerrariaUI.Widgets
 {
     #region VideoStyle
 
-    public class VideoStyle : UIStyle
+    public class VideoStyle : ContainerStyle
     {
-        public string Path { get; set; }
+        public string VideoName { get; set; }
         public int Delay { get; set; } = 500;
         public bool Repeat { get; set; } = false;
+        public bool NeedPlayersForPlay { get; set; } = true;
 
         public VideoStyle() : base() { }
 
         public VideoStyle(VideoStyle style)
             : base(style)
         {
-            Path = style.Path;
+            VideoName = style.VideoName;
             Delay = style.Delay;
             Repeat = style.Repeat;
         }
@@ -29,7 +29,7 @@ namespace TUI.Widgets
 
     #endregion
 
-    public class Video : VisualObject
+    public class Video : VisualContainer
     {
         #region Data
 
@@ -54,12 +54,18 @@ namespace TUI.Widgets
         public VideoStyle VideoStyle => Style as VideoStyle;
 
         #endregion
+        #region Events
+        public event Action OnStart;
+        public event Action OnStop;
+        public event ElapsedEventHandler OnFrame { add => Timer.Elapsed += value; remove => Timer.Elapsed -= value; }
+        #endregion 
 
         #region Constructor
 
-        public Video(int x, int y, UIConfiguration configuration = null, UIStyle style = null,
+        public Video(int x, int y, int width = -1, int height = -1, UIConfiguration configuration = null, VideoStyle style = null,
                 Action<VisualObject, Touch> callback = null)
-            : base(x, y, 8, 5, configuration, style, callback)
+            : base(x, y, width == -1 ? 8 : width, height == -1 ? 5 : height,
+                  configuration ?? new UIConfiguration() { UseBegin = true }, style, callback)
         {
             Timer.Interval = VideoStyle.Delay;
             Timer.Elapsed += Next;
@@ -72,21 +78,23 @@ namespace TUI.Widgets
         {
             base.LoadThisNative();
 
-            ImageData[] images = ImageData.Load(VideoStyle.Path);
-            if (images.Length == 0)
+            List<ImageData> images = ImageData.LoadVideo(VideoStyle.VideoName);
+            if (images == null)
             {
-                TUI.Hooks.Log.Invoke(new LogArgs("Invalid video folder: " + VideoStyle.Path, LogType.Error));
-                VideoStyle.Path = null;
+                TUI.Log(this, "Cannot find a video: " + VideoStyle.VideoName, LogType.Error);
+                VideoStyle.VideoName = null;
                 return;
             }
             
             foreach (ImageData data in images)
             {
                 Image image = new Image(0, 0, data, new UIConfiguration() { UseBegin=false }, new UIStyle(Style));
-                Add(image.Disable());
+                Add(image.Disable(false));
                 Images.Add(image);
             }
-            Images[0].Enable();
+            Images[0].Enable(false);
+
+            SetWH(Images[0].Width, Images[0].Height, false);
             return;
         }
 
@@ -105,7 +113,9 @@ namespace TUI.Widgets
 
         public Video Start()
         {
-            if (Images.Count != 0)
+            if (OnStart != null)
+                OnStart();
+            if (!Playing && Images.Count != 0)
                 Timer.Start();
             return this;
         }
@@ -115,12 +125,15 @@ namespace TUI.Widgets
 
         public Video Stop()
         {
-            Timer.Stop();
+            if (OnStop != null)
+                OnStop();
+            if (Playing)
+                Timer.Stop();
             return this;
         }
 
         #endregion
-        #region Toggle
+        #region ToggleStart
 
         public Video ToggleStart() => Playing ? Stop() : Start();
 
@@ -134,15 +147,6 @@ namespace TUI.Widgets
             if (type == PulseType.Reset)
                 Frame = 0;
         }
-
-        #endregion
-        #region UpdateSizeNative
-
-        protected override (int, int) UpdateSizeNative() =>
-            Images?.Count > 0
-            //? (Images.Max(i => i.Width), Images.Max(i => i.Height))
-            ? (Images[Frame].Width, Images[Frame].Height)
-            : (8, 5);
 
         #endregion
 
@@ -168,11 +172,11 @@ namespace TUI.Widgets
 
         protected virtual void Next(object sender, ElapsedEventArgs args)
         {
-            if (Root == null || Root.Players.Count == 0 || !Active)
+            if (Root == null || (VideoStyle.NeedPlayersForPlay && Root.Players.Count == 0) || !IsActive)
                 return;
 
             Frame = (Frame + 1) % Images.Count;
-            Select(Images[Frame]).Update().Apply().Draw();
+            Select(Images[Frame], true);
 
             if (Frame == Images.Count - 1 && !VideoStyle.Repeat)
                 Stop();

@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using TUI.Base;
-using TUI.Base.Style;
+using TerrariaUI.Base;
+using TerrariaUI.Base.Style;
 
-namespace TUI.Widgets
+namespace TerrariaUI.Widgets
 {
     #region InputLabelStyle
 
@@ -66,7 +66,8 @@ namespace TUI.Widgets
                   style ?? new InputLabelStyle())
         {
             Input = input ?? new Input<string>("", "", null);
-            SetXYWH(x, y, Input.DefaultValue.Length* 2, style?.TextUnderline == LabelUnderline.Underline? 3 : 2);
+            SetXYWH(x, y, Input.DefaultValue.Length * 2,
+                style?.TextUnderline == LabelUnderline.Underline? 3 : 2, false);
             SetText(Input.DefaultValue);
             InputLabelStyle ilstyle = InputLabelStyle;
             ilstyle.TextIndent = new Indent() { Left = 0, Up = 0, Right = 0, Down = 0, Horizontal = 2, Vertical = 2 };
@@ -84,7 +85,7 @@ namespace TUI.Widgets
         #endregion
         #region Invoke
 
-        public override void Invoke(Touch touch)
+        protected override void Invoke(Touch touch)
         {
             if (touch.State == TouchState.Begin)
                 Input.Value = GetText();
@@ -125,7 +126,7 @@ namespace TUI.Widgets
                 Input.Temp = temp;
                 SetText(temp);
                 if (draw)
-                    UpdateThis().ApplyThis().Draw();
+                    Update().Apply().Draw();
             }
         }
 

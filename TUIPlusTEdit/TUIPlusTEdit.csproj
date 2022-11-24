@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="WorldEdit">
+      <HintPath>_References\WorldEdit.dll</HintPath>
+    </Reference>
+    <ProjectReference Include="..\TUI\TUI.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="TShock" Version="5.0.0-beta" />
+    <PackageReference Include="TSAPI" Version="5.0.0-beta" />
+    <PackageReference Include="OTAPI.Upcoming" Version="3.1.8-alpha" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+    <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.4.346202">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

@@ -1,4 +1,4 @@
-﻿namespace TUI.Base
+﻿namespace TerrariaUI.Base
 {
     public interface IInput
     {

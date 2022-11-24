@@ -1,9 +1,9 @@
 ﻿using System;
-using TUI.Base;
-using TUI.Base.Style;
-using TUI.Hooks.Args;
+using TerrariaUI.Base;
+using TerrariaUI.Base.Style;
+using TerrariaUI.Hooks.Args;
 
-namespace TUI.Widgets
+namespace TerrariaUI.Widgets
 {
     #region ItemRackStyle
 
@@ -33,6 +33,10 @@ namespace TUI.Widgets
         /// Size of item (prefix).
         /// </summary>
         public ItemSize Size { get; set; } = ItemSize.Normal;
+        /// <summary>
+        /// Style of lighting.
+        /// </summary>
+        public Light Light { get; set; } = null;
 
         public ItemRackStyle() : base() { }
 
@@ -42,6 +46,7 @@ namespace TUI.Widgets
             Type = style.Type;
             Left = style.Left;
             Size = style.Size;
+            Light = new Light(style.Light);
         }
     }
 
@@ -50,6 +55,7 @@ namespace TUI.Widgets
     /// <summary>
     /// Widget for drawing item (with ability to draw sign with text on topS).
     /// </summary>
+    [Obsolete]
     public class ItemRack : VisualObject
     {
         #region Data
@@ -71,7 +77,7 @@ namespace TUI.Widgets
         public ItemRack(int x, int y, ItemRackStyle style = null, Action<VisualObject, Touch> callback = null)
             : base(x, y, 3, 3, new UIConfiguration(), style ?? new ItemRackStyle(), callback)
         {
-            ForceSection = true;
+            DrawWithSection = true;
         }
 
         #endregion
@@ -125,11 +131,11 @@ namespace TUI.Widgets
             if (RawText == null)
                 throw new NullReferenceException("CreateSign: Text is null");
             (int x, int y) = AbsoluteXY();
-            CreateSignArgs args = new CreateSignArgs(x, y, this);
-            TUI.Hooks.CreateSign.Invoke(args);
+            UpdateSignArgs args = new UpdateSignArgs(x, y, null, this);
+            TUI.Hooks.UpdateSign.Invoke(args);
             if (args.Sign == null)
             {
-                TUI.Hooks.Log.Invoke(new LogArgs("Can't create new sign.", LogType.Error));
+                TUI.Log(this, "Can't create new sign.", LogType.Error);
                 return;
             }
             Sign = args.Sign;
@@ -181,7 +187,7 @@ namespace TUI.Widgets
         {
             base.PulseThisNative(type);
 
-            if (type == PulseType.PositionChanged)
+            if (type == PulseType.SetXYWH)
                 UpdateSign();
         }
 
@@ -204,6 +210,7 @@ namespace TUI.Widgets
 
             short type = ItemRackStyle.Type;
             bool left = ItemRackStyle.Left;
+            Light light = ItemRackStyle.Light;
             int fx = left ? 54 : 0;
             bool sign = Sign != null;
             int prefix = Sizes[(int)ItemRackStyle.Size];
@@ -225,6 +232,12 @@ namespace TUI.Widgets
                     else
                         tile.frameX = (short)(fx + x * 18);
                     tile.frameY = (short)(sign && y == 0 ? 0 : y * 18);
+                    if (x == 1 && y == 1 && light != null)
+                    {
+                        tile.wall = (byte)light.Wall;
+                        if (light.Color > 0)
+                            tile.wallColor((byte)light.Color);
+                    }
                 }
         }
 

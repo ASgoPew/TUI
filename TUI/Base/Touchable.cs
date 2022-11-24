@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using TUI.Hooks.Args;
+using TerrariaUI.Hooks.Args;
 
-namespace TUI.Base
+namespace TerrariaUI.Base
 {
     public abstract class Touchable : VisualDOM
     {
@@ -10,12 +10,15 @@ namespace TUI.Base
 
         internal Locked Locked { get; set; }
         internal ConcurrentDictionary<int, Locked> PersonalLocked { get; set; } = new ConcurrentDictionary<int, Locked>();
+
         /// <summary>
         /// Function to call on touching this object with the grand design.
         /// </summary>
         public Action<VisualObject, Touch> Callback { get; set; }
 
-        public bool Contains(Touch touch) => Contains(touch.X, touch.Y);
+        public virtual bool ContainsParent(Touch touch) => ContainsParent(touch.X, touch.Y);
+        public virtual bool ContainsRelative(Touch touch) => ContainsRelative(touch.X, touch.Y);
+        public virtual bool ContainsAbsolute(Touch touch) => ContainsAbsolute(touch.X, touch.Y);
 
         #endregion
 
@@ -38,22 +41,44 @@ namespace TUI.Base
         /// <returns></returns>
         internal bool Touched(Touch touch)
         {
-            if (!CalculateActive())
-                return false;
-
-            if (IsLocked(touch))
-                return true;
             if (!CanTouch(touch))
                 return !touch.Session.Enabled;
 
-            bool used = TouchedChild(touch);
-            if (!used && CanTouchThis(touch))
-            {
-                TouchedThis(touch);
-                used = true;
-            }
+            return TouchedChild(touch) || CanTouchThis(touch) && TouchedThis(touch);
+        }
 
-            return used;
+        #endregion
+        #region CanTouch
+
+        /// <summary>
+        /// Checks if specified touch can press this object or one of child objects in sub-tree.
+        /// </summary>
+        /// <param name="touch">Touch to check</param>
+        public bool CanTouch(Touch touch)
+        {
+            bool result = false;
+            try
+            {
+                result = CanTouchNative(touch) &&
+                    Configuration.Custom.CanTouch?.Invoke(this as VisualObject, touch) != false;
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
+            }
+            return result;
+        }
+
+        #endregion
+        #region CanTouchNative
+
+        protected virtual bool CanTouchNative(Touch touch)
+        {
+            VisualObject @this = (VisualObject)this;
+            return @this.IsActive
+                && (!Configuration.Priveleged || touch.Priveleged)
+                && !IsLocked(touch)
+                && TUI.Hooks.CanTouch.Invoke(new CanTouchArgs(@this, touch)).CanTouch;
         }
 
         #endregion
@@ -105,28 +130,6 @@ namespace TUI.Base
         }
 
         #endregion
-        #region CanTouch
-
-        /// <summary>
-        /// Checks if specified touch can press this object or one of child objects in sub-tree.
-        /// </summary>
-        /// <param name="touch">Touch to check</param>
-        public bool CanTouch(Touch touch) =>
-            CanTouchNative(touch) && Configuration.Custom.CanTouch?.Invoke(this as VisualObject, touch) != false;
-
-        #endregion
-        #region CanTouchNative
-
-        protected virtual bool CanTouchNative(Touch touch)
-        {
-            VisualObject @this = this as VisualObject;
-            CanTouchArgs args = new CanTouchArgs(@this, touch);
-            TUI.Hooks.CanTouch.Invoke(args);
-            lock (Locker)
-                return Loaded && !Disposed && args.CanTouch;
-        }
-
-        #endregion
         #region TouchedChild
 
         private bool TouchedChild(Touch touch)
@@ -134,15 +137,11 @@ namespace TUI.Base
             foreach (VisualObject child in ChildrenFromTop)
             {
                 int saveX = child.X, saveY = child.Y;
-                if (child.Active && child.Contains(touch))
+                if (child.IsActiveThis && child.ContainsParent(touch))
                 {
-                    touch.MoveBack(saveX, saveY);
+                    touch.Move(-saveX, -saveY);
                     if (child.Touched(touch))
-                    {
-                        if (Configuration.Ordered && child.Orderable && SetTop(child))
-                            PostSetTop(child);
                         return true;
-                    }
                     touch.Move(saveX, saveY);
                 }
             }
@@ -150,23 +149,12 @@ namespace TUI.Base
         }
 
         #endregion
-        #region PostSetTop
-
-        /// <summary>
-        /// Overridable function that is called when object comes on top of the layer.
-        /// </summary>
-        /// <param name="o"></param>
-        protected virtual void PostSetTop(VisualObject o) { }
-
-        #endregion
         #region CanTouchThis
 
         /// <summary>
-        /// Checks if specified touch can press this object. Not to be confused with <see cref="CanTouch(Touch)"/>.
+        /// Checks if specified touch can press exactly this object.
         /// </summary>
-        /// <param name="touch"></param>
-        /// <returns></returns>
-        public virtual bool CanTouchThis(Touch touch) =>
+        protected virtual bool CanTouchThis(Touch touch) =>
             (touch.State == TouchState.Begin && Configuration.UseBegin
                 || touch.State == TouchState.Moving && Configuration.UseMoving
                 || touch.State == TouchState.End && Configuration.UseEnd)
@@ -175,17 +163,34 @@ namespace TUI.Base
         #endregion
         #region TouchedThis
 
-        private void TouchedThis(Touch touch)
+        private bool TouchedThis(Touch touch)
         {
-            VisualObject @this = this as VisualObject;
+            VisualObject @this = (VisualObject)this;
+            if (TUI.TouchedDebug)
+                TUI.Log($"TOUCHED {(@this.FullName)}");
+
             touch.Object = @this;
 
             TrySetLock(touch);
 
-            Invoke(touch);
-
             if (Configuration.SessionAcquire)
                 touch.Session.Acquired = @this;
+
+            foreach (var node in WayFromRoot)
+                if (node is RootVisualObject root)
+                    TUI.SetTop(root);
+                else if (node.Parent.Configuration.Ordered && Orderable)
+                    node.Parent.SetTop(node);
+
+            try
+            {
+                Invoke(touch);
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
+            }
+            return true;
         }
 
         #endregion
@@ -197,7 +202,7 @@ namespace TUI.Base
         /// <param name="touch"></param>
         internal void TrySetLock(Touch touch)
         {
-            VisualObject @this = this as VisualObject;
+            VisualObject @this = (VisualObject)this;
             // You can't lock the same object twice per touch session
             if (Configuration.Lock != null && !touch.Session.LockedObjects.Contains(@this))
             {
@@ -229,8 +234,8 @@ namespace TUI.Base
         /// </summary>
         /// <param name="touch"></param>
         /// <returns></returns>
-        public virtual void Invoke(Touch touch) =>
-            Callback?.Invoke(this as VisualObject, touch);
+        protected virtual void Invoke(Touch touch) =>
+            Callback?.Invoke((VisualObject)this, touch);
 
         #endregion
     }

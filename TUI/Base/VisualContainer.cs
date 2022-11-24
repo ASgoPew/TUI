@@ -1,7 +1,7 @@
 ﻿using System;
-using TUI.Base.Style;
+using TerrariaUI.Base.Style;
 
-namespace TUI.Base
+namespace TerrariaUI.Base
 {
     #region ContainerStyle
 
@@ -38,6 +38,9 @@ namespace TUI.Base
     {
         #region Data
 
+        protected Selection Selecting { get; set; }
+
+        public VisualObject Selected => Selecting?.Selected;
         public ContainerStyle ContainerStyle => Style as ContainerStyle;
 
         #endregion
@@ -45,12 +48,12 @@ namespace TUI.Base
         #region Constructor
 
         public VisualContainer(int x, int y, int width, int height, UIConfiguration configuration = null, ContainerStyle style = null, Action<VisualObject, Touch> callback = null)
-            : base(x, y, width, height, configuration, style ?? new ContainerStyle(), callback)
+            : base(x, y, width, height, configuration ?? new UIConfiguration() { UseBegin = false }, style ?? new ContainerStyle(), callback)
         {
         }
 
         public VisualContainer()
-            : this(0, 0, 0, 0, new UIConfiguration() { UseBegin = false })
+            : this(0, 0, 0, 0)
         {
         }
 
@@ -60,8 +63,73 @@ namespace TUI.Base
         }
 
         public VisualContainer(ContainerStyle style)
-            : this(0, 0, 0, 0, new UIConfiguration() { UseBegin = false }, style)
+            : this(0, 0, 0, 0, null, style)
         {
+        }
+
+        #endregion
+
+        #region Select
+
+        /// <summary>
+        /// Enable specified child and disable all other child objects.
+        /// </summary>
+        /// <param name="node">Child to select.</param>
+        /// <returns>this</returns>
+        public VisualContainer Select(VisualObject node, bool draw)
+        {
+            if (!_Child.Contains(node))
+                throw new InvalidOperationException("Trying to Select an object that isn't a child of current VisualDOM");
+
+            if (Selecting != null)
+            {
+                if (Selected == node)
+                    return this;
+                Selected.Disable(false);
+                Selecting.Selected = node;
+                Selected.Enable(false);
+            }
+            else
+            {
+                Selecting = new Selection(node);
+                foreach (VisualObject child in ChildrenFromTop)
+                    if (child.Enabled)
+                    {
+                        child.Disable(false);
+                        Selecting.DisabledChildren.Add(child);
+                    }
+                node.Enable(false);
+            }
+
+            if (draw && IsActive)
+                Update().Apply().Draw();
+
+            return this;
+        }
+
+        #endregion
+        #region Deselect
+
+        /// <summary>
+        /// Enables all child objects. See <see cref="Select(VisualObject)"/>
+        /// </summary>
+        /// <returns>this</returns>
+        public VisualContainer Deselect(bool draw)
+        {
+            if (Selecting == null)
+                throw new InvalidOperationException("Trying to deselect without selecting.");
+
+            if (!Selecting.DisabledChildren.Contains(Selected))
+                Selected.Disable(false);
+            foreach (VisualObject child in Selecting.DisabledChildren)
+                if (_Child.Contains(child) && !child.Enabled)
+                    child.Enable(false);
+            Selecting = null;
+
+            if (draw && IsActive)
+                Update().Apply().Draw();
+
+            return this;
         }
 
         #endregion
@@ -81,7 +149,7 @@ namespace TUI.Base
         protected void InheritParentStyle()
         {
             VisualObject node = this;
-            byte? wall = null;
+            ushort? wall = null;
             byte? wallColor = null;
             while (node != null)
             {
@@ -98,30 +166,26 @@ namespace TUI.Base
         #endregion
         #region ApplyTile
 
-        protected override void ApplyTile(int x, int y)
+        protected override void ApplyTile(int x, int y, dynamic tile)
         {
-            dynamic tile = Tile(x, y);
-            if (tile == null)
-                return;
-
             if (!ContainerStyle.Transparent)
                 tile.ClearEverything();
 
-            if (Style.Active != null)
+            if (Style.Active.HasValue)
                 tile.active(Style.Active.Value);
-            else if (Style.Tile != null)
+            else if (Style.Tile.HasValue)
                 tile.active(true);
-            else if (Style.Wall != null)
+            else if (Style.Wall.HasValue)
                 tile.active(false);
-            if (Style.InActive != null)
+            if (Style.InActive.HasValue)
                 tile.inActive(Style.InActive.Value);
-            if (Style.Tile != null)
+            if (Style.Tile.HasValue)
                 tile.type = Style.Tile.Value;
-            if (Style.TileColor != null)
+            if (Style.TileColor.HasValue)
                 tile.color(Style.TileColor.Value);
-            if (Style.Wall != null)
+            if (Style.Wall.HasValue)
                 tile.wall = Style.Wall.Value;
-            if (Style.WallColor != null)
+            if (Style.WallColor.HasValue)
                 tile.wallColor(Style.WallColor.Value);
         }
 

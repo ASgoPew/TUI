@@ -1,118 +1,15 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{64B9C632-B1D6-4DD2-A763-4437F92E1ADB}</ProjectGuid>
+    <TargetFramework>net6.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TUI</RootNamespace>
-    <AssemblyName>TUI</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\TUI.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <RootNamespace>TerrariaUI</RootNamespace>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+    <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.4.346202">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Base\CustomCallbacks.cs" />
-    <Compile Include="Base\IInput.cs" />
-    <Compile Include="Base\Input.cs" />
-    <Compile Include="Base\InputVisualObject.cs" />
-    <Compile Include="Base\Style\PaintID.cs" />
-    <Compile Include="Base\PulseType.cs" />
-    <Compile Include="Base\Style\Alignment.cs" />
-    <Compile Include="Base\Style\Direction.cs" />
-    <Compile Include="Base\Style\FullSize.cs" />
-    <Compile Include="Base\UIDefault.cs" />
-    <Compile Include="Base\VisualContainer.cs" />
-    <Compile Include="Hooks\Args\DatabaseArgs.cs" />
-    <Compile Include="Hooks\Args\LogArgs.cs" />
-    <Compile Include="Hooks\Args\RemoveSignArgs.cs" />
-    <Compile Include="Hooks\Args\CreateSignArgs.cs" />
-    <Compile Include="Hooks\Args\CanTouchArgs.cs" />
-    <Compile Include="Hooks\Args\DrawArgs.cs" />
-    <Compile Include="Hooks\Args\EnabledArgs.cs" />
-    <Compile Include="Base\GridCell.cs" />
-    <Compile Include="Hooks\Args\InitializeArgs.cs" />
-    <Compile Include="Hooks\Args\TouchCancelArgs.cs" />
-    <Compile Include="Hooks\Hook.cs" />
-    <Compile Include="Hooks\HookManager.cs" />
-    <Compile Include="Hooks\Args\SetXYWHArgs.cs" />
-    <Compile Include="Base\Style\Offset.cs" />
-    <Compile Include="Base\ISize.cs" />
-    <Compile Include="Base\Style\Side.cs" />
-    <Compile Include="Base\IDOM.cs" />
-    <Compile Include="Hooks\Args\SetTopArgs.cs" />
-    <Compile Include="Base\Lock.cs" />
-    <Compile Include="Base\RootVisualObject.cs" />
-    <Compile Include="Base\MainTileProvider.cs" />
-    <Compile Include="Base\Touch.cs" />
-    <Compile Include="Base\Touchable.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Base\IVisual.cs" />
-    <Compile Include="Base\UIConfiguration.cs" />
-    <Compile Include="Base\Style\UIStyle.cs" />
-    <Compile Include="Base\UserSession.cs" />
-    <Compile Include="Base\VisualDOM.cs" />
-    <Compile Include="Base\VisualObject.cs" />
-    <Compile Include="TUI.cs" />
-    <Compile Include="Widgets\AlertWindow.cs" />
-    <Compile Include="Widgets\Arrow.cs" />
-    <Compile Include="Widgets\Button.cs" />
-    <Compile Include="Widgets\Checkbox.cs" />
-    <Compile Include="Widgets\ConfirmWindow.cs" />
-    <Compile Include="Widgets\FormField.cs" />
-    <Compile Include="Widgets\InputLabel.cs" />
-    <Compile Include="Widgets\ItemRack.cs" />
-    <Compile Include="Widgets\Label.cs" />
-    <Compile Include="Widgets\Media\Image.cs" />
-    <Compile Include="Widgets\Media\ImageData.cs" />
-    <Compile Include="Widgets\Media\SignData.cs" />
-    <Compile Include="Widgets\Media\Video.cs" />
-    <Compile Include="Widgets\Panel.cs" />
-    <Compile Include="Widgets\ScrollBackground.cs" />
-    <Compile Include="Widgets\ScrollBar.cs" />
-    <Compile Include="Widgets\Separator.cs" />
-    <Compile Include="Widgets\Slider.cs" />
-    <Compile Include="Widgets\VisualSign.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>if not exist "$(ProjectDir)_BuildResult" mkdir "$(ProjectDir)_BuildResult"
-copy /Y "$(TargetDir)$(TargetName).dll" "$(ProjectDir)_BuildResult\$(TargetName).dll</PostBuildEvent>
-  </PropertyGroup>
 </Project>

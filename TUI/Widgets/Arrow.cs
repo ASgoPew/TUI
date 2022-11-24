@@ -1,11 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using TUI.Base;
-using TUI.Base.Style;
+using TerrariaUI.Base;
+using TerrariaUI.Base.Style;
 
-namespace TUI.Widgets
+namespace TerrariaUI.Widgets
 {
     #region ArrowStyle
+
+    public enum ArrowSize
+    {
+        Small = 2,
+        Big = 4
+    }
 
     /// <summary>
     /// Drawing styles for Arrow widget.
@@ -13,6 +19,7 @@ namespace TUI.Widgets
     public class ArrowStyle : UIStyle
     {
         public Direction Direction { get; set; } = Direction.Right;
+        public ArrowSize Size { get; set; } = ArrowSize.Small;
 
         public ArrowStyle() : base() { }
 
@@ -20,6 +27,7 @@ namespace TUI.Widgets
             : base(arrowStyle)
         {
             Direction = arrowStyle.Direction;
+            Size = arrowStyle.Size;
         }
     }
 
@@ -32,12 +40,58 @@ namespace TUI.Widgets
     {
         #region Data
 
-        protected static readonly Dictionary<Direction, byte[,]> Slope = new Dictionary<Direction, byte[,]>()
+        /// <summary>
+        /// 1: down left
+        /// 2: down right
+        /// 3: up left
+        /// 4: up right
+        /// </summary>
+        protected static readonly Dictionary<Direction, byte[,]> SmallSlope = new Dictionary<Direction, byte[,]>()
         {
-            { Direction.Left, new byte[2, 2] { { 2, 3 }, { 4, 1 } } },
-            { Direction.Up, new byte[2, 2] { { 2, 1 }, { 3, 4 } } },
-            { Direction.Right, new byte[2, 2] { { 4, 1 }, { 2, 3 } } },
-            { Direction.Down, new byte[2, 2] { { 1, 2 }, { 4, 3 } } }
+            { Direction.Left, new byte[2, 2] {
+                { 2, 3 },
+                { 4, 1 }
+            } },
+            { Direction.Up, new byte[2, 2] {
+                { 2, 1 },
+                { 3, 4 }
+            } },
+            { Direction.Right, new byte[2, 2] {
+                { 4, 1 },
+                { 2, 3 }
+            } },
+            { Direction.Down, new byte[2, 2] {
+                { 1, 2 },
+                { 4, 3 }
+            } }
+        };
+
+        protected static readonly Dictionary<Direction, byte[,]> BigSlope = new Dictionary<Direction, byte[,]>()
+        {
+            { Direction.Left, new byte[4, 4] {
+                { 255, 2, 255, 255 },
+                { 2,   0, 0,   0   },
+                { 4,   0, 0,   0   },
+                { 255, 4, 255, 255 }
+            } },
+            { Direction.Up, new byte[4, 4] {
+                { 255, 2, 1, 255 },
+                { 2,   0, 0, 1   },
+                { 255, 0, 0, 255 },
+                { 255, 0, 0, 255 }
+            } },
+            { Direction.Right, new byte[4, 4] {
+                { 255, 255, 1, 255 },
+                { 0,   0,   0, 1   },
+                { 0,   0,   0, 3   },
+                { 255, 255, 3, 255 }
+            } },
+            { Direction.Down, new byte[4, 4] {
+                { 255, 0, 0, 255 },
+                { 255, 0, 0, 255 },
+                { 4,   0, 0, 3   },
+                { 255, 4, 3, 255 }
+            } }
         };
 
         public ArrowStyle ArrowStyle => Style as ArrowStyle;
@@ -50,11 +104,12 @@ namespace TUI.Widgets
         /// Widget for drawing arrow in one of directions.
         /// </summary>
         public Arrow(int x, int y, ArrowStyle style = null, Action<VisualObject, Touch> callback = null)
-            : base(x, y, 2, 2, null, style, callback)
+            : base(x, y, 0, 0, null, style ?? new ArrowStyle(), callback)
         {
-            Style.Active = true;
-            if (Style.Tile == null)
-                Style.Tile = 267;
+            if (ArrowStyle.Size == ArrowSize.Small)
+                SetWH(2, 2, false);
+            else
+                SetWH(4, 4, false);
         }
 
         #endregion
@@ -73,8 +128,32 @@ namespace TUI.Widgets
         {
             base.ApplyThisNative();
 
-            foreach ((int x, int y) in Points)
-                Tile(x, y)?.slope(Slope[ArrowStyle.Direction][y, x]);
+            if (ArrowStyle.Size == ArrowSize.Small)
+                foreach ((int x, int y) in Points)
+                {
+                    dynamic tile = Tile(x, y);
+                    if (tile == null)
+                        continue;
+                    tile.active(true);
+                    tile.type = Style.Tile ?? 267;
+                    tile.slope(SmallSlope[ArrowStyle.Direction][y, x]);
+                }
+            else
+                foreach ((int x, int y) in Points)
+                {
+                    dynamic tile = Tile(x, y);
+                    if (tile == null)
+                        continue;
+                    byte slope = BigSlope[ArrowStyle.Direction][y, x];
+                    if (slope < 5)
+                    {
+                        tile.active(true);
+                        tile.type = Style.Tile ?? 267;
+                        tile.slope(slope);
+                    }
+                    else
+                        tile.active(false);
+                }
         }
 
         #endregion

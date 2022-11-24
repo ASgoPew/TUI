@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TUI.Base
+namespace TerrariaUI.Base
 {
     public interface ISize
     {
@@ -8,6 +8,7 @@ namespace TUI.Base
 
         bool IsAbsolute { get; }
         bool IsRelative { get; }
+        bool IsDynamic { get; }
     }
     public class Absolute : ISize
     {
@@ -16,6 +17,7 @@ namespace TUI.Base
         public int Value => InternalValue;
         public bool IsAbsolute => true;
         public bool IsRelative => false;
+        public bool IsDynamic => false;
 
         public Absolute(int value)
         {
@@ -28,10 +30,11 @@ namespace TUI.Base
     public class Relative : ISize
     {
         int InternalValue { get; }
+
+        public int Value => InternalValue;
         public bool IsAbsolute => false;
         public bool IsRelative => true;
-
-        public int Value => InternalValue - 1000000;
+        public bool IsDynamic => false;
 
         public Relative(int value)
         {
@@ -40,7 +43,16 @@ namespace TUI.Base
             else if (value > 100)
                 throw new ArgumentException("Relative size more than 100 in grid");
 
-            InternalValue = value + 1000000;
+            InternalValue = value;
         }
+    }
+    public class Dynamic : ISize
+    {
+        public int Value { get; set; }
+        public bool IsAbsolute => true;
+        public bool IsRelative => false;
+        public bool IsDynamic => true;
+
+        public Dynamic() { }
     }
 }

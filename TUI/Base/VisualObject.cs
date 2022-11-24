@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using TUI.Base.Style;
+using TerrariaUI.Base.Style;
 
-namespace TUI.Base
+namespace TerrariaUI.Base
 {
     /// <summary>
     /// Basic TUI object. Every TUI object is VisualObject or is an object of class inherited from VisualObject.
@@ -18,36 +18,22 @@ namespace TUI.Base
         /// </summary>
         public UIStyle Style { get; set; }
         /// <summary>
-        /// Child grid. Use operator[,] to get or set grid elements.
-        /// </summary>
-        protected VisualObject[,] Grid { get; set; }
-        /// <summary>
-        /// Cell of Parent's grid in which this object is. Null if not in Parent's grid.
-        /// </summary>
-        public GridCell Cell { get; private set; }
-        /// <summary>
         /// Objects draw with SentTileSquare by default. Set this field to force drawing this object with SendSection.
         /// </summary>
-        public bool ForceSection { get; set; } = false;
+        public bool DrawWithSection { get; set; } = false;
         /// <summary>
-        /// X coordinate relative to tile provider. Sets in Update() and PulseType.PositionChanged. Used in Tile() function.
+        /// Frame the section if <see cref="DrawWithSection"/> is set. True by default.
         /// </summary>
-        public int ProviderX { get; protected set; }
+        public bool FrameSection { get; set; } = true;
         /// <summary>
-        /// Y coordinate relative to tile provider. Sets in Update() and PulseType.PositionChanged. Used in Tile() function.
+        /// Whether the object is visible. Object becomes invisible fox example when it is outside of bounds of layout.
         /// </summary>
-        public int ProviderY { get; protected set; }
-        /// <summary>
-        /// Bounds (relative to this object) in which this object is allowed to draw.
-        /// </summary>
-        public ExternalIndent Bounds { get; protected set; } = new ExternalIndent();
-
-        /// <summary>
-        /// Overridable field for disabling ability to be ordered in Parent's Child array.
-        /// </summary>
-        public override bool Orderable => !Configuration.InLayout;
+        public bool Visible { get; private set; } = true;
+        public bool IsActiveThis => Enabled && Visible && Loaded && !Disposed;
+        public virtual bool IsActive => IsActiveThis && (this is RootVisualObject || Parent?.IsActive == true);
 
         private string _Name;
+        protected object ApplyLocker = new object();
         /// <summary>
         /// Object name. Class type name by default.
         /// </summary>
@@ -64,67 +50,99 @@ namespace TUI.Base
                 ? Name
                 : _Name != null
                     ? $"{Parent.FullName}.{_Name}"
-                    : Cell != null
-                        ? $"{Parent.FullName}[{Cell.Column},{Cell.Line}].{Name}"
+                    : Positioning is InGrid inGrid
+                        ? $"{Parent.FullName}[{inGrid.Column},{inGrid.Line}].{Name}"
                         : $"{Parent.FullName}[{IndexInParent}].{Name}";
 
+        private int? _MinWidth;
+        private int? _MinHeight;
+        public virtual int MinWidth => Math.Max(_MinWidth ?? 0, GridConfiguration != null ? MinGridWidth() : 0);
+        public virtual int MinHeight => Math.Max(_MinHeight ?? 0, GridConfiguration != null ? MinGridHeight() : 0);
+
+        protected IPositioning Positioning { get; set; }
+        protected IResizing WidthResizing { get; set; }
+        protected IResizing HeightResizing { get; set; }
+
+        /// <summary>
+        /// Child objects positioning in Layout. Not set by default (null).
+        /// <para></para>
+        /// Use <see cref="VisualObject.SetupLayout"/>
+        /// </summary>
+        public LayoutConfiguration LayoutConfiguration { get; private set; }
+        /// <summary>
+        /// Child objects positioning in grid. Not set by default (null).
+        /// <para></para>
+        /// Use <see cref="VisualObject.SetupGrid"/> to initialize grid.
+        /// </summary>
+        public GridConfiguration GridConfiguration { get; private set; }
+
+        public bool HasLayout => LayoutConfiguration != null;
+        public bool HasGrid => GridConfiguration != null;
+        public bool HasWidthChildStretch => WidthResizing is InChildStretch;
+        public bool HasHeightChildStretch => HeightResizing is InChildStretch;
+        public bool HasChildStretch => HasWidthChildStretch || HasHeightChildStretch;
+        public bool HasParentAlignment => Positioning is InParentAlignment;
+        public bool HasWidthParentStretch => WidthResizing is InParentStretch;
+        public bool HasHeightParentStretch => HeightResizing is InParentStretch;
+        public bool HasParentStretch => HasWidthParentStretch || HasHeightParentStretch;
+        public bool InLayout => Positioning is InLayout;
+        public bool InGrid => Positioning is InGrid;
+        public bool InGridDynamic => Positioning is InGrid p &&
+            (Parent.GridConfiguration.Columns[p.Column].IsDynamic ||
+            Parent.GridConfiguration.Lines[p.Line].IsDynamic);
+        public bool InGridRelative => Positioning is InGrid p &&
+            (Parent.GridConfiguration.Columns[p.Column].IsRelative ||
+            Parent.GridConfiguration.Lines[p.Line].IsRelative);
+        // TODO: if only last column/line is Relative then false;
+        public bool HasRelativesInGrid =>
+            GridConfiguration.Columns.Any(column => column.IsRelative) ||
+            GridConfiguration.Lines.Any(line => line.IsRelative);
+
         #endregion
 
-        #region IDOM
+        #region Add
 
-            #region Remove
+        public override T Add<T>(T child, int? layer = null)
+        {
+            base.Add(child, layer);
 
-            /// <summary>
-            /// Removes child object. Calls Dispose() on removed object so you can't use
-            /// this object anymore.
-            /// </summary>
-            /// <param name="child">Child object to remove.</param>
-            /// <returns>this</returns>
-            public override VisualObject Remove(VisualObject child)
-            {
-                child = base.Remove(child);
-                if (child != null)
-                {
-                    GridCell cell = child.Cell;
-                    if (cell != null)
-                    {
-                        Grid[cell.Column, cell.Line] = null;
-                        child.Cell = null;
-                    }
-                    if (child.Configuration.InLayout)
-                        Configuration.Layout.Objects.Remove(child);
-                }
-                return child;
-            }
+            if (IsActive)
+                child.Update();
+
+            child.Pulse(PulseType.SetXYWH);
+
+            return child;
+        }
 
         #endregion
+        #region Remove
+
+        public override VisualObject Remove(VisualObject child)
+        {
+            VisualObject result = base.Remove(child);
+            if (GridConfiguration is GridConfiguration grid)
+            {
+                grid.MinWidth = MinGridWidth();
+                grid.MinHeight = MinGridHeight();
+            }
+            return result;
+        }
 
         #endregion
-        #region Touchable
+        #region SetTop
 
-            #region PostSetTop
-
-            /// <summary>
-            /// Overridable function that is called when child comes on top of the layer.
-            /// <para></para>
-            /// Does Apply() and Draw() if object is intersecting at least one other child object by default.
-            /// </summary>
-            /// <param name="child">Child object that came on top of the layer</param>
-            protected override void PostSetTop(VisualObject child)
+        public override bool SetTop(VisualObject child)
+        {
+            if (base.SetTop(child) && IsActive &&
+                Child.Any(o => o != child &&
+                    o.IsActiveThis &&
+                    o.Intersecting(child)))
             {
-                if (ChildIntersectingOthers(child))
-                    child.Apply().Draw();
+                child.Apply().Draw();
+                return true;
             }
-
-            private bool ChildIntersectingOthers(VisualObject o)
-            {
-                foreach (VisualObject child in ChildrenFromTop)
-                    if (child != o && child.Active && o.Intersecting(child))
-                        return true;
-                return false;
-            }
-
-            #endregion
+            return false;
+        }
 
         #endregion
 
@@ -159,24 +177,14 @@ namespace TUI.Base
         /// <returns></returns>
         public VisualObject this[int column, int line]
         {
-            get => Grid[column, line];
+            get => Child.Where(child => child.Positioning is InGrid positioning &&
+                (positioning.Column == column || column == -1) &&
+                (positioning.Line == line || line == -1)).FirstOrDefault();
             set
             {
-                if (value != null)
-                {
-                    value.Configuration.InLayout = false;
-                    value.Configuration.Alignment = null;
-
-                    if (Grid[column, line] != null)
-                        Remove(Grid[column, line]);
-                    Grid[column, line] = Add(value);
-                    value.Cell = new GridCell(column, line);
-                }
-                else
-                {
-                    Remove(Grid[column, line]);
-                    Grid[column, line] = null;
-                }
+                if (column < 0 || line < 0 || column >= GridConfiguration.Columns.Length || line >= GridConfiguration.Lines.Length)
+                    throw new IndexOutOfRangeException("Wrong grid column or line number");
+                AddToGrid(value, column, line);
             }
         }
 
@@ -191,38 +199,42 @@ namespace TUI.Base
         /// <returns>ITile</returns>
         public virtual dynamic Tile(int x, int y)
         {
-            if (x < 0 || y < 0 || x >= Width || y >= Height)
-                throw new ArgumentOutOfRangeException($"{FullName}: Invalid tile x or y.");
             ExternalIndent bounds = Bounds;
-            if (x < bounds.Left || x >= Width - bounds.Right || y < bounds.Up || y >= Height - bounds.Down)
+            if (x < bounds.Left || x > bounds.Right || y < bounds.Up || y > bounds.Down)
                 return null;
             return Provider?[ProviderX + x, ProviderY + y];
         }
 
         #endregion
-        #region AddToLayout
+        #region Enable
 
-        /// <summary>
-        /// Add object as a child in layout. Removes child alignment and grid positioning.
-        /// </summary>
-        /// <param name="child">Object to add as a child.</param>
-        /// <param name="layer">Layer where to add the object. Null by default (don't change object layer).</param>
-        /// <returns></returns>
-        public virtual VisualObject AddToLayout(VisualObject child, int? layer = null)
+        public override VisualObject Enable(bool draw)
         {
-            child.Configuration.Alignment = null;
-            if (child.Cell != null)
+            if (!Enabled)
             {
-                Grid[child.Cell.Column, child.Cell.Line] = null;
-                child.Cell = null;
+                base.Enable(draw);
+                if (draw && IsActive)
+                    DrawEnable();
             }
-
-            Add(child, layer);
-            child.Configuration.InLayout = true;
-            return child;
+            return this;
         }
 
         #endregion
+        #region Disable
+
+        public override VisualObject Disable(bool draw)
+        {
+            if (Enabled)
+            {
+                base.Disable(draw);
+                if (draw)
+                    DrawDisable();
+            }
+            return this;
+        }
+
+        #endregion
+
         #region SetXYWH
 
         /// <summary>
@@ -232,15 +244,122 @@ namespace TUI.Base
         /// <param name="y">New y coordinate</param>
         /// <param name="width">New width</param>
         /// <param name="height">New height</param>
-        /// <returns>this</returns>
-        public override VisualObject SetXYWH(int x, int y, int width, int height)
+        /// <returns>Most far ancestor that has changed size</returns>
+        public override VisualObject SetXYWH(int x, int y, int width, int height, bool draw)
         {
-            int oldX = X, oldY = Y, oldWidth = Width, oldHeight = Height;
-            if (oldX != x || oldY != y || oldWidth != width || oldHeight != height)
+            if (GridConfiguration is GridConfiguration grid)
             {
-                base.SetXYWH(x, y, width, height);
-                Pulse(PulseType.PositionChanged);
+                grid.MinWidth = MinGridWidth();
+                grid.MinHeight = MinGridHeight();
             }
+
+            width = Math.Max(width, MinWidth);
+            height = Math.Max(height, MinHeight);
+
+            int oldX = X, oldY = Y, oldWidth = Width, oldHeight = Height;
+            base.SetXYWH(x, y, width, height, draw);
+            if (oldX != x || oldY != y || oldWidth != width || oldHeight != height
+                && IsActive)
+            {
+                // TODO: entities reposition should happen at Draw()
+                // Update entities
+                Pulse(PulseType.SetXYWH);
+
+                if (draw)
+                    DrawReposition(oldX, oldY, oldWidth, oldHeight);
+            }
+
+            return this;
+        }
+
+        #endregion
+        #region DrawReposition
+
+        protected virtual void DrawReposition(int oldX, int oldY, int oldWidth, int oldHeight)
+        {
+            Parent.Update().Apply().Draw();
+        }
+
+        #endregion
+        #region DrawEnable
+
+        protected virtual void DrawEnable()
+        {
+            Parent.Update();
+            if (InLayout)
+                Parent.Apply().Draw();
+            else
+                Apply().Draw();
+        }
+
+        #endregion
+        #region DrawDisable
+
+        protected virtual void DrawDisable()
+        {
+            Parent.Update().Apply().Draw();
+        }
+
+        #endregion
+        #region CollectStyle
+
+        public UIStyle CollectStyle(bool includeThis = true)
+        {
+            UIStyle result = new UIStyle();
+            foreach (VisualObject node in WayFromRoot)
+                if (node != this || includeThis)
+                    result.Stratify(node.Style);
+            return result;
+        }
+
+        #endregion
+        #region ToString
+
+        public override string ToString() => FullName;
+
+        #endregion
+
+        // Setup
+        #region SetMinSize
+
+        public VisualObject SetMinSize(int? width = null, int? height = null)
+        {
+            _MinWidth = width;
+            _MinHeight = height;
+            return this;
+        }
+
+        #endregion
+        #region SetPositioning
+
+        public VisualObject SetPositioning(IPositioning positioning)
+        {
+            if (Positioning is InGrid inGrid && inGrid != positioning)
+            {
+                if (WidthResizing == inGrid)
+                    SetWidthResizing(null);
+                if (HeightResizing == inGrid)
+                    SetHeightResizing(null);
+            }
+            Positioning = positioning;
+            return this;
+        }
+
+        #endregion
+        #region SetWidthResizing
+
+        public VisualObject SetWidthResizing(IResizing resizing)
+        {
+            WidthResizing = resizing;
+            return this;
+        }
+
+        #endregion
+        #region SetHeightResizing
+
+        public VisualObject SetHeightResizing(IResizing resizing)
+        {
+            HeightResizing = resizing;
             return this;
         }
 
@@ -258,9 +377,25 @@ namespace TUI.Base
         /// <param name="boundsIsIndent">Whether to draw objects/ object tiles that are outside of bounds of indent or not</param>
         /// <returns>this</returns>
         public VisualObject SetupLayout(Alignment alignment = Alignment.Center, Direction direction = Direction.Down,
-            Side side = Side.Center, ExternalIndent indent = null, int childIndent = 1, bool boundsIsIndent = true)
+            Side side = Side.Center, ExternalIndent indent = null, int childIndent = 1)
         {
-            Configuration.Layout = new LayoutConfiguration(alignment, direction, side, indent, childIndent, boundsIsIndent);
+            LayoutConfiguration = new LayoutConfiguration(alignment, direction, side, indent, childIndent);
+            return this;
+        }
+
+        #endregion
+        #region LayoutOffset
+
+        /// <summary>
+        /// Scrolling offset of layout. Used in ScrollBackground and ScrollBar.
+        /// </summary>
+        /// <param name="value">Indent value</param>
+        /// <returns>this</returns>
+        public VisualObject LayoutOffset(int value)
+        {
+            if (LayoutConfiguration == null)
+                throw new InvalidOperationException("Widget has no layout");
+            LayoutConfiguration.Offset = value;
             return this;
         }
 
@@ -276,946 +411,1118 @@ namespace TUI.Base
         /// <param name="fillWithEmptyObjects">Whether to fills all grid cells with empty VisualContainers</param>
         /// <returns>this</returns>
         public VisualObject SetupGrid(IEnumerable<ISize> columns = null, IEnumerable<ISize> lines = null,
-            Indent indent = null, bool fillWithEmptyObjects = true)
+            Indent indent = null)
         {
-            GridConfiguration gridStyle = Configuration.Grid = new GridConfiguration(columns, lines);
-
-            VisualObject[,] oldGrid = Grid;
-
-            if (gridStyle.Columns == null)
-                gridStyle.Columns = new ISize[] { new Relative(100) };
-            if (gridStyle.Lines == null)
-                gridStyle.Lines = new ISize[] { new Relative(100) };
-            Grid = new VisualObject[gridStyle.Columns.Length, gridStyle.Lines.Length];
-            if (fillWithEmptyObjects)
-                for (int i = 0; i < gridStyle.Columns.Length; i++)
-                    for (int j = 0; j < gridStyle.Lines.Length; j++)
-                        if (i < oldGrid?.GetLength(0) && j < oldGrid?.GetLength(1) && oldGrid[i, j] != null)
-                            this[i, j] = Remove(oldGrid[i, j]);
-                        else
-                            this[i, j] = new VisualContainer();
-
-            return this as VisualObject;
+            columns = columns ?? new ISize[] { new Relative(100) };
+            lines = lines ?? new ISize[] { new Relative(100) };
+            GridConfiguration = new GridConfiguration(columns, lines, indent);
+            return this;
         }
 
         #endregion
-        #region SetAlignmentInParent
+        #region FillGrid
+
+        public VisualObject FillGrid()
+        {
+            if (GridConfiguration == null)
+                throw new InvalidOperationException("Widget has no grid");
+            for (int i = 0; i < GridConfiguration.Columns.Length; i++)
+                for (int j = 0; j < GridConfiguration.Lines.Length; j++)
+                    this[i, j] = new VisualContainer();
+            return this;
+        }
+
+        #endregion
+        #region MinGridWidth
+
+        private int MinGridWidth()
+        {
+            int result = 0;
+            for (int i = 0; i < GridConfiguration.Columns.Length; i++)
+            {
+                ISize column = GridConfiguration.Columns[i];
+                if (column.IsAbsolute)
+                    result += column.Value;
+                else if (Child.Where(o => o.Positioning is InGrid inGrid && inGrid.Column == i) is List<VisualObject> list
+                        && list.Count > 0)
+                    result += list.Max(o => o.MinWidth);
+            }
+            return result;
+        }
+
+        #endregion
+        #region MinGridHeight
+
+        private int MinGridHeight()
+        {
+            int result = 0;
+            for (int i = 0; i < GridConfiguration.Lines.Length; i++)
+            {
+                ISize line = GridConfiguration.Lines[i];
+                if (line.IsAbsolute)
+                    result += line.Value;
+                else if (Child.Where(o => o.Positioning is InGrid inGrid && inGrid.Line == i) is List<VisualObject> list
+                        && list.Count > 0)
+                    result += list.Max(o => o.MinHeight);
+            }
+            return result;
+        }
+
+        #endregion
+
+        // Positioning
+        #region AddToLayout
+
+        /// <summary>
+        /// Add object as a child in layout. Removes child alignment and grid positioning.
+        /// </summary>
+        /// <param name="child">Object to add as a child.</param>
+        /// <param name="layer">Layer where to add the object. Null by default (don't change object layer).</param>
+        /// <returns></returns>
+        public virtual T AddToLayout<T>(T child, int? layer = null)
+            where T : VisualObject
+        {
+            child.SetPositioning(new InLayout());
+            return Add(child, layer);
+        }
+
+        #endregion
+        #region SetParentAlignment
 
         /// <summary>
         /// Setup alignment positioning inside parent. Removes layout and grid positioning.
         /// </summary>
         /// <param name="alignment">Where to place this object in parent</param>
         /// <param name="indent">Alignment indent from Parent's borders</param>
-        /// <param name="boundsIsIndent">Whether to draw tiles of this object that are outside of bounds of indent or not</param>
         /// <returns>this</returns>
-        public VisualObject SetAlignmentInParent(Alignment alignment, ExternalIndent indent = null, bool boundsIsIndent = true)
+        public VisualObject SetParentAlignment(Alignment alignment, ExternalIndent indent = null)
         {
-            if (Cell != null)
-            {
-                Parent.Grid[Cell.Column, Cell.Line] = null;
-                Cell = null;
-            }
-            Configuration.InLayout = false;
-
-            Configuration.Alignment = new AlignmentConfiguration(alignment, indent, boundsIsIndent);
+            SetPositioning(new InParentAlignment(alignment, indent));
             return this;
         }
 
         #endregion
-        #region SetFullSize
 
-        /// <summary>
-        /// Set automatic stretching to parent size. Removes grid positioning.
-        /// </summary>
-        /// <param name="horizontal">Horizontal stretching</param>
-        /// <param name="vertical">Vertical stretching</param>
-        /// <returns>this</returns>
-        public VisualObject SetFullSize(bool horizontal = false, bool vertical = false) =>
-            SetFullSize(horizontal && vertical
-                ? FullSize.Both
-                : horizontal
-                    ? FullSize.Horizontal
-                    : vertical
-                        ? FullSize.Vertical
-                        : FullSize.None);
+        // Resizing
+        #region SetWidthParentStretch
 
-        /// <summary>
-        /// Set automatic stretching to parent size. Removes grid positioning.
-        /// </summary>
-        /// <param name="fullSize">Horizontal and/or vertical (or None)</param>
-        /// <returns>this</returns>
-        public VisualObject SetFullSize(FullSize fullSize)
-        {
-            if (Cell != null && fullSize != FullSize.None)
-            {
-                Parent.Grid[Cell.Column, Cell.Line] = null;
-                Cell = null;
-            }
-
-            Configuration.FullSize = fullSize;
-            return this;
-        }
+        public VisualObject SetWidthParentStretch() =>
+            SetWidthResizing(new InParentStretch());
 
         #endregion
-        #region LayoutSkip
+        #region SetHeightParentStretch
 
-        public VisualObject LayoutSkip(ushort value)
-        {
-            if (Configuration.Layout == null)
-                throw new Exception("Layout is not set for this object: " + FullName);
-
-            Configuration.Layout.Index = value;
-            return this;
-        }
+        public VisualObject SetHeightParentStretch() =>
+            SetHeightResizing(new InParentStretch());
 
         #endregion
-        #region LayoutOffset
+        #region SetWidthChildStretch
 
-        /// <summary>
-        /// Scrolling offset of layout. Used in ScrollBackground and ScrollBar.
-        /// </summary>
-        /// <param name="value">Indent value</param>
-        /// <returns>this</returns>
-        public VisualObject LayoutOffset(int value)
-        {
-            if (Configuration.Layout == null)
-                throw new Exception("Layout is not set for this object: " + FullName);
-
-            Configuration.Layout.LayoutOffset = value;
-            return this;
-        }
+        public VisualObject SetWidthChildStretch() =>
+            SetWidthResizing(new InChildStretch());
 
         #endregion
-        #region ToString
+        #region SetHeightChildStretch
 
-        public override string ToString() => FullName;
+        public VisualObject SetHeightChildStretch() =>
+            SetHeightResizing(new InChildStretch());
+
+        #endregion
+
+        // Positioning and resizing
+        #region AddToGrid
+
+        public VisualObject AddToGrid(VisualObject child, int column, int line,
+            bool widthResize = true, bool heightResize = true, int? layer = null)
+        {
+            if (this[column, line] is VisualObject old)
+                old.SetPositioning(null);
+
+            InGrid inGrid = new InGrid(column, line);
+            child.SetPositioning(inGrid);
+            if (widthResize)
+                child.SetWidthResizing(inGrid);
+            if (heightResize)
+                child.SetHeightResizing(inGrid);
+            return Add(child, layer);
+        }
 
         #endregion
 
         #region Pulse
 
-            /// <summary>
-            /// Send specified signal to all sub-tree including this node.
-            /// </summary>
-            /// <param name="type">Type of signal</param>
-            /// <returns>this</returns>
-            public virtual VisualObject Pulse(PulseType type)
-            {
-                // Pulse event handling related to this node
-                PulseThis(type);
+        /// <summary> Send specified signal to all sub-tree including this node. </summary>
+        /// <param name="type"> Type of signal </param>
+        /// <returns> this </returns>
+        public VisualObject Pulse(PulseType type)
+        {
+            if (TUI.PulseDebug)
+                TUI.Log($"PULSE {FullName}");
 
-                // Recursive Pulse call
-                PulseChild(type);
+            // Pulse event handling related to this node
+            PulseThis(type);
 
-                return this;
-            }
+            // Recursive Pulse call
+            PulseChild(type);
 
-            #region PulseThis
+            // Post pulse event handling related to this node
+            PostPulseThis(type);
 
-            /// <summary>
-            /// Send specified signal only to this node.
-            /// </summary>
-            /// <param name="type">Type of signal</param>
-            /// <returns>this</returns>
-            public VisualObject PulseThis(PulseType type)
+            return this;
+        }
+
+        #region PulseThis
+
+        /// <summary>
+        /// Send specified signal only to this node.
+        /// </summary>
+        /// <param name="type">Type of signal</param>
+        /// <returns>this</returns>
+        public VisualObject PulseThis(PulseType type)
+        {
+            try
             {
                 // Overridable pulse handling method
                 PulseThisNative(type);
 
                 // Custom pulse handler
                 Configuration.Custom.Pulse?.Invoke(this, type);
-                return this;
             }
-
-            #endregion
-            #region PulseThisNative
-
-            /// <summary>
-            /// Overridable function to handle pulse signal for this node.
-            /// </summary>
-            /// <param name="type"></param>
-            protected virtual void PulseThisNative(PulseType type)
+            catch (Exception e)
             {
-                switch (type)
-                {
-                    case PulseType.Reset:
-                        if (Configuration.Layout != null)
-                            LayoutOffset(0);
-                        break;
-                    case PulseType.PositionChanged:
-                        // Update position relative to Provider
-                        if (Root != null)
-                            (ProviderX, ProviderY) = ProviderXY();
-                        break;
-                }
+                TUI.HandleException(e);
             }
+            return this;
+        }
 
-            #endregion
-            #region PulseChild
+        #endregion
+        #region PulseThisNative
 
-            /// <summary>
-            /// Send specified signal to sub-tree without this node.
-            /// </summary>
-            /// <param name="type">Type of signal</param>
-            /// <returns>this</returns>
-            public VisualObject PulseChild(PulseType type)
+        /// <summary>
+        /// Overridable function to handle pulse signal for this node.
+        /// </summary>
+        /// <param name="type"></param>
+        protected virtual void PulseThisNative(PulseType type)
+        {
+            switch (type)
             {
-                foreach (VisualObject child in ChildrenFromTop)
-                    child.Pulse(type);
-                return this;
+                case PulseType.Reset:
+                    if (LayoutConfiguration != null)
+                        LayoutOffset(0);
+                    break;
+                case PulseType.SetXYWH:
+                    // Update position relative to Provider
+                    ProviderX = X + (Parent?.ProviderX ?? 0);
+                    ProviderY = Y + (Parent?.ProviderY ?? 0);
+                    break;
             }
+        }
 
-            #endregion
+        #endregion
+        #region PulseChild
+
+        /// <summary>
+        /// Send specified signal to sub-tree without this node.
+        /// </summary>
+        /// <param name="type">Type of signal</param>
+        /// <returns>this</returns>
+        public VisualObject PulseChild(PulseType type)
+        {
+            foreach (VisualObject child in ChildrenFromTop)
+                child.Pulse(type);
+            return this;
+        }
+
+        #endregion
+        #region PostPulseThis
+
+        public VisualObject PostPulseThis(PulseType type)
+        {
+            try
+            {
+                // Overridable pulse handling method
+                PostPulseThisNative(type);
+
+                // Custom pulse handler
+                Configuration.Custom.PostPulse?.Invoke(this, type);
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
+            }
+            return this;
+        }
+
+        #endregion
+        #region PostPulseThisNative
+
+        /// <summary>
+        /// Overridable function to handle post pulse signal for this node.
+        /// </summary>
+        /// <param name="type"></param>
+        protected virtual void PostPulseThisNative(PulseType type) { }
+
+        #endregion
 
         #endregion
         #region Update
 
-            /// <summary>
-            /// Updates the node and the child sub-tree.
-            /// </summary>
-            /// <returns>this</returns>
-            public VisualObject Update()
-            {
-                // Updates related to this node
-                UpdateThis();
+        /// <summary> Updates the node and the child sub-tree. </summary>
+        /// <returns> this </returns>
+        public VisualObject Update()
+        {
+            if (TUI.UpdateDebug)
+                TUI.Log($"UPDATE {FullName}");
 
-                // Updates related to child positioning
-                UpdateChildPositioning();
+            // Updates related to this node
+            UpdateThis();
 
-                // Recursive Update() call
-                UpdateChild();
+            // Recursive Update() call
+            UpdateChild();
 
-                // Updates related to this node and dependant on child updates
-                PostUpdateThis();
+            // Updates related to this node and dependant on child updates
+            PostUpdateThis();
 
-                return this;
-            }
+            return this;
+        }
 
-            #region UpdateThis
+        #region UpdateThis
 
-            /// <summary>
-            /// Updates related to this node only.
-            /// </summary>
-            /// <returns>this</returns>
-            public VisualObject UpdateThis()
+        /// <summary>
+        /// Updates related to this node only.
+        /// </summary>
+        /// <returns>this</returns>
+        private void UpdateThis()
+        {
+            try
             {
                 // Overridable update method
                 UpdateThisNative();
 
                 // Custom update callback
                 Configuration.Custom.Update?.Invoke(this);
-
-                return this;
             }
-
-            #endregion
-            #region UpdateThisNative
-
-            /// <summary>
-            /// Overridable method for updates related to this node. Don't change position/size in in this method.
-            /// </summary>
-            protected virtual void UpdateThisNative()
+            catch (Exception e)
             {
-                // Find Root node
-                if (Root == null)
-                    Root = GetRoot() as RootVisualObject;
-                // Update position relative to Provider
-                (ProviderX, ProviderY) = ProviderXY();
-                // Update apply tile bounds
-                UpdateBounds();
+                TUI.HandleException(e);
             }
+        }
 
-            #endregion
-            #region UpdateBounds
+        #endregion
+        #region UpdateThisNative
 
-            /// <summary>
-            /// Calculate Bounds for this node (intersection of Parent's layout indent/alignment indent and Parent's Bounds)
-            /// </summary>
-            protected void UpdateBounds()
+        /// <summary>
+        /// Overridable method for updates related to this node. Do not change position/size in in this method.
+        /// </summary>
+        protected virtual void UpdateThisNative()
+        {
+            // Update apply tile bounds
+            UpdateBounds();
+
+            UpdateChildrenPositionAndSize();
+        }
+
+        #endregion
+        #region UpdateChildrenPositionAndSize
+
+        protected virtual void UpdateChildrenPositionAndSize()
+        {
+            UpdateChildStretch();
+            UpdateParentStretch();
+            UpdateChildrenParentAlignment();
+            if (HasLayout)
+                UpdateLayout();
+            if (HasGrid)
+                UpdateGrid();
+        }
+
+        #endregion
+        #region UpdateChildStretch
+
+        private void UpdateChildStretch()
+        {
+            foreach (VisualObject child in Child)
+                if (child.HasChildStretch)
+                    child.ChildStretch();
+        }
+
+        #endregion
+        #region ChildStretch
+
+        protected void ChildStretch()
+        {
+            int width = 0;
+            int height = 0;
+            foreach (var child in Child)
             {
-                bool layoutBounds = Configuration.InLayout && Parent.Configuration.Layout.BoundsIsIndent;
-                bool alignmentBounds = Configuration.Alignment != null && Configuration.Alignment.BoundsIsIndent;
-                if (layoutBounds || alignmentBounds)
+                if (child.HasParentAlignment)
+                    throw new InvalidOperationException($"Attempt to ChildStretch while child has ParentAlignment: {FullName}");
+                if (HasWidthChildStretch && child.HasWidthParentStretch)
+                    throw new InvalidOperationException($"Attempt to WidthChildStretch while child has WidthParentStretch: {FullName}");
+                if (HasHeightChildStretch && child.HasHeightParentStretch)
+                    throw new InvalidOperationException($"Attempt to HeightChildStretch while child has HeightParentStretch: {FullName}");
+                width = Math.Max(width, child.X + child.Width);
+                height = Math.Max(height, child.Y + child.Height);
+            }
+            if (HasWidthChildStretch && HasHeightChildStretch)
+                SetWH(width, height, false);
+            else if (HasWidthChildStretch)
+                SetWH(width, Height, false);
+            else if (HasHeightChildStretch)
+                SetWH(Width, height, false);
+            throw new InvalidOperationException("Trying to ChildStretch object without setup");
+        }
+
+        #endregion
+        #region UpdateParentStretch
+
+        private void UpdateParentStretch()
+        {
+            foreach (VisualObject child in Child)
+            {
+                if (child.HasWidthParentStretch)
                 {
-                    ExternalIndent parentIndent = layoutBounds ? Parent.Configuration.Layout.Indent : Configuration.Alignment.Indent;
-                    Bounds = new ExternalIndent()
-                    {
-                        Left = Math.Max(0, parentIndent.Left - X),
-                        Up = Math.Max(0, parentIndent.Up - Y),
-                        Right = Math.Max(0, (X + Width) - (Parent.Width - parentIndent.Right)),
-                        Down = Math.Max(0, (Y + Height) - (Parent.Height - parentIndent.Down)),
-                    };
+                    if (HasWidthChildStretch)
+                        throw new InvalidOperationException($"Attempt to WidthParentStretch child while having WidthChildStretch: {FullName}");
+                    int width = Width;
+                    if (child.InLayout)
+                        width -= LayoutConfiguration.Indent.Left + LayoutConfiguration.Indent.Right;
+                    child.SetWH(width, child.Height, false);
                 }
-                else
-                    Bounds = new ExternalIndent(UIDefault.ExternalIndent);
-
-                // Intersecting bounds with parent's Bounds
-                if (Parent != null)
+                if (child.HasHeightParentStretch)
                 {
-                    ExternalIndent parentBounds = Parent.Bounds;
-                    if (parentBounds == null)
-                        return;
-                    Bounds = new ExternalIndent()
-                    {
-                        Left = Math.Max(Bounds.Left, parentBounds.Left - X),
-                        Up = Math.Max(Bounds.Up, parentBounds.Up - Y),
-                        Right = Math.Max(Bounds.Right, parentBounds.Right - (Parent.Width - (X + Width))),
-                        Down = Math.Max(Bounds.Down, parentBounds.Down - (Parent.Height - (Y + Height)))
-                    };
-                }
-            }
-
-            #endregion
-
-            #region UpdateChildPositioning
-
-            /// <summary>
-            /// First updates child sizes, then calculates child positions based on sizes (layout, grid, alignment).
-            /// </summary>
-            /// <returns>this</returns>
-            public VisualObject UpdateChildPositioning()
-            {
-                /////////////////////////// Child size updates ///////////////////////////
-                UpdateChildSize();
-
-                ///////////////////////// Child position updates /////////////////////////
-                // Update child objects with alignment
-                UpdateAlignment();
-                // Update child objects in layout
-                if (Configuration.Layout != null)
-                    UpdateLayout();
-                // Update child objects in grid
-                if (Configuration.Grid != null)
-                    UpdateGrid();
-
-                return this;
-            }
-
-            #endregion
-            #region UpdateChildSize
-
-            /// <summary>
-            /// Updates child sizes with call of overridable child.UpdateSizeNative()
-            /// </summary>
-            protected void UpdateChildSize()
-            {
-                foreach (VisualObject child in ChildrenFromTop)
-                {
-                    child.SetWH(child.UpdateSizeNative());
-                    if (child.Configuration.FullSize != FullSize.None)
-                        child.UpdateFullSize();
+                    if (HasHeightChildStretch)
+                        throw new InvalidOperationException($"Attempt to HeightParentStretch child while having HeightChildStretch: {FullName}");
+                    int height = Height;
+                    if (child.InLayout)
+                        height -= LayoutConfiguration.Indent.Up + LayoutConfiguration.Indent.Down;
+                    child.SetWH(child.Width, height, false);
                 }
             }
+        }
 
-            #endregion
-            #region UpdateSizeNative
+        #endregion
+        #region UpdateParentAlignment
 
-            /// <summary>
-            /// Overridable method for determining object size depending on own data (image/text/etc size)
-            /// </summary>
-            /// <returns></returns>
-            protected virtual (int, int) UpdateSizeNative() => (Width, Height);
+        private void UpdateChildrenParentAlignment()
+        {
+            foreach (var child in Child)
+                if (child.HasParentAlignment)
+                    child.ParentAlignment();
+        }
 
-            #endregion
-            #region UpdateFullSize
+        #endregion
+        #region ParentAlignment
 
-            /// <summary>
-            /// Updates this object size relative to Parent size if Configuration.FullSize is not None.
-            /// </summary>
-            protected void UpdateFullSize()
+        private void ParentAlignment()
+        {
+            if (Parent.HasChildStretch)
+                throw new InvalidOperationException($"Attempt to ParentAlignment while parent has ChildStretch: {FullName}");
+            InParentAlignment positioning = (InParentAlignment)Positioning;
+            ExternalIndent indent = positioning.Indent;
+            Alignment alignment = positioning.Alignment;
+            int x, y;
+            if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
+                x = indent.Left;
+            else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
+                x = Parent.Width - indent.Right - Width;
+            else
+                x = (int)Math.Floor((Parent.Width - indent.Left - indent.Right - Width) / 2f) + indent.Left;
+
+            if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
+                y = indent.Up;
+            else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
+                y = Parent.Height - indent.Down - Height;
+            else
+                y = (int)Math.Floor((Parent.Height - indent.Up - indent.Down - Height) / 2f) + indent.Up;
+
+            SetXY(x, y, false);
+        }
+
+        #endregion
+        #region UpdateLayout
+
+        private void UpdateLayout()
+        {
+            ExternalIndent indent = LayoutConfiguration.Indent;
+            Alignment alignment = LayoutConfiguration.Alignment;
+            Direction direction = LayoutConfiguration.Direction;
+            Side side = LayoutConfiguration.Side;
+            int offset = LayoutConfiguration.ChildOffset;
+            int layoutIndent = LayoutConfiguration.Offset;
+
+            (int abstractLayoutW, int abstractLayoutH, List<VisualObject> layoutChild) = CalculateLayoutSize(direction, offset);
+            if (layoutChild.Count == 0)
+                return;
+
+            // Calculating layout box position
+            int layoutX, layoutY, layoutW, layoutH;
+
+            // Initializing sx
+            if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
+                layoutX = indent.Left;
+            else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
+                layoutX = Width - indent.Right - abstractLayoutW;
+            else
+                layoutX = (Width - abstractLayoutW + 1) / 2;
+            layoutX = Math.Max(layoutX, indent.Left);
+            layoutW = Math.Min(abstractLayoutW, Width - indent.Left - indent.Right);
+
+            // Initializing sy
+            if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
+                layoutY = indent.Up;
+            else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
+                layoutY = Height - indent.Down - abstractLayoutH;
+            else
+                layoutY = (Height - abstractLayoutH + 1) / 2;
+            layoutY = Math.Max(layoutY, indent.Up);
+            layoutH = Math.Min(abstractLayoutH, Height - indent.Up - indent.Down);
+
+            // Updating cell objects padding
+            int cx = direction == Direction.Left
+                ? Math.Min(abstractLayoutW - layoutChild[0].Width, Width - layoutX - indent.Right - layoutChild[0].Width)
+                : 0;
+            int cy = direction == Direction.Up
+                ? Math.Min(abstractLayoutH - layoutChild[0].Height, Height - layoutY - indent.Down - layoutChild[0].Height)
+                : 0;
+
+            // Layout indent for smooth scrolling
+            if (direction == Direction.Right)
+                cx = cx - layoutIndent;
+            else if (direction == Direction.Left)
+                cx = cx + layoutIndent;
+            else if (direction == Direction.Down)
+                cy = cy - layoutIndent;
+            else if (direction == Direction.Up)
+                cy = cy + layoutIndent;
+
+            int k = 0;
+            for (; k < layoutChild.Count; k++)
             {
-                FullSize fullSize = Configuration.FullSize;
-                // If child is in layout then FullSize should match parent size minus layout indent.
-                // If Alignment is set then FullSize should match parent size minus alignment indent.
-                ExternalIndent indent = Configuration.InLayout
-                    ? Parent.Configuration.Layout.Indent
-                    : Configuration.Alignment != null
-                        ? Configuration.Alignment.Indent
-                        : UIDefault.ExternalIndent;
-
-                int newX = indent.Left;
-                int newY = indent.Up;
-                int newWidth = Parent.Width - newX - indent.Right;
-                int newHeight = Parent.Height - newY - indent.Down;
-
-                if (fullSize == FullSize.Both)
-                    SetXYWH(newX, newY, newWidth, newHeight);
-                else if (fullSize == FullSize.Horizontal)
-                    SetXYWH(newX, Y, newWidth, Height);
-                else if (fullSize == FullSize.Vertical)
-                    SetXYWH(X, newY, Width, newHeight);
-            }
-
-            #endregion
-            #region UpdateAlignment
-
-            /// <summary>
-            /// Sets position of child objects with set Configuration.Alignment
-            /// </summary>
-            protected void UpdateAlignment()
-            {
-                foreach (VisualObject child in ChildrenFromTop)
+                // Calculating side alignment
+                VisualObject child = layoutChild[k];
+                int sideDeltaX = 0, sideDeltaY = 0;
+                if (direction == Direction.Left)
                 {
-                    AlignmentConfiguration positioning = child.Configuration.Alignment;
-                    if (positioning  == null)
-                        continue;
-
-                    ExternalIndent indent = positioning.Indent ?? UIDefault.ExternalIndent;
-                    Alignment alignment = positioning.Alignment;
-                    int x, y;
-                    if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
-                        x = indent.Left;
-                    else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
-                        x = Width - indent.Right - child.Width;
-                    else
-                        x = (int)Math.Floor((Width - child.Width) / 2f);
-
-                    if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
-                        y = indent.Up;
-                    else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
-                        y = Height - indent.Down - child.Height;
-                    else
-                        y = (int)Math.Floor((Height - child.Height) / 2f);
-
-                    child.SetXY(x, y);
+                    if (side == Side.Left)
+                        sideDeltaY = abstractLayoutH - child.Height;
+                    else if (side == Side.Center)
+                        sideDeltaY = (abstractLayoutH - child.Height) / 2;
                 }
-            }
-
-            #endregion
-            #region UpdateLayout
-
-            /// <summary>
-            /// Set position for children in layout
-            /// </summary>
-            protected void UpdateLayout()
-            {
-                ExternalIndent indent = Configuration.Layout.Indent;
-                Alignment alignment = Configuration.Layout.Alignment;
-                Direction direction = Configuration.Layout.Direction;
-                Side side = Configuration.Layout.Side;
-                int offset = Configuration.Layout.ChildOffset;
-                int layoutIndent = Configuration.Layout.LayoutOffset;
-
-                (int abstractLayoutW, int abstractLayoutH, List<VisualObject> layoutChild) = CalculateLayoutSize(direction, offset);
-                Configuration.Layout.Objects = layoutChild;
-                for (int i = 0; i < Configuration.Layout.Index; i++)
-                    layoutChild[i].Visible = false;
-                if (layoutChild.Count - Configuration.Layout.Index <= 0)
-                    return;
-                layoutChild = layoutChild.Skip(Configuration.Layout.Index).ToList();
-
-                // Calculating layout box position
-                int layoutX, layoutY, layoutW, layoutH;
-
-                // Initializing sx
-                if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
-                    layoutX = indent.Left;
-                else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
-                    layoutX = Width - indent.Right - abstractLayoutW;
-                else
-                    layoutX = (Width - abstractLayoutW + 1) / 2;
-                layoutX = Math.Max(layoutX, indent.Left);
-                layoutW = Math.Min(abstractLayoutW, Width - indent.Left - indent.Right);
-
-                // Initializing sy
-                if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
-                    layoutY = indent.Up;
-                else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
-                    layoutY = Height - indent.Down - abstractLayoutH;
-                else
-                    layoutY = (Height - abstractLayoutH + 1) / 2;
-                layoutY = Math.Max(layoutY, indent.Up);
-                layoutH = Math.Min(abstractLayoutH, Height - indent.Up - indent.Down);
-
-                // Updating cell objects padding
-                int cx = direction == Direction.Left
-                    ? Math.Min(abstractLayoutW - layoutChild[0].Width, Width - layoutX - indent.Right - layoutChild[0].Width)
-                    : 0;
-                int cy = direction == Direction.Up
-                    ? Math.Min(abstractLayoutH - layoutChild[0].Height, Height - layoutY - indent.Down - layoutChild[0].Height)
-                    : 0;
-
-                // Layout indent for smooth scrolling
-                if (direction == Direction.Right)
-                    cx = cx - layoutIndent;
-                else if (direction == Direction.Left)
-                    cx = cx + layoutIndent;
-                else if (direction == Direction.Down)
-                    cy = cy - layoutIndent;
+                else if (direction == Direction.Right)
+                {
+                    if (side == Side.Right)
+                        sideDeltaY = abstractLayoutH - child.Height;
+                    else if (side == Side.Center)
+                        sideDeltaY = (abstractLayoutH - child.Height) / 2;
+                }
                 else if (direction == Direction.Up)
-                    cy = cy + layoutIndent;
-
-                int k = 0;
-                for (; k < layoutChild.Count; k++)
                 {
-                    // Calculating side alignment
-                    VisualObject child = layoutChild[k];
-                    int sideDeltaX = 0, sideDeltaY = 0;
-                    if (direction == Direction.Left)
-                    {
-                        if (side == Side.Left)
-                            sideDeltaY = abstractLayoutH - child.Height;
-                        else if (side == Side.Center)
-                            sideDeltaY = (abstractLayoutH - child.Height) / 2;
-                    }
-                    else if (direction == Direction.Right)
-                    {
-                        if (side == Side.Right)
-                            sideDeltaY = abstractLayoutH - child.Height;
-                        else if (side == Side.Center)
-                            sideDeltaY = (abstractLayoutH - child.Height) / 2;
-                    }
-                    else if (direction == Direction.Up)
-                    {
-                        if (side == Side.Right)
-                            sideDeltaX = abstractLayoutW - child.Width;
-                        else if (side == Side.Center)
-                            sideDeltaX = (abstractLayoutW - child.Width) / 2;
-                    }
-                    else if (direction == Direction.Down)
-                    {
-                        if (side == Side.Left)
-                            sideDeltaX = abstractLayoutW - child.Width;
-                        else if (side == Side.Center)
-                            sideDeltaX = (abstractLayoutW - child.Width) / 2;
-                    }
-
-                    int resultX = layoutX + cx + sideDeltaX;
-                    int resultY = layoutY + cy + sideDeltaY;
-                    //Console.WriteLine($"{Width}, {Height}: {resultX}, {resultY}, {resultX + child.Width - 1}, {resultY + child.Height - 1}");
-                    //child.Visible = LayoutContains(resultX, resultY, indent)
-                    //    && LayoutContains(resultX + child.Width - 1, resultY + child.Height - 1, indent);
-                    if (Configuration.Layout.BoundsIsIndent)
-                        child.Visible = Intersecting(resultX, resultY, child.Width, child.Height, indent.Left, indent.Up,
-                            Width - indent.Right - indent.Left, Height - indent.Down - indent.Up);
-                    else
-                        child.Visible = Intersecting(resultX, resultY, child.Width, child.Height, 0, 0, Width, Height);
-
-                    child.SetXY(resultX, resultY);
-                    //Console.WriteLine($"Layout: {child.FullName}, {child.XYWH()}");
-
-                    if (k == layoutChild.Count - 1)
-                        break;
-
-                    if (direction == Direction.Right)
-                        cx = cx + offset + child.Width;
-                    else if (direction == Direction.Left)
-                        cx = cx - offset - layoutChild[k + 1].Width;
-                    else if (direction == Direction.Down)
-                        cy = cy + offset + child.Height;
-                    else if (direction == Direction.Up)
-                        cy = cy - offset - layoutChild[k + 1].Height;
+                    if (side == Side.Right)
+                        sideDeltaX = abstractLayoutW - child.Width;
+                    else if (side == Side.Center)
+                        sideDeltaX = (abstractLayoutW - child.Width) / 2;
+                }
+                else if (direction == Direction.Down)
+                {
+                    if (side == Side.Left)
+                        sideDeltaX = abstractLayoutW - child.Width;
+                    else if (side == Side.Center)
+                        sideDeltaX = (abstractLayoutW - child.Width) / 2;
                 }
 
+                int resultX = layoutX + cx + sideDeltaX;
+                int resultY = layoutY + cy + sideDeltaY;
+
+                child.SetXY(resultX, resultY, false);
+
+                if (k == layoutChild.Count - 1)
+                    break;
+
+                if (direction == Direction.Right)
+                    cx = cx + offset + child.Width;
+                else if (direction == Direction.Left)
+                    cx = cx - offset - layoutChild[k + 1].Width;
+                else if (direction == Direction.Down)
+                    cy = cy + offset + child.Height;
+                else if (direction == Direction.Up)
+                    cy = cy - offset - layoutChild[k + 1].Height;
+            }
+
+            if (direction == Direction.Left || direction == Direction.Right)
+                LayoutConfiguration.OffsetLimit = abstractLayoutW - layoutW;
+            else if (direction == Direction.Up || direction == Direction.Down)
+                LayoutConfiguration.OffsetLimit = abstractLayoutH - layoutH;
+        }
+
+        #endregion
+        #region CalculateLayoutSize
+
+        private (int absoluteLayoutW, int absoluteLayoutH, List<VisualObject> objects) CalculateLayoutSize(
+            Direction direction, int offset)
+        {
+            // Calculating total objects width and height
+            int totalW = 0, totalH = 0;
+            List<VisualObject> layoutChild = new List<VisualObject>();
+            foreach (VisualObject child in ChildrenFromBottom)
+            {
+                if (!child.Enabled || !child.InLayout)
+                    //|| (fullSize == FullSize.Horizontal && (direction == Direction.Left || direction == Direction.Right))
+                    //|| (fullSize == FullSize.Vertical && (direction == Direction.Up || direction == Direction.Down)))
+                    continue;
+
+                layoutChild.Add(child);
                 if (direction == Direction.Left || direction == Direction.Right)
-                    Configuration.Layout.OffsetLimit = abstractLayoutW - layoutW;
+                {
+                    if (child.Height > totalH)
+                        totalH = child.Height;
+                    totalW += child.Width + offset;
+                }
                 else if (direction == Direction.Up || direction == Direction.Down)
-                    Configuration.Layout.OffsetLimit = abstractLayoutH - layoutH;
-            }
-
-            #endregion
-            #region CalculateLayoutSize
-
-            private (int absoluteLayoutW, int absoluteLayoutH, List<VisualObject> objects) CalculateLayoutSize(
-                Direction direction, int offset)
-            {
-                // Calculating total objects width and height
-                int totalW = 0, totalH = 0;
-                List<VisualObject> layoutChild = new List<VisualObject>();
-                foreach (VisualObject child in ChildrenFromBottom)
                 {
-                    FullSize fullSize = child.Configuration.FullSize;
-                    if (!child.Enabled || !child.Configuration.InLayout || fullSize == FullSize.Both)
-                            //|| (fullSize == FullSize.Horizontal && (direction == Direction.Left || direction == Direction.Right))
-                            //|| (fullSize == FullSize.Vertical && (direction == Direction.Up || direction == Direction.Down)))
-                        continue;
-
-                    layoutChild.Add(child);
-                    if (direction == Direction.Left || direction == Direction.Right)
-                    {
-                        if (child.Height > totalH)
-                            totalH = child.Height;
-                        totalW += child.Width + offset;
-                    }
-                    else if (direction == Direction.Up || direction == Direction.Down)
-                    {
-                        if (child.Width > totalW)
-                            totalW = child.Width;
-                        totalH += child.Height + offset;
-                    }
-                }
-                if ((direction == Direction.Left || direction == Direction.Right) && totalW > 0)
-                    totalW -= offset;
-                if ((direction == Direction.Up || direction == Direction.Down) && totalH > 0)
-                    totalH -= offset;
-
-                return (totalW, totalH, layoutChild);
-            }
-
-            #endregion
-            #region Intersecting
-
-            public bool Intersecting(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2) =>
-                x1 < x2 + w2 && y1 < y2 + h2 && x2 < x1 + w1 && y2 < y1 + h1;
-
-            //public virtual bool LayoutContains(int x, int y, ExternalIndent indent) =>
-                //x >= indent.Left && y >= indent.Up && x < Width - indent.Right && y < Height - indent.Down;
-
-            #endregion
-            #region UpdateGrid
-
-            /// <summary>
-            /// Sets position for children in grid
-            /// </summary>
-            protected void UpdateGrid()
-            {
-                CalculateGridSizes();
-
-                // Main cell loop
-                ISize[] columnSizes = Configuration.Grid.Columns;
-                ISize[] lineSizes = Configuration.Grid.Lines;
-                
-                for (int i = 0; i < columnSizes.Length; i++)
-                {
-                    (int columnX, int columnSize) = Configuration.Grid.ResultingColumns[i];
-                    for (int j = 0; j < lineSizes.Length; j++)
-                    {
-                        (int lineX, int lineSize) = Configuration.Grid.ResultingLines[j];
-                        Grid[i, j]?.SetXYWH(columnX, lineX, columnSize, lineSize);
-                        //Console.WriteLine($"Grid: {cell.FullName}, {cell.XYWH()}");
-                    }
+                    if (child.Width > totalW)
+                        totalW = child.Width;
+                    totalH += child.Height + offset;
                 }
             }
+            if ((direction == Direction.Left || direction == Direction.Right) && totalW > 0)
+                totalW -= offset;
+            if ((direction == Direction.Up || direction == Direction.Down) && totalH > 0)
+                totalH -= offset;
 
-            #endregion
-            #region CalculateGridSizes
+            return (totalW, totalH, layoutChild);
+        }
 
-            public void CalculateGridSizes()
+        #endregion
+        #region UpdateGrid
+
+        private void UpdateGrid()
+        {
+            Indent indent = GridConfiguration.Indent;
+            ISize[] columnSizes = GridConfiguration.Columns;
+            ISize[] lineSizes = GridConfiguration.Lines;
+            CalculateSizes(columnSizes, Width, indent.Left, indent.Horizontal, indent.Right,
+                ref GridConfiguration.ResultingColumns, ref GridConfiguration.MinWidth, true);
+            CalculateSizes(lineSizes, Height, indent.Up, indent.Vertical, indent.Down,
+                ref GridConfiguration.ResultingLines, ref GridConfiguration.MinHeight, false);
+
+            // Main cell loop
+            for (int i = 0; i < columnSizes.Length; i++)
             {
-                Indent indent = Configuration.Grid.Indent ?? UIDefault.Indent;
-                CalculateSizes(Configuration.Grid.Columns, Width, indent.Left, indent.Horizontal, indent.Right,
-                    ref Configuration.Grid.ResultingColumns, ref Configuration.Grid.MinWidth, "width");
-                CalculateSizes(Configuration.Grid.Lines, Height, indent.Up, indent.Vertical, indent.Down,
-                    ref Configuration.Grid.ResultingLines, ref Configuration.Grid.MinHeight, "height");
-            }
-
-            #endregion
-            #region CalculateSizes
-
-            private void CalculateSizes(ISize[] sizes, int absoluteSize, int startIndent, int middleIndent, int endIndent, ref (int Position, int Size)[] resulting, ref int minSize, string sizeName)
-            {
-                // Initializing min size
-                minSize = startIndent + endIndent;
-                int defaultMinSize = minSize;
-
-                // Initializing resulting array
-                resulting = new (int, int)[sizes.Length];
-
-                // First calculating absolute and relative sum
-                int absoluteSum = 0, relativeSum = 0;
-                int notZeroSizes = 0;
-                for (int i = 0; i < sizes.Length; i++)
+                (int columnX, int columnSize) = GridConfiguration.ResultingColumns[i];
+                if (columnSizes[i].IsDynamic)
+                    columnSize = -1;
+                for (int j = 0; j < lineSizes.Length; j++)
                 {
-                    ISize size = sizes[i];
-                    int value = size.Value;
+                    (int lineY, int lineSize) = GridConfiguration.ResultingLines[j];
+                    if (lineSizes[j].IsDynamic)
+                        lineSize = -1;
+                    if (this[i, j] is VisualObject cell)
+                        cell.SetXYWH(columnX, lineY,
+                            columnSize >= 0 && cell.Positioning == cell.WidthResizing ? columnSize : cell.Width,
+                            lineSize >= 0 && cell.Positioning == cell.HeightResizing ? lineSize : cell.Height, false);
+                }
+            }
+        }
+
+        #endregion
+        #region CalculateSizes
+
+        private void CalculateSizes(ISize[] sizes, int absoluteSize, int startIndent, int middleIndent, int endIndent, ref (int Position, int Size)[] resulting, ref int minSize, bool isWidth)
+        {
+            // Initializing resulting array
+            resulting = new (int, int)[sizes.Length];
+
+            // First calculating absolute, relative sums and the number of non-zero sizes
+            int absoluteSum = 0;
+            int relativeSum = 0;
+            int notZeroSizes = 0;
+            for (int i = 0; i < sizes.Length; i++)
+            {
+                int value;
+                ISize size = sizes[i];
+                if (size.IsDynamic)
+                {
+                    int max = 0;
+                    if (isWidth)
+                        for (int line = 0; line < GridConfiguration.Lines.Count(); line++)
+                            max = Math.Max(max, this[i, line]?.Width ?? 0);
+                    else
+                        for (int column = 0; column < GridConfiguration.Columns.Count(); column++)
+                            max = Math.Max(max, this[column, i]?.Height ?? 0);
+                    value = max;
+                    ((Dynamic)size).Value = value;
+                    absoluteSum += value;
+                }
+                else
+                {
+                    value = size.Value;
                     if (size.IsAbsolute)
                         absoluteSum += value;
                     else
                         relativeSum += value;
-                    if (value > 0)
-                        notZeroSizes++;
                 }
-                if (absoluteSum > absoluteSize)
-                    throw new ArgumentException($"{FullName} (UpdateGrid): absolute {sizeName} is more than object {sizeName}: {FullName}");
-                if (relativeSum > 100)
-                    throw new ArgumentException($"{FullName} (UpdateGrid): relative {sizeName} is more than 100: {FullName}");
-
-                // Now calculating actual column/line sizes
-                int relativeSize = absoluteSize - absoluteSum - middleIndent * (notZeroSizes - 1) - startIndent - endIndent;
-                // ???
-                if (relativeSize < 0)
-                    relativeSize = 0;
-                int relativeSizeUsed = 0;
-                List<(int, float)> descendingFractionalPart = new List<(int, float)>();
-                int sizeCounter = startIndent;
-                for (int i = 0; i < sizes.Length; i++)
-                {
-                    ISize size = sizes[i];
-                    float sizeValue = size.IsAbsolute
-                        ? size.Value
-                        : size.Value * relativeSize / 100f;
-                    int realSize = (int)Math.Floor(sizeValue);
-                    resulting[i] = (0, realSize);
-
-                    if (realSize == 0)
-                        continue;
-
-                    if (size.IsRelative)
-                    {
-                        relativeSizeUsed += realSize;
-                        InsertSort(descendingFractionalPart, i, sizeValue);
-                    }
-                    else
-                        minSize += realSize + middleIndent;
-                    sizeCounter += realSize + middleIndent;
-                }
-                if (minSize > defaultMinSize)
-                    minSize -= middleIndent;
-                if (minSize == 0)
-                    minSize = 1;
-
-                // There could be some unused relative size left since we are calculating relative size with Math.Floor
-                // Adding +1 to relative sizes with the largest fractional parts.
-                int j = 0;
-                int sizeLeft = relativeSize - relativeSizeUsed;
-                while (sizeLeft > 0 && j < descendingFractionalPart.Count)
-                {
-                    resulting[descendingFractionalPart[j++].Item1].Size++;
-                    sizeLeft--;
-                }
-
-                // Here the sizes are already calculated finally. Calculating positions.
-                sizeCounter = startIndent;
-                for (int i = 0; i < sizes.Length; i++)
-                {
-                    int columnSize = resulting[i].Size;
-                    resulting[i].Position = sizeCounter;
-                    if (columnSize != 0)
-                        sizeCounter += columnSize + middleIndent;
-                }
+                if (value > 0)
+                    notZeroSizes++;
             }
+            // Every non-zero size pair means that the middleIndent between them is a must have
+            minSize = startIndent + (notZeroSizes - 1) * middleIndent + endIndent;
 
-            #endregion
-            #region InsertSort
-
-            private void InsertSort(List<(int, float)> list, int index, float value)
+            // Checking if absolute sizes sum is not more than object allowed size
+            int absoluteSpace = absoluteSize - minSize;
+            if (absoluteSpace < absoluteSum)
             {
-                value -= (float)Math.Floor(value);
-                for (int i = 0; i < list.Count; i++)
-                    if (list[i].Item2 < value)
-                    {
-                        list.Insert(i, (index, value));
-                        return;
-                    }
-                list.Add((index, value));
+                string sizeName = isWidth ? "width" : "height";
+                throw new ArgumentException(
+                    $"{FullName} (UpdateGrid): absolute {sizeName} ({absoluteSum}) is more than {sizeName} allowed space ({absoluteSpace}), (object {sizeName}: {absoluteSize}): {FullName}");
             }
-
-            #endregion
-
-            #region UpdateChild
-
-            /// <summary>
-            /// Updates all Enabled child objects (sub-tree without this node).
-            /// </summary>
-            /// <returns>this</returns>
-            public VisualObject UpdateChild()
+            // Checking if relative sizes sum is not more than 100%
+            if (relativeSum > 100)
             {
-                foreach (VisualObject child in ChildrenFromTop)
-                    if (child.Enabled)
-                        child.Update();
-                return this;
+                string sizeName = isWidth ? "width" : "height";
+                throw new ArgumentException(
+                    $"{FullName} (UpdateGrid): relative {sizeName} ({relativeSum}) is more than 100: {FullName}");
             }
 
-            #endregion
+            // Now calculating actual column/line sizes
+            int relativeSpace = absoluteSpace - absoluteSum;
+            int relativeSpaceUsed = 0;
+            List<(int, float)> descendingFractionalPart = new List<(int, float)>();
+            for (int i = 0; i < sizes.Length; i++)
+            {
+                ISize size = sizes[i];
+                if (size.Value == 0)
+                    continue;
 
-            #region PostUpdateThis
+                int realSize;
+                if (size.IsRelative)
+                {
+                    realSize = (int)Math.Floor(size.Value * relativeSpace / 100f);
+                    relativeSpaceUsed += realSize;
+                    InsertSort(descendingFractionalPart, i, size.Value * relativeSpace / 100f);
+                }
+                else
+                {
+                    realSize = size.Value;
+                    minSize += realSize;
+                    if (i < sizes.Length - 1)
+                        minSize += middleIndent;
+                }
 
-            /// <summary>
-            /// Updates related to this node and dependant on child updates. Executes after calling Update() on each child.
-            /// </summary>
-            /// <returns></returns>
-            public VisualObject PostUpdateThis()
+                resulting[i] = (0, realSize);
+            }
+
+            // Now we have a final minSize
+            if (minSize < 1)
+                minSize = 1;
+
+            // There could be some unused relative size left since we are calculating relative size with Math.Floor
+            // Adding +1 to relative sizes with the largest fractional parts
+            int j = 0;
+            int sizeLeft = relativeSpace - relativeSpaceUsed;
+            while (sizeLeft > 0)
+            {
+                resulting[descendingFractionalPart[j++].Item1].Size++;
+                if (j >= descendingFractionalPart.Count - 1)
+                    j = 0;
+                sizeLeft--;
+            }
+
+            // Here the sizes are already calculated finally, calculating positions
+            int sizeCounter = startIndent;
+            for (int i = 0; i < sizes.Length; i++)
+            {
+                resulting[i].Position = sizeCounter;
+                int columnSize = resulting[i].Size;
+                if (columnSize > 0)
+                    sizeCounter += columnSize + middleIndent;
+            }
+        }
+
+        #endregion
+        #region InsertSort
+
+        private void InsertSort(List<(int, float)> list, int index, float value)
+        {
+            value -= (float)Math.Floor(value);
+            for (int i = 0; i < list.Count; i++)
+                if (list[i].Item2 < value)
+                {
+                    list.Insert(i, (index, value));
+                    return;
+                }
+            list.Add((index, value));
+        }
+
+        #endregion
+        #region UpdateBounds
+
+        /// <summary>
+        /// Calculate Bounds for this node (intersection of Parent's layout indent/alignment indent and Parent's Bounds)
+        /// </summary>
+        private void UpdateBounds()
+        {
+            // Intersecting bounds with parent's Bounds
+            ExternalIndent bounds = new ExternalIndent() { Left = 0, Up = 0, Right = Width - 1, Down = Height - 1 };
+            int deltaX = X;
+            int deltaY = Y;
+            for (VisualObject node = Parent; node != null; node = node.Parent)
+            {
+                ExternalIndent pBounds = node.Bounds;
+                if (node.Enabled && Intersect(bounds.Left, bounds.Up, bounds.Right - bounds.Left + 1, bounds.Down - bounds.Up + 1,
+                    pBounds.Left - deltaX, pBounds.Up - deltaY, pBounds.Right - pBounds.Left + 1, pBounds.Down - pBounds.Up + 1,
+                    out int x, out int y, out int width, out int height))
+                {
+                    bounds.Left = x;
+                    bounds.Up = y;
+                    bounds.Right = x + width - 1;
+                    bounds.Down = y + height - 1;
+                }
+                else
+                {
+                    bounds.Left = 0;
+                    bounds.Up = 0;
+                    bounds.Right = -1;
+                    bounds.Down = -1;
+                    Visible = false;
+                    return;
+                }
+                deltaX += node.X;
+                deltaY += node.Y;
+            }
+            Bounds = bounds;
+            Visible = true;
+        }
+
+        #endregion
+        #region Intersect
+
+        //public static bool Intersecting(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2) =>
+        //x1 < x2 + w2 && y1 < y2 + h2 && x2 < x1 + w1 && y2 < y1 + h1;
+
+        public static bool Intersect(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2, out int x3, out int y3, out int w3, out int h3)
+        {
+            x3 = Math.Max(x1, x2);
+            y3 = Math.Max(y1, y2);
+            w3 = Math.Min(x1 + w1, x2 + w2) - x3;
+            h3 = Math.Min(y1 + h1, y2 + h2) - y3;
+            return w3 > 0 && h3 > 0;
+        }
+
+        #endregion
+
+        #region UpdateChild
+
+        /// <summary>
+        /// Updates all Enabled child objects (sub-tree without this node).
+        /// </summary>
+        /// <returns>this</returns>
+        private void UpdateChild()
+        {
+            foreach (VisualObject child in ChildrenFromTop)
+                if (child.Enabled)
+                    child.Update();
+        }
+
+        #endregion
+
+        #region PostUpdateThis
+
+        /// <summary>
+        /// Updates related to this node and dependant on child updates. Executes after calling Update() on each child.
+        /// </summary>
+        /// <returns></returns>
+        private void PostUpdateThis()
+        {
+            try
             {
                 PostUpdateThisNative();
-                return this;
+                Configuration.Custom.PostUpdate?.Invoke(this);
             }
-
-            #endregion
-            #region PostUpdateThisNative
-
-            /// <summary>
-            /// Overridable method for updates related to this node and dependant on child updates.
-            /// </summary>
-            protected virtual void PostUpdateThisNative()
+            catch (Exception e)
             {
-                if (Configuration.Grid != null)
-                    lock (Child)
-                    {
-                        Configuration.Grid.MinWidth = Math.Max(Configuration.Grid.MinWidth, Child.Max(o => o.Configuration.Grid?.MinWidth) ?? 1);
-                        Configuration.Grid.MinHeight = Math.Max(Configuration.Grid.MinHeight, Child.Max(o => o.Configuration.Grid?.MinHeight) ?? 1);
-                    }
+                TUI.HandleException(e);
             }
+        }
 
-            #endregion
+        #endregion
+        #region PostUpdateThisNative
+
+        /// <summary>
+        /// Overridable method for updates related to this node and dependant on child updates.
+        /// </summary>
+        protected virtual void PostUpdateThisNative() { }
+
+        #endregion
 
         #endregion
         #region Apply
 
-            /// <summary>
-            /// Draws everything related to this VisualObject incluing all child sub-tree (directly changes tiles on tile provider).
-            /// </summary>
-            /// <returns>this</returns>
-            public VisualObject Apply()
+        /// <summary>
+        /// Draws everything related to this VisualObject incluing all child sub-tree (directly changes tiles on tile provider).
+        /// </summary>
+        /// <returns>this</returns>
+        public VisualObject Apply()
+        {
+            if (TUI.ApplyDebug)
+                TUI.Log($"APPLY {FullName}");
+
+            lock (ApplyLocker)
             {
-#if DEBUG
-                if (!CalculateActive())
-                    throw new InvalidOperationException("Trying to call Apply() an not active object.");
-#endif
+                if (!IsActive)
+                    throw new InvalidOperationException($"Applying inactive object: {FullName}");
 
-                lock (Locker)
-                {
-                    // Applying related to this node
-                    ApplyThis();
+                // Applying related to this node
+                ApplyThis();
 
-                    // Recursive Apply call
-                    ApplyChild();
-                }
+                // Recursive Apply call
+                ApplyChild();
 
-                return this;
+                // Post applying related to this node
+                PostApplyThis();
+
+                // Mark changes to be drawn
+                RequestDrawChanges();
             }
 
-            #region ApplyThis
+            return this;
+        }
 
-            /// <summary>
-            /// Draws everything related to this particular VisualObject. Doesn't include drawing child objects.
-            /// </summary>
-            /// <returns>this</returns>
-            public VisualObject ApplyThis()
+        #region ApplyThis
+
+        /// <summary>
+        /// Draws everything related to this particular VisualObject. Doesn't include drawing child objects.
+        /// </summary>
+        /// <returns>this</returns>
+        private void ApplyThis()
+        {
+            try
             {
-                lock (Locker)
-                {
-                    // Overridable apply function
-                    ApplyThisNative();
+                // Overridable apply function
+                ApplyThisNative();
 
-                    // Custom apply callback
-                    Configuration.Custom.Apply?.Invoke(this);
-                }
-                return this;
+                // Custom apply callback
+                Configuration.Custom.Apply?.Invoke(this);
             }
-
-            #endregion
-            #region ApplyThisNative
-
-            /// <summary>
-            /// Overridable method for apply related to this node. By default draws tiles and/or walls.
-            /// </summary>
-            protected virtual void ApplyThisNative() => ApplyTiles();
-
-            #endregion
-            #region ApplyTiles
-
-            /// <summary>
-            /// Apply tiles and walls for this node.
-            /// </summary>
-            /// <returns>this</returns>
-            public VisualObject ApplyTiles()
+            catch (Exception e)
             {
-                lock (Locker)
-                {
-                    if (Style.Active == null && Style.InActive == null && Style.Tile == null && Style.TileColor == null
-                            && Style.Wall == null && Style.WallColor == null)
-                        return this;
-
-                    foreach ((int x, int y) in Points)
-                        ApplyTile(x, y);
-                }
-                return this;
+                TUI.HandleException(e);
             }
-
-            #endregion
-            #region ApplyTile
-
-            /// <summary>
-            /// Overridable method for applying particular tile in <see cref="ApplyTiles"/>.
-            /// </summary>
-            /// <param name="x">X coordinate related to this node</param>
-            /// <param name="y">Y coordinate related to this node</param>
-            protected virtual void ApplyTile(int x, int y)
-            {
-                dynamic tile = Tile(x, y);
-                if (tile == null)
-                    return;
-                if (Style.Active != null)
-                    tile.active(Style.Active.Value);
-                else if (Style.Tile != null)
-                    tile.active(true);
-                else if (Style.Wall != null)
-                    tile.active(false);
-                if (Style.InActive != null)
-                    tile.inActive(Style.InActive.Value);
-                if (Style.Tile != null)
-                    tile.type = Style.Tile.Value;
-                if (Style.TileColor != null)
-                    tile.color(Style.TileColor.Value);
-                if (Style.Wall != null)
-                    tile.wall = Style.Wall.Value;
-                if (Style.WallColor != null)
-                    tile.wallColor(Style.WallColor.Value);
-            }
-
-            #endregion
-            #region ApplyChild
-
-            /// <summary>
-            /// Apply sub-tree without applying this node.
-            /// </summary>
-            /// <returns>this</returns>
-            public VisualObject ApplyChild()
-            {
-                lock (Locker)
-                {
-                    bool forceSection = ForceSection;
-                    foreach (VisualObject child in ChildrenFromBottom)
-                        if (child.Active)
-                        {
-                            child.Apply();
-                            forceSection = forceSection || child.ForceSection;
-                        }
-                    ForceSection = forceSection;
-                }
-                return this;
-            }
+        }
 
         #endregion
+        #region ApplyThisNative
+
+        /// <summary>
+        /// Overridable method for apply related to this node. By default draws tiles and/or walls.
+        /// </summary>
+        protected virtual void ApplyThisNative() => ApplyTiles();
+
+        #endregion
+        #region ApplyTiles
+
+        private void ApplyTiles()
+        {
+            // Default style tile changes
+            if (!Style.CustomApplyTile && Style.Active == null && Style.InActive == null
+                    && Style.Tile == null && Style.TileColor == null && Style.Wall == null
+                    && Style.WallColor == null)
+                return;
+
+            foreach ((int x, int y) in Points)
+            {
+                dynamic tile = Tile(x, y);
+                if (tile != null)
+                    ApplyTile(x, y, tile);
+            }
+        }
+
+        #endregion
+        #region ApplyTile
+
+        /// <summary>
+        /// Overridable method for applying particular tile in <see cref="ApplyTiles"/>.
+        /// </summary>
+        /// <param name="x">X coordinate related to this node</param>
+        /// <param name="y">Y coordinate related to this node</param>
+        protected virtual void ApplyTile(int x, int y, dynamic tile)
+        {
+            if (Style.Active.HasValue)
+                tile.active(Style.Active.Value);
+            else if (Style.Tile.HasValue)
+                tile.active(true);
+            else if (Style.Wall.HasValue)
+                tile.active(false);
+            if (Style.InActive.HasValue)
+                tile.inActive(Style.InActive.Value);
+            if (Style.Tile.HasValue)
+                tile.type = Style.Tile.Value;
+            if (Style.TileColor.HasValue)
+                tile.color(Style.TileColor.Value);
+            if (Style.Wall.HasValue)
+                tile.wall = Style.Wall.Value;
+            if (Style.WallColor.HasValue)
+                tile.wallColor(Style.WallColor.Value);
+        }
+
+        #endregion
+        #region ApplyChild
+
+        /// <summary>
+        /// Apply sub-tree without applying this node.
+        /// </summary>
+        /// <returns>this</returns>
+        private void ApplyChild()
+        {
+            bool forceSection = DrawWithSection;
+            foreach (VisualObject child in ChildrenFromBottom)
+                if (child.IsActiveThis)
+                {
+                    child.Apply();
+                    forceSection = forceSection || child.DrawWithSection;
+                }
+            DrawWithSection = forceSection;
+        }
+
+        #endregion
+        #region PostApplyThis
+
+        /// <summary>
+        /// Post apply handling
+        /// </summary>
+        /// <returns>this</returns>
+        private void PostApplyThis()
+        {
+            try
+            {
+                // Overridable apply function
+                PostApplyThisNative();
+
+                // Custom apply callback
+                Configuration.Custom.Apply?.Invoke(this);
+            }
+            catch (Exception e)
+            {
+                TUI.HandleException(e);
+            }
+        }
+
+        #endregion
+        #region PostApplyThisNative
+
+        /// <summary>
+        /// Overridable method for post apply related to this node.
+        /// </summary>
+        protected virtual void PostApplyThisNative() { }
+
+        #endregion
+
+        #endregion
+
+        #region RequestDrawChanges
+
+        public VisualObject RequestDrawChanges()
+        {
+            if (Root is RootVisualObject root)
+                root.DrawState++;
+            return this;
+        }
+
+        #endregion
+        #region OutdatedPlayers
+
+        /// <summary>
+        /// Returns the players that have not yet recieved the latest version of this interface.
+        /// </summary>
+        /// <remarks>
+        /// Returns <see langword="null"/> if called before the first call to <see cref="Update"/> on this
+        /// widget.
+        /// </remarks>
+        /// <param name="playerIndex">
+        /// If not -1 and <paramref name="toEveryone"/> is <see langword="false"/>, excludes all players except this one.
+        /// </param>
+        /// <param name="exceptPlayerIndex">
+        /// If not -1 and <paramref name="toEveryone"/> is <see langword="false"/>, excludes this player.
+        /// </param>
+        /// <param name="toEveryone">
+        /// If <see langword="true"/>, includes all players who have ever seen this interface.
+        /// </param>
+        public HashSet<int> OutdatedPlayers(int playerIndex = -1, int exceptPlayerIndex = -1, bool toEveryone = false)
+        {
+            if (Root == null)
+                return null;
+
+            ulong currentApplyCounter = Root.DrawState;
+            HashSet<int> players = null;
+            if (toEveryone)
+            {
+                // Sending to everyone who has ever seen this interface
+                players = Root.PlayerApplyCounter.Keys.ToHashSet();
+                //TODO: Add Root.Players?
+            }
+            else
+            {
+                players = playerIndex == -1
+                    ? new HashSet<int>(Root.Players)
+                    : new HashSet<int>() { playerIndex };
+                players.Remove(exceptPlayerIndex);
+
+                // Remove players that already received latest version of interface
+                players.RemoveWhere(p =>
+                    Root.PlayerApplyCounter.TryGetValue(p, out ulong applyCounter)
+                    && currentApplyCounter == applyCounter);
+            }
+
+            return players;
+        }
 
         #endregion
         #region Draw
 
-        /// <summary>
-        /// Sends SendTileSquare/SendSection packet to clients.
-        /// </summary>
-        /// <param name="dx">X coordinate delta</param>
-        /// <param name="dy">Y coordinate delta</param>
-        /// <param name="width">Drawing rectangle width, -1 for object.Width</param>
-        /// <param name="height">Drawing rectangle height, -1 for object.Height</param>
-        /// <param name="playerIndex">Index of user to send to, -1 for all players</param>
-        /// <param name="exceptPlayerIndex">Index of user to ignore on sending</param>
-        /// <param name="forceSection">Whether to send with SendTileSquare or with SendSection, SendTileSquare (false) by default</param>
-        /// <param name="frame">Whether to send SectionFrame if sending with SendSection</param>
-        /// <returns>this</returns>
-        public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1, int playerIndex = -1, int exceptPlayerIndex = -1, bool? forceSection = null, bool frame = true)
+        /// <summary> Sends SendTileSquare/SendSection packet to clients. </summary>
+        /// <param name="dx"> X coordinate delta </param>
+        /// <param name="dy"> Y coordinate delta </param>
+        /// <param name="width"> Drawing rectangle width, -1 for object.Width </param>
+        /// <param name="height"> Drawing rectangle height, -1 for object.Height </param>
+        /// <param name="targetPlayers">
+        /// Players to send to. If <see langword="null"/>, defaults to the result of <see cref="OutdatedPlayers(int, int, bool)"/>.
+        /// </param>
+        /// <param name="drawWithSection"> Whether to send with SendTileSquare or with SendSection, SendTileSquare (false) by default </param>
+        /// <param name="frameSection"> Whether to send SectionFrame if sending with SendSection </param>
+        /// <returns> this </returns>
+        public virtual VisualObject Draw(int dx = 0, int dy = 0, int width = -1, int height = -1, HashSet<int> targetPlayers = null,
+            bool? drawWithSection = null, bool? frameSection = null)
         {
-            bool realForceSection = forceSection ?? ForceSection;
+            if (targetPlayers == null)
+                targetPlayers = OutdatedPlayers();
+            if (Root.Observers is HashSet<int> observers)
+                targetPlayers = targetPlayers.Where(player => observers.Contains(player)).ToHashSet();
+            if (targetPlayers.Count == 0)
+                return this;
+
+            if (TUI.DrawDebug)
+                TUI.Log($"DRAW {FullName}");
+
+            bool realDrawWithSection = drawWithSection ?? DrawWithSection;
+            bool realFrame = frameSection ?? FrameSection;
             (int ax, int ay) = AbsoluteXY();
-#if DEBUG
-            Console.WriteLine($"Draw ({Name}): {ax + dx}, {ay + dy}, {(width >= 0 ? width : Width)}, {(height >= 0 ? height : Height)}: {realForceSection}");
-#endif
-            TUI.DrawRect(this, ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height, realForceSection, playerIndex, exceptPlayerIndex, frame);
+            TUI.DrawObject(this, targetPlayers, ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height,
+                realDrawWithSection, realFrame);
+
             return this;
         }
 
         #endregion
         #region DrawPoints
 
-        /// <summary>
-        /// Draw list of points related to this node.
-        /// </summary>
-        /// <param name="points">List of points</param>
-        /// <param name="userIndex">Index of user to send to, -1 for all users</param>
-        /// <param name="exceptUserIndex">Index of user to ignore on sending</param>
-        /// <param name="forceSection">Whether to send with SendTileSquare or with SendSection, SendTileSquare (false) by default</param>
-        /// <returns>this</returns>
-        public virtual VisualObject DrawPoints(IEnumerable<(int, int)> points, int userIndex = -1, int exceptUserIndex = -1, bool? forceSection = null)
+        /// <summary> Draw list of points related to this node. </summary>
+        /// <param name="points"> List of points </param>
+        /// <param name="targetPlayers">
+        /// Players to send to. If <see langword="null"/>, defaults to the result of <see cref="OutdatedPlayers(int, int, bool)"/>.
+        /// </param>
+        /// <param name="drawWithSection"> Whether to send with SendTileSquare or with SendSection, SendTileSquare (false) by default </param>
+        /// <returns> this </returns>
+        public virtual VisualObject DrawPoints(IEnumerable<(int, int)> points, HashSet<int> targetPlayers = null, bool? drawWithSection = null)
         {
             List<(int, int)> list = points.ToList();
             if (list.Count == 0)
@@ -1236,7 +1543,7 @@ namespace TUI.Base
                     maxY = y;
             }
 
-            return Draw(minX, minY, maxX - minX + 1, maxY - minY + 1, userIndex, exceptUserIndex, forceSection);
+            return Draw(minX, minY, maxX - minX + 1, maxY - minY + 1, targetPlayers, drawWithSection);
         }
 
         #endregion
@@ -1248,8 +1555,14 @@ namespace TUI.Base
         /// <returns>this</returns>
         public VisualObject Clear()
         {
-            foreach ((int x, int y) in Points)
-                Tile(x, y)?.ClearEverything();
+            lock (ApplyLocker)
+            {
+                foreach ((int x, int y) in Points)
+                    Tile(x, y)?.ClearEverything();
+
+                // Mark changes to be drawn
+                RequestDrawChanges();
+            }
             return this;
         }
 
@@ -1261,16 +1574,13 @@ namespace TUI.Base
         /// </summary>
         public void ShowGrid()
         {
-            if (Configuration.Grid == null)
-                throw new Exception("Grid not setup for this object.");
-
-            lock (Locker)
+            lock (ApplyLocker)
             {
-                for (int i = 0; i < Configuration.Grid.Columns.Length; i++)
-                    for (int j = 0; j < Configuration.Grid.Lines.Length; j++)
+                for (int i = 0; i < GridConfiguration.Columns.Length; i++)
+                    for (int j = 0; j < GridConfiguration.Lines.Length; j++)
                     {
-                        (int columnX, int columnSize) = Configuration.Grid.ResultingColumns[i];
-                        (int lineY, int lineSize) = Configuration.Grid.ResultingLines[j];
+                        (int columnX, int columnSize) = GridConfiguration.ResultingColumns[i];
+                        (int lineY, int lineSize) = GridConfiguration.ResultingLines[j];
                         for (int x = columnX; x < columnX + columnSize; x++)
                             for (int y = lineY; y < lineY + lineSize; y++)
                             {
@@ -1283,6 +1593,9 @@ namespace TUI.Base
                     }
             }
 
+            // Mark changes to be drawn
+            RequestDrawChanges();
+
             Draw();
         }
 
@@ -1290,125 +1603,204 @@ namespace TUI.Base
 
         #region Database
 
-            #region DBRead
+        #region DBRead
 
-            /// <summary>
-            /// Read data from database using overridable DBReadNative method
-            /// </summary>
-            /// <returns>true if read is successful</returns>
-            public bool DBRead()
+        /// <summary>
+        /// Read data from database using overridable DBReadNative method
+        /// </summary>
+        /// <returns>true if read is successful</returns>
+        public bool DBRead()
+        {
+            byte[] data = TUI.DBGet(FullName);
+            if (data != null)
             {
-                byte[] data = TUI.DBGet(FullName);
-                if (data != null)
+                using (MemoryStream ms = new MemoryStream(data))
+                using (BinaryReader br = new BinaryReader(ms))
                 {
-                    using (MemoryStream ms = new MemoryStream(data))
-                    using (BinaryReader br = new BinaryReader(ms))
+                    try
                     {
                         DBReadNative(br);
                         Configuration.Custom.DBRead?.Invoke(this, br);
                     }
-                    return true;
+                    catch (Exception e)
+                    {
+                        TUI.HandleException(e);
+                        return false;
+                    }
                 }
-                return false;
+                return true;
             }
+            return false;
+        }
 
-            #endregion
-            #region DBReadNative
+        #endregion
+        #region DBReadNative
 
-            /// <summary>
-            /// Overridable method for reading from BinaryReader based on data from database
-            /// </summary>
-            /// <param name="br"></param>
-            protected virtual void DBReadNative(BinaryReader br) { }
+        /// <summary>
+        /// Overridable method for reading from BinaryReader based on data from database
+        /// </summary>
+        /// <param name="br"></param>
+        protected virtual void DBReadNative(BinaryReader br) { }
 
-            #endregion
-            #region DBWrite
+        #endregion
+        #region DBWrite
 
-            /// <summary>
-            /// Write data to database using overridable DBWriteNative method
-            /// </summary>
-            public void DBWrite()
+        /// <summary>
+        /// Write data to database using overridable DBWriteNative method
+        /// </summary>
+        public void DBWrite()
+        {
+            using (MemoryStream ms = new MemoryStream())
+            using (BinaryWriter bw = new BinaryWriter(ms))
             {
-                using (MemoryStream ms = new MemoryStream())
-                using (BinaryWriter bw = new BinaryWriter(ms))
+                try
                 {
                     DBWriteNative(bw);
                     Configuration.Custom.DBWrite?.Invoke(this, bw);
-                    byte[] data = ms.ToArray();
-                    TUI.DBSet(FullName, data);
                 }
-            }
-
-            #endregion
-            #region DBWriteNative
-
-            /// <summary>
-            /// Overridable method for writing to BinaryWriter for data to be stored in database
-            /// </summary>
-            /// <param name="bw"></param>
-            protected virtual void DBWriteNative(BinaryWriter bw) { }
-
-            #endregion
-            #region UDBRead
-
-            /// <summary>
-            /// Read user data from database using overridable DBReadNative method
-            /// </summary>
-            /// <returns>true if read is successful</returns>
-            public bool UDBRead(int user)
-            {
-                byte[] data = TUI.UDBGet(user, FullName);
-                if (data != null)
+                catch (Exception e)
                 {
-                    using (MemoryStream ms = new MemoryStream(data))
-                    using (BinaryReader br = new BinaryReader(ms))
+                    TUI.HandleException(e);
+                    return;
+                }
+                byte[] data = ms.ToArray();
+                TUI.DBSet(FullName, data);
+            }
+        }
+
+        #endregion
+        #region DBWriteNative
+
+        /// <summary>
+        /// Overridable method for writing to BinaryWriter for data to be stored in database
+        /// </summary>
+        /// <param name="bw"></param>
+        protected virtual void DBWriteNative(BinaryWriter bw) { }
+
+        #endregion
+        #region DBRemove
+
+        /// <summary>
+        /// Delete data
+        /// </summary>
+        public void DBRemove()
+        {
+            TUI.DBRemove(FullName);
+        }
+
+        #endregion
+        #region UDBRead
+
+        /// <summary>
+        /// Read user data from database using overridable DBReadNative method
+        /// </summary>
+        /// <returns>true if read is successful</returns>
+        public bool UDBRead(int user)
+        {
+            byte[] data = TUI.UDBGet(user, FullName);
+            if (data != null)
+            {
+                using (MemoryStream ms = new MemoryStream(data))
+                using (BinaryReader br = new BinaryReader(ms))
+                {
+                    try
                     {
                         UDBReadNative(br, user);
                         Configuration.Custom.UDBRead?.Invoke(this, br, user);
                     }
-                    return true;
+                    catch (Exception e)
+                    {
+                        TUI.HandleException(e);
+                        return false;
+                    }
                 }
-                return false;
+                return true;
             }
+            return false;
+        }
 
-            #endregion
-            #region UDBReadNative
+        #endregion
+        #region UDBReadNative
 
-            /// <summary>
-            /// Overridable method for reading from BinaryReader based on user data from database
-            /// </summary>
-            /// <param name="br"></param>
-            protected virtual void UDBReadNative(BinaryReader br, int user) { }
+        /// <summary>
+        /// Overridable method for reading from BinaryReader based on user data from database
+        /// </summary>
+        /// <param name="br"></param>
+        protected virtual void UDBReadNative(BinaryReader br, int user) { }
 
-            #endregion
-            #region UDBWrite
+        #endregion
+        #region UDBWrite
 
-            /// <summary>
-            /// Write user data to database using overridable DBWriteNative method
-            /// </summary>
-            public void UDBWrite(int user)
+        /// <summary>
+        /// Write user data to database using overridable DBWriteNative method
+        /// </summary>
+        public void UDBWrite(int user)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            using (BinaryWriter bw = new BinaryWriter(ms))
             {
-                using (MemoryStream ms = new MemoryStream())
-                using (BinaryWriter bw = new BinaryWriter(ms))
+                try
                 {
                     UDBWriteNative(bw, user);
                     Configuration.Custom.UDBWrite?.Invoke(this, bw, user);
-                    byte[] data = ms.ToArray();
-                    TUI.UDBSet(user, FullName, data);
                 }
+                catch (Exception e)
+                {
+                    TUI.HandleException(e);
+                    return;
+                }
+                byte[] data = ms.ToArray();
+                TUI.UDBSet(user, FullName, data);
             }
+        }
 
-            #endregion
-            #region UDBWriteNative
+        #endregion
+        #region UDBWriteNative
 
-            /// <summary>
-            /// Overridable method for writing to BinaryWriter for user data to be stored in database
-            /// </summary>
-            /// <param name="bw"></param>
-            /// <param name="user"></param>
-            protected virtual void UDBWriteNative(BinaryWriter bw, int user) { }
+        /// <summary>
+        /// Overridable method for writing to BinaryWriter for user data to be stored in database
+        /// </summary>
+        /// <param name="bw"></param>
+        /// <param name="user"></param>
+        protected virtual void UDBWriteNative(BinaryWriter bw, int user) { }
 
-            #endregion
+        #endregion
+        #region UDBRemove
+
+        /// <summary>
+        /// Delete data
+        /// </summary>
+        /// <param name="user"></param>
+        public void UDBRemove(int user)
+        {
+            TUI.UDBRemove(user, FullName);
+        }
+
+        #endregion
+        #region NDBRead
+
+        public int? NDBRead(int user) =>
+            TUI.NDBGet(user, FullName);
+
+        #endregion
+        #region NDBWrite
+
+        public void NDBWrite(int user, int number) =>
+            TUI.NDBSet(user, FullName, number);
+
+        #endregion
+        #region NDBRemove
+
+        public void NDBRemove(int user) =>
+            TUI.NDBRemove(user, FullName);
+
+        #endregion
+        #region NDBSelect
+
+        public List<(int User, int Number, string Username)> NDBSelect(bool ascending, int count, int offset = 0, bool requestNames = false) =>
+            TUI.NDBSelect(FullName, ascending, count, offset, requestNames);
+
+        #endregion
 
         #endregion
     }

@@ -1,13 +1,14 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using System.Diagnostics;
 using System.Timers;
-using TUI.Base;
-using TUI.Hooks;
-using TUI.Hooks.Args;
+using TerrariaUI.Base;
+using TerrariaUI.Hooks;
+using TerrariaUI.Hooks.Args;
 
-namespace TUI
+namespace TerrariaUI
 {
     /// <summary>
     /// Main user interface class.
@@ -16,44 +17,63 @@ namespace TUI
     {
         #region Data
 
-        public static int MaxPlayers;
-        public static HookManager Hooks = new HookManager();
-        public static UserSession[] Session = new UserSession[MaxPlayers];
-        public static int MaxHoldTouchMilliseconds = 30000;
-        public const short FakeSignSTileHeader = 29728;
-        private static List<RootVisualObject> Child = new List<RootVisualObject>();
+        private static List<RootVisualObject> _Child = new List<RootVisualObject>();
         private static Timer Timer;
-        //private static object Locker = new object();
-        //internal static List<VisualObject> ObjectsToLoad = new List<VisualObject>();
-        public static bool Active { get; set; } = false;
+        internal static object LoadLocker = new object();
+        internal static object DisposeLocker = new object();
+        public static bool TouchedDebug = false;
+        public static bool PulseDebug = false;
+        public static bool UpdateDebug = false;
+        public static bool ApplyDebug = false;
+        public static bool DrawDebug = false;
+
+        public const string ControlPermission = "TUI.control";
+
+        public static List<RootVisualObject> Roots => _Child.ToList();
+        public static int MaxPlayers { get; private set; }
+        public static int MaxTilesX { get; private set; }
+        public static int MaxTilesY { get; private set; }
+        public static int WorldID { get; private set; }
+        public static HookManager Hooks { get; } = new HookManager();
+        public static PlayerSession[] Session { get; private set; }
+        public static int MaxHoldTouchMilliseconds = 30000;
+        public static bool Active { get; private set; } = false;
+        public static ConcurrentDictionary<string, ApplicationType> ApplicationTypes { get; } =
+            new ConcurrentDictionary<string, ApplicationType>();
+        public static List<ConcurrentDictionary<Application, byte>> ApplicationPlayerSessions { get; } =
+            new List<ConcurrentDictionary<Application, byte>>();
 
         #endregion
 
         #region Initialize
 
-        public static void Initialize(int maxPlayers = 256)
+        public static void Initialize(int maxPlayers = 256, int maxTilesX = 8400, int maxTilesY = 2400)
         {
             MaxPlayers = maxPlayers;
-            Session = new UserSession[MaxPlayers];
+            MaxTilesX = maxTilesX;
+            MaxTilesY = maxTilesY;
+            Session = new PlayerSession[MaxPlayers];
             Timer = new Timer(5000) { AutoReset = true };
             Timer.Elapsed += OnTimerElapsed;
+            for (int i = 0; i < maxPlayers; i++)
+                ApplicationPlayerSessions.Add(new ConcurrentDictionary<Application, byte>());
         }
 
         #endregion
         #region Load
 
-        public static void Load()
+        public static void Load(int worldID)
         {
+            Active = true; // Must be before Load() calls
+            WorldID = worldID;
+
+            foreach (VisualObject child in Roots)
+                child.Load();
+
+            foreach (var pair in ApplicationTypes)
+                pair.Value.Load();
+
             Timer.Start();
-
-            // Locking for Child and Active
-            lock (Child)
-            {
-                Active = true;
-
-                foreach (VisualObject Child in Child)
-                    Child.Load();
-            }
 
             Hooks.Load.Invoke(new LoadArgs(MaxPlayers));
         }
@@ -63,19 +83,15 @@ namespace TUI
 
         public static void Dispose()
         {
-            Hooks.Dispose.Invoke(new EventArgs());
-
-            // Locking for Child and Active
-            lock (Child)
-            {
-                Active = false;
-
-                foreach (RootVisualObject child in Child)
-                    child.Dispose();
-                Child.Clear();
-            }
-
             Timer.Stop();
+
+            Active = false;
+
+            foreach (RootVisualObject child in Roots)
+                child.Dispose();
+            _Child.Clear();
+
+            Hooks.Dispose.Invoke(new EventArgs());
         }
 
         #endregion
@@ -83,12 +99,8 @@ namespace TUI
 
         internal static void TryToLoadChild(VisualObject node, VisualObject child)
         {
-            // Locking for Child and Active
-            lock (Child)
-            {
-                if (Child.Contains(node.GetRoot() as RootVisualObject) && Active)
-                    child.Load();
-            }
+            if (Active && _Child.Contains(node.GetRoot() as RootVisualObject))
+                child.Load();
         }
 
         #endregion
@@ -98,7 +110,7 @@ namespace TUI
         {
             for (int i = 0; i < Session.Length; i++)
             {
-                UserSession session = Session[i];
+                PlayerSession session = Session[i];
                 if (session != null)
                 {
                     Touch previous = session.PreviousTouch;
@@ -119,25 +131,24 @@ namespace TUI
         /// <param name="root">Root of user interface tree.
         /// <para></para>
         /// Consider using Panel widget for ability to automatically save position and size.</param>
-        public static RootVisualObject Create(RootVisualObject root)
+        public static T Create<T>(T root, bool draw = true)
+            where T : RootVisualObject
         {
-            if (!(root.Provider is MainTileProvider)
-                    && (root.Width > root.Provider.Width || root.Height > root.Provider.Height))
-                throw new ArgumentException("Provider size is less than RootVisualObject size: " + root.FullName);
+            if (Roots.Count(r => r.Name == root.Name) > 0)
+                throw new ArgumentException($"TUI.Create: name {root.Name} is already taken.");
 
-            // Locking for Child and Active
-            lock (Child)
+            List<RootVisualObject> _child = Roots;
+            int index = _child.Count;
+            while (index > 0 && _child[index - 1].Layer > root.Layer)
+                index--;
+            _Child.Insert(index, root);
+
+            if (Active)
             {
-                if (Child.Count(r => r.Name == root.Name) > 0)
-                    throw new ArgumentException($"TUI.Create: name {root.Name} is already taken.");
-
-                int index = Child.Count;
-                while (index > 0 && Child[index - 1].Layer > root.Layer)
-                    index--;
-                Child.Insert(index, root);
-
-                if (Active)
-                    root.Load();
+                root.Load();
+                root.Update();
+                if (draw)
+                    root.Apply().Draw();
             }
             return root;
         }
@@ -147,20 +158,13 @@ namespace TUI
 
         public static void Destroy(RootVisualObject obj)
         {
-            lock (Child)
-                Child.Remove(obj);
-        }
+            if (obj is Application app)
+                app.Type.DisposeInstance(app);
 
-        #endregion
-        #region GetRoots
-
-        public static List<RootVisualObject> GetRoots()
-        {
-            List<RootVisualObject> result = new List<RootVisualObject>();
-            lock (Child)
-                foreach (RootVisualObject child in Child)
-                    result.Add(child);
-            return result;
+            if (Active)
+                obj.Disable(true);
+            _Child.Remove(obj);
+            obj.Dispose();
         }
 
         #endregion
@@ -168,8 +172,7 @@ namespace TUI
 
         public static void InitializePlayer(int playerIndex)
         {
-            lock (Session)
-                Session[playerIndex] = new UserSession(playerIndex);
+            Session[playerIndex] = new PlayerSession(playerIndex);
         }
 
         #endregion
@@ -177,17 +180,29 @@ namespace TUI
 
         public static void RemovePlayer(int playerIndex)
         {
-            UserSession session = Session[playerIndex];
+            PlayerSession session = Session[playerIndex];
+            if (session == null)
+                return;
 
             if (session.PreviousTouch != null && session.PreviousTouch.State != TouchState.End)
             {
                 Touch simulatedEndTouch = session.PreviousTouch.SimulatedEndTouch();
-                TUI.Touched(playerIndex, simulatedEndTouch);
+                Touched(playerIndex, simulatedEndTouch);
             }
 
-            lock (Child)
-                foreach (RootVisualObject child in Child)
-                    child.Players.Remove(playerIndex);
+            foreach (RootVisualObject child in Roots)
+            {
+                if (child.Personal && child.Observers.Contains(playerIndex))
+                {
+                    child.Observers.Remove(playerIndex);
+                    if (child is Application app)
+                        app.OnObserverLeave(playerIndex);
+                }
+                child.Players.Remove(playerIndex);
+            }
+
+            foreach (var pair in ApplicationPlayerSessions[playerIndex])
+                pair.Key.OnPlayerLeave(playerIndex);
 
             Session[playerIndex] = null;
         }
@@ -198,60 +213,59 @@ namespace TUI
 
         public static bool Touched(int playerIndex, Touch touch)
         {
-            UserSession session = Session[playerIndex];
+            PlayerSession session = Session[playerIndex];
             touch.SetSession(session);
 
-            lock (session)
-            {
-                Touch previous = session.PreviousTouch;
-                if (touch.State == TouchState.Begin && previous != null
-                        && (previous.State == TouchState.Begin || previous.State == TouchState.Moving))
-                    throw new InvalidOperationException();
-                if ((touch.State == TouchState.Moving || touch.State == TouchState.End)
-                        && (previous == null || previous.State == TouchState.End))
-                    throw new InvalidOperationException();
-                if (touch.State == TouchState.Moving && touch.AbsoluteX == previous.AbsoluteX && touch.AbsoluteY == previous.AbsoluteY)
-                    return session.Used;
+            Touch previous = session.PreviousTouch;
+            if (touch.State == TouchState.Begin && previous != null
+                    && (previous.State == TouchState.Begin || previous.State == TouchState.Moving))
+                throw new InvalidOperationException();
 
-#if DEBUG
-                Stopwatch sw = Stopwatch.StartNew();
-#endif
+            if ((touch.State == TouchState.Moving || touch.State == TouchState.End)
+                    && (previous == null || previous.State == TouchState.End))
+                throw new InvalidOperationException();
 
-                if (touch.State == TouchState.Begin)
-                {
-                    session.Reset();
-                    session.BeginTouch = touch;
-                }
-
-                bool insideUI = false;
-                bool used = false;
-                if (session.Enabled)
-                {
-                    if (session.Acquired != null)
-                        used = TouchedAcquired(touch, ref insideUI);
-                    else
-                        used = TouchedChild(touch, ref insideUI);
-                }
-                session.Used = session.Used || used;
-                touch.InsideUI = insideUI;
-
-                if (touch.State == TouchState.End)
-                {
-                    session.TouchSessionIndex++;
-                    session.EndTouchHandled = touch.InsideUI || session.BeginTouch.InsideUI;
-                }
-
-#if DEBUG
-                long elapsed = sw.ElapsedMilliseconds;
-                sw.Stop();
-                Console.WriteLine($"Touch ({touch.X},{touch.Y}): {touch.State} ({touch.Object}); elapsed: {elapsed}");
-#endif
-
-                session.Count++;
-                session.PreviousTouch = touch;
-
+            if (touch.State == TouchState.Moving && touch.AbsoluteX == previous.AbsoluteX && touch.AbsoluteY == previous.AbsoluteY)
                 return session.Used;
+
+#if DEBUG
+            Stopwatch sw = Stopwatch.StartNew();
+#endif
+
+            if (touch.State == TouchState.Begin)
+            {
+                session.Reset();
+                session.BeginTouch = touch;
             }
+
+            bool insideUI = false;
+            bool used = false;
+            if (session.Enabled)
+            {
+                if (session.Acquired != null)
+                    used = TouchedAcquired(touch, ref insideUI);
+                else
+                    used = TouchedChild(touch, ref insideUI);
+            }
+            session.Used = session.Used || used;
+            touch.InsideUI = insideUI;
+
+            if (touch.State == TouchState.End)
+            {
+                session.TouchSessionIndex++;
+                session.EndTouchHandled = touch.InsideUI || session.BeginTouch.InsideUI;
+            }
+
+#if DEBUG
+            long elapsed = sw.ElapsedMilliseconds;
+            sw.Stop();
+            Log($"Touch ({touch.X},{touch.Y}): {touch.State} ({touch.Object}); elapsed: {elapsed}");
+#endif
+
+            session.Count++;
+            session.PreviousTouch = touch;
+
+            return session.Used;
         }
 
         #endregion
@@ -262,12 +276,13 @@ namespace TUI
             VisualObject o = touch.Session.Acquired;
             (int saveX, int saveY) = o.AbsoluteXY();
 
-            touch.MoveBack(saveX, saveY);
-            bool inside = touch.Intersecting(0, 0, o.Width, o.Height);
+            touch.Move(-saveX, -saveY);
+            bool inside = o.ContainsRelative(touch);
 
-            if (o.Active && inside)
+            if (o.IsActive && inside)
                 insideUI = true;
-            if (o.Active && (inside || o.Configuration.UseOutsideTouches))
+
+            if (o.IsActive && (inside || o.Configuration.UseOutsideTouches))
                 if (o.Touched(touch))
                     return true;
 
@@ -278,26 +293,28 @@ namespace TUI
         #endregion
         #region TouchedChild
 
-        public static bool TouchedChild(Touch touch, ref bool insideUI)
+        private static bool TouchedChild(Touch touch, ref bool insideUI)
         {
-            lock (Child)
-                for (int i = Child.Count - 1; i >= 0; i--)
+            List<RootVisualObject> _child = Roots;
+            for (int i = _child.Count - 1; i >= 0; i--)
+            {
+                RootVisualObject o = _child[i];
+                int saveX = o.X, saveY = o.Y;
+                if (o.IsActive
+                    && o.ContainsParent(touch)
+                    && o.Players.Contains(touch.Session.PlayerIndex)
+                    && (!o.Personal || o.Observers.Contains(touch.PlayerIndex))
+                    && (!o.Freezed || touch.Priveleged))
                 {
-                    RootVisualObject o = Child[i];
-                    int saveX = o.X, saveY = o.Y;
-                    if (o.Active && o.Contains(touch) && o.Players.Contains(touch.Session.PlayerIndex))
+                    touch.Move(-saveX, -saveY);
+                    if (o.Touched(touch))
                     {
                         insideUI = true;
-                        touch.MoveBack(saveX, saveY);
-                        if (o.Touched(touch))
-                        {
-                            if (SetTop(o))
-                                PostSetTop(o);
-                            return true;
-                        }
-                        touch.Move(saveX, saveY);
+                        return true;
                     }
+                    touch.Move(saveX, saveY);
                 }
+            }
             return false;
         }
 
@@ -310,59 +327,54 @@ namespace TUI
         #endregion
         #region SetTop
 
-        public static bool SetTop(RootVisualObject root)
+        public static void SetTop(RootVisualObject root)
         {
-            lock (Child)
-            {
-                int previousIndex = Child.IndexOf(root);
-                int index = previousIndex;
-                if (index < 0)
-                    throw new InvalidOperationException("Trying to SetTop an object that isn't a child of current VisualDOM");
-                int count = Child.Count;
+            if (root.Personal)
+                return;
+
+            List<RootVisualObject> _child = Roots;
+            int previousIndex = _child.IndexOf(root);
+            int index = previousIndex;
+            if (index < 0)
+                throw new InvalidOperationException("Trying to SetTop an an object that is not in TUI roots list");
+            int count = _child.Count;
+            index++;
+            while (index < count && _child[index].Layer <= root.Layer)
                 index++;
-                while (index < count && Child[index].Layer <= root.Layer)
-                    index++;
 
-                if (index == previousIndex + 1)
-                    return false;
+            if (index == previousIndex + 1)
+                return;
 
-                Child.Remove(root);
-                Child.Insert(index - 1, root);
+            _Child.Remove(root);
+            _Child.Insert(index - 1, root);
 
-                if (!root.UsesDefaultMainProvider)
-                    root.Provider.Collection.SetTop(root.Provider.Key);
+            if (!root.UsesDefaultMainProvider)
+                root.Provider.SetTop(false);
 
-                return true;
-            }
-        }
-
-        #endregion
-        #region PostSetTop
-
-        public static void PostSetTop(RootVisualObject child)
-        {
             // Should not apply if intersecting objects have different tile provider
-            (bool intersects, bool needsApply) = ChildIntersectingOthers(child);
+            (bool intersects, bool needsApply) = ChildIntersectingOthers(root);
             if (intersects)
             {
                 if (needsApply)
-                    child.Apply();
-                child.Draw();
+                    root.Apply();
+                else
+                    root.RequestDrawChanges();
+                root.Draw();
             }
         }
 
         #endregion
-        #region ChildInterSectingOthers
+        #region ChildIntersectingOthers
 
         public static (bool intersects, bool needsApply) ChildIntersectingOthers(RootVisualObject o)
         {
             bool intersects = false;
-            foreach (RootVisualObject child in Child)
-                if (child != o && child.Active && o.Intersecting(child))
+            foreach (RootVisualObject child in Roots)
+                if (child != o && child.IsActive && child.Orderable && o.Intersecting(child))
                 {
                     intersects = true;
-                    dynamic provider1 = o.Provider.Tile;
-                    dynamic provider2 = child.Provider.Tile;
+                    dynamic provider1 = o.Provider;
+                    dynamic provider2 = child.Provider;
                     if (provider1.GetType() == provider2.GetType() && provider1 == provider2)
                         return (true, true);
                 }
@@ -381,10 +393,16 @@ namespace TUI
 
         public static void Update()
         {
-            lock (Child)
-                foreach (RootVisualObject child in Child)
-                    if (child.Enabled)
+            foreach (RootVisualObject child in Roots)
+                try
+                {
+                    if (child.IsActive)
                         child.Update();
+                }
+                catch (Exception e)
+                {
+                    HandleException(child, e);
+                }
         }
 
         #endregion
@@ -392,10 +410,16 @@ namespace TUI
 
         public static void Apply()
         {
-            lock (Child)
-                foreach (RootVisualObject child in Child)
-                    if (child.Active)
+            foreach (RootVisualObject child in Roots)
+                try
+                {
+                    if (child.IsActive)
                         child.Apply();
+                }
+                catch (Exception e)
+                {
+                    HandleException(child, e);
+                }
         }
 
         #endregion
@@ -403,37 +427,46 @@ namespace TUI
 
         public static void Draw()
         {
-            lock (Child)
-                foreach (RootVisualObject child in Child)
-                    if (child.Active)
+            foreach (RootVisualObject child in Roots)
+                try
+                {
+                    if (child.IsActive)
                         child.Draw();
+                }
+                catch (Exception e)
+                {
+                    HandleException(child, e);
+                }
         }
 
         #endregion
-        #region DrawRect
+        #region DrawObject
 
-        public static void DrawRect(VisualObject node, int x, int y, int width, int height, bool forcedSection, int playerIndex = -1, int exceptPlayerIndex = -1, bool frame = true)
+        internal static void DrawObject(VisualObject node, HashSet<int> targetPlayers, int x, int y, int width, int height,
+            bool drawWithSection, bool frameSection = true)
         {
-            TUI.Hooks.Draw.Invoke(new DrawArgs(node, x, y, width, height, forcedSection, playerIndex, exceptPlayerIndex, frame));
+            var args = new DrawObjectArgs(node, targetPlayers, x, y, width, height, drawWithSection, frameSection);
+            Hooks.DrawObject.Invoke(args);
         }
 
         #endregion
+        #region DrawRectangle
 
-        #region SaveTime
-
-        public static void SaveTime<T>(T o, string name, string key = null)
-            where T : VisualDOM
+        public static void DrawRectangle(int x, int y, int width, int height, bool drawWithSection,
+            int playerIndex = -1, int exceptPlayerIndex = -1, bool frameSection = true)
         {
-
+            Hooks.DrawRectangle.Invoke(new DrawRectangleArgs(x, y, width, height, drawWithSection,
+                playerIndex, exceptPlayerIndex, frameSection));
         }
 
         #endregion
-        #region ShowTime
+        #region RequestDrawChanges
 
-        public static void ShowTime<T>(T o, string name, string key = null)
-            where T : VisualDOM
+        public static void RequestDrawChanges()
         {
-
+            foreach (RootVisualObject child in Roots)
+                if (child.IsActive && !(child.Provider is MainTileProvider))
+                    child.RequestDrawChanges();
         }
 
         #endregion
@@ -480,6 +513,94 @@ namespace TUI
 
         public static void UDBRemove(int user, string key) =>
             Hooks.Database.Invoke(new DatabaseArgs(DatabaseActionType.Remove, key, null, user));
+
+        #endregion
+        #region NDBGet
+
+        public static int? NDBGet(int user, string key)
+        {
+            DatabaseArgs args = new DatabaseArgs(DatabaseActionType.Get, key, null, user, 0);
+            Hooks.Database.Invoke(args);
+            return args.Number;
+        }
+
+        #endregion
+        #region NDBSet
+
+        public static void NDBSet(int user, string key, int number) =>
+            Hooks.Database.Invoke(new DatabaseArgs(DatabaseActionType.Set, key, null, user, number));
+
+        #endregion
+        #region NDBRemove
+
+        public static void NDBRemove(int user, string key) =>
+            Hooks.Database.Invoke(new DatabaseArgs(DatabaseActionType.Remove, key, null, user, 0));
+
+        #endregion
+        #region NDBSelect
+
+        public static List<(int User, int Number, string Username)> NDBSelect(string key, bool ascending, int count, int offset, bool requestNames)
+        {
+            DatabaseArgs args = new DatabaseArgs(DatabaseActionType.Select, key, null, null, 0, ascending, count, offset, requestNames);
+            Hooks.Database.Invoke(args);
+            return args.Numbers;
+        }
+
+        #endregion
+
+        #region RegisterApplication
+
+        public static void RegisterApplication(ApplicationType app)
+        {
+            if (ApplicationTypes.ContainsKey(app.Name))
+                throw new ArgumentException($"Application name already used: {app.Name}");
+
+            ApplicationTypes[app.Name] = app;
+        }
+
+        #endregion
+        #region DeregisterApplication
+
+        public static void DeregisterApplication(string name, bool destroy = true)
+        {
+            if (!ApplicationTypes.TryGetValue(name, out ApplicationType appType))
+                throw new KeyNotFoundException($"Application not found: {appType.Name}");
+
+            if (destroy)
+                appType.DestroyAll();
+            ApplicationTypes.TryRemove(appType.Name, out _);
+        }
+
+        #endregion
+
+        #region Exceptions
+
+        public static void HandleException(Exception e) =>
+            Log(e.ToString(), LogType.Error);
+
+        public static void HandleException(VisualObject node, Exception e) =>
+            Log(node, e.ToString(), LogType.Error);
+
+        public static void Throw(string text)
+        {
+            Log(text, LogType.Error);
+            throw new Exception(text);
+        }
+
+        public static void Throw(VisualObject node, string text)
+        {
+            Log(node, text, LogType.Error);
+            throw new Exception(text);
+        }
+
+        #endregion
+        #region Log
+
+        public static void Log(string text, LogType logType = LogType.Info) =>
+            Hooks.Log.Invoke(new LogArgs(text, logType));
+
+        public static void Log(VisualObject node, string text, LogType logType = LogType.Info) =>
+            Hooks.Log.Invoke(new LogArgs(node, text, logType));
 
         #endregion
     }

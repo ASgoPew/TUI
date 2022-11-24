@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace TUI.Base
+namespace TerrariaUI.Base
 {
     /// <summary>
     /// Collection of custom callbacks.
@@ -13,6 +13,14 @@ namespace TUI.Base
         /// </summary>
         public Action<VisualObject> Update { get; set; }
         /// <summary>
+        /// Callback for applying custom actions on PostUpdate().
+        /// </summary>
+        public Action<VisualObject> PostUpdate { get; set; }
+        /// <summary>
+        /// Callback for self size change.
+        /// </summary>
+        public Func<VisualObject, (int, int)> GetSize { get; set; }
+        /// <summary>
         /// Callback for custom checking if user can touch this node.
         /// </summary>
         public Func<VisualObject, Touch, bool> CanTouch { get; set; }
@@ -21,9 +29,17 @@ namespace TUI.Base
         /// </summary>
         public Action<VisualObject> Apply { get; set; }
         /// <summary>
+        /// Callback for applying custom actions on PostApply().
+        /// </summary>
+        public Action<VisualObject> PostApply { get; set; }
+        /// <summary>
         /// Callback for custom pulse event handling.
         /// </summary>
         public Action<VisualObject, PulseType> Pulse { get; set; }
+        /// <summary>
+        /// Callback for custom post pulse event handling.
+        /// </summary>
+        public Action<VisualObject, PulseType> PostPulse { get; set; }
         /// <summary>
         /// Callback for custom resource loading.
         /// </summary>
@@ -60,9 +76,12 @@ namespace TUI.Base
         public CustomCallbacks(CustomCallbacks callbacks)
         {
             Update = callbacks.Update;
+            PostUpdate = callbacks.PostUpdate;
+            GetSize = callbacks.GetSize;
             CanTouch = callbacks.CanTouch;
             Apply = callbacks.Apply;
             Pulse = callbacks.Pulse;
+            PostPulse = callbacks.PostPulse;
             Load = callbacks.Load;
             Dispose = callbacks.Dispose;
             DBRead = callbacks.DBRead;

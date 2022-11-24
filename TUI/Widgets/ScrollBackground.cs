@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
-using TUI.Base;
-using TUI.Base.Style;
+using TerrariaUI.Base;
+using TerrariaUI.Base.Style;
 
-namespace TUI.Widgets
+namespace TerrariaUI.Widgets
 {
     /// <summary>
     /// Widget for scrolling parent's layout by pulling layout background.
@@ -13,7 +13,7 @@ namespace TUI.Widgets
         #region Data
 
         private Action<ScrollBackground, int> ScrollBackgroundCallback;
-        public int BeginIndent { get; protected set; }
+        public int BeginOffset { get; protected internal set; }
         public int Limit { get; protected set; }
         public bool AllowToPull { get; set; }
         public bool RememberTouchPosition { get; set; }
@@ -35,62 +35,62 @@ namespace TUI.Widgets
             ScrollBackgroundCallback = callback;
             Layer = Int32.MinValue;
 
-            SetFullSize(FullSize.Both);
+            SetWidthParentStretch();
+            SetHeightParentStretch();
         }
 
         #endregion
         #region Invoke
 
-        public override void Invoke(Touch touch)
+        protected override void Invoke(Touch touch)
         {
-            if (Parent?.Configuration?.Layout == null)
+            if (Parent?.LayoutConfiguration == null)
                 throw new Exception("Scroll has no parent or parent doesn't have layout.");
-            LayoutConfiguration layout = Parent.Configuration.Layout;
-            int indent = layout.LayoutOffset;
+            LayoutConfiguration layout = Parent.LayoutConfiguration;
+            int offset = layout.Offset;
             Limit = layout.OffsetLimit;
             bool vertical = layout.Direction == Direction.Up || layout.Direction == Direction.Down;
             bool forward = layout.Direction == Direction.Right || layout.Direction == Direction.Down;
             if (touch.State == TouchState.Begin)
-                BeginIndent = indent;
+                BeginOffset = offset;
             if (touch.State == TouchState.End || (Configuration.UseMoving && touch.State == TouchState.Moving))
             {
-                int newIndent;
-                int indentDelta;
+                int newOffset;
+                int offsetDelta;
                 if (RememberTouchPosition)
                 {
-                    indentDelta = vertical
+                    offsetDelta = vertical
                         ? touch.AbsoluteY - touch.Session.BeginTouch.AbsoluteY
                         : touch.AbsoluteX - touch.Session.BeginTouch.AbsoluteX;
-                    newIndent = BeginIndent + (forward ? -indentDelta : indentDelta);
+                    newOffset = BeginOffset + (forward ? -offsetDelta : offsetDelta);
                 }
                 else
                 {
-                    indentDelta = vertical
+                    offsetDelta = vertical
                         ? touch.AbsoluteY - touch.Session.PreviousTouch.AbsoluteY
                         : touch.AbsoluteX - touch.Session.PreviousTouch.AbsoluteX;
-                    newIndent = indent + (forward ? -indentDelta : indentDelta);
+                    newOffset = offset + (forward ? -offsetDelta : offsetDelta);
                 }
-                if (newIndent != indent || touch.State == TouchState.End)
+                if (newOffset != offset || touch.State == TouchState.End)
                 {
-                    VisualObject first = layout.Objects.FirstOrDefault();
-                    VisualObject last = layout.Objects.LastOrDefault();
+                    var inLayout = Parent.Child.Where(child => child.InLayout);
+                    VisualObject first = inLayout.FirstOrDefault();
+                    VisualObject last = inLayout.LastOrDefault();
                     if (first == null)
                         return;
                     if (touch.State == TouchState.End || !AllowToPull)
                     {
-                        if (newIndent < 0)
-                            newIndent = 0;
-                        else if (newIndent > Limit)
-                            newIndent = Limit;
+                        if (newOffset < 0)
+                            newOffset = 0;
+                        else if (newOffset > Limit)
+                            newOffset = Limit;
                     }
-                    if (Parent.Configuration.Layout.LayoutOffset != newIndent)
+                    if (Parent.LayoutConfiguration.Offset != newOffset)
                     {
-                        Parent.LayoutOffset(newIndent);
-                        Action<ScrollBackground, int> callback = ScrollBackgroundCallback;
-                        if (callback != null)
-                            callback.Invoke(this, newIndent);
+                        if (ScrollBackgroundCallback is Action<ScrollBackground, int> callback)
+                            callback.Invoke(this, newOffset);
                         else
-                            Parent.Update().Apply().Draw();
+                            Parent.LayoutOffset(newOffset).Update().Apply().Draw();
                     }
                 }
             }

@@ -1,4 +1,4 @@
-﻿namespace TUI.Base
+﻿namespace TerrariaUI.Base
 {
     /// <summary>
     /// Type of pulse signal to send to VisualObject(s).
@@ -14,7 +14,7 @@
         /// This signal is called automatically for whole sub-tree when root of this sub-tree
         /// changes position/size.
         /// </summary>
-        PositionChanged,
+        SetXYWH,
         /// <summary>
         /// User defined signal 1
         /// </summary>

@@ -1,4 +1,4 @@
-﻿namespace TUI.Base.Style
+﻿namespace TerrariaUI.Base.Style
 {
     public enum Side
     {

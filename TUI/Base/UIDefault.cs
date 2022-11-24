@@ -1,6 +1,6 @@
-﻿using TUI.Base.Style;
+﻿using TerrariaUI.Base.Style;
 
-namespace TUI.Base
+namespace TerrariaUI.Base
 {
     /// <summary>
     /// Default style settings for VisualObjects without specified styles.

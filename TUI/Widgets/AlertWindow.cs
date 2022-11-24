@@ -1,8 +1,8 @@
 ﻿using System.Linq;
-using TUI.Base;
-using TUI.Base.Style;
+using TerrariaUI.Base;
+using TerrariaUI.Base.Style;
 
-namespace TUI.Widgets
+namespace TerrariaUI.Widgets
 {
     public class AlertWindow : VisualContainer
     {
@@ -18,23 +18,23 @@ namespace TUI.Widgets
         public AlertWindow(string text, ContainerStyle windowStyle = null, ButtonStyle buttonStyle = null)
             : base(0, 0, 0, 0, null, windowStyle ?? new ContainerStyle() { Wall = 165, WallColor = 27 })
         {
-            SetAlignmentInParent(Alignment.Center);
+            SetParentAlignment(Alignment.Center);
             SetupLayout(Alignment.Center, Direction.Down, childIndent: 0);
             int lines = (text?.Count(c => c == '\n') ?? 0) + 1;
             Label = AddToLayout(new Label(0, 0, 0, 1 + lines * 3, text, null,
-                new LabelStyle() { TextIndent = new Indent() { Horizontal = 1, Vertical = 1 } }))
-                .SetFullSize(FullSize.Horizontal) as Label;
+                new LabelStyle() { TextIndent = new Indent() { Horizontal = 1, Vertical = 1 } }));
+            Label.SetWidthParentStretch();
             buttonStyle = buttonStyle ?? new ButtonStyle()
             {
-                WallColor = PaintID.DeepGreen,
+                WallColor = PaintID2.DeepGreen,
                 BlinkStyle = ButtonBlinkStyle.Full,
-                BlinkColor = PaintID.White
+                BlinkColor = PaintID2.White
             };
             buttonStyle.TriggerStyle = ButtonTriggerStyle.TouchEnd;
             Button = AddToLayout(new Button(0, 0, 14, 4, "ok", null, buttonStyle,
-                ((self, touch) => self.Root.HidePopUp()))) as Button;
-            SetWH(0, Label.Height + Button.Height);
-            SetFullSize(FullSize.Horizontal);
+                ((self, touch) => ((Panel)self.Root).HidePopUp())));
+            SetWH(0, Label.Height + Button.Height, false);
+            SetWidthParentStretch();
         }
 
         #endregion

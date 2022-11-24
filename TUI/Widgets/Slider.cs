@@ -1,7 +1,7 @@
-﻿using TUI.Base;
-using TUI.Base.Style;
+﻿using TerrariaUI.Base;
+using TerrariaUI.Base.Style;
 
-namespace TUI.Widgets
+namespace TerrariaUI.Widgets
 {
     #region SliderStyle
 
@@ -53,7 +53,8 @@ namespace TUI.Widgets
         #region Constructor
 
         public Slider(int x, int y, int width, int height, SliderStyle style = null, Input<int> input = null)
-            : base(x, y, width, height, new UIConfiguration() { UseMoving = true, UseEnd = true, UseOutsideTouches = true }, style)
+            : base(x, y, width, height, new UIConfiguration() { UseMoving = true, UseEnd = true,
+                UseOutsideTouches = true }, style ?? new SliderStyle())
         {
             Input = input ?? new Input<int>(0, 0, null);
 
@@ -63,7 +64,7 @@ namespace TUI.Widgets
         #endregion
         #region Invoke
 
-        public override void Invoke(Touch touch)
+        protected override void Invoke(Touch touch)
         {
             if (touch.State == TouchState.Begin)
                 Input.Value = Input.Temp;
@@ -78,11 +79,8 @@ namespace TUI.Widgets
         #endregion
         #region ApplyTile
 
-        protected override void ApplyTile(int x, int y)
+        protected override void ApplyTile(int x, int y, dynamic tile)
         {
-            dynamic tile = Tile(x, y);
-            if (tile == null)
-                return;
             if (Style.Active != null)
                 tile.active(Style.Active.Value);
             else if (Style.Tile != null)
@@ -121,8 +119,11 @@ namespace TUI.Widgets
                 int oldTemp = Input.Temp;
                 Input.Temp = temp;
                 if (draw)
-                    ApplyTiles().Draw(temp < oldTemp ? temp : oldTemp, 0,
+                {
+
+                    Apply().Draw(temp < oldTemp ? temp : oldTemp, 0,
                     temp > oldTemp ? temp + 1 - oldTemp : oldTemp + 1 - temp);
+                }
             }
         }
 

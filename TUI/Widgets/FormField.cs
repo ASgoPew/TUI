@@ -1,8 +1,8 @@
 ﻿using System;
-using TUI.Base;
-using TUI.Base.Style;
+using TerrariaUI.Base;
+using TerrariaUI.Base.Style;
 
-namespace TUI.Widgets
+namespace TerrariaUI.Widgets
 {
     /// <summary>
     /// Widget for adding a label to the left side of some other input widget (Checkbox/InputLabel/Slider/...).
@@ -30,7 +30,7 @@ namespace TUI.Widgets
                 throw new ArgumentException($"{nameof(input)} must be VisualObject, IInput.");
             Input = input;
             Add((VisualObject)input)
-                .SetAlignmentInParent(Alignment.Right, inputIndent);
+                .SetParentAlignment(Alignment.Right, inputIndent);
         }
 
         #endregion

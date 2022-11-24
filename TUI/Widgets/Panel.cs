@@ -1,10 +1,34 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using TUI.Base;
-using TUI.Base.Style;
+using TerrariaUI.Base;
+using TerrariaUI.Base.Style;
 
-namespace TUI.Widgets
+namespace TerrariaUI.Widgets
 {
+    #region PanelStyle
+
+    /// <summary>
+    /// Drawing styles for Panel widget.
+    /// </summary>
+    public class PanelStyle : ContainerStyle
+    {
+        public bool SavePosition { get; set; } = true;
+        public bool SaveSize { get; set; } = true;
+        public bool SaveEnabled { get; set; } = true;
+
+        public PanelStyle() : base() { }
+
+        public PanelStyle(PanelStyle style)
+            : base(style)
+        {
+            SavePosition = style.SavePosition;
+            SaveSize = style.SaveSize;
+            SaveEnabled = style.SaveEnabled;
+        }
+    }
+
+    #endregion
     enum PanelState
     {
         Moving = 0,
@@ -26,7 +50,11 @@ namespace TUI.Widgets
 
         public PanelDrag DragObject { get; set; }
         public PanelResize ResizeObject { get; set; }
-        internal bool SaveDataNow { get; set; } = false;
+        internal bool SaveDataNow { get; set; } = true;
+        protected Summoning Summoning { get; set; }
+
+        public PanelStyle PanelStyle => Style as PanelStyle;
+        public VisualObject Summoned => Summoning?.Top?.Node;
 
         #endregion
 
@@ -43,16 +71,14 @@ namespace TUI.Widgets
         /// FakeTileRectangle from [FakeManager](https://github.com/AnzhelikaO/FakeManager)
         /// can be passed as a value so that interface would be drawn above the Main.tile.</param>
         public Panel(string name, int x, int y, int width, int height, PanelDrag drag, PanelResize resize,
-                UIConfiguration configuration = null, ContainerStyle style = null, object provider = null)
+                UIConfiguration configuration = null, PanelStyle style = null, object provider = null, HashSet<int> observers = null)
             : base(name, x, y, width, height, configuration ?? new UIConfiguration() { UseBegin = true,
-                UseMoving = true, UseEnd = true }, style, provider)
+                UseMoving = true, UseEnd = true }, style ?? new PanelStyle(), provider, observers)
         {
             if (drag != null)
-                DragObject = Add(drag) as PanelDrag;
+                DragObject = Add(drag);
             if (resize != null)
-                ResizeObject = Add(resize) as PanelResize;
-
-            DBRead();
+                ResizeObject = Add(resize);
         }
 
         /// <summary>
@@ -66,49 +92,92 @@ namespace TUI.Widgets
         /// FakeTileRectangle from [FakeManager](https://github.com/AnzhelikaO/FakeManager)
         /// can be passed as a value so that interface would be drawn above the Main.tile.</param>
         public Panel(string name, int x, int y, int width, int height, UIConfiguration configuration = null,
-                ContainerStyle style = null, object provider = null)
-            : this(name, x, y, width, height, new DefaultPanelDrag(), new DefaultPanelResize(), configuration, style, provider)
+                PanelStyle style = null, object provider = null, HashSet<int> observers = null)
+            : this(name, x, y, width, height, new DefaultPanelDrag(), new DefaultPanelResize(), configuration, style, provider, observers)
         { }
 
         #endregion
-        #region SetXYWH
+        #region DrawReposition
 
-        public override VisualObject SetXYWH(int x, int y, int width, int height)
+        protected override void DrawReposition(int oldX, int oldY, int oldWidth, int oldHeight)
         {
-            int oldX = X, oldY = Y, oldWidth = Width, oldHeight = Height;
-            if (oldX != x || oldY != y || oldWidth != width || oldHeight != height)
+            base.DrawReposition(oldX, oldY, oldWidth, oldHeight);
+            if (SaveDataNow)
+                SavePanel();
+        }
+
+        #endregion
+        #region LoadThisNative
+
+        protected override void LoadThisNative()
+        {
+            base.LoadThisNative();
+            if (!Personal)
+                UDBRead(TUI.WorldID);
+        }
+
+        #endregion
+        #region UDBReadNative
+
+        protected override void UDBReadNative(BinaryReader br, int id)
+        {
+            int x, y, width, height;
+            bool enabled;
+            try
             {
-                base.SetXYWH(x, y, width, height);
-#if DEBUG
-                Console.WriteLine($"{FullName}.SetXYWH({x}, {y}, {width}, {height}){(SaveDataNow ? " SAVING" : "")}");
-#endif
-                if (SaveDataNow)
-                    SavePanel();
-                SaveDataNow = false;
+                x = br.ReadInt32();
+                y = br.ReadInt32();
+                width = br.ReadInt32();
+                height = br.ReadInt32();
+                enabled = br.ReadBoolean();
             }
-            return this;
+            catch (EndOfStreamException)
+            {
+                TUI.Log($"Panel invalid database data", LogType.Warning);
+                DBWrite();
+                return;
+            }
+
+            if (x + width < TUI.MaxTilesX && y + height < TUI.MaxTilesY)
+            {
+                base.UDBReadNative(br, id);
+
+                if (PanelStyle.SavePosition && PanelStyle.SaveSize)
+                    SetXYWH(x, y, width, height, false);
+                else if (PanelStyle.SavePosition)
+                    SetXY(x, y, false);
+                else if (PanelStyle.SaveSize)
+                    SetWH(width, height, false);
+
+                if (PanelStyle.SaveEnabled)
+                {
+                    if (Enabled && !enabled)
+                        Disable(false);
+                    else if (!Enabled && enabled)
+                        Enable(false);
+                }
+            }
+            else
+            {
+                TUI.Log(this, $"Panel can't be placed at {x},{y}: map is too small", LogType.Warning);
+                //SetXYWH(0, 0, width, height);
+                Disable(false);
+                return;
+            }
         }
 
         #endregion
-        #region ReadDataNative
-        protected override void DBReadNative(BinaryReader br)
-        {
-            int x = br.ReadInt32();
-            int y = br.ReadInt32();
-            int width = br.ReadInt32();
-            int height = br.ReadInt32();
-            SetXYWH(x, y, width, height);
-        }
+        #region UDBWriteNative
 
-        #endregion
-        #region WriteDataNative
-
-        protected override void DBWriteNative(BinaryWriter bw)
+        protected override void UDBWriteNative(BinaryWriter bw, int id)
         {
             bw.Write((int)X);
             bw.Write((int)Y);
             bw.Write((int)Width);
             bw.Write((int)Height);
+            bw.Write((bool)Enabled);
+
+            base.UDBWriteNative(bw, id);
         }
 
         #endregion
@@ -118,52 +187,219 @@ namespace TUI.Widgets
         /// <summary>
         /// Save panel position and size
         /// </summary>
-        public void SavePanel() =>
-            DBWrite();
-
-        #endregion
-        #region Drag
-
-        /// <summary>
-        /// Change panel position.
-        /// </summary>
-        public void Drag(int x, int y)
+        public void SavePanel()
         {
-            if (x == X && y == Y)
-                return;
-            if (UsesDefaultMainProvider)
-                Clear().Draw().SetXY(x, y).Update().Apply().Draw();
-            else
-            {
-                int oldX = X, oldY = Y;
-                SetXY(x, y).Draw(oldX - x, oldY - y).Draw();
-            }
+            if (Summoning == null && !Personal)
+                UDBWrite(TUI.WorldID);
         }
 
         #endregion
-        #region Resize
+
+        #region ShowPopUp
 
         /// <summary>
-        /// Change panel size.
+        /// Draws popup object on top of all other child objects.
         /// </summary>
-        public void Resize(int width, int height)
+        /// <param name="style">Style of popup background</param>
+        /// <param name="cancelCallback">Action to call when player touches popup background but not popup itself</param>
+        /// <returns>PopUpBackground</returns>
+        public virtual VisualContainer ShowPopUp(VisualObject popup, ContainerStyle style = null, Action<VisualObject> cancelCallback = null)
         {
-            GridConfiguration grid = Configuration.Grid;
-            int minWidth = grid?.MinWidth ?? 1;
-            int minHeight = grid?.MinHeight ?? 1;
-            if (width < minWidth)
-                width = minWidth;
-            if (height < minHeight)
-                height = minHeight;
-            if (width == Width && height == Height)
-                return;
-            if (UsesDefaultMainProvider)
-                Clear().Draw(frame: false).SetWH(width, height).Update().Apply().Draw();
+            style = style ?? new ContainerStyle();
+            style.Transparent = true;
+            if (PopUpBackground == null)
+            {
+                VisualContainer popUpBackground = new VisualContainer(0, 0, 0, 0, new UIConfiguration()
+                { SessionAcquire = true }, style, (self, touch) =>
+                {
+                    VisualObject selected = ((VisualContainer)self).Selected;
+                    if (selected != null && PopUpCancelCallbacks.TryGetValue(selected, out Action<VisualObject> cancel))
+                        cancel.Invoke(this);
+                    else
+                        HidePopUp();
+                });
+                Add(popUpBackground, Int32.MaxValue);
+                PopUpBackground = popUpBackground;
+            }
+            if (style != null)
+                PopUpBackground.Style = style;
+            PopUpBackground.SetWidthParentStretch();
+            PopUpBackground.SetHeightParentStretch();
+            if (!PopUpBackground.HasChild(popup))
+                PopUpBackground.Add(popup);
+            if (cancelCallback != null)
+                PopUpCancelCallbacks[popup] = cancelCallback;
+            PopUpBackground.DrawWithSection = DrawWithSection;
+            PopUpBackground.Select(popup, false).Enable(false);
+
+            Update().Apply().Draw();
+            return PopUpBackground;
+        }
+
+        #endregion
+        #region HidePopUp
+
+        public virtual RootVisualObject HidePopUp()
+        {
+            if (PopUpBackground is VisualContainer popUpBackground)
+            {
+                popUpBackground.Disable(false);
+                Update().Apply().Draw();
+            }
+            return this;
+        }
+
+        #endregion
+        #region Alert
+
+        /// <summary>
+        /// Show alert window with information text and "ok" button.
+        /// </summary>
+        /// <returns>this</returns>
+        public virtual VisualContainer Alert(string text, ContainerStyle windowStyle = null, ButtonStyle okButtonStyle = null) =>
+            ShowPopUp(new AlertWindow(text, windowStyle, okButtonStyle));
+
+        #endregion
+        #region Confirm
+
+        /// <summary>
+        /// Show confirm window with information text and "yes", "no" buttons.
+        /// </summary>
+        /// <returns>this</returns>
+        public virtual VisualContainer Confirm(string text, Action<bool> callback, ContainerStyle windowStyle = null,
+                ButtonStyle yesButtonStyle = null, ButtonStyle noButtonStyle = null) =>
+            ShowPopUp(new ConfirmWindow(text, callback, windowStyle, yesButtonStyle, noButtonStyle));
+
+        #endregion
+        #region Summon
+
+        public Panel Summon(VisualObject node, Alignment alignment = Alignment.Center,
+            int level = 1, bool drag = false, bool resize = false)
+        {
+            if (Summoned == node)
+                return this;
+
+            if (Summoning == null)
+                Summoning = new Summoning(X, Y, Width, Height);
+
+            while (level <= 0)
+            {
+                UnsummonNode();
+                level++;
+            }
+
+            SummonNode(node, alignment, drag, resize);
+            ApplySummoned();
+
+            return this;
+        }
+
+        #endregion
+        #region SummonNode
+
+        private void SummonNode(VisualObject node, Alignment alignment, bool drag, bool resize)
+        {
+            bool wasChild = HasChild(node);
+            if (!wasChild)
+                Add(node);
+            Summoning.Push(node, wasChild, alignment, drag, resize);
+            node.SetXY(0, 0, false);
+        }
+
+        #endregion
+        #region ApplySummoned
+
+        private void ApplySummoned()
+        {
+            SummoningNode summoningNode = Summoning.Top;
+            VisualObject node = summoningNode.Node;
+            Alignment alignment = summoningNode.Alignment;
+            (int oldX, int oldY, int oldWidth, int oldHeight) = XYWH();
+
+            Select(node, false);
+            if (summoningNode.Drag)
+                DragObject?.Enable(false);
+            else
+                DragObject?.Disable(false);
+            if (summoningNode.Resize)
+                ResizeObject?.Enable(false);
+            else
+                ResizeObject?.Disable(false);
+
+            int w = node.Width;
+            int h = node.Height;
+
+            int x;
+            if (alignment == Alignment.UpLeft || alignment == Alignment.Left || alignment == Alignment.DownLeft)
+                x = Summoning.OldX;
+            else if (alignment == Alignment.UpRight || alignment == Alignment.Right || alignment == Alignment.DownRight)
+                x = Summoning.OldX + (Summoning.OldWidth - w);
+            else
+                x = Summoning.OldX + (Summoning.OldWidth - w) / 2;
+
+            int y;
+            if (alignment == Alignment.UpLeft || alignment == Alignment.Up || alignment == Alignment.UpRight)
+                y = Summoning.OldY;
+            else if (alignment == Alignment.DownLeft || alignment == Alignment.Down || alignment == Alignment.DownRight)
+                y = Summoning.OldY + (Summoning.OldHeight - h);
+            else
+                y = Summoning.OldY + (Summoning.OldHeight - h) / 2;
+
+            SetXYWH(x, y, w, h, false);
+            Update().Apply();
+            DrawReposition(oldX, oldY, oldWidth, oldHeight);
+        }
+
+        #endregion
+        #region Unsummon
+
+        public Panel Unsummon(int levels = 1)
+        {
+            if (Summoning == null)
+                return this;
+            else if (levels < 1)
+                throw new ArgumentOutOfRangeException(nameof(levels));
+            else if (levels > Summoning.Count)
+                levels = Summoning.Count;
+
+            (int oldX, int oldY, int oldWidth, int oldHeight) = XYWH();
+            while (levels-- > 0)
+                UnsummonNode();
+
+            if (Summoning.Count > 0)
+                ApplySummoned();
             else
             {
-                int oldWidth = Width, oldHeight = Height;
-                SetWH(width, height).Update().Apply().Draw(0, 0, oldWidth, oldHeight, frame: false).Draw();
+                SetXYWH(Summoning.OldX, Summoning.OldY, Summoning.OldWidth, Summoning.OldHeight, false);
+                DragObject?.Enable(false);
+                ResizeObject?.Enable(false);
+                Deselect(false);
+                // RootVisualObject does Apply() only if size has changed
+                if (Width == oldWidth && Height == oldHeight)
+                    Apply();
+                DrawReposition(oldX, oldY, oldWidth, oldHeight);
+                Summoning = null;
             }
+
+            return this;
+        }
+
+        #endregion
+        #region UnsummonAll
+
+        public Panel UnsummonAll() =>
+            Unsummon(Int32.MaxValue);
+
+        #endregion
+        #region UnsummonNode
+
+        private void UnsummonNode()
+        {
+            SummoningNode node = Summoning.Pop();
+            if (!node.WasChild)
+                Remove(node.Node);
+            else // Restoring Summoned position in parent since it was a child before summoning
+                node.Node.SetXY(node.OldX, node.OldY, false);
         }
 
         #endregion
@@ -201,7 +437,7 @@ namespace TUI.Widgets
                     int dy = touch.AbsoluteY - touch.Session.BeginTouch.AbsoluteY;
                     Panel panel = (Panel)@this.Parent;
                     panel.SaveDataNow = ending;
-                    panel.Drag(panel.DragX + dx, panel.DragY + dy);
+                    panel.SetXY(panel.DragX + dx, panel.DragY + dy, true);
                     if (ending)
                     {
                         touch.Session[@this] = null;
@@ -245,7 +481,7 @@ namespace TUI.Widgets
                     int dh = touch.AbsoluteY - touch.Session.BeginTouch.AbsoluteY;
                     Panel panel = (Panel)@this.Parent;
                     panel.SaveDataNow = ending;
-                    panel.Resize(panel.ResizeW + dw, panel.ResizeH + dh);
+                    panel.SetWH(panel.ResizeW + dw, panel.ResizeH + dh, true);
                     if (ending)
                     {
                         touch.Session[@this] = null;
@@ -262,7 +498,7 @@ namespace TUI.Widgets
     public sealed class DefaultPanelDrag : PanelDrag
     {
         public DefaultPanelDrag(bool useMoving = true)
-            : base(0, 0, 1, 1, new UIConfiguration() { UseMoving=useMoving, UseEnd=true, UseOutsideTouches=true, Permission="TUI.Control" })
+            : base(0, 0, 1, 1, new UIConfiguration() { UseMoving=useMoving, UseEnd=true, UseOutsideTouches=true, Priveleged=true })
         {
         }
     }
@@ -273,9 +509,9 @@ namespace TUI.Widgets
     public sealed class DefaultPanelResize : PanelResize
     {
         public DefaultPanelResize()
-            : base(0, 0, 1, 1, new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true, Permission="TUI.Control" })
+            : base(0, 0, 1, 1, new UIConfiguration() { UseMoving=true, UseEnd=true, UseOutsideTouches=true, Priveleged=true })
         {
-            SetAlignmentInParent(Alignment.DownRight);
+            SetParentAlignment(Alignment.DownRight);
         }
     }
 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TUI.Base
+namespace TerrariaUI.Base
 {
     public enum TouchState
     {
@@ -12,25 +12,18 @@ namespace TUI.Base
     /// <summary>
     /// Touch event information.
     /// </summary>
-    public class Touch : IVisual<Touch>
+    public class Touch
     {
         #region Data
 
-            #region IVisual
-
-            /// <summary>
-            /// Horizontal coordinate relative to left border of this object.
-            /// </summary>
-            public int X { get; set; }
-            /// <summary>
-            /// Vertical coordinate relative to top border of this object.
-            /// </summary>
-            public int Y { get; set; }
-            public int Width { get; set; }
-            public int Height { get; set; }
-
-            #endregion
-
+        /// <summary>
+        /// Horizontal coordinate relative to left border of this object.
+        /// </summary>
+        public int X { get; set; }
+        /// <summary>
+        /// Vertical coordinate relative to top border of this object.
+        /// </summary>
+        public int Y { get; set; }
         /// <summary>
         /// Horizontal coordinate relative to world left border.
         /// </summary>
@@ -46,7 +39,7 @@ namespace TUI.Base
         /// <summary>
         /// UserSession object of user who is touching.
         /// </summary>
-        public UserSession Session { get; internal set; }
+        public PlayerSession Session { get; internal set; }
         /// <summary>
         /// Number of touch counting from TouchState.Begin.
         /// </summary>
@@ -59,15 +52,15 @@ namespace TUI.Base
         /// Identifier of touch interval when this touch was touched.
         /// </summary>
         public int TouchSessionIndex { get; internal set; }
+        public bool Priveleged { get; internal set; }
         public bool InsideUI { get; internal set; }
-        //public Locked Locked { get; internal set; }
         /// <summary>
         /// True if it is TouchState.End and user ended his touch with pressing
         /// right mouse button (undo grand design action).
         /// </summary>
         public bool Undo { get; set; }
         /// <summary>
-        /// Prefix of the touching grand desing
+        /// Prefix of the touching grand design
         /// </summary>
         public byte Prefix { get; private set; }
         private byte StateByte { get; set; }
@@ -104,84 +97,34 @@ namespace TUI.Base
 
         #endregion
 
-        #region IVisual
-
-            #region InitializeVisual
-
-            public void InitializeVisual(int x, int y, int width = 1, int height = 1)
-            {
-                X = x;
-                Y = y;
-                Width = width;
-                Height = height;
-            }
-
-            #endregion
-            #region XYWH
-
-            public (int X, int Y, int Width, int Height) XYWH(int dx = 0, int dy = 0)
-            {
-                return (X + dx, Y + dy, Width, Height);
-            }
-
-            public Touch SetXYWH(int x, int y, int width = -1, int height = -1)
-            {
-                X = x;
-                Y = y;
-                Width = width >= 0 ? width : Width;
-                Height = height >= 0 ? height : Height;
-                return this;
-            }
-
-            #endregion
-            #region Move
-
-            public Touch Move(int dx, int dy)
-            {
-                X += dx;
-                Y += dy;
-                return this;
-            }
-
-            public Touch MoveBack(int dx, int dy)
-            {
-                X -= dx;
-                Y -= dy;
-                return this;
-            }
-
-            #endregion
-            #region Contains, Intersects
-
-            public bool Contains(int x, int y) =>
-                x >= X && y >= Y && x < X + Width && y < Y + Height;
-            public bool ContainsRelative(int x, int y) =>
-                x >= 0 && y >= 0 && x < Width && y < Height;
-            public bool Intersecting(int x, int y, int width, int height) =>
-                x < X + Width && X < x + width && y < Y + Height && Y < y + height;
-            public bool Intersecting(Touch o) => false;
-
-            #endregion
-
-        #endregion
-
         #region Constructor
 
-        public Touch(int x, int y, TouchState state, byte prefix = 0, byte stateByte = 0)
+        public Touch(int x, int y, TouchState state, bool priveleged = false, byte prefix = 0, byte stateByte = 0)
         {
-            InitializeVisual(x, y);
+            X = x;
+            Y = y;
             AbsoluteX = X;
             AbsoluteY = Y;
             State = state;
+            Priveleged = priveleged;
             Prefix = prefix;
             StateByte = stateByte;
             Time = DateTime.UtcNow;
         }
 
         #endregion
+        #region Move
+
+        public void Move(int dx, int dy)
+        {
+            X += dx;
+            Y += dy;
+        }
+
+        #endregion
         #region SetSession
 
-        public void SetSession(UserSession session)
+        public void SetSession(PlayerSession session)
         {
             Session = session;
             TouchSessionIndex = Session.TouchSessionIndex;
@@ -193,11 +136,12 @@ namespace TUI.Base
 
         public Touch(Touch touch)
         {
+            this.X = touch.AbsoluteX;
+            this.Y = touch.AbsoluteY;
             this.AbsoluteX = touch.AbsoluteX;
             this.AbsoluteY = touch.AbsoluteY;
-            this.X = this.AbsoluteX;
-            this.Y = this.AbsoluteY;
             this.State = touch.State;
+            this.Priveleged = touch.Priveleged;
             this.Prefix = touch.Prefix;
             this.Session = touch.Session;
             this.Undo = touch.Undo;

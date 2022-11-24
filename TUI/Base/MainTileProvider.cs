@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace TUI.Base
+namespace TerrariaUI.Base
 {
     public class MainTileProvider
     {
@@ -12,12 +12,12 @@ namespace TUI.Base
         internal int Height = 0;
         internal bool Enabled = true;
 
-        private FieldInfo TileField;
+        private static FieldInfo TileField;
 
         public MainTileProvider(object tile = null)
         {
             Tile = tile;
-            if (Tile == null)
+            if (Tile == null && TileField == null)
             {
                 Assembly[] asms = AppDomain.CurrentDomain.GetAssemblies();
                 foreach (Assembly asm in asms)
@@ -28,31 +28,50 @@ namespace TUI.Base
                         if (modules.Length == 0)
                             continue;
                         TileField = modules[0]?.GetType("Terraria.Main")?.GetField("tile");
-                        Tile = TileField?.GetValue(null);
+                        break;
                     }
                 }
+                if (TileField == null)
+                    throw new Exception("Can't find OTAPI");
             }
-            if (Tile == null)
-                throw new Exception("Can't find OTAPI");
         }
 
         public object this[int x, int y]
         {
-            get => Tile[x, y];
+            get
+            {
+                if (Tile == null)
+                    Tile = TileField?.GetValue(null);
+                return Tile[x, y];
+            }
             set => Tile[x, y] = value;
         }
 
-        public void SetXYWH(int x, int y, int width, int height)
+        public void SetXYWH(int x, int y, int width, int height, bool Draw = true)
         { }
 
-        public void SetEnabled(bool enabled)
+        public void Enable(bool draw = true)
         {
-            Enabled = enabled;
+            if (!Enabled)
+            {
+                Enabled = true;
+                TUI.DrawRectangle(X, Y, Width, Height, true, -1, -1, true);
+            }
+        }
+
+        public void Disable(bool draw = true)
+        {
+            if (Enabled)
+            {
+                Enabled = false;
+                TUI.DrawRectangle(X, Y, Width, Height, true, -1, -1, true);
+            }
         }
 
         public void Update()
         {
-            Tile = TileField?.GetValue(null);
+            if (Tile == null)
+                Tile = TileField?.GetValue(null);
         }
     }
 }
