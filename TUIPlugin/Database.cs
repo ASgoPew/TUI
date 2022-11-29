@@ -31,9 +31,12 @@ namespace TUIPlugin
         /// </summary>
         public static void ConnectDB()
         {
+
             if (TShock.Config.Settings.StorageType.ToLower() == "sqlite")
-                db = new SqliteConnection(string.Format("uri=file://{0},Version=3",
-                    Path.Combine(TShock.SavePath, "tshock.sqlite")));
+                db = new SqliteConnection(new SqliteConnectionStringBuilder()
+                {
+                    DataSource = Path.Combine(TShock.SavePath, "tshock.sqlite")
+                }.ToString());
             else if (TShock.Config.Settings.StorageType.ToLower() == "mysql")
             {
                 try
