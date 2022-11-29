@@ -3,11 +3,9 @@
     <TargetFramework>net6.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="OTAPI">
-      <HintPath>..\TUIPlugin\_References\OTAPI.dll</HintPath>
-    </Reference>
     <ProjectReference Include="..\TUI\TUI.csproj" />
   </ItemGroup>
   <ItemGroup>

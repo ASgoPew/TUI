@@ -42,7 +42,7 @@ namespace TUIPlusTEdit
             base.Dispose(disposing);
         }
 
-        #region ReadTEdit
+        #region ReadTEdit (OBSOLETE)
 
         private List<ImageData> ReadTEdit(string name, bool video)
         {

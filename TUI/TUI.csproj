@@ -4,6 +4,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>TerrariaUI</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
