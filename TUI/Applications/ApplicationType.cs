@@ -13,6 +13,7 @@ namespace TerrariaUI
 
         protected ConcurrentDictionary<int, Application> Instances { get; set; } = new ConcurrentDictionary<int, Application>();
         protected ApplicationSaver Saver;
+        protected internal bool Deregistering = false;
 
         public string Name { get; protected set; }
         public Func<string, HashSet<int>, Application> Generator { get; protected set; }
@@ -116,7 +117,7 @@ namespace TerrariaUI
             Application instance = Instances[app.Index];
             instance.EndPlayerSession();
             Instances.TryRemove(app.Index, out _);
-            if (!instance.Personal)
+            if (!instance.Personal && !Deregistering)
                 Saver?.UDBWrite(TUI.WorldID);
         }
 

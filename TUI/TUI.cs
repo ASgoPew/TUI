@@ -566,6 +566,7 @@ namespace TerrariaUI
             if (!ApplicationTypes.TryGetValue(name, out ApplicationType appType))
                 throw new KeyNotFoundException($"Application not found: {appType.Name}");
 
+            appType.Deregistering = true;
             if (destroy)
                 appType.DestroyAll();
             ApplicationTypes.TryRemove(appType.Name, out _);
