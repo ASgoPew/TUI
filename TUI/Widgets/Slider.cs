@@ -1,4 +1,5 @@
-﻿using TerrariaUI.Base;
+﻿using System.Collections.Generic;
+using TerrariaUI.Base;
 using TerrariaUI.Base.Style;
 
 namespace TerrariaUI.Widgets
@@ -81,22 +82,32 @@ namespace TerrariaUI.Widgets
 
         protected override void ApplyTile(int x, int y, dynamic tile)
         {
-            if (Style.Active != null)
+            if (Style.Active.HasValue)
                 tile.active(Style.Active.Value);
-            else if (Style.Tile != null)
+            else if (Style.Tile.HasValue)
                 tile.active(true);
-            else if (Style.Wall != null)
+            else if (Style.Wall.HasValue)
                 tile.active(false);
-            if (Style.InActive != null)
+            if (Style.InActive.HasValue)
                 tile.inActive(Style.InActive.Value);
-            if (Style.Tile != null)
+            if (Style.Tile.HasValue)
                 tile.type = Style.Tile.Value;
-            if (Style.TileColor != null)
+            if (Style.TileColor.HasValue)
                 tile.color(Style.TileColor.Value);
-            if (Style.Wall != null)
+            if (Style.TileCoating is HashSet<byte> tileCoating)
+            {
+                tile.fullbrightBlock(tileCoating.Contains(PaintCoatingID2.Glow));
+                tile.invisibleBlock(tileCoating.Contains(PaintCoatingID2.Echo));
+            }
+            if (Style.Wall.HasValue)
                 tile.wall = Style.Wall.Value;
-            if (Style.WallColor != null)
+            if (Style.WallColor.HasValue)
                 tile.wallColor((x > Input.Temp) ? Style.WallColor.Value : (x == Input.Temp) ? SliderStyle.SeparatorColor : SliderStyle.UsedColor);
+            if (Style.WallCoating is HashSet<byte> wallCoating)
+            {
+                tile.fullbrightWall(wallCoating.Contains(PaintCoatingID2.Glow));
+                tile.invisibleWall(wallCoating.Contains(PaintCoatingID2.Echo));
+            }
         }
 
         #endregion

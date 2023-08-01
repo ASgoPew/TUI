@@ -802,7 +802,7 @@ namespace TerrariaUI.Base
         }
 
         #endregion
-        #region UpdateParentAlignment
+        #region UpdateChildrenParentAlignment
 
         private void UpdateChildrenParentAlignment()
         {
@@ -1359,10 +1359,20 @@ namespace TerrariaUI.Base
                 tile.type = Style.Tile.Value;
             if (Style.TileColor.HasValue)
                 tile.color(Style.TileColor.Value);
+            if (Style.TileCoating is HashSet<byte> tileCoating)
+            {
+                tile.fullbrightBlock(tileCoating.Contains(PaintCoatingID2.Glow));
+                tile.invisibleBlock(tileCoating.Contains(PaintCoatingID2.Echo));
+            }
             if (Style.Wall.HasValue)
                 tile.wall = Style.Wall.Value;
             if (Style.WallColor.HasValue)
                 tile.wallColor(Style.WallColor.Value);
+            if (Style.WallCoating is HashSet<byte> wallCoating)
+            {
+                tile.fullbrightWall(wallCoating.Contains(PaintCoatingID2.Glow));
+                tile.invisibleWall(wallCoating.Contains(PaintCoatingID2.Echo));
+            }
         }
 
         #endregion

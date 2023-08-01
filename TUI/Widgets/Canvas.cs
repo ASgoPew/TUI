@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using TerrariaUI.Base;
 using TerrariaUI.Base.Style;
 
@@ -86,8 +87,6 @@ namespace TerrariaUI.Widgets
 
         protected override void ApplyTile(int x, int y, dynamic tile)
         {
-            //base.ApplyTile(x, y, tile);
-
             if (Style.Active.HasValue)
                 tile.active(Style.Active.Value);
             else if (Style.Tile.HasValue)
@@ -100,10 +99,20 @@ namespace TerrariaUI.Widgets
                 tile.type = Style.Tile.Value;
             if (Style.TileColor.HasValue)
                 tile.color(Style.TileColor.Value);
+            if (Style.TileCoating is HashSet<byte> tileCoating)
+            {
+                tile.fullbrightBlock(tileCoating.Contains(PaintCoatingID2.Glow));
+                tile.invisibleBlock(tileCoating.Contains(PaintCoatingID2.Echo));
+            }
             if (Style.Wall.HasValue)
                 tile.wall = Style.Wall.Value;
             if (Style.WallColor.HasValue)
                 tile.wallColor(Style.WallColor.Value);
+            if (Style.WallCoating is HashSet<byte> wallCoating)
+            {
+                tile.fullbrightWall(wallCoating.Contains(PaintCoatingID2.Glow));
+                tile.invisibleWall(wallCoating.Contains(PaintCoatingID2.Echo));
+            }
 
             if (CanvasStyle.CanvasType == CanvasType.Wall)
                 tile.wallColor(Paint[x, y]);
@@ -116,7 +125,7 @@ namespace TerrariaUI.Widgets
 
         public Canvas PaintPixel(int x, int y, byte paint, bool draw = false)
         {
-            if (x < 0 || y < 0 || x >= Width || y >= Height || paint >= PaintID2.Illuminant)
+            if (x < 0 || y < 0 || x >= Width || y >= Height || paint > PaintID2.Negative)
                 throw new ArgumentOutOfRangeException();
 
             Paint[x, y] = paint;

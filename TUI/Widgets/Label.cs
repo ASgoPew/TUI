@@ -115,7 +115,7 @@ namespace TerrariaUI.Widgets
         #region Copy
 
         public Label(Label label)
-            : this(label.X, label.Y, label.Width, label.Height, string.Copy(label.RawText),new UIConfiguration(label.Configuration),
+            : this(label.X, label.Y, label.Width, label.Height, label.RawText,new UIConfiguration(label.Configuration),
                   new LabelStyle(label.Style as LabelStyle), label.Callback?.Clone() as Action<VisualObject, Touch>)
         {
         }
@@ -476,8 +476,6 @@ namespace TerrariaUI.Widgets
                     return PaintID2.Shadow;
                 case "negative":
                     return PaintID2.Negative;
-                case "illuminant":
-                    return PaintID2.Illuminant;
                 default:
                     return PaintID2.None;
             }

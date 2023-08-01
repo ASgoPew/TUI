@@ -68,8 +68,7 @@ namespace TerrariaUI.Widgets
         /// <param name="provider">Tile provider object, default value - null (interface would
         /// be drawn on the Main.tile, tiles would be irrevocably modified).
         /// <para></para>
-        /// FakeTileRectangle from [FakeManager](https://github.com/AnzhelikaO/FakeManager)
-        /// can be passed as a value so that interface would be drawn above the Main.tile.</param>
+        /// </param>
         public Panel(string name, int x, int y, int width, int height, PanelDrag drag, PanelResize resize,
                 UIConfiguration configuration = null, PanelStyle style = null, object provider = null, HashSet<int> observers = null)
             : base(name, x, y, width, height, configuration ?? new UIConfiguration() { UseBegin = true,
@@ -89,8 +88,7 @@ namespace TerrariaUI.Widgets
         /// <param name="provider">Tile provider object, default value - null (interface would
         /// be drawn on the Main.tile, tiles would be irrevocably modified).
         /// <para></para>
-        /// FakeTileRectangle from [FakeManager](https://github.com/AnzhelikaO/FakeManager)
-        /// can be passed as a value so that interface would be drawn above the Main.tile.</param>
+        /// </param>
         public Panel(string name, int x, int y, int width, int height, UIConfiguration configuration = null,
                 PanelStyle style = null, object provider = null, HashSet<int> observers = null)
             : this(name, x, y, width, height, new DefaultPanelDrag(), new DefaultPanelResize(), configuration, style, provider, observers)

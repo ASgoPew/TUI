@@ -164,10 +164,20 @@ namespace TerrariaUI.Widgets
                 tile.type = style.Tile.Value;
             if (style.TileColor.HasValue)
                 tile.color(style.TileColor.Value);
+            if (style.TileCoating is HashSet<byte> tileCoating)
+            {
+                tile.fullbrightBlock(tileCoating.Contains(PaintCoatingID2.Glow));
+                tile.invisibleBlock(tileCoating.Contains(PaintCoatingID2.Echo));
+            }
             if (style.Wall.HasValue)
                 tile.wall = style.Wall.Value;
             if (style.WallColor.HasValue)
                 tile.wallColor(style.WallColor.Value);
+            if (style.WallCoating is HashSet<byte> wallCoating)
+            {
+                tile.fullbrightWall(wallCoating.Contains(PaintCoatingID2.Glow));
+                tile.invisibleWall(wallCoating.Contains(PaintCoatingID2.Echo));
+            }
         }
 
         #endregion

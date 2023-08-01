@@ -73,8 +73,7 @@ namespace TerrariaUI.Base
         /// <param name="name">Unique interface identifier</param>
         /// be drawn on the Main.tile, tiles would be irrevocably modified).
         /// <para></para>
-        /// FakeTileRectangle from [FakeManager](https://github.com/AnzhelikaO/FakeManager)
-        /// can be passed as a value so that interface would be drawn above the Main.tile.</param>
+        /// </param>
         public RootVisualObject(string name, int x, int y, int width, int height,
                 UIConfiguration configuration = null, ContainerStyle style = null, object provider = null, HashSet<int> observers = null)
             : base(x, y, width, height, configuration ?? new UIConfiguration() { UseBegin=true, UseMoving=true, UseEnd=true }, style)

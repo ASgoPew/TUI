@@ -1,4 +1,7 @@
-﻿namespace TerrariaUI.Base.Style
+﻿using System.Collections.Generic;
+using System.Linq;
+
+namespace TerrariaUI.Base.Style
 {
     /// <summary>
     /// Drawing styles for VisualObject.
@@ -21,6 +24,10 @@
         /// </summary>
         public byte? TileColor { get; set; }
         /// <summary>
+        /// Sets tile.fullbrightBlock() and/or tile.invisibleBlock() for every tile.
+        /// </summary>
+        public HashSet<byte> TileCoating { get; set; }
+        /// <summary>
         /// Sets tile.wall = Style.Wall for every tile.
         /// </summary>
         public ushort? Wall { get; set; }
@@ -28,6 +35,10 @@
         /// Sets tile.wallColor(Style.WallColor) for every tile.
         /// </summary>
         public byte? WallColor { get; set; }
+        /// <summary>
+        /// Sets tile.fullbrightWall() and/or tile.invisibleWall() for every wall.
+        /// </summary>
+        public HashSet<byte> WallCoating { get; set; }
         /// <summary>
         /// Sets tile.inActive(Style.InActive) for every tile.
         /// </summary>
@@ -59,10 +70,12 @@
                 this.Tile = style.Tile.Value;
             if (style.TileColor.HasValue)
                 this.TileColor = style.TileColor.Value;
+            this.TileCoating = style.TileCoating?.ToHashSet();
             if (style.Wall.HasValue)
                 this.Wall = style.Wall.Value;
             if (style.WallColor.HasValue)
                 this.WallColor = style.WallColor.Value;
+            this.WallCoating = style.WallCoating?.ToHashSet();
             if (style.InActive.HasValue)
                 this.InActive = style.InActive.Value;
         }
