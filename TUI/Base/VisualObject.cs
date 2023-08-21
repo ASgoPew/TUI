@@ -1181,8 +1181,11 @@ namespace TerrariaUI.Base
             for (VisualObject node = Parent; node != null; node = node.Parent)
             {
                 ExternalIndent pBounds = node.Bounds;
-                if (node.Enabled && Intersect(bounds.Left, bounds.Up, bounds.Right - bounds.Left + 1, bounds.Down - bounds.Up + 1,
-                    pBounds.Left - deltaX, pBounds.Up - deltaY, pBounds.Right - pBounds.Left + 1, pBounds.Down - pBounds.Up + 1,
+                bool enabled = node.Enabled;
+                if (enabled && node.Style.AllowChildOutside) {}
+                else if (node.Enabled && Intersect(bounds.Left, bounds.Up,
+                    bounds.Right - bounds.Left + 1, bounds.Down - bounds.Up + 1, pBounds.Left - deltaX,
+                    pBounds.Up - deltaY, pBounds.Right - pBounds.Left + 1, pBounds.Down - pBounds.Up + 1,
                     out int x, out int y, out int width, out int height))
                 {
                     bounds.Left = x;
@@ -1527,12 +1530,11 @@ namespace TerrariaUI.Base
             if (targetPlayers.Count == 0)
                 return this;
 
-            if (TUI.DrawDebug)
-                TUI.Log($"DRAW {FullName}");
-
             bool realDrawWithSection = drawWithSection ?? DrawWithSection;
             bool realFrame = frameSection ?? FrameSection;
             (int ax, int ay) = AbsoluteXY();
+            if (TUI.DrawDebug)
+                TUI.Log($"DRAW {FullName}: x = {ax + dx}, y = {ay + dy}, w = {(width >= 0 ? width : Width)}, h = {(height >= 0 ? height : Height)}");
             TUI.DrawObject(this, targetPlayers, ax + dx, ay + dy, width >= 0 ? width : Width, height >= 0 ? height : Height,
                 realDrawWithSection, realFrame);
 

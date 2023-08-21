@@ -43,6 +43,10 @@ namespace TerrariaUI.Base.Style
         /// Sets tile.inActive(Style.InActive) for every tile.
         /// </summary>
         public bool? InActive { get; set; }
+        /// <summary>
+        /// Whether child objects can draw outside of this object.
+        /// </summary>
+        public bool AllowChildOutside { get; set; } = false;
 
         /// <summary>
         /// Drawing styles for VisualObject.
@@ -73,6 +77,7 @@ namespace TerrariaUI.Base.Style
             this.WallCoating = style.WallCoating?.ToHashSet();
             if (style.InActive.HasValue)
                 this.InActive = style.InActive.Value;
+            this.AllowChildOutside = style.AllowChildOutside;
         }
 
         public ushort? SimilarWall()
