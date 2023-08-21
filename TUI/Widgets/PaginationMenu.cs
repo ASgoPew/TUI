@@ -22,7 +22,6 @@ namespace TerrariaUI.Widgets
         {
             SetupGrid(lines: new ISize[] { new Relative(100), new Absolute(4) });
             this[0, 0] = Pages = new PagesList(0, 0);
-            int pagesCount = 1;
             while (values.Count() > 0)
             {
                 Menu menu = new Menu(0, 0, 0, 0, values.Take(pageLimit), style1, style2, title, titleStyle, input, titleCallback);

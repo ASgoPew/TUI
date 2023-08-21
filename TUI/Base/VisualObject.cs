@@ -59,9 +59,9 @@ namespace TerrariaUI.Base
         public virtual int MinWidth => Math.Max(_MinWidth ?? 0, GridConfiguration != null ? MinGridWidth() : 0);
         public virtual int MinHeight => Math.Max(_MinHeight ?? 0, GridConfiguration != null ? MinGridHeight() : 0);
 
-        protected IPositioning Positioning { get; set; }
-        protected IResizing WidthResizing { get; set; }
-        protected IResizing HeightResizing { get; set; }
+        public IPositioning Positioning { get; protected set; }
+        public IResizing WidthResizing { get; protected set; }
+        public IResizing HeightResizing { get; protected set; }
 
         /// <summary>
         /// Child objects positioning in Layout. Not set by default (null).
@@ -506,24 +506,36 @@ namespace TerrariaUI.Base
         // Resizing
         #region SetWidthParentStretch
 
+        /// <summary>
+        /// This object width will be equal to parent object width
+        /// </summary>
         public VisualObject SetWidthParentStretch() =>
             SetWidthResizing(new InParentStretch());
 
         #endregion
         #region SetHeightParentStretch
 
+        /// <summary>
+        /// This object height will be equal to parent object height
+        /// </summary>
         public VisualObject SetHeightParentStretch() =>
             SetHeightResizing(new InParentStretch());
 
         #endregion
         #region SetWidthChildStretch
 
+        /// <summary>
+        /// This object width will automatically change to fit all child objects
+        /// </summary>
         public VisualObject SetWidthChildStretch() =>
             SetWidthResizing(new InChildStretch());
 
         #endregion
         #region SetHeightChildStretch
 
+        /// <summary>
+        /// This object height will automatically change to fit all child objects
+        /// </summary>
         public VisualObject SetHeightChildStretch() =>
             SetHeightResizing(new InChildStretch());
 
@@ -1319,14 +1331,19 @@ namespace TerrariaUI.Base
         protected virtual void ApplyThisNative() => ApplyTiles();
 
         #endregion
+        #region ApplyHasAnything
+
+        protected virtual bool ApplyHasAnything() => Style.Active != null || Style.InActive != null
+            || Style.Tile != null || Style.TileColor != null || Style.TileCoating != null
+            || Style.Wall != null || Style.WallColor != null || Style.WallCoating != null;
+
+        #endregion
         #region ApplyTiles
 
         private void ApplyTiles()
         {
             // Default style tile changes
-            if (!Style.CustomApplyTile && Style.Active == null && Style.InActive == null
-                    && Style.Tile == null && Style.TileColor == null && Style.Wall == null
-                    && Style.WallColor == null)
+            if (!ApplyHasAnything())
                 return;
 
             foreach ((int x, int y) in Points)

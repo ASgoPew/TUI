@@ -118,7 +118,7 @@ namespace TerrariaUI.Widgets
 
         public VisualChar(int x, int y, char character, UIConfiguration configuration = null,
                 UIStyle backgroundStyle = null, UIStyle charStyle = null)
-            : base(x, y, 0, 0, configuration, backgroundStyle)
+            : base(x, y, 0, 0, configuration ?? new UIConfiguration() { UseBegin = false }, backgroundStyle)
         {
             if (!Characters.TryGetValue(character, out bool[,] schema))
                 throw new ArgumentException($"'{character}' is not supported.", nameof(character));
@@ -133,6 +133,11 @@ namespace TerrariaUI.Widgets
                 WallColor = PaintID2.DeepRed
             };
         }
+
+        #endregion
+        #region ApplyHasAnything
+
+        protected override bool ApplyHasAnything() => true;
 
         #endregion
         #region Copy

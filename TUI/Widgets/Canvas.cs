@@ -20,14 +20,11 @@ namespace TerrariaUI.Widgets
         public CanvasStyle()
             : base()
         {
-            CustomApplyTile = true;
         }
 
         public CanvasStyle(CanvasStyle style)
             : base(style)
         {
-            CustomApplyTile = true;
-
             CanvasType = style.CanvasType;
         }
     }
@@ -60,6 +57,11 @@ namespace TerrariaUI.Widgets
 
         #endregion
 
+        #region ApplyHasAnything
+
+        protected override bool ApplyHasAnything() => true;
+
+        #endregion
         #region SetXYWH
 
         public override VisualObject SetXYWH(int x, int y, int width, int height, bool draw)
