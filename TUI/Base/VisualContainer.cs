@@ -7,13 +7,13 @@ namespace TerrariaUI.Base
     #region ContainerStyle
 
     /// <summary>
-    /// Drawing styles for VisualContainer.
+    /// Drawing styles for VisualContainer
     /// </summary>
     public class ContainerStyle : UIStyle
     {
         /// <summary>
-        /// If set to false then container would inherit parent's wall and wall paint,
-        /// also every Apply() would clear every tile before drawing.
+        /// If set to false then container would inherit parent's wall and wall paint
+        /// and every Apply() would clear every tile before drawing
         /// </summary>
         public bool Transparent { get; set; } = false;
 
@@ -33,7 +33,7 @@ namespace TerrariaUI.Base
 
     /// <summary>
     /// Widget-container for other widgets. It is strongly recommended to use this
-    /// instead of just VisualObject, because it correctly supports Scrolling.
+    /// instead of just VisualObject, because it correctly supports Scrolling
     /// </summary>
     public class VisualContainer : VisualObject
     {

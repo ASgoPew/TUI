@@ -78,7 +78,7 @@ namespace TerrariaUI
         /// </summary>
         public int[] SessionPlayers { get; protected set; } = null;
         /// <summary>
-        /// Time of app player session begin moment
+        /// Time of app player session begin moment (UTC)
         /// </summary>
         public DateTime PlayerSessionCreateTime { get; protected set; }
         /// <summary>
@@ -114,6 +114,11 @@ namespace TerrariaUI
         #region StartPlayerSession
 
         bool StartingPlayerSession = false;
+        /// <summary>
+        /// Start exclusive players session (for whatever purpose)
+        /// </summary>
+        /// <param name="players">Specified set of players</param>
+        /// <param name="timeout">Session timeout in seconds</param>
         public void StartPlayerSession(IEnumerable<int> players, int timeout = -1)
         {
             lock (PlayerSessionLocker)
@@ -279,11 +284,7 @@ namespace TerrariaUI
         #endregion
         #region OnObserverLeaveNative
 
-        protected virtual void OnObserverLeaveNative(int player)
-        {
-            if (Observers.Count == 0)
-                TUI.Destroy(this);
-        }
+        protected virtual void OnObserverLeaveNative(int player) { }
 
         #endregion
         #region OnPlayerLeave
