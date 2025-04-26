@@ -39,7 +39,7 @@ namespace TUIPlugin
         public static DesignState[] playerDesignState = new DesignState[Main.maxPlayers];
         public static bool FakesEnabled = false;
         private static Timer RegionTimer = new Timer(1000) { AutoReset = true };
-        private static int[] PlaceStyles = new int[Main.maxItemTypes];
+        private static int[] PlaceStyles = new int[ItemID.Count];
         public static Command[] CommandList = new Command[]
         {
             new Command(TUI.ControlPermission, TUICommand, "tui")
@@ -69,7 +69,7 @@ namespace TUIPlugin
 
                 var old = Main.player[Main.myPlayer];
                 Main.player[Main.myPlayer] = new Player();
-                for (int i = 0; i < Main.maxItemTypes; i++)
+                for (int i = 0; i < ItemID.Count; i++)
                 {
                     Item item = new Item();
                     item.netDefaults(i);
