@@ -232,7 +232,7 @@ namespace TUIPlugin
                         byte designStateByte = br.ReadByte();
                         TSPlayer player = TShock.Players[args.Msg.whoAmI];
                         byte prefix;
-                        if (player?.TPlayer != null && player.TPlayer.inventory[player.TPlayer.selectedItem].netID == ItemID.WireKite)
+                        if (player?.TPlayer != null && player.TPlayer.inventory[player.TPlayer.selectedItem].type == ItemID.WireKite)
                             prefix = player.TPlayer.inventory[player.TPlayer.selectedItem].prefix;
                         else
                             return;
@@ -298,7 +298,7 @@ namespace TUIPlugin
 
                 byte prefix;
 
-                if (player.TPlayer.inventory[player.TPlayer.selectedItem].netID == ItemID.WireKite)
+                if (player.TPlayer.inventory[player.TPlayer.selectedItem].type == ItemID.WireKite)
                     prefix = player.TPlayer.inventory[player.TPlayer.selectedItem].prefix;
                 else
                     return; // This means player is holding another item.Obtains by hacks.
@@ -333,9 +333,10 @@ namespace TUIPlugin
         #endregion
         #region OnSaveWorld
 
-        private static void OnSaveWorld(On.Terraria.IO.WorldFile.orig_SaveWorld orig)
+        private static void OnSaveWorld(On.Terraria.IO.WorldFile.orig_SaveWorld orig,
+            bool resetTime, bool useTemps, bool canBeSkipped)
         {
-            orig();
+            orig(resetTime, useTemps, canBeSkipped);
             TUI.RequestDrawChanges();
         }
 

@@ -129,7 +129,7 @@ namespace TerrariaUI.Widgets
             {
                 dynamic item = Chest.item[i];
                 ItemData data = Items[i];
-                if (item.netID != data.NetID)
+                if (item.type != data.NetID)
                     item.netDefaults(data.NetID);
                 item.prefix = data.Prefix;
                 item.stack = data.Stack;

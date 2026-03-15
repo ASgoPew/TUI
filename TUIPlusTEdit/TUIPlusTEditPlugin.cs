@@ -184,10 +184,10 @@ namespace TUIPlusTEdit
             int chestItems = br.ReadInt16();
             int itemsPerChest;
             int overflowItems;
-            if (chestItems > Chest.maxItems)
+            if (chestItems > Chest.DefaultMaxItems)
             {
-                itemsPerChest = Chest.maxItems;
-                overflowItems = chestItems - Chest.maxItems;
+                itemsPerChest = Chest.DefaultMaxItems;
+                overflowItems = chestItems - Chest.DefaultMaxItems;
             }
             else
             {
@@ -198,10 +198,8 @@ namespace TUIPlusTEdit
             List<Chest> chests = new List<Chest>();
             for (int i = 0; i < chestCount; i = num + 1)
             {
-                Chest chest = new Chest()
+                Chest chest = new Chest(x: br.ReadInt32(), y: br.ReadInt32())
                 {
-                    x = br.ReadInt32(),
-                    y = br.ReadInt32(),
                     name = br.ReadString()
                 };
                 for (int slot = 0; slot < itemsPerChest; slot++)
@@ -212,7 +210,7 @@ namespace TUIPlusTEdit
                     {
                         int id = br.ReadInt32();
                         byte prefix = br.ReadByte();
-                        chest.item[slot].netID = id;
+                        chest.item[slot].type = id;
                         chest.item[slot].stack = stackSize;
                         chest.item[slot].prefix = prefix;
                     }
