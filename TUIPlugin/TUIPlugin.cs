@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Timers;
 using Terraria;
+using Terraria.DataStructures;
 using Terraria.ID;
 using TerrariaApi.Server;
 using TShockAPI;
@@ -248,12 +249,12 @@ namespace TUIPlugin
                     using (MemoryStream ms = new MemoryStream(args.Msg.readBuffer, args.Index, args.Length))
                     using (BinaryReader br = new BinaryReader(ms))
                     {
-                        short projectileID = br.ReadInt16();
-                        byte owner = br.ReadByte();
+                        ProjectileKey key = (ProjectileKey)br.ReadInt32();
+                        byte owner = (byte)key.Spawner;
                         if (owner != args.Msg.whoAmI)
                             return;
                         Touch previousTouch = TUI.Session[owner].PreviousTouch;
-                        if (TUI.Session[owner].ProjectileID == projectileID && previousTouch != null && previousTouch.State != TouchState.End)
+                        if (TUI.Session[owner].ProjectileID == (int)key && previousTouch != null && previousTouch.State != TouchState.End)
                         {
                             Touch simulatedEndTouch = previousTouch.SimulatedEndTouch();
                             simulatedEndTouch.Undo = true;
@@ -312,7 +313,7 @@ namespace TUIPlugin
 
                     if (TUI.Touched(args.Owner, new Touch(tileX, tileY, TouchState.Begin,
                             player.HasPermission(TUI.ControlPermission), prefix, 0)))
-                        TUI.Session[args.Owner].ProjectileID = args.Identity;
+                        TUI.Session[args.Owner].ProjectileID = new ProjectileKey(args.Owner, args.Identity, args.Generation);
                     playerDesignState[args.Owner] = DesignState.Moving;
                     //args.Handled = true;
                 }
@@ -480,7 +481,8 @@ namespace TUIPlugin
             TSPlayer player = args.Touch.Player();
             player.SendWarningMessage("You are holding mouse for too long.");
             TUI.Hooks.Log.Invoke(new LogArgs($"TUI: Touch too long ({player.Name}).", LogType.Info));
-            player.SendData(PacketTypes.ProjectileDestroy, null, args.Session.ProjectileID, player.Index);
+            // A NaN kill position removes the projectile without its death effects
+            player.SendData(PacketTypes.ProjectileDestroy, null, args.Session.ProjectileID, float.NaN, float.NaN);
             Touch simulatedEndTouch = args.Touch.SimulatedEndTouch();
             simulatedEndTouch.Undo = true;
             TUI.Touched(args.UserIndex, simulatedEndTouch);
