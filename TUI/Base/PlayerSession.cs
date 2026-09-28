@@ -25,7 +25,7 @@ namespace TerrariaUI.Base
         /// </summary>
         public int Count { get; internal set; } = 0;
         /// <summary>
-        /// Index of corresponding grand design projectile in Main.projectile.
+        /// Packed ProjectileKey of the corresponding grand design projectile.
         /// </summary>
         public int ProjectileID { get; set; } = -1;
         /// <summary>

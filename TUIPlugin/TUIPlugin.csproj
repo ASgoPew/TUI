@@ -9,9 +9,9 @@
     <ProjectReference Include="..\TUI\TUI.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="TShock" Version="6.1.0" />
-    <PackageReference Include="TSAPI" Version="6.1.0" />
-    <PackageReference Include="OTAPI.Upcoming" Version="3.3.11" />
+    <PackageReference Include="TShock" Version="6.2.1" />
+    <PackageReference Include="TSAPI" Version="6.2.1" />
+    <PackageReference Include="OTAPI.Upcoming" Version="3.3.14" />
     <PackageReference Include="MySql.Data" Version="9.1.0" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
